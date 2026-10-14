@@ -136,7 +136,7 @@ export function PriceCalcPage(): React.JSX.Element {
           <CardTitle className="text-base">گزارش بهای تمام‌شده</CardTitle>
           {breakdown && (
             <Badge variant="success" data-testid="final-badge">
-              قیمت نهایی: <Money value={breakdown.unitFinalPrice.toFixed(4)} />
+              قیمت نهایی: <Money value={breakdown.unitFinalPrice.toFixed(4)} currency="TOMAN" />
             </Badge>
           )}
         </CardHeader>
@@ -165,7 +165,7 @@ export function PriceCalcPage(): React.JSX.Element {
                   <span className={key === "unitFinalPrice" || key === "batchTotal" ? "font-semibold" : ""}>
                     {BREAKDOWN_LABELS[key]}
                   </span>
-                  <Money value={breakdown[key].toFixed(4)} hideCurrency />
+                  <Money value={breakdown[key].toFixed(4)} currency="TOMAN" hideCurrency />
                 </div>
               ))}
             </div>

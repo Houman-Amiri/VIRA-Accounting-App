@@ -36,6 +36,24 @@ export function balance(debits: MoneyLike, credits: MoneyLike): Decimal {
   return toDecimal(debits).minus(toDecimal(credits));
 }
 
+/**
+ * Canonical unit policy (config: `base_currency="IRR"`, `display_currency="IRT"`):
+ * the ledger stores Rials (scaled ×10 000); the UI presents Tomans with
+ * 1 Toman = 10 Rials — the factor is applied EXACTLY ONCE, here at the
+ * presentation edge (or its inverse at form input).
+ */
+export const RIAL_PER_TOMAN = 10;
+
+/** Rial amount (API/DB) → Toman amount (display). */
+export function rialToToman(value: MoneyLike | null | undefined): Decimal {
+  return toDecimal(value).div(RIAL_PER_TOMAN);
+}
+
+/** Toman amount (form input) → Rial amount (API/DB). */
+export function tomanToRial(value: MoneyLike | null | undefined): Decimal {
+  return toDecimal(value).times(RIAL_PER_TOMAN);
+}
+
 export function isZero(value: MoneyLike): boolean {
   return toDecimal(value).isZero();
 }

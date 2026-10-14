@@ -64,6 +64,24 @@ class DuplicateBankImportError(DomainError):
     status = 409
 
 
+class IdempotencyKeyReuseError(DomainError):
+    code = "idempotency_key_reuse"
+    title = "Idempotency key already used with a different request"
+    status = 409
+
+
+class IdempotencyConflictError(DomainError):
+    code = "idempotency_conflict"
+    title = "A request with this idempotency key is in flight"
+    status = 409
+
+
+class ReconciliationSessionClosedError(DomainError):
+    code = "reconciliation_session_closed"
+    title = "Reconciliation session is not open"
+    status = 409
+
+
 class MoneyOverflowError(DomainError):
     code = "money_overflow"
     title = "Monetary amount exceeds safe bounds"

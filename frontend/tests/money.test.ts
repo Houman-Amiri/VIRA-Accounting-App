@@ -1,6 +1,6 @@
 /** Client money math — decimal.js exactness, API string round-trip. */
 import { describe, expect, it } from "vitest";
-import { Decimal, balance, isZero, sumMoney, toDecimal, toMoneyString } from "@/lib/money";
+import { Decimal, balance, isZero, rialToToman, sumMoney, toDecimal, toMoneyString, tomanToRial } from "@/lib/money";
 
 describe("money math (decimal.js, never float)", () => {
   it("parses API 4-decimal strings exactly", () => {
@@ -39,5 +39,14 @@ describe("money math (decimal.js, never float)", () => {
     expect(new Decimal("0.00005").toDecimalPlaces(4).toFixed(4)).toBe("0.0000");
     expect(new Decimal("0.00015").toDecimalPlaces(4).toFixed(4)).toBe("0.0002");
     expect(new Decimal("0.00025").toDecimalPlaces(4).toFixed(4)).toBe("0.0002");
+  });
+
+  it("converts Rial↔Toman exactly (1 Toman = 10 Rials, applied once)", () => {
+    expect(rialToToman("1250.5000").toFixed(4)).toBe("125.0500");
+    expect(tomanToRial("125.0500").toFixed(4)).toBe("1250.5000");
+    // round-trip is lossless for 4-decimal Rial values with 3+ decimals of Toman
+    expect(rialToToman(tomanToRial("99.9990").toFixed(4)).toFixed(4)).toBe("99.9990");
+    // no float drift
+    expect(rialToToman("0.1000").toFixed(4)).toBe("0.0100");
   });
 });

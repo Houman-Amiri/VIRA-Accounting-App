@@ -312,6 +312,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reports/balance-snapshots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Compute Balance Snapshots */
+        post: operations["compute_balance_snapshots_api_v1_reports_balance_snapshots_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/imports/bank": {
         parameters: {
             query?: never;
@@ -355,6 +372,125 @@ export interface paths {
         };
         /** List Lines */
         get: operations["list_lines_api_v1_imports_lines_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reconciliation/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Session */
+        post: operations["create_session_api_v1_reconciliation_sessions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reconciliation/sessions/{session_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Session */
+        get: operations["get_session_api_v1_reconciliation_sessions__session_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reconciliation/sessions/{session_id}/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Session Progress */
+        get: operations["session_progress_api_v1_reconciliation_sessions__session_id__progress_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reconciliation/sessions/{session_id}/splits/{split_id}/link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Link Split */
+        post: operations["link_split_api_v1_reconciliation_sessions__session_id__splits__split_id__link_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reconciliation/sessions/{session_id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete Session */
+        post: operations["complete_session_api_v1_reconciliation_sessions__session_id__complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reconciliation/sessions/{session_id}/abandon": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Abandon Session */
+        post: operations["abandon_session_api_v1_reconciliation_sessions__session_id__abandon_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Run Search */
+        get: operations["run_search_api_v1_search_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -675,6 +811,86 @@ export interface components {
             amount: string;
             /** Children */
             children?: components["schemas"]["ReportNode"][];
+        };
+        /** SearchHitOut */
+        SearchHitOut: {
+            /** Entity */
+            entity: string;
+            /** Ref Id */
+            ref_id: string;
+            /** Title */
+            title: string;
+            /** Snippet */
+            snippet: string;
+            /** Score */
+            score: number;
+        };
+        /** SearchResponse */
+        SearchResponse: {
+            /** Query */
+            query: string;
+            /** Backend */
+            backend: string;
+            /** Hits */
+            hits: components["schemas"]["SearchHitOut"][];
+        };
+        /** SessionCreate */
+        SessionCreate: {
+            /** Account Id */
+            account_id: string;
+            /** Statement Date */
+            statement_date: string;
+            /** Beginning Balance */
+            beginning_balance: string;
+            /** Ending Balance */
+            ending_balance: string;
+        };
+        /** SessionProgressRead */
+        SessionProgressRead: {
+            /** Linked Total */
+            linked_total: string;
+            /** Expected Delta */
+            expected_delta: string;
+            /** Balanced */
+            balanced: boolean;
+        };
+        /** SessionRead */
+        SessionRead: {
+            /** Id */
+            id: string;
+            /** Account Id */
+            account_id: string;
+            /** Statement Date */
+            statement_date: string;
+            /** Beginning Balance */
+            beginning_balance: string;
+            /** Ending Balance */
+            ending_balance: string;
+            /** Status */
+            status: string;
+            /** Completed At */
+            completed_at: string | null;
+            /** Created At */
+            created_at: string;
+        };
+        /** SnapshotRow */
+        SnapshotRow: {
+            /** Account Id */
+            account_id: string;
+            /** Period Start */
+            period_start: string;
+            /** Period End */
+            period_end: string;
+            /** Ending Debit */
+            ending_debit: string;
+            /** Ending Credit */
+            ending_credit: string;
+            /** Net Balance */
+            net_balance: string;
+            /** Currency */
+            currency: string;
+            /** Computed At */
+            computed_at: string;
         };
         /** SplitCreate */
         SplitCreate: {
@@ -1138,6 +1354,7 @@ export interface operations {
                 status?: string | null;
                 limit?: number;
                 offset?: number;
+                cursor?: string | null;
             };
             header?: {
                 "x-csrf-token"?: string | null;
@@ -1173,6 +1390,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "Idempotency-Key"?: string | null;
                 "x-csrf-token"?: string | null;
             };
             path?: never;
@@ -1482,6 +1700,39 @@ export interface operations {
             };
         };
     };
+    compute_balance_snapshots_api_v1_reports_balance_snapshots_post: {
+        parameters: {
+            query: {
+                period_start: string;
+                period_end: string;
+                currency?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SnapshotRow"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     import_bank_statement_api_v1_imports_bank_post: {
         parameters: {
             query?: never;
@@ -1581,6 +1832,257 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_session_api_v1_reconciliation_sessions_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_csrf?: string | null;
+                vira_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SessionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_session_api_v1_reconciliation_sessions__session_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+            };
+            path: {
+                session_id: string;
+            };
+            cookie?: {
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    session_progress_api_v1_reconciliation_sessions__session_id__progress_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+            };
+            path: {
+                session_id: string;
+            };
+            cookie?: {
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionProgressRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    link_split_api_v1_reconciliation_sessions__session_id__splits__split_id__link_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+            };
+            path: {
+                session_id: string;
+                split_id: string;
+            };
+            cookie?: {
+                vira_csrf?: string | null;
+                vira_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    complete_session_api_v1_reconciliation_sessions__session_id__complete_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+            };
+            path: {
+                session_id: string;
+            };
+            cookie?: {
+                vira_csrf?: string | null;
+                vira_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    abandon_session_api_v1_reconciliation_sessions__session_id__abandon_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+            };
+            path: {
+                session_id: string;
+            };
+            cookie?: {
+                vira_csrf?: string | null;
+                vira_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_search_api_v1_search_get: {
+        parameters: {
+            query: {
+                q: string;
+                entity?: "entry" | "account" | "all";
+                limit?: number;
+                like?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchResponse"];
                 };
             };
             /** @description Validation Error */

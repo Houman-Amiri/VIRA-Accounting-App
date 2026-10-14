@@ -1,19 +1,29 @@
 /**
- * <Money /> — the mandated money display. ISO 4217 currency code, optional
- * Persian label, inflow/outflow color coding, accounting-style negatives
- * `(-۱۲۳٬۴۵۶)`, tabular monospace digits isolated from RTL flow.
- * Accepts the API's exact 4-decimal strings and formats them losslessly.
+ * <Money /> — the mandated money display. Exact decimal.js rendering of the
+ * API's fixed 4-decimal strings (never float), ISO/unit-aware:
+ *
+ * - `currency="IRR"` (default) — stored Rials, displayed Tomans (÷10 applied
+ *   exactly once here, per config `display_currency="IRT"`); label «تومان».
+ *   `display="source"` shows raw Rials with label «ریال».
+ * - `currency="TOMAN"` — value already in Tomans (e.g. price calculator),
+ *   shown as-is with label «تومان».
+ * - any other ISO 4217 code — shown as-is with the code label (foreign money).
+ *
+ * Inflow/outflow color coding, accounting negatives `(…)` and LTR-isolated
+ * tabular digits throughout.
  */
 import * as React from "react";
-import { Decimal, toDecimal, type MoneyLike } from "@/lib/money";
+import { Decimal, rialToToman, toDecimal, type MoneyLike } from "@/lib/money";
 import { faNumber } from "@/lib/fa";
 import { cn } from "@/lib/cn";
 
 export interface MoneyProps {
   value: MoneyLike | null | undefined;
-  /** ISO 4217 code shown after the amount (default TOMAN). */
+  /** Currency of the given value (ISO 4217, or "IRR"/"TOMAN"). Default IRR. */
   currency?: string;
-  /** Hide the currency code. */
+  /** For IRR values: "toman" (÷10, default) or "source" (Rials). */
+  display?: "toman" | "source";
+  /** Hide the unit label. */
   hideCurrency?: boolean;
   /** Color negative amounts as outflow (red) and positive as inflow (green). */
   signedColors?: boolean;
@@ -27,7 +37,8 @@ export interface MoneyProps {
 
 export function Money({
   value,
-  currency = "TOMAN",
+  currency = "IRR",
+  display = "toman",
   hideCurrency = false,
   signedColors = false,
   direction = "neutral",
@@ -41,6 +52,19 @@ export function Money({
   } catch {
     amount = new Decimal(0);
   }
+
+  let label = currency;
+  if (currency === "IRR") {
+    if (display === "toman") {
+      amount = rialToToman(amount);
+      label = "تومان";
+    } else {
+      label = "ریال";
+    }
+  } else if (currency === "TOMAN") {
+    label = "تومان";
+  }
+
   const negative = amount.isNegative();
   // Keep exactly 4 decimals trimmed of trailing zeros: "12.5000" → "12.5"
   const fixed = amount.abs().toFixed(4).replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
@@ -63,7 +87,7 @@ export function Money({
       dir="ltr"
     >
       <span>{body}</span>
-      {!hideCurrency && <span className="text-[0.75em] text-muted-foreground">{currency}</span>}
+      {!hideCurrency && <span className="text-[0.75em] text-muted-foreground">{label}</span>}
     </span>
   );
 }

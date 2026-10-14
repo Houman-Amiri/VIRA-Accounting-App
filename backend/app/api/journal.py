@@ -1,15 +1,25 @@
-"""Journal entry API: create/update drafts, post, void, reverse."""
+"""Journal entry API: create/update drafts, post, void, reverse.
+
+Phase 4: keyset/cursor pagination (``cursor`` + ``X-Next-Cursor``) and optional
+``Idempotency-Key`` on creation so retries cannot duplicate entries.
+"""
 
 from __future__ import annotations
 
+import base64
 import json
-from typing import Annotated
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Header, Query, Response
 from sqlalchemy.orm import Session
 
 from ..models import JournalEntry
 from ..schemas.ledger import JournalEntryCreate, JournalEntryRead, SplitRead
+from ..services.idempotency import (
+    IdempotencyReplay,
+    claim_or_replay,
+    request_hash,
+)
 from ..services.ledger import LedgerService
 from .deps import enforce_csrf, get_db, require_roles
 
@@ -36,15 +46,44 @@ def _read(entry: JournalEntry) -> JournalEntryRead:
     )
 
 
+def _encode_cursor(cursor: tuple[str, str]) -> str:
+    raw = json.dumps(cursor, ensure_ascii=False).encode("utf-8")
+    return base64.urlsafe_b64encode(raw).decode("ascii")
+
+
+def _decode_cursor(value: str) -> tuple[str, str]:
+    raw = base64.urlsafe_b64decode(value.encode("ascii"))
+    date, ident = json.loads(raw)
+    return str(date), str(ident)
+
+
 @router.get("", response_model=list[JournalEntryRead])
 def list_entries(
     session: Annotated[Session, Depends(get_db)],
+    response: Response,
     status: Annotated[str | None, Query()] = None,
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
+    cursor: Annotated[str | None, Query()] = None,
 ) -> list[JournalEntryRead]:
     service = LedgerService(session)
-    return [_read(e) for e in service.list_entries(status=status, limit=limit, offset=offset)]
+    if cursor is not None:
+        page, next_cursor = service.list_entries_page(
+            status=status, limit=limit, cursor=_decode_cursor(cursor)
+        )
+    else:
+        # First page (or legacy OFFSET callers) — also expose the keyset cursor.
+        page, next_cursor = service.list_entries_page(
+            status=status, limit=limit, cursor=None
+        )
+        if offset:
+            page = service.list_entries(status=status, limit=limit, offset=offset)
+            next_cursor = (
+                (page[-1].transaction_date, page[-1].id) if page else None
+            )
+    if next_cursor is not None:
+        response.headers["X-Next-Cursor"] = _encode_cursor(next_cursor)
+    return [_read(e) for e in page]
 
 
 @router.get("/{entry_id}", response_model=JournalEntryRead)
@@ -59,9 +98,31 @@ def get_entry(
 def create_entry(
     payload: JournalEntryCreate,
     session: Annotated[Session, Depends(get_db)],
+    response: Response,
     _user: Annotated[object, Depends(require_roles("OWNER", "BOOKKEEPER"))],
+    idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
 ) -> JournalEntryRead:
-    entry = LedgerService(session).create_draft(payload)
+    service = LedgerService(session)
+
+    def _execute() -> tuple[int, dict[str, Any]]:
+        entry = service.create_draft(payload)
+        return 201, _read(entry).model_dump()
+
+    if idempotency_key is not None:
+        try:
+            status, body = claim_or_replay(
+                session,
+                key=idempotency_key,
+                req_hash=request_hash(payload.model_dump(mode="json")),
+                execute=_execute,
+            )
+        except IdempotencyReplay as replay:
+            response.status_code = replay.status
+            return JournalEntryRead(**replay.body)  # type: ignore[arg-type]
+        response.status_code = status
+        return JournalEntryRead(**body)  # type: ignore[arg-type]
+
+    entry = service.create_draft(payload)
     return _read(entry)
 
 

@@ -14,7 +14,18 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .api import accounts, auth, documents, fx, health, imports, journal, reports
+from .api import (
+    accounts,
+    auth,
+    documents,
+    fx,
+    health,
+    imports,
+    journal,
+    reconciliation,
+    reports,
+    search,
+)
 from .api.errors import install_error_handlers
 from .config import Settings, load_settings
 from .db import Database
@@ -77,6 +88,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(journal.router)
     app.include_router(reports.router)
     app.include_router(imports.router)
+    app.include_router(reconciliation.router)
+    app.include_router(search.router)
     app.include_router(fx.router)
     app.include_router(documents.router)
 

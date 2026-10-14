@@ -211,3 +211,25 @@ app_settings      ──> pricing constants, score weights
 ## 7. Phase 4 handoff requirements
 
 The full SQLite schema must: use STRICT tables with the conventions in §1; add `CHECK`s for enum/sign rules (esp. `inventory_movements` sign-by-type and split debit/credit exclusivity); keep `quantity_on_hand`/money caches transactionally consistent with their sources; index foreign keys and `(order_date, status)`-style report paths; and keep every rule in this document testable via pytest/Hypothesis.
+
+---
+
+## 8. Phase 4 persistence policy (implemented 2026-10-14)
+
+**Money & TypeDecorators.** All money persists as scaled INTEGERs (×10 000; FX rates ×1e8). Central conversion lives in `app/money.py` (`to_scaled`/`from_scaled`, banker's rounding, `MAX_ABS_AMOUNT=1e14`, aggregate guard at 1e18) **and** in SQLAlchemy `TypeDecorator`s (`app/db_types.py`: `ScaledMoneyType`, `ScaledFxRateType`) used by the Phase 4 tables — Python sees exact `Decimal`, SQLite sees INTEGER. `float`/`bool` inputs raise `MoneyError`. Equivalent client-side helpers: `frontend/src/lib/money.ts` (decimal.js).
+
+**Currency policy (Toman/Rial — resolved).** The ledger's canonical storage unit is the **Rial** (`base_currency="IRR"`, ISO 4217 in every `currency` column). The product displays **Toman** (`display_currency="IRT"`) with the fixed factor 1 Toman = 10 Rials applied **exactly once** at the presentation edge: `<Money />` divides by 10 (`rialToToman`), the journal form multiplies entered Tomans by 10 on submit (`tomanToRial`). Foreign currencies (USD/EUR/AED/TRY/GBP — `currencies` registry table) display as-is with their ISO code. The price calculator (`قیمت نهایی.xlsx` model) is Toman-native and passes `currency="TOMAN"` to `<Money />` to skip conversion.
+
+**Versioning.** `journal_entries.version_id` / `accounts.version_id` are application-managed optimistic locks (service checks + `409 stale_version`) rather than SQLAlchemy `version_id_col`, because the ledger composes multi-row atomic postings and must control version bumps explicitly. The observable contract is identical.
+
+**New schema (Alembic 0002_persistence).** `currencies`, `reconciliation_sessions` (+ `transaction_splits.reconciliation_session_id` FK `ON DELETE SET NULL`), `idempotency_keys`, `account_balance_snapshots`, rollup view `v_account_balances` (POSTED splits only), keyset index `ix_journal_entries_date_id (transaction_date DESC, id DESC)`, and FTS5 `search_fts` + 6 sync triggers (skipped gracefully when the SQLite build lacks FTS5).
+
+**Idempotency.** `POST /api/v1/journal-entries` accepts `Idempotency-Key`: atomic claim + request-hash, stored response replay, `409 idempotency_key_reuse` / `idempotency_conflict` on misuse; failed (4xx) requests are not stored (retry re-executes).
+
+**Pagination & search.** Registers use keyset/cursor pagination (`cursor` + `X-Next-Cursor`, stable `(transaction_date, id)` tie-breaker); OFFSET remains only for legacy callers. `GET /api/v1/search` runs FTS5 (unicode61, prefix tokens) with RapidFuzz re-ranking and a tested `LIKE` fallback (`?like=1` forces it).
+
+**Reconciliation.** Sessions store account + statement date + beginning/ending balances (Decimals). `link_split` marks splits `RECONCILED` and links them to the session; `session_progress` compares the linked signed sum to `ending − beginning`; history is never overwritten.
+
+**Backups.** Online backup API (`sqlite3.Connection.backup`), verification = `integrity_check` + `foreign_key_check` + **Alembic migration version** + ledger debit=credit. `create_backup_bundle` adds receipts copy + manifest and optional Fernet encryption (PBKDF2-HMAC-SHA256, 480k iterations, per-file salt). `scripts/backup_vira.ps1` supports `-PassphraseFile` and `-InstallScheduledTask` (daily Task Scheduler job).
+
+**Benchmark (representative local data — 25 000 entries / 50 000 splits, 32 MB).** keyset page 0.15 ms · OFFSET @10k 0.29 ms · rollup view 42 ms · snapshot aggregation 35 ms · LIKE search 2.9 ms · FTS5 search 0.22 ms (median of 5, `scripts/benchmark_db.py`).

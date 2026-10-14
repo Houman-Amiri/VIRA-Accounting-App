@@ -2,13 +2,43 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
+
 from sqlalchemy import CheckConstraint, ForeignKey, Index, Integer, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from ..db_types import ScaledMoneyType
 from .base import Base
 
 FILE_FORMATS = ("CSV", "XLSX", "OFX", "QFX", "MT940", "CAMT053")
 LINE_STATUSES = ("UNMATCHED", "SUGGESTED", "MATCHED", "IGNORED")
+RECONCILIATION_STATUSES = ("OPEN", "COMPLETED", "ABANDONED")
+
+
+class ReconciliationSession(Base):
+    """Bank-reconciliation run over one account + statement date (Phase 4 §7).
+
+    Beginning/ending balances are exact Decimals (stored scaled ×10 000).
+    """
+
+    __tablename__ = "reconciliation_sessions"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('OPEN','COMPLETED','ABANDONED')", name="status"
+        ),
+        Index("ix_reconciliation_sessions_account", "account_id", "statement_date"),
+    )
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    account_id: Mapped[str] = mapped_column(
+        Text, ForeignKey("accounts.id", ondelete="RESTRICT"), nullable=False
+    )
+    statement_date: Mapped[str] = mapped_column(Text, nullable=False)  # YYYY-MM-DD
+    beginning_balance: Mapped[Decimal] = mapped_column(ScaledMoneyType, nullable=False)
+    ending_balance: Mapped[Decimal] = mapped_column(ScaledMoneyType, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="OPEN")
+    completed_at: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[str] = mapped_column(Text, nullable=False)
 
 
 class BankImportBatch(Base):

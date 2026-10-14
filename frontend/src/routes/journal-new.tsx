@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { api, parseError } from "@/api/client";
 import { faDate } from "@/lib/fa";
-import { toMoneyString } from "@/lib/money";
+import { toMoneyString, tomanToRial } from "@/lib/money";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Plus, Trash2, Wand2 } from "lucide-react";
 
@@ -75,8 +75,9 @@ export function JournalNewPage(): React.JSX.Element {
         metadata: {},
         splits: data.splits.map((s) => ({
           account_id: s.account_id,
-          debit: toMoneyString(s.debit),
-          credit: toMoneyString(s.credit),
+          // Form amounts are Tomans (user entry); API stores Rials — ×10 exactly once.
+          debit: toMoneyString(tomanToRial(s.debit)),
+          credit: toMoneyString(tomanToRial(s.credit)),
           memo: s.description || null,
           currency: data.currency_code,
           exchange_rate: "1.00000000",
@@ -235,15 +236,15 @@ export function JournalNewPage(): React.JSX.Element {
           <div className="flex items-center gap-6">
             <div>
               <div className="text-xs text-muted-foreground">جمع بدهکار</div>
-              <Money value={totals.totalDebit.toFixed(4)} />
+              <Money value={totals.totalDebit.toFixed(4)} currency="TOMAN" />
             </div>
             <div>
               <div className="text-xs text-muted-foreground">جمع بستانکار</div>
-              <Money value={totals.totalCredit.toFixed(4)} />
+              <Money value={totals.totalCredit.toFixed(4)} currency="TOMAN" />
             </div>
             <div>
               <div className="text-xs text-muted-foreground">اختلاف</div>
-              <Money value={totals.difference.toFixed(4)} signedColors accounting={false} />
+              <Money value={totals.difference.toFixed(4)} currency="TOMAN" signedColors accounting={false} />
             </div>
             {totals.balanced && (
               <Badge variant="success" data-testid="balanced-badge">

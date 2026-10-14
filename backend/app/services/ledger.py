@@ -248,6 +248,39 @@ class LedgerService:
             stmt = stmt.where(JournalEntry.status == status)
         return list(self.session.scalars(stmt))
 
+    def list_entries_page(
+        self,
+        *,
+        status: str | None = None,
+        limit: int = 50,
+        cursor: tuple[str, str] | None = None,
+    ) -> tuple[list[JournalEntry], tuple[str, str] | None]:
+        """Keyset pagination on (transaction_date DESC, id DESC) — stable
+        tie-breaker, no unbounded OFFSET (Phase 4 §8).  Returns the page and
+        the next cursor ``(transaction_date, id)`` when more rows exist."""
+        stmt = select(JournalEntry)
+        if status:
+            stmt = stmt.where(JournalEntry.status == status)
+        if cursor is not None:
+            cursor_date, cursor_id = cursor
+            stmt = stmt.where(
+                (JournalEntry.transaction_date < cursor_date)
+                | (
+                    (JournalEntry.transaction_date == cursor_date)
+                    & (JournalEntry.id < cursor_id)
+                )
+            )
+        stmt = stmt.order_by(
+            JournalEntry.transaction_date.desc(), JournalEntry.id.desc()
+        ).limit(limit + 1)
+        rows = list(self.session.scalars(stmt))
+        has_more = len(rows) > limit
+        page = rows[:limit]
+        next_cursor: tuple[str, str] | None = None
+        if has_more and page:
+            next_cursor = (page[-1].transaction_date, page[-1].id)
+        return page, next_cursor
+
     # ---------------- validation ----------------
 
     def validate_entry(self, entry: JournalEntry) -> None:

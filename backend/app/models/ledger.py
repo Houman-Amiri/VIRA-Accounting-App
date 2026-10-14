@@ -108,6 +108,11 @@ class TransactionSplit(Base):
     account_id: Mapped[str] = mapped_column(
         Text, ForeignKey("accounts.id", ondelete="RESTRICT"), nullable=False
     )
+    reconciliation_session_id: Mapped[str | None] = mapped_column(
+        Text,
+        ForeignKey("reconciliation_sessions.id", ondelete="SET NULL"),
+        nullable=True,
+    )
     memo: Mapped[str | None] = mapped_column(Text, nullable=True)
     debit: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     credit: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

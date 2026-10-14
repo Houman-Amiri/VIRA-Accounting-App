@@ -13,13 +13,13 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .ids import utc_now_iso, uuid7
-from .models import Account, User
+from .models import Account, Currency, User
 from .schemas.ledger import NORMAL_BY_TYPE
 from .security.passwords import hash_password
 
 log = logging.getLogger(__name__)
 
-#: (code, name, type, is_placeholder)
+#: (code, name, type, is_placeholder) — small-business (3D-printing) chart.
 CHART: list[tuple[str, str, str, bool]] = [
     ("1000", "دارایی‌ها", "ASSET", True),
     ("1010", "صندوق", "ASSET", False),
@@ -31,6 +31,7 @@ CHART: list[tuple[str, str, str, bool]] = [
     ("3000", "سرمایه و حقوق مالکانه", "EQUITY", True),
     ("3010", "سرمایه اولیه", "EQUITY", False),
     ("3020", "سود (زیان) انباشته", "EQUITY", False),
+    ("3900", "تراز افتتاحی", "EQUITY", False),
     ("4000", "درآمدها", "INCOME", True),
     ("4010", "درآمد فروش محصولات", "INCOME", False),
     ("5000", "هزینه‌ها", "EXPENSE", True),
@@ -44,10 +45,51 @@ CHART: list[tuple[str, str, str, bool]] = [
     ("5080", "بسته‌بندی و ارسال", "EXPENSE", False),
 ]
 
+#: (code, name, type, is_placeholder) — personal-finance chart.
+PERSONAL_CHART: list[tuple[str, str, str, bool]] = [
+    ("1000", "دارایی‌ها", "ASSET", True),
+    ("1010", "صندوق و کیف پول", "ASSET", False),
+    ("1020", "بانک و کارت", "ASSET", False),
+    ("1030", "پس‌انداز", "ASSET", False),
+    ("2000", "بدهی‌ها", "LIABILITY", True),
+    ("2010", "بدهی به دیگران", "LIABILITY", False),
+    ("2020", "کارت اعتباری", "LIABILITY", False),
+    ("3000", "سرمایه شخصی", "EQUITY", True),
+    ("3010", "سرمایه اولیه", "EQUITY", False),
+    ("3900", "تراز افتتاحی", "EQUITY", False),
+    ("4000", "درآمدها", "INCOME", True),
+    ("4010", "حقوق و درآمد", "INCOME", False),
+    ("4020", "درآمد جانبی", "INCOME", False),
+    ("5000", "هزینه‌ها", "EXPENSE", True),
+    ("5010", "خوراک و سوپرمارکت", "EXPENSE", False),
+    ("5020", "حمل‌ونقل", "EXPENSE", False),
+    ("5030", "مسکن و اجاره", "EXPENSE", False),
+    ("5040", "قبض‌ها", "EXPENSE", False),
+    ("5050", "درمان", "EXPENSE", False),
+    ("5060", "آموزش", "EXPENSE", False),
+    ("5070", "تفریح", "EXPENSE", False),
+]
 
-def seed_chart_of_accounts(session: Session, *, currency: str = "IRR") -> int:
+#: Supported currencies (Phase 4 §10).  IRR is the base/storage unit; the UI
+#: displays Toman (1 Toman = 10 Rials, applied exactly once at presentation).
+SUPPORTED_CURRENCIES: list[tuple[str, str, bool]] = [
+    ("IRR", "ریال ایران (نمایش: تومان)", True),
+    ("USD", "دلار آمریکا", False),
+    ("EUR", "یورو", False),
+    ("AED", "درهم امارات", False),
+    ("TRY", "لیر ترکیه", False),
+    ("GBP", "پوند انگلیس", False),
+]
+
+CHARTS = {"business": CHART, "personal": PERSONAL_CHART}
+
+
+def seed_chart_of_accounts(
+    session: Session, *, currency: str = "IRR", chart: str = "business"
+) -> int:
     created = 0
-    for code, name, acc_type, placeholder in CHART:
+    entries = CHARTS[chart]
+    for code, name, acc_type, placeholder in entries:
         existing = session.scalar(select(Account).where(Account.code == code))
         if existing is not None:
             continue
@@ -100,20 +142,48 @@ def seed_owner_user(session: Session, *, username: str = "owner", password: str 
     return user
 
 
+def seed_currencies(session: Session) -> int:
+    created = 0
+    for code, name, is_base in SUPPORTED_CURRENCIES:
+        existing = session.get(Currency, code)
+        if existing is not None:
+            continue
+        session.add(
+            Currency(code=code, name=name, is_base=1 if is_base else 0, is_active=1)
+        )
+        created += 1
+    session.flush()
+    return created
+
+
 def seed_all(
     session: Session,
     *,
     currency: str = "IRR",
+    chart: str = "business",
     admin_username: str = "owner",
     admin_password: str | None = None,
 ) -> dict[str, int]:
-    accounts = seed_chart_of_accounts(session, currency=currency)
-    user = seed_owner_user(session, username=admin_username, password=admin_password)
-    return {"accounts_created": accounts, "users_created": 1 if user else 0}
+    from sqlalchemy import func
+
+    currencies = seed_currencies(session)
+    accounts = seed_chart_of_accounts(session, currency=currency, chart=chart)
+    users_before = session.scalar(select(func.count()).select_from(User)) or 0
+    seed_owner_user(session, username=admin_username, password=admin_password)
+    users_after = session.scalar(select(func.count()).select_from(User)) or 0
+    return {
+        "currencies_created": currencies,
+        "accounts_created": accounts,
+        "users_created": int(users_after - users_before),
+    }
 
 
 def main() -> None:
-    """CLI: `python -m app.seed` (idempotent; VIRA_ADMIN_PASSWORD sets the owner password)."""
+    """CLI: `python -m app.seed` (idempotent).
+
+    Environment: VIRA_ADMIN_PASSWORD sets the owner password;
+    VIRA_CHART selects the chart (`business` default, or `personal`).
+    """
     import json as _json
     import os
 
@@ -123,8 +193,16 @@ def main() -> None:
     settings = Settings()
     db = Database(settings)
     password = os.environ.get("VIRA_ADMIN_PASSWORD") or None
+    chart = os.environ.get("VIRA_CHART", "business")
+    if chart not in CHARTS:
+        raise SystemExit(f"VIRA_CHART must be one of {sorted(CHARTS)}, got {chart!r}")
     with db.write_session() as session:
-        result = seed_all(session, currency=settings.base_currency, admin_password=password)
+        result = seed_all(
+            session,
+            currency=settings.base_currency,
+            chart=chart,
+            admin_password=password,
+        )
     print(_json.dumps(result))
 
 

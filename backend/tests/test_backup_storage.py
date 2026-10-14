@@ -160,3 +160,75 @@ def test_recurring_entries_posted(session) -> None:
     assert "اجاره" in entry.description
     # not due again immediately
     assert recurring.run_due_jobs() == []
+
+
+# ---------------- encrypted backup bundles (Phase 4 §10) ----------------
+
+
+def _seed_balanced(database) -> None:
+    with database.session() as session:
+        service = LedgerService(session)
+        cash = service.create_account(AccountCreate(code="1010", name="صندوق", account_type="ASSET"))
+        eq = service.create_account(AccountCreate(code="3010", name="سرمایه", account_type="EQUITY"))
+        service.create_draft(
+            JournalEntryCreate(
+                transaction_date="2026-10-14",
+                description="bundle seed",
+                splits=[
+                    SplitCreate(account_id=cash.id, debit="42.0001"),
+                    SplitCreate(account_id=eq.id, credit="42.0001"),
+                ],
+            ),
+            post=True,
+        )
+
+
+def test_encrypted_bundle_roundtrip(database, tmp_path: Path) -> None:
+    from app.services.backup import create_backup_bundle, restore_bundle
+
+    _seed_balanced(database)
+    receipts = tmp_path / "receipts"
+    receipts.mkdir()
+    (receipts / "r1.pdf").write_bytes(b"%PDF-1.4 fake")
+
+    out = tmp_path / "bundle"
+    result = create_backup_bundle(
+        database.settings.sqlite_database_path,
+        out,
+        receipts_dir=receipts,
+        passphrase="correct-horse-battery",
+        version_label="0.1.0",
+    )
+    assert result.encrypted is True
+    assert result.receipts_copied == 1
+    assert result.snapshot_path.endswith(".enc")
+    assert "manifest.json" in result.files
+
+    # ciphertext is not a SQLite file
+    head = Path(result.snapshot_path).read_bytes()[:16]
+    assert not head.startswith(b"SQLite format 3")
+
+    drill = restore_bundle(out, passphrase="correct-horse-battery")
+    assert drill.ok
+    assert drill.integrity_check == "ok"
+    assert drill.migration_version is not None
+    assert drill.total_debits == drill.total_credits == 420_001
+
+    from cryptography.fernet import InvalidToken
+
+    with pytest.raises(InvalidToken):
+        restore_bundle(out, passphrase="wrong-password")
+
+
+def test_plain_bundle_and_migration_version(database, tmp_path: Path) -> None:
+    from app.services.backup import create_backup_bundle, restore_bundle
+
+    _seed_balanced(database)
+    out = tmp_path / "bundle-plain"
+    result = create_backup_bundle(
+        database.settings.sqlite_database_path, out, version_label="0.1.0"
+    )
+    assert result.encrypted is False
+    drill = restore_bundle(out)
+    assert drill.ok
+    assert drill.migration_version == "0002_persistence"
