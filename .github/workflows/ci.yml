@@ -15,8 +15,6 @@ jobs:
   backend:
     name: Backend — lint, type, security, tests
     runs-on: ubuntu-latest
-    env:
-      SQLITE_DATABASE_PATH: ${{ runner.temp }}/vira-ci.sqlite3
     steps:
       - uses: actions/checkout@v4
 
@@ -44,9 +42,13 @@ jobs:
 
       - name: Fresh SQLite + migrations
         working-directory: backend
+        env:
+          SQLITE_DATABASE_PATH: ${{ runner.temp }}/vira-ci.sqlite3
         run: uv run alembic upgrade head
 
       - name: Pytest + Hypothesis invariants
+        env:
+          SQLITE_DATABASE_PATH: ${{ runner.temp }}/vira-ci.sqlite3
         run: |
           mkdir -p reports
           uv run pytest -q --junitxml=reports/pytest.xml
@@ -123,8 +125,6 @@ jobs:
   contract:
     name: OpenAPI contract is in sync
     runs-on: ubuntu-latest
-    env:
-      SQLITE_DATABASE_PATH: ${{ runner.temp }}/vira-contract.sqlite3
     steps:
       - uses: actions/checkout@v4
 
@@ -147,6 +147,8 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Regenerate schema from a live FastAPI app (temp SQLite)
+        env:
+          SQLITE_DATABASE_PATH: ${{ runner.temp }}/vira-contract.sqlite3
         run: |
           uv run python - <<'PY'
           import json
@@ -165,8 +167,6 @@ jobs:
   e2e:
     name: Playwright e2e (native processes)
     runs-on: ubuntu-latest
-    env:
-      SQLITE_DATABASE_PATH: ${{ runner.temp }}/vira-e2e.sqlite3
     steps:
       - uses: actions/checkout@v4
 
@@ -190,6 +190,8 @@ jobs:
 
       - name: Migrations for the e2e database
         working-directory: backend
+        env:
+          SQLITE_DATABASE_PATH: ${{ runner.temp }}/vira-e2e.sqlite3
         run: uv run alembic upgrade head
 
       - name: Install Chromium
@@ -198,6 +200,8 @@ jobs:
 
       - name: Playwright smoke (backend + Vite dev launched natively)
         working-directory: frontend
+        env:
+          SQLITE_DATABASE_PATH: ${{ runner.temp }}/vira-e2e.sqlite3
         run: pnpm e2e
 
       - name: Upload Playwright report
@@ -211,8 +215,6 @@ jobs:
   windows-native:
     name: Windows-native smoke (SQLite paths, venv, build)
     runs-on: windows-latest
-    env:
-      SQLITE_DATABASE_PATH: ${{ runner.temp }}\vira-win.sqlite3
     steps:
       - uses: actions/checkout@v4
 
@@ -233,6 +235,7 @@ jobs:
       - name: Backend deps + migrations + tests (native Windows)
         shell: pwsh
         run: |
+          $env:SQLITE_DATABASE_PATH = Join-Path $env:RUNNER_TEMP "vira-win.sqlite3"
           uv sync --frozen
           Set-Location backend
           uv run alembic upgrade head
