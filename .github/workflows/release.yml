@@ -5,9 +5,19 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to package (X.Y.Z) — pipeline debugging without a tag"
+        required: true
+        default: "0.0.0-debug"
+
 
 permissions:
   contents: write
+
+env:
+  VIRA_VERSION: ${{ inputs.version || github.ref_name }}
 
 jobs:
   test:
@@ -47,12 +57,12 @@ jobs:
 
       - name: Package source/build artifacts + latest.json + SHA256SUMS + Persian notes
         shell: pwsh
-        run: ./scripts/package_release.ps1 -Version "${{ github.ref_name }}" -OutDir dist-release
+        run: ./scripts/package_release.ps1 -Version "${{ env.VIRA_VERSION }}" -OutDir dist-release
 
       - name: Stage app payload (backend + SPA + scripts + manifests)
         shell: pwsh
         run: |
-          ./scripts/stage_app_payload.ps1 -Version "${{ github.ref_name }}" -OutDir dist-release/app
+          ./scripts/stage_app_payload.ps1 -Version "${{ env.VIRA_VERSION }}" -OutDir dist-release/app
 
       - name: Compile Inno Setup installer (Phase 8 §1)
         shell: pwsh
@@ -61,8 +71,13 @@ jobs:
           $iscc = (Get-Command iscc -ErrorAction SilentlyContinue).Source
           if (-not $iscc) { $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" }
           if (-not (Test-Path $iscc)) { throw "ISCC.exe not found after installing Inno Setup" }
-          & $iscc installer/vira.iss "/DAppVersion=${{ github.ref_name }}" "/DAppSource=..\dist-release\app"
-          if ($LASTEXITCODE -ne 0) { throw "iscc failed with exit code $LASTEXITCODE" }
+          & $iscc installer/vira.iss "/DAppVersion=${{ env.VIRA_VERSION }}" "/DAppSource=..\dist-release\app" 2>&1 | Tee-Object -Variable out
+          if ($LASTEXITCODE -ne 0) {
+            $flat = ($out | Out-String) -replace "\r?\n", "|" -replace ",", ";"
+            if ($flat.Length -gt 3000) { $flat = $flat.Substring(0, 3000) }
+            echo "::notice title=iscc-output::$flat"
+            throw "iscc failed with exit code $LASTEXITCODE"
+          }
           Get-ChildItem installer/Output/*.exe | Copy-Item -Destination dist-release/
 
       - name: Compile vira-updater.exe (Phase 8 §6)
@@ -79,7 +94,7 @@ jobs:
         env:
           VIRA_UPDATE_SIGNING_KEY: ${{ secrets.VIRA_UPDATE_SIGNING_KEY }}
         run: |
-          ./scripts/build_deltas.ps1 -Version "${{ github.ref_name }}" -OutDir dist-release
+          ./scripts/build_deltas.ps1 -Version "${{ env.VIRA_VERSION }}" -OutDir dist-release
 
       - name: Windows install/upgrade/rollback smoke test (Phase 8 §9)
         shell: pwsh
@@ -89,7 +104,7 @@ jobs:
       - name: Upload workflow artifact (full setup + assets)
         uses: actions/upload-artifact@v4
         with:
-          name: release-assets-${{ github.ref_name }}
+          name: release-assets-${{ env.VIRA_VERSION }}
           path: dist-release/
           retention-days: 90
 
