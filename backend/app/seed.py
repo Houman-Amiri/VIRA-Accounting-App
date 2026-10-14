@@ -110,3 +110,23 @@ def seed_all(
     accounts = seed_chart_of_accounts(session, currency=currency)
     user = seed_owner_user(session, username=admin_username, password=admin_password)
     return {"accounts_created": accounts, "users_created": 1 if user else 0}
+
+
+def main() -> None:
+    """CLI: `python -m app.seed` (idempotent; VIRA_ADMIN_PASSWORD sets the owner password)."""
+    import json as _json
+    import os
+
+    from .config import Settings
+    from .db import Database
+
+    settings = Settings()
+    db = Database(settings)
+    password = os.environ.get("VIRA_ADMIN_PASSWORD") or None
+    with db.write_session() as session:
+        result = seed_all(session, currency=settings.base_currency, admin_password=password)
+    print(_json.dumps(result))
+
+
+if __name__ == "__main__":
+    main()

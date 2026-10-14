@@ -4,11 +4,12 @@
 
 | | |
 |---|---|
-| **Status** | Phase 2 (Core Stack — Back-end) ✅ complete — 2026-10-14 · awaiting "proceed" for **Phase 3 (Frontend SPA)** |
+| **Status** | Phase 3 (Core Stack — Frontend SPA) ✅ complete — 2026-10-14 · awaiting "proceed" for **Phase 4 (Core Stack — Database & Persistence Layer)** |
 | **Master prompt** | [`MASTER_PROMPT.md`](MASTER_PROMPT.md) — compiled requirements; re-read before any phase work |
 | **Source request** | [`VIRA_SQLite_No_Docker.md`](VIRA_SQLite_No_Docker.md) — incl. user amendment 2026-10-14 (Phase 8) |
 | **Phase 1 docs** | [`docs/product-spec.md`](docs/product-spec.md) · [`docs/data-model.md`](docs/data-model.md) |
 | **Phase 2 code** | [`backend/`](backend/) (FastAPI + SQLAlchemy 2.0 + Alembic) · [`scripts/`](scripts/) — 71 tests green, ruff + mypy clean |
+| **Phase 3 code** | [`frontend/`](frontend/) (React 19 + TS + Vite SPA) — 40 Vitest tests green, `tsc` clean, production build + live proxy smoke |
 | **Pricing source** | [`قیمت نهایی.xlsx`](قیمت%20نهایی.xlsx) — relations compiled/normalized in product-spec §4.3 |
 
 ---
@@ -90,6 +91,8 @@ No `/deploy` Dockerfiles, no `docker-compose.yml`, no `.devcontainer`. DB, backu
 | 8 | Installer, release tags & in-app delta updates | ⏳ |
 
 **Phase 2 highlights** (details in code + tests): exact scaled-integer money (`app/money.py`, never float); double-entry engine with atomic posting/reversal/void, optimistic locking, fiscal-period locks, immutable posted entries (SQLite triggers + service validation); STRICT-table schema via Alembic 0001 with audit trail (JSON snapshots, redaction, trigger-protected); FastAPI REST (health, auth with Argon2id + HttpOnly cookies + CSRF + TOTP, accounts, journal, reports with recursive-CTE rollups + Polars series, bank imports with FITID/hash idempotency + RapidFuzz/sklearn categorization, FX via Frankfurter, content-addressed receipt storage + OCR/PDF (WeasyPrint/Jinja2); APScheduler recurring entries; online backups with restore verification; `scripts/setup_windows.ps1`, `start/stop_vira.bat/.ps1`, `backup_vira.ps1`. Tests: pytest + httpx.AsyncClient + Hypothesis (71 green); ruff + mypy clean.
+
+**Phase 3 highlights** (`frontend/`): React 19 + TypeScript strict + Vite, typed client generated from the backend OpenAPI (`openapi-typescript` + `openapi-fetch`, CSRF interceptor); decimal.js money math (never JS number), `<Money />` with ISO code + inflow/outflow colors + accounting negatives; Persian RTL fa-IR throughout (Vazirmatn + JetBrains Mono, tabular-nums, Persian digits, Jalali dates via `date-fns-jalali`); TanStack Router (URL params) + Query v5 + Zustand; TanStack Table v8 + Virtual (50k-row grid with pinned summary footer); journal multi-split form (RHF + Zod + useFieldArray, live Σdebit=Σcredit superRefine, auto-balance); cmdk + react-hotkeys-hook command palette (Ctrl+K); bank-import wizard (PapaParse + react-dropzone, client-side column mapping) + dual-pane reconciliation with confidence badges (amount/date/description/ref weights, auto ≥85%); statements with ECharts; pricing calculator normalized from `قیمت نهایی.xlsx` (all 14 output lines); receipt upload with OCR status. 40 Vitest tests green, `tsc` clean, Vite build green, live smoke (login → draft → post → balanced trial balance through the dev proxy). Playwright config + smoke specs included (browser download blocked in this sandbox — runs on dev machines).
 
 ## 8. Working agreements
 
