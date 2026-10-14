@@ -8,13 +8,6 @@ export default defineConfig({
   resolve: {
     alias: { "@": path.resolve(__dirname, "src") },
   },
-  // react-pdf stays OUT of the dep optimizer so its pdf.worker URL resolves
-  // from source (react-pdf + Vite guidance). Everything else prebundles —
-  // excluding e.g. react-dropzone breaks dev because its nested CJS dep
-  // attr-accept has no default export in raw ESM form (blank page on boot).
-  optimizeDeps: {
-    exclude: ["react-pdf", "pdfjs-dist"],
-  },
   server: {
     port: 5173,
     host: "0.0.0.0",

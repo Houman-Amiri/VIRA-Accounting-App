@@ -12,15 +12,15 @@
 import * as React from "react";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { Document, Page, pdfjs } from "react-pdf";
+// `?url` works in dev, build and Vitest (new URL + bare specifier only works
+// in bundlers; prebundled deps break import.meta.url resolution).
+import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 import { ChevronLeft, ChevronRight, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url,
-).toString();
+pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 export interface ReceiptViewerProps {
   /** Authenticated URL (may 302 to a presigned origin). */
