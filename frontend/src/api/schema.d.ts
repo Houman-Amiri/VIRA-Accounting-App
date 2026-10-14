@@ -703,6 +703,103 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/system/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** System Status */
+        get: operations["system_status_api_v1_system_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/backup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Backup Now
+         * @description One-click encrypted snapshot (Sudo step-up already verified).
+         */
+        post: operations["create_backup_now_api_v1_system_backup_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/backup/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download Backup
+         * @description Download a bundle created by /system/backup — path-traversal guarded.
+         */
+        get: operations["download_backup_api_v1_system_backup_download_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/backup/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify Backup Bundle
+         * @description Restore-verification drill: restore to a temp location + full checks.
+         */
+        post: operations["verify_backup_bundle_api_v1_system_backup_verify_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/check-updates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Check Updates
+         * @description «بررسی به‌روزرسانی» — reads latest.json from GitHub Releases (Phase 8).
+         */
+        get: operations["check_updates_api_v1_system_check_updates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/fiscal-periods": {
         parameters: {
             query?: never;
@@ -907,6 +1004,47 @@ export interface components {
             last_used_at: string | null;
             /** Revoked At */
             revoked_at: string | null;
+        };
+        /** BackupCreated */
+        BackupCreated: {
+            /** Dir */
+            dir: string;
+            /** Manifest */
+            manifest: string;
+            /** Snapshot */
+            snapshot: string;
+            /** Encrypted */
+            encrypted: boolean;
+            /** Receipts Copied */
+            receipts_copied: number;
+            /** Size Bytes */
+            size_bytes: number;
+        };
+        /** BackupStatus */
+        BackupStatus: {
+            /** At */
+            at: string | null;
+            /** Path */
+            path: string | null;
+            /** Size Bytes */
+            size_bytes: number | null;
+            /** Ok */
+            ok: boolean | null;
+        };
+        /** BackupVerifyReport */
+        BackupVerifyReport: {
+            /** Ok */
+            ok: boolean;
+            /** Restored To */
+            restored_to: string;
+            /** Integrity Check */
+            integrity_check: string;
+            /** Foreign Key Violations */
+            foreign_key_violations: number;
+            /** Debits Equal Credits */
+            debits_equal_credits: boolean | null;
+            /** Migration Version */
+            migration_version: string | null;
         };
         /** BalanceSheetReport */
         BalanceSheetReport: {
@@ -1244,6 +1382,34 @@ export interface components {
             /** Expires In Seconds */
             expires_in_seconds: number;
         };
+        /** SystemStatus */
+        SystemStatus: {
+            /** Version */
+            version: string;
+            /** Commit */
+            commit: string;
+            /** Environment */
+            environment: string;
+            /** Python Version */
+            python_version: string;
+            /** Sqlite Version */
+            sqlite_version: string;
+            /** Alembic Revision */
+            alembic_revision: string | null;
+            /** Database Path */
+            database_path: string;
+            /** Receipt Dir */
+            receipt_dir: string;
+            /** Data Dir */
+            data_dir: string;
+            /** Scheduler Enabled */
+            scheduler_enabled: boolean;
+            /** Scheduler Running */
+            scheduler_running: boolean;
+            /** Scheduler Jobs */
+            scheduler_jobs: number;
+            last_backup: components["schemas"]["BackupStatus"];
+        };
         /** TotpEnrollResponse */
         TotpEnrollResponse: {
             /** Secret */
@@ -1284,6 +1450,21 @@ export interface components {
             credit: string;
             /** Balance */
             balance: string;
+        };
+        /** UpdateCheck */
+        UpdateCheck: {
+            /** Current */
+            current: string;
+            /** Latest */
+            latest: string | null;
+            /** Update Available */
+            update_available: boolean;
+            /** Notes Fa */
+            notes_fa: string | null;
+            /** Checked */
+            checked: boolean;
+            /** Reason */
+            reason?: string | null;
         };
         /** UserRead */
         UserRead: {
@@ -2917,6 +3098,175 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiKeyRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    system_status_api_v1_system_status_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Sudo-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_backup_now_api_v1_system_backup_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Sudo-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupCreated"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_backup_api_v1_system_backup_download_get: {
+        parameters: {
+            query: {
+                path: string;
+            };
+            header?: {
+                "X-Sudo-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    verify_backup_bundle_api_v1_system_backup_verify_post: {
+        parameters: {
+            query: {
+                path: string;
+            };
+            header?: {
+                "X-Sudo-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupVerifyReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    check_updates_api_v1_system_check_updates_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Sudo-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateCheck"];
                 };
             };
             /** @description Validation Error */

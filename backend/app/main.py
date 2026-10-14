@@ -31,6 +31,7 @@ from .api import api_keys as api_keys_api
 from .api import (
     exports as exports_api,
 )
+from .api import system as system_api
 from .api import (
     webhooks as webhooks_api,
 )
@@ -49,6 +50,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     from .security.redact import install_structlog
 
     install_structlog()
+    # Native rotating file logs (Phase 6 §9).
+    from .logging_setup import install_file_logging
+
+    assert settings.data_dir is not None
+    install_file_logging(settings.data_dir)
     database = Database(settings)
     session_manager = SessionManager(
         settings.session_secret,
@@ -65,11 +71,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if settings.scheduler_enabled:
             scheduler = SchedulerManager(database.session_factory)
             scheduler.start()
+        app.state.scheduler = scheduler  # surfaced by /health/ready + /system/status
         try:
             yield
         finally:
             if scheduler is not None:
                 scheduler.shutdown()
+            app.state.scheduler = None
             database.dispose()
 
     app = FastAPI(
@@ -145,6 +153,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(fx.router, dependencies=[Depends(auditor_read_only)])
     app.include_router(documents.router, dependencies=[Depends(auditor_read_only)])
     app.include_router(api_keys_api.router, dependencies=[Depends(auditor_read_only)])
+    app.include_router(system_api.router, dependencies=[Depends(auditor_read_only)])
     app.include_router(fiscal.router, dependencies=[Depends(auditor_read_only)])
     app.include_router(webhooks_api.router)
     app.include_router(exports_api.router, dependencies=[Depends(auditor_read_only)])

@@ -1,0 +1,247 @@
+# CI — Windows-native mandate: no Docker/service containers (Phase 6 §5).
+# Toolchains are installed directly on GitHub-hosted runners.
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_call:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend — lint, type, security, tests
+    runs-on: ubuntu-latest
+    env:
+      SQLITE_DATABASE_PATH: ${{ runner.temp }}/vira-ci.sqlite3
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Sync dependencies (lockfile check)
+        run: |
+          uv lock --check   # fails clearly when pyproject.toml and uv.lock drift
+          uv sync --frozen
+
+      - name: Ruff (lint)
+        run: uv run ruff check backend/app backend/tests scripts
+
+      - name: Mypy (types)
+        run: uv run mypy backend/app
+
+      - name: Bandit (security)
+        run: uv run bandit -r backend/app -ll -q
+
+      - name: pip-audit (dependencies)
+        run: uv run pip-audit
+
+      - name: Fresh SQLite + migrations
+        working-directory: backend
+        run: uv run alembic upgrade head
+
+      - name: Pytest + Hypothesis invariants
+        run: |
+          mkdir -p reports
+          uv run pytest -q --junitxml=reports/pytest.xml
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-report
+          path: reports/
+          retention-days: 14
+
+  frontend:
+    name: Frontend — lint, types, contract, tests, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install (frozen lockfile — fails on drift)
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Prettier
+        working-directory: frontend
+        run: pnpm format:check
+
+      - name: ESLint
+        working-directory: frontend
+        run: pnpm lint
+
+      - name: TypeScript
+        working-directory: frontend
+        run: pnpm typecheck
+
+      - name: npm audit (critical gate; 1 accepted dev-only high is documented)
+        working-directory: frontend
+        run: pnpm audit --audit-level critical
+
+      - name: Vitest
+        working-directory: frontend
+        run: |
+          mkdir -p ../reports
+          pnpm vitest run --reporter=default --reporter=junit --outputFile.junit=../reports/vitest.xml
+
+      - name: Build
+        working-directory: frontend
+        run: pnpm build
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-reports
+          path: reports/
+          retention-days: 14
+
+      - name: Upload SPA build
+        uses: actions/upload-artifact@v4
+        with:
+          name: spa-dist
+          path: frontend/dist/
+          retention-days: 14
+
+  contract:
+    name: OpenAPI contract is in sync
+    runs-on: ubuntu-latest
+    env:
+      SQLITE_DATABASE_PATH: ${{ runner.temp }}/vira-contract.sqlite3
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - run: uv sync --frozen
+      - working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Regenerate schema from a live FastAPI app (temp SQLite)
+        run: |
+          uv run python - <<'PY'
+          import json
+          from app.main import app
+          json.dump(app.openapi(), open("backend/openapi.json", "w"), indent=2, ensure_ascii=False)
+          PY
+          cd frontend && pnpm openapi-ts
+
+      - name: Generated types must be committed (reviewable in GitHub Web)
+        run: |
+          if ! git diff --exit-code backend/openapi.json frontend/src/api/schema.d.ts; then
+            echo "::error::OpenAPI schema/types out of date — run: python dump openapi.json && pnpm openapi-ts"
+            exit 1
+          fi
+
+  e2e:
+    name: Playwright e2e (native processes)
+    runs-on: ubuntu-latest
+    env:
+      SQLITE_DATABASE_PATH: ${{ runner.temp }}/vira-e2e.sqlite3
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - run: uv sync --frozen
+      - working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Migrations for the e2e database
+        working-directory: backend
+        run: uv run alembic upgrade head
+
+      - name: Install Chromium
+        working-directory: frontend
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Playwright smoke (backend + Vite dev launched natively)
+        working-directory: frontend
+        run: pnpm e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 14
+
+  windows-native:
+    name: Windows-native smoke (SQLite paths, venv, build)
+    runs-on: windows-latest
+    env:
+      SQLITE_DATABASE_PATH: ${{ runner.temp }}\vira-win.sqlite3
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Backend deps + migrations + tests (native Windows)
+        shell: pwsh
+        run: |
+          uv sync --frozen
+          Set-Location backend
+          uv run alembic upgrade head
+          Set-Location ..
+          uv run pytest -q
+
+      - name: Frontend install + build (native Windows)
+        working-directory: frontend
+        shell: pwsh
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build

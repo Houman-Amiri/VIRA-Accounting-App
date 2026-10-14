@@ -66,7 +66,7 @@ export function onUnauthorized(handler: UnauthorizedHandler): void {
   unauthorizedHandler = handler;
 }
 
-// Attach CSRF + Idempotency-Key + sudo token on every mutating call.
+// Attach CSRF + Idempotency-Key + sudo token on every call.
 api.use({
   onRequest({ request }) {
     const method = request.method.toUpperCase();
@@ -78,10 +78,11 @@ api.use({
       if (!request.headers.has(IDEM_HEADER)) {
         request.headers.set(IDEM_HEADER, newIdempotencyKey());
       }
-      const sudo = getSudoToken();
-      if (sudo && !request.headers.has(SUDO_HEADER)) {
-        request.headers.set(SUDO_HEADER, sudo);
-      }
+    }
+    // Sudo token rides on every request (System & Operations GETs included).
+    const sudo = getSudoToken();
+    if (sudo && !request.headers.has(SUDO_HEADER)) {
+      request.headers.set(SUDO_HEADER, sudo);
     }
     return request;
   },

@@ -4387,6 +4387,351 @@
         }
       }
     },
+    "/api/v1/system/status": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "System Status",
+        "operationId": "system_status_api_v1_system_status_get",
+        "parameters": [
+          {
+            "name": "X-Sudo-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Sudo-Token"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/backup": {
+      "post": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Create Backup Now",
+        "description": "One-click encrypted snapshot (Sudo step-up already verified).",
+        "operationId": "create_backup_now_api_v1_system_backup_post",
+        "parameters": [
+          {
+            "name": "X-Sudo-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Sudo-Token"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupCreated"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/backup/download": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Download Backup",
+        "description": "Download a bundle created by /system/backup — path-traversal guarded.",
+        "operationId": "download_backup_api_v1_system_backup_download_get",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Path"
+            }
+          },
+          {
+            "name": "X-Sudo-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Sudo-Token"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/backup/verify": {
+      "post": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Verify Backup Bundle",
+        "description": "Restore-verification drill: restore to a temp location + full checks.",
+        "operationId": "verify_backup_bundle_api_v1_system_backup_verify_post",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Path"
+            }
+          },
+          {
+            "name": "X-Sudo-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Sudo-Token"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupVerifyReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/check-updates": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Check Updates",
+        "description": "«بررسی به‌روزرسانی» — reads latest.json from GitHub Releases (Phase 8).",
+        "operationId": "check_updates_api_v1_system_check_updates_get",
+        "parameters": [
+          {
+            "name": "X-Sudo-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Sudo-Token"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateCheck"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/fiscal-periods": {
       "get": {
         "tags": [
@@ -5374,6 +5719,152 @@
         ],
         "title": "ApiKeyRead"
       },
+      "BackupCreated": {
+        "properties": {
+          "dir": {
+            "type": "string",
+            "title": "Dir"
+          },
+          "manifest": {
+            "type": "string",
+            "title": "Manifest"
+          },
+          "snapshot": {
+            "type": "string",
+            "title": "Snapshot"
+          },
+          "encrypted": {
+            "type": "boolean",
+            "title": "Encrypted"
+          },
+          "receipts_copied": {
+            "type": "integer",
+            "title": "Receipts Copied"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "title": "Size Bytes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "dir",
+          "manifest",
+          "snapshot",
+          "encrypted",
+          "receipts_copied",
+          "size_bytes"
+        ],
+        "title": "BackupCreated"
+      },
+      "BackupStatus": {
+        "properties": {
+          "at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "At"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          },
+          "size_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size Bytes"
+          },
+          "ok": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "at",
+          "path",
+          "size_bytes",
+          "ok"
+        ],
+        "title": "BackupStatus"
+      },
+      "BackupVerifyReport": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          },
+          "restored_to": {
+            "type": "string",
+            "title": "Restored To"
+          },
+          "integrity_check": {
+            "type": "string",
+            "title": "Integrity Check"
+          },
+          "foreign_key_violations": {
+            "type": "integer",
+            "title": "Foreign Key Violations"
+          },
+          "debits_equal_credits": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Debits Equal Credits"
+          },
+          "migration_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Migration Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ok",
+          "restored_to",
+          "integrity_check",
+          "foreign_key_violations",
+          "debits_equal_credits",
+          "migration_version"
+        ],
+        "title": "BackupVerifyReport"
+      },
       "BalanceSheetReport": {
         "properties": {
           "as_of": {
@@ -6300,6 +6791,85 @@
         ],
         "title": "SudoResponse"
       },
+      "SystemStatus": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "commit": {
+            "type": "string",
+            "title": "Commit"
+          },
+          "environment": {
+            "type": "string",
+            "title": "Environment"
+          },
+          "python_version": {
+            "type": "string",
+            "title": "Python Version"
+          },
+          "sqlite_version": {
+            "type": "string",
+            "title": "Sqlite Version"
+          },
+          "alembic_revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alembic Revision"
+          },
+          "database_path": {
+            "type": "string",
+            "title": "Database Path"
+          },
+          "receipt_dir": {
+            "type": "string",
+            "title": "Receipt Dir"
+          },
+          "data_dir": {
+            "type": "string",
+            "title": "Data Dir"
+          },
+          "scheduler_enabled": {
+            "type": "boolean",
+            "title": "Scheduler Enabled"
+          },
+          "scheduler_running": {
+            "type": "boolean",
+            "title": "Scheduler Running"
+          },
+          "scheduler_jobs": {
+            "type": "integer",
+            "title": "Scheduler Jobs"
+          },
+          "last_backup": {
+            "$ref": "#/components/schemas/BackupStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "commit",
+          "environment",
+          "python_version",
+          "sqlite_version",
+          "alembic_revision",
+          "database_path",
+          "receipt_dir",
+          "data_dir",
+          "scheduler_enabled",
+          "scheduler_running",
+          "scheduler_jobs",
+          "last_backup"
+        ],
+        "title": "SystemStatus"
+      },
       "TotpEnrollResponse": {
         "properties": {
           "secret": {
@@ -6404,6 +6974,64 @@
           "balance"
         ],
         "title": "TrialBalanceRow"
+      },
+      "UpdateCheck": {
+        "properties": {
+          "current": {
+            "type": "string",
+            "title": "Current"
+          },
+          "latest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest"
+          },
+          "update_available": {
+            "type": "boolean",
+            "title": "Update Available"
+          },
+          "notes_fa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes Fa"
+          },
+          "checked": {
+            "type": "boolean",
+            "title": "Checked"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "current",
+          "latest",
+          "update_available",
+          "notes_fa",
+          "checked"
+        ],
+        "title": "UpdateCheck"
       },
       "UserRead": {
         "properties": {

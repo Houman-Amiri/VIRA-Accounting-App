@@ -1,0 +1,84 @@
+# Release — annotated `vX.Y.Z` tags only (Phase 6 §6 + Phase 8).
+# No Docker, no container registry. Windows-native artifacts only.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    name: Full test suite
+    uses: ./.github/workflows/ci.yml
+
+  package:
+    name: Build & publish release assets
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # delta generation needs previous release tags
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Build SPA + sync backend deps
+        shell: pwsh
+        run: |
+          uv sync --frozen
+          Set-Location frontend
+          pnpm install --frozen-lockfile
+          pnpm build
+
+      - name: Package source/build artifacts + latest.json + SHA256SUMS + Persian notes
+        shell: pwsh
+        run: ./scripts/package_release.ps1 -Version "${{ github.ref_name }}" -OutDir dist-release
+
+      - name: Compile Inno Setup installer (Phase 8 adds installer/vira.iss)
+        shell: pwsh
+        run: |
+          if ((Test-Path installer/vira.iss) -and (Get-Command iscc -ErrorAction SilentlyContinue)) {
+            iscc installer/vira.iss /DAppVersion=${{ github.ref_name }}
+            Get-ChildItem installer/Output/*.exe | Copy-Item -Destination dist-release/
+          } else {
+            Write-Host "installer/vira.iss not present yet (Phase 8) — skipping compile"
+          }
+
+      - name: Delta update packages vs previous release tags (Phase 8)
+        shell: pwsh
+        run: |
+          if (Test-Path scripts/build_deltas.ps1) {
+            ./scripts/build_deltas.ps1 -Version "${{ github.ref_name }}" -OutDir dist-release
+          } else {
+            Write-Host "scripts/build_deltas.ps1 not present yet (Phase 8) — skipping deltas"
+          }
+
+      - name: Upload workflow artifact (full setup + assets)
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets-${{ github.ref_name }}
+          path: dist-release/
+          retention-days: 90
+
+      - name: Publish GitHub Release (installer, deltas, latest.json, SHA256SUMS, Persian notes)
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist-release/*
+          body_path: dist-release/release-notes-fa.md
+          fail_on_unmatched_files: false
+          draft: false

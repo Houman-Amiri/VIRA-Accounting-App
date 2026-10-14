@@ -11,6 +11,7 @@ import { ReconcilePage } from "@/routes/reconcile";
 import { StatementsPage } from "@/routes/statements";
 import { PriceCalcPage } from "@/routes/price-calc";
 import { ReceiptsPage } from "@/routes/receipts";
+import { SystemPage } from "@/routes/system";
 
 export const routes = [
   rootRoute,
@@ -24,6 +25,7 @@ export const routes = [
   createRoute({ getParentRoute: () => rootRoute, path: "/statements", component: StatementsPage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/price-calc", component: PriceCalcPage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/receipts", component: ReceiptsPage }),
+  createRoute({ getParentRoute: () => rootRoute, path: "/system", component: SystemPage }),
 ];
 
 export const routeTree = rootRoute.addChildren(routes.slice(1));

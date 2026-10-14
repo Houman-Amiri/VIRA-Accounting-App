@@ -35,11 +35,8 @@ if (Get-Command uv -ErrorAction SilentlyContinue) {
 # --- SQLite sanity check ---
 & $py -c "import sqlite3; v=sqlite3.sqlite_version_info; assert v>=(3,37,0), f'SQLite too old: {v}'; print('[VIRA] SQLite', sqlite3.sqlite_version, 'OK (STRICT tables supported)')"
 
-# --- migrations ---
-$env:PYTHONPATH = Join-Path $root "backend"
-Push-Location backend
-& $py -m alembic upgrade head
-Pop-Location
+# --- migrations (safe lifecycle: online backup + gate; Phase 6 §7) ---
+& (Join-Path $PSScriptRoot "migrate_vira.ps1")
 
 # --- frontend deps ---
 if (Test-Path "frontend/package.json") {

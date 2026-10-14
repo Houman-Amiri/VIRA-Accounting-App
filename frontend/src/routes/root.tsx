@@ -19,6 +19,7 @@ import {
   LayoutDashboard,
   Receipt,
   Scale,
+  Settings2,
   Tag,
   Upload,
   Wallet,
@@ -34,12 +35,12 @@ const NAV = [
   { to: "/statements", label: "صورت‌های مالی", icon: Wallet },
   { to: "/price-calc", label: "قیمت‌گذاری", icon: Tag },
   { to: "/receipts", label: "رسیدها", icon: Receipt },
+  { to: "/system", label: "سیستم و عملیات", icon: Settings2 },
 ] as const;
 
-export const rootRoute = createRootRoute({
-  component: () => {
-    const { theme, toggleTheme, setCommandPaletteOpen } = useUiStore();
-    const navigate = useNavigate();
+function RootComponent() {
+  const { theme, toggleTheme, setCommandPaletteOpen } = useUiStore();
+  const navigate = useNavigate();
     // Phase 5 §4: 401 → snapshot unsaved form drafts, redirect to /login.
     useEffect(() => {
       onUnauthorized(() => {
@@ -106,5 +107,6 @@ export const rootRoute = createRootRoute({
       </div>
       </SudoProvider>
     );
-  },
-});
+  }
+
+export const rootRoute = createRootRoute({ component: RootComponent });

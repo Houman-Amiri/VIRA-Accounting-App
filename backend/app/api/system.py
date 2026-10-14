@@ -1,0 +1,315 @@
+"""System & Operations (Phase 6 §8) — sudo-protected status, encrypted backups,
+restore verification and the «بررسی به‌روزرسانی» update check (Phase 8 driver)."""
+
+from __future__ import annotations
+
+import tempfile
+from pathlib import Path
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import FileResponse
+from pydantic import BaseModel
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
+from ..config import Settings
+from ..security.session import SessionUser
+from ..security.sudo import require_sudo
+from ..version import version_info
+from .deps import get_db, get_settings
+
+router = APIRouter(
+    prefix="/api/v1/system",
+    tags=["system"],
+    dependencies=[Depends(require_sudo)],  # the whole area is sudo-protected
+)
+
+
+class BackupStatus(BaseModel):
+    at: str | None
+    path: str | None
+    size_bytes: int | None
+    ok: bool | None
+
+
+class SystemStatus(BaseModel):
+    version: str
+    commit: str
+    environment: str
+    python_version: str
+    sqlite_version: str
+    alembic_revision: str | None
+    database_path: str
+    receipt_dir: str
+    data_dir: str
+    scheduler_enabled: bool
+    scheduler_running: bool
+    scheduler_jobs: int
+    last_backup: BackupStatus
+
+
+class BackupCreated(BaseModel):
+    dir: str
+    manifest: str
+    snapshot: str
+    encrypted: bool
+    receipts_copied: int
+    size_bytes: int
+
+
+class BackupVerifyReport(BaseModel):
+    ok: bool
+    restored_to: str
+    integrity_check: str
+    foreign_key_violations: int
+    debits_equal_credits: bool | None
+    migration_version: str | None
+
+
+class UpdateCheck(BaseModel):
+    current: str
+    latest: str | None
+    update_available: bool
+    notes_fa: str | None
+    checked: bool
+    reason: str | None = None
+
+
+def _backups_root(settings: Settings) -> Path:
+    assert settings.data_dir is not None
+    return Path(settings.data_dir) / "backups"
+
+
+def _last_backup(settings: Settings) -> BackupStatus:
+    backup_root = _backups_root(settings)
+    if not backup_root.is_dir():
+        return BackupStatus(at=None, path=None, size_bytes=None, ok=None)
+    bundles = sorted(backup_root.glob("**/manifest.json"))
+    if not bundles:
+        return BackupStatus(at=None, path=None, size_bytes=None, ok=None)
+    manifest = bundles[-1]
+    import json
+
+    try:
+        data = json.loads(manifest.read_text(encoding="utf-8"))
+        snapshot = manifest.parent / str(data.get("snapshot", "snapshot.sqlite3"))
+        size = snapshot.stat().st_size if snapshot.exists() else None
+        return BackupStatus(
+            at=str(data.get("created_at") or data.get("created")),
+            path=str(manifest.parent),
+            size_bytes=size,
+            ok=True,
+        )
+    except Exception:  # noqa: BLE001 - status endpoint must never crash
+        return BackupStatus(at=None, path=str(manifest.parent), size_bytes=None, ok=False)
+
+
+def _scheduler_state(request: Request) -> tuple[bool, bool, int]:
+    manager = getattr(request.app.state, "scheduler", None)
+    if manager is None:
+        return (False, False, 0)
+    jobs = 0
+    try:
+        jobs = len(manager.get_jobs())  # type: ignore[attr-defined]
+    except Exception:  # noqa: BLE001 - status must not crash
+        jobs = 0
+    return (True, True, jobs)
+
+
+@router.get("/status", response_model=SystemStatus)
+def system_status(
+    request: Request,
+    session: Annotated[Session, Depends(get_db)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> SystemStatus:
+    import sqlite3
+    import sys
+
+    revision = session.execute(
+        text("SELECT version_num FROM alembic_version LIMIT 1")
+    ).scalar()
+    enabled, running, jobs = _scheduler_state(request)
+    return SystemStatus(
+        version=version_info()["version"],
+        commit=version_info()["commit"],
+        environment=settings.environment,
+        python_version=sys.version.split()[0],
+        sqlite_version=sqlite3.sqlite_version,
+        alembic_revision=str(revision) if revision else None,
+        database_path=str(settings.sqlite_database_path),
+        receipt_dir=str(settings.receipt_dir),
+        data_dir=str(settings.data_dir),
+        scheduler_enabled=enabled or settings.scheduler_enabled,
+        scheduler_running=running,
+        scheduler_jobs=jobs,
+        last_backup=_last_backup(settings),
+    )
+
+
+@router.post("/backup", response_model=BackupCreated)
+def create_backup_now(
+    session: Annotated[Session, Depends(get_db)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    user: Annotated[SessionUser, Depends(require_sudo)],
+) -> BackupCreated:
+    """One-click encrypted snapshot (Sudo step-up already verified)."""
+    from ..ids import utc_now_iso
+    from ..services.backup import create_backup_bundle
+    from ..services.security_audit import record_security_event
+
+    assert settings.sqlite_database_path is not None and settings.receipt_dir is not None
+    out_dir = _backups_root(settings) / ("bundle-" + utc_now_iso().replace(":", ""))
+    passphrase = settings.app_encryption_key or settings.session_secret
+    result = create_backup_bundle(
+        settings.sqlite_database_path,
+        out_dir,
+        receipts_dir=settings.receipt_dir,
+        passphrase=passphrase,
+        version_label=version_info()["version"],
+    )
+    snapshot = Path(result.snapshot_path)
+    record_security_event(
+        session,
+        "BACKUP_EXPORTED",
+        actor_id=user.user_id,
+        detail={"kind": "system-backup", "bundle": str(out_dir)},
+    )
+    return BackupCreated(
+        dir=str(out_dir),
+        manifest=result.manifest_path,
+        snapshot=result.snapshot_path,
+        encrypted=result.encrypted,
+        receipts_copied=result.receipts_copied,
+        size_bytes=snapshot.stat().st_size if snapshot.exists() else 0,
+    )
+
+
+@router.get("/backup/download")
+def download_backup(
+    path: str,
+    session: Annotated[Session, Depends(get_db)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    user: Annotated[SessionUser, Depends(require_sudo)],
+) -> FileResponse:
+    """Download a bundle created by /system/backup — path-traversal guarded."""
+    from ..services.security_audit import record_security_event
+
+    backup_root = _backups_root(settings).resolve()
+    requested = Path(path).resolve()
+    if backup_root not in requested.parents and requested != backup_root:
+        from ..services.errors import NotFoundError
+
+        raise NotFoundError("پشتیبان یافت نشد")
+    target = requested
+    if target.is_dir():
+        files = sorted(p for p in target.iterdir() if p.is_file())
+        if not files:
+            from ..services.errors import NotFoundError
+
+            raise NotFoundError("پشتیبان یافت نشد")
+        target = files[0]
+    record_security_event(
+        session,
+        "BACKUP_EXPORTED",
+        actor_id=user.user_id,
+        detail={"kind": "backup-download", "file": target.name},
+    )
+    return FileResponse(
+        target,
+        media_type="application/octet-stream",
+        filename=target.name,
+        headers={
+            "X-Content-Type-Options": "nosniff",
+            "Cache-Control": "no-store",
+            "Content-Disposition": f'attachment; filename="{target.name}"',
+        },
+    )
+
+
+@router.post("/backup/verify", response_model=BackupVerifyReport)
+def verify_backup_bundle(
+    session: Annotated[Session, Depends(get_db)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    user: Annotated[SessionUser, Depends(require_sudo)],
+    path: str,
+) -> BackupVerifyReport:
+    """Restore-verification drill: restore to a temp location + full checks."""
+    from ..services.backup import restore_bundle
+
+    backup_root = _backups_root(settings).resolve()
+    requested = Path(path).resolve()
+    if backup_root not in requested.parents:
+        from ..services.errors import NotFoundError
+
+        raise NotFoundError("پشتیبان یافت نشد")
+    passphrase = settings.app_encryption_key or settings.session_secret
+    with tempfile.TemporaryDirectory(prefix="vira-verify-") as tmp:
+        target = Path(tmp) / "restored.sqlite3"
+        result = restore_bundle(requested, passphrase=passphrase, target=target)
+        balanced = result.total_debits == result.total_credits
+        from ..services.security_audit import record_security_event
+
+        record_security_event(
+            session,
+            "BACKUP_EXPORTED",
+            actor_id=user.user_id,
+            detail={"kind": "backup-verify", "bundle": str(requested), "ok": result.ok},
+        )
+        return BackupVerifyReport(
+            ok=result.ok,
+            restored_to=str(target),
+            integrity_check=result.integrity_check,
+            foreign_key_violations=result.foreign_key_violations,
+            debits_equal_credits=balanced,
+            migration_version=result.migration_version,
+        )
+
+
+@router.get("/check-updates", response_model=UpdateCheck)
+def check_updates(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> UpdateCheck:
+    """«بررسی به‌روزرسانی» — reads latest.json from GitHub Releases (Phase 8)."""
+    import time
+
+    from ..services.external import ExternalServiceError, request_json_sync
+
+    current = version_info()["version"]
+    url = (
+        f"https://github.com/{settings.update_github_repo}"
+        "/releases/latest/download/latest.json"
+    )
+    try:
+        resp = request_json_sync("GET", url, timeout=8.0, max_attempts=2)
+        data = resp.json_body or {}
+        latest = str(data.get("version", "")).lstrip("v") or None
+        cur = current.lstrip("v")
+        update_available = bool(latest) and latest != cur and _is_newer(str(latest), cur)
+        return UpdateCheck(
+            current=current,
+            latest=latest,
+            update_available=update_available,
+            notes_fa=data.get("notes_fa"),
+            checked=True,
+        )
+    except (ExternalServiceError, Exception) as exc:  # noqa: BLE001 - degrade gracefully
+        return UpdateCheck(
+            current=current,
+            latest=None,
+            update_available=False,
+            notes_fa=None,
+            checked=False,
+            reason=str(exc)[:200] if exc else f"unreachable at {time.strftime('%H:%M:%S')}",
+        )
+
+
+def _is_newer(latest: str, current: str) -> bool:
+    def parts(v: str) -> list[int]:
+        out: list[int] = []
+        for piece in v.split("."):
+            digits = "".join(ch for ch in piece if ch.isdigit())
+            out.append(int(digits) if digits else 0)
+        return out
+
+    return parts(latest) > parts(current)

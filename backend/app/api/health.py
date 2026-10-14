@@ -5,7 +5,7 @@ from __future__ import annotations
 import sqlite3
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -23,6 +23,7 @@ def live() -> dict[str, str]:
 
 @router.get("/ready")
 def ready(
+    request: Request,
     settings: Annotated[Settings, Depends(get_settings)],
     session: Annotated[Session, Depends(get_db)],
 ) -> dict[str, object]:
@@ -37,6 +38,13 @@ def ready(
         text("SELECT version_num FROM alembic_version LIMIT 1")
     ).scalar()
     receipt_ok = settings.receipt_dir is not None and settings.receipt_dir.exists()
+    scheduler_manager = getattr(request.app.state, "scheduler", None)
+    scheduler_jobs = 0
+    if scheduler_manager is not None:
+        try:
+            scheduler_jobs = len(scheduler_manager.get_jobs())  # type: ignore[attr-defined]
+        except Exception:  # noqa: BLE001 - health probe must not crash
+            scheduler_jobs = 0
     healthy = (
         invariants.get("integrity_check") == "ok"
         and invariants.get("foreign_key_violations") == 0
@@ -50,4 +58,9 @@ def ready(
         "alembic_revision": revision,
         "invariants": invariants,
         "receipt_storage_writable": receipt_ok,
+        "scheduler": {
+            "enabled": settings.scheduler_enabled,
+            "running": scheduler_manager is not None,
+            "jobs": scheduler_jobs,
+        },
     }
