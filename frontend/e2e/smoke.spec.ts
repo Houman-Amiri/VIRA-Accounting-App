@@ -55,6 +55,10 @@ test("journal form enforces zero-balance before submit", async ({ page }) => {
   await login(page);
   await page.goto("/journal/new");
   await page.getByTestId("entry-description").fill("سند آزمایشی");
+  // pick real accounts (seeded chart) — the balance rule runs only when the
+  // per-split schema (account required) passes
+  await page.getByTestId("split-account-0").selectOption({ index: 1 });
+  await page.getByTestId("split-account-1").selectOption({ index: 2 });
   await page.getByTestId("split-debit-0").fill("100");
   await page.getByTestId("split-credit-1").fill("75");
   await expect(page.getByTestId("balance-error")).toBeVisible();
