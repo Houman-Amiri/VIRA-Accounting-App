@@ -58,14 +58,20 @@ jobs:
         shell: pwsh
         run: |
           choco install innosetup -y --no-progress
-          iscc installer/vira.iss "/DAppVersion=${{ github.ref_name }}" "/DAppSource=..\dist-release\app"
+          $iscc = (Get-Command iscc -ErrorAction SilentlyContinue).Source
+          if (-not $iscc) { $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" }
+          if (-not (Test-Path $iscc)) { throw "ISCC.exe not found after installing Inno Setup" }
+          & $iscc installer/vira.iss "/DAppVersion=${{ github.ref_name }}" "/DAppSource=..\dist-release\app"
+          if ($LASTEXITCODE -ne 0) { throw "iscc failed with exit code $LASTEXITCODE" }
           Get-ChildItem installer/Output/*.exe | Copy-Item -Destination dist-release/
 
       - name: Compile vira-updater.exe (Phase 8 §6)
         shell: pwsh
         run: |
           Install-Module ps2exe -Force -Scope CurrentUser
+          Import-Module ps2exe
           Invoke-ps2exe -inputFile scripts/vira_updater.ps1 -outputFile dist-release/app/vira-updater.exe -noConsole:$false
+          if (-not (Test-Path dist-release/app/vira-updater.exe)) { throw "ps2exe did not produce vira-updater.exe" }
           Copy-Item dist-release/app/vira-updater.exe dist-release/vira-updater.exe
 
       - name: Delta update packages vs previous release tags (Phase 8 §5)

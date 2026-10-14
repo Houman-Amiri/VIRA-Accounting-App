@@ -7,6 +7,31 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+## [1.0.0] — 2026-10-15
+
+First public release — the complete 8-phase plan (Persian accounting,
+Windows-native, SQLite-only).
+
+### Added — Phases 1–7
+- Phase 1–2: product spec + data model, FastAPI backend (SQLAlchemy 2.0 +
+  Alembic), scaled-INTEGER money (×10 000; FX ×1e8) with decimal.js at the
+  presentation edge, Persian RTL Jalali UI (React 19 + TS + Vite + TanStack).
+- Phase 3–4: full SPA (journal, accounts, bank import, reconciliation,
+  statements, price calculator, receipts), persistence layer (TypeDecorator
+  money columns, FTS5 search, idempotency keys, keyset pagination,
+  reconciliation sessions, monthly snapshots, encrypted backups).
+- Phase 5: RBAC + TOTP/recovery codes + 5-minute sudo step-up, login rate
+  limiting, HMAC webhooks, resilient external clients, security headers,
+  Idempotency-Key on every mutation, draft recovery on 401.
+- Phase 6: GitHub Actions CI/Release without service containers, safe SQLite
+  migration lifecycle (migrate_vira.py/.ps1), sudo-gated System & Operations
+  page/API, rotating logs, `/health/ready`, Dependabot, ESLint 9 + Prettier.
+- Phase 7: unified search (FTS5 + LIKE parameterized, Decimal numeric tokens,
+  RapidFuzz), pluggable storage (local + S3-compatible, sha256 content-addressed,
+  presigned delivery, faceted receipt viewer), Persian-only react-i18next
+  namespaces, Jalali fiscal year (1 Farvardin) + Jalali print-to-PDF headers,
+  privacy-first Umami analytics with zero-PII redaction.
+
 ### Added — Phase 8: Installer, Versioned Releases & In-App Delta Updates
 - Inno Setup 6 installer (`installer/vira.iss`) with the mandatory «مسیر نصب»
   (select where to install) page, `InstallDir` recorded in `HKLM/HKCU\SOFTWARE\VIRA`,
@@ -33,14 +58,3 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
   and as an immutable Release asset; Windows smoke test (silent install, delta
   upgrade with size assertion, data-preservation checksum, forced-failure
   rollback).
-
-## [1.0.0] — Phase 1–7 (2026-10-14)
-
-### Added
-- Phase 1–7: Persian accounting ledger (SQLite, scaled-INTEGER money),
-  FastAPI backend + React 19 SPA, security hardening (RBAC, TOTP/sudo, HMAC
-  webhooks), persistence layer (FTS5 search, idempotency, reconciliation,
-  encrypted backups), Windows-native deployment (CI/Release workflows, safe
-  migration lifecycle, System & Operations page), enhancements & localization
-  (unified search, S3-capable storage, Persian-only i18n, Jalali fiscal year,
-  privacy-first Umami analytics).

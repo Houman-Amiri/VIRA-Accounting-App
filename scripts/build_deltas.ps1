@@ -50,7 +50,7 @@ foreach ($tag in $tags) {
         Write-Host "[build_deltas] base $tag has no install_manifest.json — skipping"
         continue
     }
-    $out = & python scripts/gen_delta.py `
+    $out = & uv run python scripts/gen_delta.py `
         --base-manifest $baseManifest.FullName `
         --base-dir $baseManifest.Directory.FullName `
         --target-dir $AppDir `
@@ -98,5 +98,5 @@ $sums | Set-Content -Encoding ascii (Join-Path $OutDir "SHA256SUMS.txt")
 if ($env:VIRA_UPDATE_SIGNING_KEY) {
     $keyPath = Join-Path $tmp "update.key"
     Set-Content -Path $keyPath -Value $env:VIRA_UPDATE_SIGNING_KEY -Encoding ascii
-    & python scripts/sign_update.py sign --key $keyPath --file $latestPath
+    & uv run python scripts/sign_update.py sign --key $keyPath --file $latestPath
 }

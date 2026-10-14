@@ -1,7 +1,9 @@
-"""Application version + build provenance (Phase 6 §8).
+"""Application version + build provenance (Phase 6 §8, Phase 8 §2).
 
-`VIRA_VERSION` / `VIRA_GIT_COMMIT` are injected at build/release time;
-falls back to the git checkout (dev machines) and then "unknown".
+Single source of truth: the ``version`` field of the root ``pyproject.toml``.
+`VIRA_VERSION` / `VIRA_GIT_COMMIT` are injected at build/release time and win
+over the installed metadata; the git checkout is used as a last resort for
+commit provenance (dev machines) and then "unknown".
 """
 
 from __future__ import annotations
@@ -10,7 +12,18 @@ import os
 import subprocess
 from functools import lru_cache
 
-__version__ = "0.1.0"
+
+def _base_version() -> str:
+    """Read the installed project version (sourced from pyproject.toml)."""
+    try:
+        from importlib.metadata import version
+
+        return version("vira-accounting")
+    except Exception:  # noqa: BLE001 - any failure falls back below
+        return "0.0.0-unknown"
+
+
+__version__ = _base_version()
 
 
 @lru_cache(maxsize=1)

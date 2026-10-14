@@ -35,5 +35,5 @@ Copy-Item -Recurse scripts "$OutDir/scripts"
 } | ConvertTo-Json | Set-Content -Encoding utf8 (Join-Path $OutDir "version.json")
 
 # per-file manifest — the delta baseline (Phase 8 §1/§5)
-python scripts/build_manifest.py $OutDir
+uv run python scripts/build_manifest.py $OutDir
 Write-Host "[stage_app_payload] staged $OutDir"

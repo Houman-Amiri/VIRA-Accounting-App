@@ -44,7 +44,11 @@ WizardStyle=modern
 SetupLogging=yes
 
 [Languages]
+; Farsi wizard translation when the Inno installation ships it (6.x does);
+; the mandated «مسیر نصب» page is always Persian via [Messages] below.
+#ifexist "compiler:Languages\Farsi.isl"
 Name: "persian"; MessagesFile: "compiler:Languages\Farsi.isl"
+#endif
 
 [Messages]
 SelectDirTitle=مسیر نصب
