@@ -7,10 +7,32 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
-## [1.0.0] — 2026-10-15
+## [1.0.1] — 2026-10-15
 
-First public release — the complete 8-phase plan (Persian accounting,
-Windows-native, SQLite-only).
+First **published** release — the complete 8-phase plan with a green CI/CD
+pipeline. The `v1.0.0` tag exists but was never published (the workflow file
+was invalid at load time; tags are immutable, so fixes ship as `v1.0.1`).
+
+### Fixed — CI/CD pipeline (all five jobs green)
+- Workflow validation: `runner.temp` is illegal in job-level `env` — moved to
+  step-level env (every run before this failed at load time).
+- Declared `bandit` + `pip-audit` in the dev extra (`uv run` died command-not-found).
+- `uv sync --frozen` installs no extras — CI syncs with `--all-extras`.
+- Prettier: 16 files formatted that the Phase 6 check never wrote.
+- Dev-mode boot: `optimizeDeps.exclude` on react-dropzone/react-pdf served raw
+  CJS deps (`attr-accept`, `warning`) with no default export — the app never
+  mounted in dev (blank page). Full prebundling; pdf.worker via `?url`;
+  `pdfjs-dist` as a direct dependency.
+- Journal form: the live zero-balance error never rendered (RHF 7.90
+  useFieldArray swallows array-level resolver errors) — rendered from the
+  computed totals; zod remains the submit gate.
+- E2E: deterministic `/login` flow with seeded owner user, account selection
+  in the journal test, webServer 120 s timeouts.
+
+## [1.0.0] — 2026-10-15 (never published)
+
+(Superseded by 1.0.1 before publication — see above.) First public release
+of the complete 8-phase plan (Persian accounting, Windows-native, SQLite-only).
 
 ### Added — Phases 1–7
 - Phase 1–2: product spec + data model, FastAPI backend (SQLAlchemy 2.0 +
