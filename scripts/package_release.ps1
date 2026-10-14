@@ -63,17 +63,32 @@ $sums | Set-Content -Encoding ascii (Join-Path $OutDirPath "SHA256SUMS.txt")
 
 $publishedAt = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 $zipHash = (Get-FileHash -Algorithm SHA256 $zipPath).Hash.ToLower()
-@(
-    "{",
-    "  `"version`": `"$Version`",",
-    "  `"published_at`": `"$publishedAt`",",
-    "  `"channel`": `"stable`",",
-    "  `"notes_fa`": `"نسخه $Version ویرا منتشر شد. برای جزئیات به صفحه انتشارات گیت‌هاب مراجعه کنید.`",",
-    "  `"files`": [",
-    "    { `"name`": `"$zipName`", `"sha256`": `"$zipHash`" }",
-    "  ]",
-    "}"
-) | Set-Content -Encoding utf8 (Join-Path $OutDirPath "latest.json")
+$v = $Version.TrimStart("v")
+# Phase 8 §3 — schema_version 1 (unknown versions are refused by the app).
+# full_installer points at the Inno setup when present, else the portable zip;
+# build_deltas.ps1 appends the deltas[] array afterwards.
+$setup = Get-ChildItem $OutDirPath -Filter "VIRA-Setup-*.exe" | Select-Object -First 1
+if ($setup) {
+    $fiUrl = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/v$v/$($setup.Name)"
+    $fiHash = (Get-FileHash -Algorithm SHA256 $setup.FullName).Hash.ToLower()
+    $fiSize = $setup.Length
+} else {
+    $fiUrl = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/v$v/$zipName"
+    $fiHash = $zipHash
+    $fiSize = (Get-Item $zipPath).Length
+}
+$latest = [ordered]@{
+    schema_version = 1
+    version = $v
+    pub_date = $publishedAt
+    min_app_version = "1.0.0"
+    notes_fa = "نسخه $v ویرا منتشر شد. برای جزئیات به صفحه انتشارات گیت‌هاب مراجعه کنید."
+    notes_en = "VIRA $v released. See the GitHub release page for details."
+    full_installer = [ordered]@{ url = $fiUrl; sha256 = $fiHash; size = $fiSize }
+    deltas = @()
+    files_manifest_sha256 = ""
+}
+($latest | ConvertTo-Json -Depth 8) | Set-Content -Encoding utf8 (Join-Path $OutDirPath "latest.json")
 
 $notes = @"
 ## نسخه $Version

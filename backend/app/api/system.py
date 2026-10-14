@@ -3,6 +3,7 @@ restore verification and the «بررسی به‌روزرسانی» update check
 
 from __future__ import annotations
 
+import contextlib
 import tempfile
 from pathlib import Path
 from typing import Annotated
@@ -67,13 +68,41 @@ class BackupVerifyReport(BaseModel):
     migration_version: str | None
 
 
+class UpdatePackage(BaseModel):
+    url: str
+    sha256: str
+    size: int
+    from_version: str
+
+
+class UpdateChoiceOut(BaseModel):
+    kind: str  # delta | delta_chain | full
+    packages: list[UpdatePackage]
+    total_bytes: int
+
+
 class UpdateCheck(BaseModel):
     current: str
     latest: str | None
     update_available: bool
     notes_fa: str | None
+    notes_en: str | None = None
     checked: bool
     reason: str | None = None
+    min_app_version: str | None = None
+    manual_required: bool = False
+    choice: UpdateChoiceOut | None = None
+
+
+class UpdateStatusOut(BaseModel):
+    state: str
+    total_bytes: int
+    downloaded_bytes: int
+    verified: bool
+    staged_path: str
+    log_path: str
+    error_fa: str | None = None
+    machine_state: str
 
 
 def _backups_root(settings: Settings) -> Path:
@@ -270,46 +299,73 @@ def verify_backup_bundle(
 def check_updates(
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> UpdateCheck:
-    """«بررسی به‌روزرسانی» — reads latest.json from GitHub Releases (Phase 8)."""
-    import time
+    """«بررسی به‌روزرسانی» — GitHub Releases + latest.json (Phase 8 §3/§4)."""
+    from ..services.update import check_for_update
 
-    from ..services.external import ExternalServiceError, request_json_sync
-
-    current = version_info()["version"]
-    url = (
-        f"https://github.com/{settings.update_github_repo}"
-        "/releases/latest/download/latest.json"
+    result = check_for_update(version_info()["version"], settings)
+    choice = None
+    if result.choice is not None:
+        choice = UpdateChoiceOut(
+            kind=result.choice.kind,
+            packages=[UpdatePackage(**p) for p in result.choice.packages],
+            total_bytes=result.choice.total_bytes,
+        )
+    return UpdateCheck(
+        current=result.current,
+        latest=result.latest,
+        update_available=result.update_available,
+        notes_fa=result.notes_fa or None,
+        notes_en=result.notes_en or None,
+        checked=result.checked,
+        reason=result.reason_fa,
+        min_app_version=result.min_app_version or None,
+        manual_required=result.manual_required,
+        choice=choice,
     )
-    try:
-        resp = request_json_sync("GET", url, timeout=8.0, max_attempts=2)
-        data = resp.json_body or {}
-        latest = str(data.get("version", "")).lstrip("v") or None
-        cur = current.lstrip("v")
-        update_available = bool(latest) and latest != cur and _is_newer(str(latest), cur)
-        return UpdateCheck(
-            current=current,
-            latest=latest,
-            update_available=update_available,
-            notes_fa=data.get("notes_fa"),
-            checked=True,
-        )
-    except (ExternalServiceError, Exception) as exc:  # noqa: BLE001 - degrade gracefully
-        return UpdateCheck(
-            current=current,
-            latest=None,
-            update_available=False,
-            notes_fa=None,
-            checked=False,
-            reason=str(exc)[:200] if exc else f"unreachable at {time.strftime('%H:%M:%S')}",
-        )
+
+
+@router.post("/update/download", response_model=UpdateStatusOut)
+def update_download(
+    settings: Annotated[Settings, Depends(get_settings)],
+    user: Annotated[SessionUser, Depends(require_sudo)],
+) -> UpdateStatusOut:
+    """Download + verify the selected package(s) into the staging area (§8)."""
+    from ..services.errors import DomainError
+    from ..services.update import check_for_update, manager
+
+    result = check_for_update(version_info()["version"], settings)
+    if not result.update_available or result.choice is None:
+        raise DomainError("به‌روزرسانی موجود نیست")
+    with contextlib.suppress(Exception):  # status carries the Persian error
+        manager.start_download(result, settings)
+    return UpdateStatusOut(**manager.status())
+
+
+@router.get("/update/status", response_model=UpdateStatusOut)
+def update_status() -> UpdateStatusOut:
+    from ..services.update import manager
+
+    return UpdateStatusOut(**manager.status())
+
+
+@router.post("/update/apply", response_model=UpdateStatusOut)
+def update_apply(
+    settings: Annotated[Settings, Depends(get_settings)],
+    user: Annotated[SessionUser, Depends(require_sudo)],
+) -> UpdateStatusOut:
+    """Pre-update backup (§7) then launch the transactional updater (§6)."""
+    from ..services.update import apply_update
+
+    apply_update(settings)
+    from ..services.update import manager
+
+    return UpdateStatusOut(**manager.status())
 
 
 def _is_newer(latest: str, current: str) -> bool:
-    def parts(v: str) -> list[int]:
-        out: list[int] = []
-        for piece in v.split("."):
-            digits = "".join(ch for ch in piece if ch.isdigit())
-            out.append(int(digits) if digits else 0)
-        return out
+    from ..services.update_engine import SemVer
 
-    return parts(latest) > parts(current)
+    try:
+        return SemVer.parse(latest) > SemVer.parse(current)
+    except Exception:  # noqa: BLE001
+        return False

@@ -5,6 +5,9 @@
  */
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { fmtBytes } from "@/lib/money";
+import { fetchUpdateCheck, type UpdateCheck } from "@/lib/update";
+import { UpdateDialog } from "@/components/update-dialog";
 import { useQuery } from "@tanstack/react-query";
 import { api, ApiError, getSudoToken, parseError } from "@/api/client";
 import { useRequestSudo } from "@/components/sudo-dialog";
@@ -33,22 +36,6 @@ type SystemStatus = {
   };
 };
 
-type UpdateCheck = {
-  current: string;
-  latest: string | null;
-  update_available: boolean;
-  notes_fa: string | null;
-  checked: boolean;
-  reason: string | null;
-};
-
-function fmtBytes(n: number | null): string {
-  if (n == null) return "—";
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
-  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
-}
-
 export function SystemPage(): React.JSX.Element {
   const { t } = useTranslation();
   const requestSudo = useRequestSudo();
@@ -56,6 +43,7 @@ export function SystemPage(): React.JSX.Element {
   const [actionMsg, setActionMsg] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
   const [update, setUpdate] = React.useState<UpdateCheck | null>(null);
+  const [updateDialogOpen, setUpdateDialogOpen] = React.useState(false);
 
   // The whole area is sudo-protected: step up once on entry.
   React.useEffect(() => {
@@ -121,9 +109,11 @@ export function SystemPage(): React.JSX.Element {
     setBusy(true);
     setActionMsg(null);
     try {
-      const res = await api.GET("/api/v1/system/check-updates");
-      if (res.error) throw await parseError(res.response);
-      setUpdate(res.data as unknown as UpdateCheck);
+      const result = await fetchUpdateCheck();
+      setUpdate(result);
+      if (result.update_available && !result.manual_required) {
+        setUpdateDialogOpen(true); // «به‌روزرسانی جدید موجود است» dialog (§4)
+      }
     } catch (e) {
       setActionMsg(e instanceof ApiError ? e.message : t("system.checkError"));
     } finally {
@@ -246,6 +236,14 @@ export function SystemPage(): React.JSX.Element {
             </CardContent>
           </Card>
         </>
+      )}
+
+      {update && (
+        <UpdateDialog
+          check={update}
+          open={updateDialogOpen}
+          onClose={() => setUpdateDialogOpen(false)}
+        />
       )}
     </div>
   );

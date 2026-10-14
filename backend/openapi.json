@@ -4672,7 +4672,7 @@
           "system"
         ],
         "summary": "Check Updates",
-        "description": "«بررسی به‌روزرسانی» — reads latest.json from GitHub Releases (Phase 8).",
+        "description": "«بررسی به‌روزرسانی» — GitHub Releases + latest.json (Phase 8 §3/§4).",
         "operationId": "check_updates_api_v1_system_check_updates_get",
         "parameters": [
           {
@@ -4715,6 +4715,203 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UpdateCheck"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/update/download": {
+      "post": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Update Download",
+        "description": "Download + verify the selected package(s) into the staging area (§8).",
+        "operationId": "update_download_api_v1_system_update_download_post",
+        "parameters": [
+          {
+            "name": "X-Sudo-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Sudo-Token"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateStatusOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/update/status": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Update Status",
+        "operationId": "update_status_api_v1_system_update_status_get",
+        "parameters": [
+          {
+            "name": "X-Sudo-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Sudo-Token"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateStatusOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/update/apply": {
+      "post": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Update Apply",
+        "description": "Pre-update backup (§7) then launch the transactional updater (§6).",
+        "operationId": "update_apply_api_v1_system_update_apply_post",
+        "parameters": [
+          {
+            "name": "X-Sudo-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Sudo-Token"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateStatusOut"
                 }
               }
             }
@@ -7007,6 +7204,17 @@
             ],
             "title": "Notes Fa"
           },
+          "notes_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes En"
+          },
           "checked": {
             "type": "boolean",
             "title": "Checked"
@@ -7021,6 +7229,32 @@
               }
             ],
             "title": "Reason"
+          },
+          "min_app_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min App Version"
+          },
+          "manual_required": {
+            "type": "boolean",
+            "title": "Manual Required",
+            "default": false
+          },
+          "choice": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UpdateChoiceOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -7032,6 +7266,114 @@
           "checked"
         ],
         "title": "UpdateCheck"
+      },
+      "UpdateChoiceOut": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "packages": {
+            "items": {
+              "$ref": "#/components/schemas/UpdatePackage"
+            },
+            "type": "array",
+            "title": "Packages"
+          },
+          "total_bytes": {
+            "type": "integer",
+            "title": "Total Bytes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "packages",
+          "total_bytes"
+        ],
+        "title": "UpdateChoiceOut"
+      },
+      "UpdatePackage": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "sha256": {
+            "type": "string",
+            "title": "Sha256"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          },
+          "from_version": {
+            "type": "string",
+            "title": "From Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "sha256",
+          "size",
+          "from_version"
+        ],
+        "title": "UpdatePackage"
+      },
+      "UpdateStatusOut": {
+        "properties": {
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "total_bytes": {
+            "type": "integer",
+            "title": "Total Bytes"
+          },
+          "downloaded_bytes": {
+            "type": "integer",
+            "title": "Downloaded Bytes"
+          },
+          "verified": {
+            "type": "boolean",
+            "title": "Verified"
+          },
+          "staged_path": {
+            "type": "string",
+            "title": "Staged Path"
+          },
+          "log_path": {
+            "type": "string",
+            "title": "Log Path"
+          },
+          "error_fa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Fa"
+          },
+          "machine_state": {
+            "type": "string",
+            "title": "Machine State"
+          }
+        },
+        "type": "object",
+        "required": [
+          "state",
+          "total_bytes",
+          "downloaded_bytes",
+          "verified",
+          "staged_path",
+          "log_path",
+          "machine_state"
+        ],
+        "title": "UpdateStatusOut"
       },
       "UserRead": {
         "properties": {

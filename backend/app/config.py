@@ -60,6 +60,9 @@ class Settings(BaseSettings):
     # --- external APIs ---
     frankfurter_base_url: str = "https://api.frankfurter.app"
     update_github_repo: str = "Houman-Amiri/VIRA-Accounting-App"
+    # --- update channel (Phase 8 §3/§8) ---
+    app_update_url: str = ""  # APP_UPDATE_URL self-hosted mirror override
+    update_public_key: str = ""  # Ed25519 PEM (inline or path) for latest.json
 
     # --- scheduler ---
     scheduler_enabled: bool = False

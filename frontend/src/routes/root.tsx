@@ -7,6 +7,7 @@ import { SudoProvider } from "@/components/sudo-dialog";
 import { api, getCsrfToken, onUnauthorized } from "@/api/client";
 import { snapshotDrafts } from "@/lib/drafts";
 import { useUiStore } from "@/store/ui";
+import { useUpdateCheck } from "@/lib/update";
 import { Moon, Sun, Command } from "lucide-react";
 import {
   BookOpenText,
@@ -36,6 +37,9 @@ const NAV = [
 
 function RootComponent() {
   const { t } = useTranslation();
+  // Phase 8 §4 — non-blocking startup update check; subtle badge only.
+  const updateCheck = useUpdateCheck();
+  const updateAvailable = updateCheck.data?.update_available === true;
   const { theme, toggleTheme, setCommandPaletteOpen } = useUiStore();
   const navigate = useNavigate();
   // Phase 5 §4: 401 → snapshot unsaved form drafts, redirect to /login.
@@ -73,7 +77,18 @@ function RootComponent() {
                 activeProps={{ className: "bg-accent text-accent-foreground font-medium" }}
               >
                 <item.icon className="h-4 w-4" />
-                {t(item.labelKey)}
+                <span className="flex-1 truncate">
+                  {t(item.labelKey)}
+                  {item.to === "/system" && updateAvailable && (
+                    <span
+                      className="ms-2 rounded-full bg-primary px-1.5 py-0.5 text-[10px] text-primary-foreground"
+                      data-testid="update-badge"
+                      title={t("update.startupBadge")}
+                    >
+                      !
+                    </span>
+                  )}
+                </span>
               </Link>
             ))}
           </nav>

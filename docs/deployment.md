@@ -194,3 +194,58 @@ cmdkey /generic:VIRA-Backup /user:vira /pass:(Read-Host "Passphrase")
 | `VITE_UMAMI_WEBSITE_ID`, `VITE_UMAMI_SCRIPT_URL` | Opt-in privacy-first Umami analytics (both must be set; zero-PII redaction wrapper) |
 
 UI localization is Persian-only: react-i18next namespaces under `frontend/src/locales/fa/` (`common`, `ledger`, `reports`, `validation`) with no language switcher or numeral toggle; the fiscal year is the full Iranian year starting 1 Farvardin.
+
+## Phase 8 — Installer, Versioned Releases & In-App Delta Updates
+
+### Release pipeline (`.github/workflows/release.yml`)
+
+1. Annotated tag `vX.Y.Z` triggers the release workflow (immutable — never move a tag).
+2. Full test suite (pytest + Hypothesis + Vitest + Playwright) via the CI workflow.
+3. `scripts/stage_app_payload.ps1` assembles `dist-release/app/` (backend +
+   site-packages, SPA `static/`, scripts, `version.json`, `install_manifest.json`).
+4. `iscc installer/vira.iss` compiles `VIRA-Setup-vX.Y.Z.exe` (Inno Setup 6 via choco).
+5. `ps2exe` compiles `scripts/vira_updater.ps1` → `vira-updater.exe`.
+6. `scripts/build_deltas.ps1` generates `VIRA-vX.Y.Z-delta-from-vA.B.C.zip` for the
+   last K = 3 tags, finalizes `latest.json` (schema_version 1) and `SHA256SUMS.txt`,
+   and Ed25519-signs `latest.json` when the `VIRA_UPDATE_SIGNING_KEY` secret is set.
+7. The setup is uploaded **both** as a workflow artifact (90-day retention) and as an
+   immutable GitHub Release asset, together with deltas, `latest.json`, `SHA256SUMS.txt`
+   and Persian release notes.
+
+### Installer (`installer/vira.iss`)
+
+- Mandatory «مسیر نصب» page (`DisableDirPage=no`), default `{autopf}\VIRA`;
+  `/VERYSILENT /DIR=<temp>` for automation.
+- Chosen `InstallDir` recorded at `HKLM/HKCU\SOFTWARE\VIRA\InstallDir` for the
+  updater and uninstaller.
+- Uninstaller never deletes `%LOCALAPPDATA%\VIRA` (SQLite, receipts, keys, logs,
+  backups) — a "delete application data" opt-in exists but is unchecked and double-confirmed.
+
+### Update channel
+
+- `GET /api/v1/system/check-updates` (sudo) → GitHub `releases/latest` +
+  `latest.json` (ETag-cached; 403/429 → Persian retry-later; unknown
+  `schema_version` → refuse + manual-install prompt).
+- `APP_UPDATE_URL` overrides the channel with a self-hosted mirror;
+  `UPDATE_PUBLIC_KEY` (Ed25519 PEM) enables signature enforcement.
+- Download/apply: `POST /api/v1/system/update/download` → SHA-256-verified staging
+  under `%LOCALAPPDATA%\VIRA\updates\<version>\`; `POST /api/v1/system/update/apply`
+  creates `backups/pre-update-*.sqlite3` then launches `vira-updater.exe`.
+
+### Delta packages
+
+`VIRA-vX.Y.Z-delta-from-vA.B.C.zip` contains `update.json` (ordered
+add/replace/patch/delete ops), `files/` (new/changed small files), `patches/`
+(BSDIFF40 patches for changed files > 256 KB), `delete.json`. Client selection:
+matching delta (typical download ≈ delta size, never the full setup) → bounded
+delta chain → full installer silent upgrade. Applying patches requires
+`{app}\tools\bspatch.exe`; without it the updater refuses and the client falls
+back to the full installer.
+
+### Zero data loss
+
+User data lives exclusively in `%LOCALAPPDATA%\VIRA\`. Before first boot of a new
+version the updater keeps `rollback/prev/` + `pre-update-*.sqlite3`; any failure
+restores the previous version with all data intact (forced-failure rollback is
+exercised in CI). The safe migration lifecycle (Phase 6 §7) runs after restart.
+

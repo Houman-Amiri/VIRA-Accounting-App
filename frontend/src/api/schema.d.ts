@@ -789,11 +789,68 @@ export interface paths {
         };
         /**
          * Check Updates
-         * @description «بررسی به‌روزرسانی» — reads latest.json from GitHub Releases (Phase 8).
+         * @description «بررسی به‌روزرسانی» — GitHub Releases + latest.json (Phase 8 §3/§4).
          */
         get: operations["check_updates_api_v1_system_check_updates_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/update/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Update Download
+         * @description Download + verify the selected package(s) into the staging area (§8).
+         */
+        post: operations["update_download_api_v1_system_update_download_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/update/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Update Status */
+        get: operations["update_status_api_v1_system_update_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/update/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Update Apply
+         * @description Pre-update backup (§7) then launch the transactional updater (§6).
+         */
+        post: operations["update_apply_api_v1_system_update_apply_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1461,10 +1518,59 @@ export interface components {
             update_available: boolean;
             /** Notes Fa */
             notes_fa: string | null;
+            /** Notes En */
+            notes_en?: string | null;
             /** Checked */
             checked: boolean;
             /** Reason */
             reason?: string | null;
+            /** Min App Version */
+            min_app_version?: string | null;
+            /**
+             * Manual Required
+             * @default false
+             */
+            manual_required: boolean;
+            choice?: components["schemas"]["UpdateChoiceOut"] | null;
+        };
+        /** UpdateChoiceOut */
+        UpdateChoiceOut: {
+            /** Kind */
+            kind: string;
+            /** Packages */
+            packages: components["schemas"]["UpdatePackage"][];
+            /** Total Bytes */
+            total_bytes: number;
+        };
+        /** UpdatePackage */
+        UpdatePackage: {
+            /** Url */
+            url: string;
+            /** Sha256 */
+            sha256: string;
+            /** Size */
+            size: number;
+            /** From Version */
+            from_version: string;
+        };
+        /** UpdateStatusOut */
+        UpdateStatusOut: {
+            /** State */
+            state: string;
+            /** Total Bytes */
+            total_bytes: number;
+            /** Downloaded Bytes */
+            downloaded_bytes: number;
+            /** Verified */
+            verified: boolean;
+            /** Staged Path */
+            staged_path: string;
+            /** Log Path */
+            log_path: string;
+            /** Error Fa */
+            error_fa?: string | null;
+            /** Machine State */
+            machine_state: string;
         };
         /** UserRead */
         UserRead: {
@@ -3267,6 +3373,105 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UpdateCheck"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_download_api_v1_system_update_download_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Sudo-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateStatusOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_status_api_v1_system_update_status_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Sudo-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateStatusOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_apply_api_v1_system_update_apply_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Sudo-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateStatusOut"];
                 };
             };
             /** @description Validation Error */

@@ -49,24 +49,36 @@ jobs:
         shell: pwsh
         run: ./scripts/package_release.ps1 -Version "${{ github.ref_name }}" -OutDir dist-release
 
-      - name: Compile Inno Setup installer (Phase 8 adds installer/vira.iss)
+      - name: Stage app payload (backend + SPA + scripts + manifests)
         shell: pwsh
         run: |
-          if ((Test-Path installer/vira.iss) -and (Get-Command iscc -ErrorAction SilentlyContinue)) {
-            iscc installer/vira.iss /DAppVersion=${{ github.ref_name }}
-            Get-ChildItem installer/Output/*.exe | Copy-Item -Destination dist-release/
-          } else {
-            Write-Host "installer/vira.iss not present yet (Phase 8) — skipping compile"
-          }
+          ./scripts/stage_app_payload.ps1 -Version "${{ github.ref_name }}" -OutDir dist-release/app
 
-      - name: Delta update packages vs previous release tags (Phase 8)
+      - name: Compile Inno Setup installer (Phase 8 §1)
         shell: pwsh
         run: |
-          if (Test-Path scripts/build_deltas.ps1) {
-            ./scripts/build_deltas.ps1 -Version "${{ github.ref_name }}" -OutDir dist-release
-          } else {
-            Write-Host "scripts/build_deltas.ps1 not present yet (Phase 8) — skipping deltas"
-          }
+          choco install innosetup -y --no-progress
+          iscc installer/vira.iss "/DAppVersion=${{ github.ref_name }}" "/DAppSource=..\dist-release\app"
+          Get-ChildItem installer/Output/*.exe | Copy-Item -Destination dist-release/
+
+      - name: Compile vira-updater.exe (Phase 8 §6)
+        shell: pwsh
+        run: |
+          Install-Module ps2exe -Force -Scope CurrentUser
+          Invoke-ps2exe -inputFile scripts/vira_updater.ps1 -outputFile dist-release/app/vira-updater.exe -noConsole:$false
+          Copy-Item dist-release/app/vira-updater.exe dist-release/vira-updater.exe
+
+      - name: Delta update packages vs previous release tags (Phase 8 §5)
+        shell: pwsh
+        env:
+          VIRA_UPDATE_SIGNING_KEY: ${{ secrets.VIRA_UPDATE_SIGNING_KEY }}
+        run: |
+          ./scripts/build_deltas.ps1 -Version "${{ github.ref_name }}" -OutDir dist-release
+
+      - name: Windows install/upgrade/rollback smoke test (Phase 8 §9)
+        shell: pwsh
+        run: |
+          ./scripts/windows_smoke_test.ps1 -Setup (Get-ChildItem dist-release/VIRA-Setup-*.exe | Select-Object -First 1).FullName
 
       - name: Upload workflow artifact (full setup + assets)
         uses: actions/upload-artifact@v4
