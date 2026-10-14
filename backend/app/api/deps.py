@@ -65,16 +65,51 @@ def enforce_csrf(
     settings: Annotated[Settings, Depends(get_settings)],
     x_csrf_token: Annotated[str | None, Header()] = None,
     vira_csrf: Annotated[str | None, Cookie()] = None,
+    x_api_key: Annotated[str | None, Header(alias="X-API-Key")] = None,
 ) -> None:
+    # API-key calls are machine-to-machine (no ambient cookie session) —
+    # the custom X-API-Key header is itself the CSRF defense for that path.
+    if x_api_key:
+        return
     if request.method in WRITE_METHODS and not csrf_matches(vira_csrf, x_csrf_token):
         raise HTTPException(status_code=403, detail="CSRF token missing or invalid")
 
 
 def auditor_read_only(
     request: Request,
-    user: Annotated[SessionUser, Depends(require_user)],
-) -> SessionUser:
-    """Block auditor role from every mutation (403)."""
-    if user.role == "AUDITOR" and request.method in WRITE_METHODS:
+    user: Annotated[SessionUser | None, Depends(get_current_user)],
+) -> SessionUser | None:
+    """Block auditor role from every mutation (403). Anonymous passes through —
+    individual routes decide whether authentication is required at all."""
+    if user is not None and user.role == "AUDITOR" and request.method in WRITE_METHODS:
         raise HTTPException(status_code=403, detail="auditor role is read-only")
     return user
+
+
+def require_user_or_ingest():
+    """Allow either a cookie session with a write role, or a valid ingest API key.
+
+    Returns ``(kind, principal)`` where kind is ``"session"`` or ``"ingest"``.
+    """
+
+    def _guard(
+        request: Request,
+        user: Annotated[SessionUser | None, Depends(get_current_user)],
+        x_api_key: Annotated[str | None, Header(alias="X-API-Key")] = None,
+    ) -> tuple[str, object]:
+        if x_api_key:
+            from ..security.api_keys import authenticate_api_key
+
+            database = request.app.state.database
+            with database.session() as session:
+                key = authenticate_api_key(session, x_api_key)
+            if key is None:
+                raise HTTPException(status_code=401, detail="invalid api key")
+            return "ingest", key
+        if user is None:
+            raise HTTPException(status_code=401, detail="authentication required")
+        if user.role not in ("OWNER", "BOOKKEEPER", "INGEST_API"):
+            raise HTTPException(status_code=403, detail="insufficient role")
+        return "session", user
+
+    return _guard

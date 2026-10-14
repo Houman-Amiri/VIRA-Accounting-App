@@ -13,7 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
-import { api, parseError } from "@/api/client";
+import { api, newIdempotencyKey, parseError, ApiError } from "@/api/client";
+import { clearDraft, loadDraft, registerDraft } from "@/lib/drafts";
 import { faDate } from "@/lib/fa";
 import { toMoneyString, tomanToRial } from "@/lib/money";
 import { Badge } from "@/components/ui/badge";
@@ -52,6 +53,27 @@ export function JournalNewPage(): React.JSX.Element {
   const splits = watch("splits");
   const totals = splitTotals(splits as SplitForm[]);
 
+  // Phase 5 §4 — stable Idempotency-Key for this logical submission (reused on
+  // retry so the backend replays the cached response instead of duplicating).
+  const idemKeyRef = React.useRef(newIdempotencyKey());
+
+  // Phase 5 §4 — draft snapshot: restored after a 401→login round-trip.
+  React.useEffect(() => {
+    const saved = loadDraft<Partial<JournalEntryForm>>("journal-new");
+    if (saved) {
+      if (saved.description) setValue("description", saved.description);
+      if (saved.reference) setValue("reference", saved.reference);
+      if (Array.isArray(saved.splits) && saved.splits.length >= 1) {
+        setValue("splits", saved.splits as SplitForm[]);
+      }
+    }
+    return registerDraft("journal-new", () => ({
+      description: watch("description"),
+      reference: watch("reference"),
+      splits: watch("splits"),
+    }));
+  }, [setValue, watch]);
+
   // Chart of accounts (hierarchical labels)
   const accountsQuery = useQuery({
     queryKey: ["accounts"],
@@ -83,10 +105,23 @@ export function JournalNewPage(): React.JSX.Element {
           exchange_rate: "1.00000000",
         })),
       };
-      const res = await api.POST("/api/v1/journal-entries", { body: payload as never });
+      const res = await api.POST("/api/v1/journal-entries", {
+        body: payload as never,
+        headers: { "Idempotency-Key": idemKeyRef.current },
+      } as never);
       if (res.error) throw await parseError(res.response);
+      idemKeyRef.current = newIdempotencyKey(); // next entry is a new operation
+      clearDraft("journal-new");
       window.alert("سند با موفقیت ثبت شد.");
     } catch (e) {
+      if (e instanceof ApiError && e.isStale) {
+        // Phase 2 §9: compare/refresh before overwriting — never silent overwrite.
+        const reload = window.confirm(
+          "این رکورد هم‌زمان توسط کاربر دیگری تغییر کرده است. برای دریافت نسخه جدید بارگذاری مجدد می‌شود؟",
+        );
+        if (reload) window.location.reload();
+        return;
+      }
       window.alert(e instanceof Error ? e.message : "خطا در ثبت سند");
     }
   };

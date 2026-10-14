@@ -87,6 +87,15 @@ class Settings(BaseSettings):
             problems.append("SESSION_SECRET is missing or weak (need >= 32 chars)")
         if not self.app_encryption_key:
             problems.append("APP_ENCRYPTION_KEY is required in production")
+        else:
+            from .security.envelope import EnvelopeError, build_envelope
+
+            try:
+                build_envelope(self.app_encryption_key)
+            except EnvelopeError:
+                problems.append("APP_ENCRYPTION_KEY must contain valid Fernet key(s)")
+        if "*" in self.frontend_origin or not self.frontend_origin.startswith("http"):
+            problems.append("FRONTEND_ORIGIN must be an explicit http(s) origin (no wildcards)")
         if problems:
             raise RuntimeError("Refusing to start: " + "; ".join(problems))
 

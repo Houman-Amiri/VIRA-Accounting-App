@@ -55,6 +55,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refresh Session
+         * @description Silent session refresh (Phase 5 §2) — re-issues the HttpOnly cookie
+         *     while the caller is still authenticated; 401s once the session is gone.
+         */
+        post: operations["refresh_session_api_v1_auth_refresh_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/logout": {
         parameters: {
             query?: never;
@@ -117,6 +138,46 @@ export interface paths {
         put?: never;
         /** Totp Verify */
         post: operations["totp_verify_api_v1_auth_totp_verify_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/totp/recovery-verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Recovery Verify
+         * @description Consume a single-use backup code (Figma-style one-time recovery).
+         */
+        post: operations["recovery_verify_api_v1_auth_totp_recovery_verify_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/sudo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sudo Elevate
+         * @description Step-up re-authentication (password OR TOTP) → 5-minute sudo token.
+         */
+        post: operations["sudo_elevate_api_v1_auth_sudo_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -457,8 +518,31 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Complete Session */
+        /**
+         * Complete Session
+         * @description Finish reconciliation — `Idempotency-Key` makes retries safe (Phase 5 §4).
+         */
         post: operations["complete_session_api_v1_reconciliation_sessions__session_id__complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reconciliation/sessions/{session_id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reopen Session
+         * @description Un-reconcile a COMPLETED session — high-risk: sudo re-auth (Phase 5 §2).
+         */
+        post: operations["reopen_session_api_v1_reconciliation_sessions__session_id__reopen_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -584,6 +668,150 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/api-keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Keys */
+        get: operations["list_keys_api_v1_api_keys_get"];
+        put?: never;
+        /** Create Key */
+        post: operations["create_key_api_v1_api_keys_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/api-keys/{key_id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke Key */
+        post: operations["revoke_key_api_v1_api_keys__key_id__revoke_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/fiscal-periods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Periods */
+        get: operations["list_periods_api_v1_fiscal_periods_get"];
+        put?: never;
+        /** Create Period */
+        post: operations["create_period_api_v1_fiscal_periods_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/fiscal-periods/{period_id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close Period */
+        post: operations["close_period_api_v1_fiscal_periods__period_id__close_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/fiscal-periods/{period_id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reopen Period
+         * @description Re-opening a closed period is high-risk: sudo re-auth required (§2).
+         */
+        post: operations["reopen_period_api_v1_fiscal_periods__period_id__reopen_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/webhooks/bank": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bank Webhook */
+        post: operations["bank_webhook_api_v1_webhooks_bank_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exports/database-dump": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Export Database Dump
+         * @description Full unencrypted DB dump — high-risk: sudo re-auth + security log.
+         */
+        post: operations["export_database_dump_api_v1_exports_database_dump_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exports/ledger.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Ledger Csv */
+        get: operations["export_ledger_csv_api_v1_exports_ledger_csv_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -651,6 +879,34 @@ export interface components {
             is_active?: boolean | null;
             /** Version Id */
             version_id: number;
+        };
+        /** ApiKeyCreate */
+        ApiKeyCreate: {
+            /** Name */
+            name: string;
+        };
+        /** ApiKeyCreated */
+        ApiKeyCreated: {
+            /** Api Key */
+            api_key: string;
+            record: components["schemas"]["ApiKeyRead"];
+        };
+        /** ApiKeyRead */
+        ApiKeyRead: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Key Prefix */
+            key_prefix: string;
+            /** Role */
+            role: string;
+            /** Created At */
+            created_at: string;
+            /** Last Used At */
+            last_used_at: string | null;
+            /** Revoked At */
+            revoked_at: string | null;
         };
         /** BalanceSheetReport */
         BalanceSheetReport: {
@@ -791,6 +1047,35 @@ export interface components {
             role: string;
             /** Csrf Token */
             csrf_token: string;
+        };
+        /** PeriodCreate */
+        PeriodCreate: {
+            /** Name */
+            name: string;
+            /** Start Date */
+            start_date: string;
+            /** End Date */
+            end_date: string;
+        };
+        /** PeriodRead */
+        PeriodRead: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Start Date */
+            start_date: string;
+            /** End Date */
+            end_date: string;
+            /** Is Closed */
+            is_closed: boolean;
+            /** Closed At */
+            closed_at: string | null;
+        };
+        /** RecoveryVerifyRequest */
+        RecoveryVerifyRequest: {
+            /** Code */
+            code: string;
         };
         /** ReportNode */
         ReportNode: {
@@ -945,6 +1230,20 @@ export interface components {
              */
             reconciliation_status: "UNRECONCILED" | "CLEARED" | "RECONCILED";
         };
+        /** SudoRequest */
+        SudoRequest: {
+            /** Password */
+            password?: string | null;
+            /** Totp Code */
+            totp_code?: string | null;
+        };
+        /** SudoResponse */
+        SudoResponse: {
+            /** Sudo Token */
+            sudo_token: string;
+            /** Expires In Seconds */
+            expires_in_seconds: number;
+        };
         /** TotpEnrollResponse */
         TotpEnrollResponse: {
             /** Secret */
@@ -1008,6 +1307,13 @@ export interface components {
             /** Context */
             ctx?: Record<string, never>;
         };
+        /** WebhookAck */
+        WebhookAck: {
+            /** Status */
+            status: string;
+            /** Event Id */
+            event_id?: string | null;
+        };
     };
     responses: never;
     parameters: never;
@@ -1022,7 +1328,9 @@ export interface operations {
             query?: never;
             header?: never;
             path?: never;
-            cookie?: never;
+            cookie?: {
+                vira_session?: string | null;
+            };
         };
         requestBody?: never;
         responses: {
@@ -1037,6 +1345,15 @@ export interface operations {
                     };
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     ready_api_v1_health_ready_get: {
@@ -1044,7 +1361,9 @@ export interface operations {
             query?: never;
             header?: never;
             path?: never;
-            cookie?: never;
+            cookie?: {
+                vira_session?: string | null;
+            };
         };
         requestBody?: never;
         responses: {
@@ -1057,6 +1376,15 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -1094,11 +1422,47 @@ export interface operations {
             };
         };
     };
+    refresh_session_api_v1_auth_refresh_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_csrf?: string | null;
+                vira_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     logout_api_v1_auth_logout_post: {
         parameters: {
             query?: never;
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path?: never;
             cookie?: {
@@ -1166,6 +1530,7 @@ export interface operations {
             query?: never;
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path?: never;
             cookie?: {
@@ -1200,6 +1565,7 @@ export interface operations {
             query?: never;
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path?: never;
             cookie?: {
@@ -1235,6 +1601,86 @@ export interface operations {
             };
         };
     };
+    recovery_verify_api_v1_auth_totp_recovery_verify_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_csrf?: string | null;
+                vira_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecoveryVerifyRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: boolean;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sudo_elevate_api_v1_auth_sudo_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_csrf?: string | null;
+                vira_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SudoRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SudoResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_accounts_api_v1_accounts_get: {
         parameters: {
             query?: {
@@ -1242,9 +1688,11 @@ export interface operations {
             };
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path?: never;
             cookie?: {
+                vira_session?: string | null;
                 vira_csrf?: string | null;
             };
         };
@@ -1275,11 +1723,12 @@ export interface operations {
             query?: never;
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path?: never;
             cookie?: {
-                vira_csrf?: string | null;
                 vira_session?: string | null;
+                vira_csrf?: string | null;
             };
         };
         requestBody: {
@@ -1313,13 +1762,14 @@ export interface operations {
             query?: never;
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path: {
                 account_id: string;
             };
             cookie?: {
-                vira_csrf?: string | null;
                 vira_session?: string | null;
+                vira_csrf?: string | null;
             };
         };
         requestBody: {
@@ -1358,9 +1808,11 @@ export interface operations {
             };
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path?: never;
             cookie?: {
+                vira_session?: string | null;
                 vira_csrf?: string | null;
             };
         };
@@ -1392,11 +1844,12 @@ export interface operations {
             header?: {
                 "Idempotency-Key"?: string | null;
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path?: never;
             cookie?: {
-                vira_csrf?: string | null;
                 vira_session?: string | null;
+                vira_csrf?: string | null;
             };
         };
         requestBody: {
@@ -1430,11 +1883,13 @@ export interface operations {
             query?: never;
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path: {
                 entry_id: string;
             };
             cookie?: {
+                vira_session?: string | null;
                 vira_csrf?: string | null;
             };
         };
@@ -1465,13 +1920,14 @@ export interface operations {
             query?: never;
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path: {
                 entry_id: string;
             };
             cookie?: {
-                vira_csrf?: string | null;
                 vira_session?: string | null;
+                vira_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -1503,13 +1959,14 @@ export interface operations {
             };
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path: {
                 entry_id: string;
             };
             cookie?: {
-                vira_csrf?: string | null;
                 vira_session?: string | null;
+                vira_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -1541,13 +1998,14 @@ export interface operations {
             };
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path: {
                 entry_id: string;
             };
             cookie?: {
-                vira_csrf?: string | null;
                 vira_session?: string | null;
+                vira_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -1580,7 +2038,9 @@ export interface operations {
             };
             header?: never;
             path?: never;
-            cookie?: never;
+            cookie?: {
+                vira_session?: string | null;
+            };
         };
         requestBody?: never;
         responses: {
@@ -1611,7 +2071,9 @@ export interface operations {
             };
             header?: never;
             path?: never;
-            cookie?: never;
+            cookie?: {
+                vira_session?: string | null;
+            };
         };
         requestBody?: never;
         responses: {
@@ -1643,7 +2105,9 @@ export interface operations {
             };
             header?: never;
             path?: never;
-            cookie?: never;
+            cookie?: {
+                vira_session?: string | null;
+            };
         };
         requestBody?: never;
         responses: {
@@ -1676,7 +2140,9 @@ export interface operations {
             };
             header?: never;
             path?: never;
-            cookie?: never;
+            cookie?: {
+                vira_session?: string | null;
+            };
         };
         requestBody?: never;
         responses: {
@@ -1709,7 +2175,9 @@ export interface operations {
             };
             header?: never;
             path?: never;
-            cookie?: never;
+            cookie?: {
+                vira_session?: string | null;
+            };
         };
         requestBody?: never;
         responses: {
@@ -1738,11 +2206,12 @@ export interface operations {
             query?: never;
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path?: never;
             cookie?: {
-                vira_csrf?: string | null;
                 vira_session?: string | null;
+                vira_csrf?: string | null;
             };
         };
         requestBody: {
@@ -1778,9 +2247,11 @@ export interface operations {
             query?: never;
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path?: never;
             cookie?: {
+                vira_session?: string | null;
                 vira_csrf?: string | null;
             };
         };
@@ -1815,9 +2286,11 @@ export interface operations {
             };
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path?: never;
             cookie?: {
+                vira_session?: string | null;
                 vira_csrf?: string | null;
             };
         };
@@ -1850,11 +2323,12 @@ export interface operations {
             query?: never;
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path?: never;
             cookie?: {
-                vira_csrf?: string | null;
                 vira_session?: string | null;
+                vira_csrf?: string | null;
             };
         };
         requestBody: {
@@ -1888,11 +2362,13 @@ export interface operations {
             query?: never;
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path: {
                 session_id: string;
             };
             cookie?: {
+                vira_session?: string | null;
                 vira_csrf?: string | null;
             };
         };
@@ -1923,11 +2399,13 @@ export interface operations {
             query?: never;
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path: {
                 session_id: string;
             };
             cookie?: {
+                vira_session?: string | null;
                 vira_csrf?: string | null;
             };
         };
@@ -1958,14 +2436,15 @@ export interface operations {
             query?: never;
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path: {
                 session_id: string;
                 split_id: string;
             };
             cookie?: {
-                vira_csrf?: string | null;
                 vira_session?: string | null;
+                vira_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -1994,14 +2473,54 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "Idempotency-Key"?: string | null;
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path: {
                 session_id: string;
             };
             cookie?: {
-                vira_csrf?: string | null;
                 vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reopen_session_api_v1_reconciliation_sessions__session_id__reopen_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+                "X-Sudo-Token"?: string | null;
+            };
+            path: {
+                session_id: string;
+            };
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -2031,13 +2550,14 @@ export interface operations {
             query?: never;
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path: {
                 session_id: string;
             };
             cookie?: {
-                vira_csrf?: string | null;
                 vira_session?: string | null;
+                vira_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -2072,7 +2592,9 @@ export interface operations {
             };
             header?: never;
             path?: never;
-            cookie?: never;
+            cookie?: {
+                vira_session?: string | null;
+            };
         };
         requestBody?: never;
         responses: {
@@ -2104,9 +2626,11 @@ export interface operations {
             };
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path?: never;
             cookie?: {
+                vira_session?: string | null;
                 vira_csrf?: string | null;
             };
         };
@@ -2143,11 +2667,12 @@ export interface operations {
             };
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path?: never;
             cookie?: {
-                vira_csrf?: string | null;
                 vira_session?: string | null;
+                vira_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -2179,11 +2704,12 @@ export interface operations {
             query?: never;
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path?: never;
             cookie?: {
-                vira_csrf?: string | null;
                 vira_session?: string | null;
+                vira_csrf?: string | null;
             };
         };
         requestBody: {
@@ -2219,11 +2745,13 @@ export interface operations {
             query?: never;
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path: {
                 doc_id: string;
             };
             cookie?: {
+                vira_session?: string | null;
                 vira_csrf?: string | null;
             };
         };
@@ -2254,13 +2782,14 @@ export interface operations {
             query?: never;
             header?: {
                 "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
             };
             path: {
                 doc_id: string;
             };
             cookie?: {
-                vira_csrf?: string | null;
                 vira_session?: string | null;
+                vira_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -2274,6 +2803,373 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_keys_api_v1_api_keys_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+                "X-Sudo-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiKeyRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_key_api_v1_api_keys_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+                "X-Sudo-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApiKeyCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiKeyCreated"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_key_api_v1_api_keys__key_id__revoke_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+                "X-Sudo-Token"?: string | null;
+            };
+            path: {
+                key_id: string;
+            };
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiKeyRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_periods_api_v1_fiscal_periods_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PeriodRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_period_api_v1_fiscal_periods_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PeriodCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PeriodRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    close_period_api_v1_fiscal_periods__period_id__close_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                period_id: string;
+            };
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PeriodRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reopen_period_api_v1_fiscal_periods__period_id__reopen_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+                "X-Sudo-Token"?: string | null;
+            };
+            path: {
+                period_id: string;
+            };
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PeriodRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bank_webhook_api_v1_webhooks_bank_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-VIRA-Signature"?: string | null;
+                "X-VIRA-Timestamp"?: string | null;
+                "X-VIRA-Event-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookAck"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_database_dump_api_v1_exports_database_dump_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+                "X-Sudo-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_ledger_csv_api_v1_exports_ledger_csv_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

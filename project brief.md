@@ -4,13 +4,13 @@
 
 | | |
 |---|---|
-| **Status** | Phase 4 (Core Stack — Database & Persistence Layer) ✅ complete — 2026-10-14 · awaiting "proceed" for **Phase 5 (Core Stack — Integration, Auth & Security)** |
+| **Status** | Phase 5 (Core Stack — Integration, Auth & Security) ✅ complete — 2026-10-14 · awaiting "proceed" for **Phase 6 (Deployment & DevOps)** |
 | **Master prompt** | [`MASTER_PROMPT.md`](MASTER_PROMPT.md) — compiled requirements; re-read before any phase work |
 | **Source request** | [`VIRA_SQLite_No_Docker.md`](VIRA_SQLite_No_Docker.md) — incl. user amendment 2026-10-14 (Phase 8) |
 | **Phase 1 docs** | [`docs/product-spec.md`](docs/product-spec.md) · [`docs/data-model.md`](docs/data-model.md) |
 | **Phase 2 code** | [`backend/`](backend/) (FastAPI + SQLAlchemy 2.0 + Alembic) · [`scripts/`](scripts/) — 71 tests green, ruff + mypy clean |
 | **Phase 3 code** | [`frontend/`](frontend/) (React 19 + TS + Vite SPA) — 40 Vitest tests green, `tsc` clean, production build + live proxy smoke |
-| **Phase 4 hardening** | Persistence layer — 101 pytest green (15 new), ruff + mypy clean; 44 Vitest green; benchmarked on 50k splits |
+| **Phase 5 hardening** | Auth & security — 119 pytest green (18 new security tests), ruff + mypy clean; 52 Vitest green; Bandit 0 medium+, pip-audit clean ([`docs/security.md`](docs/security.md)) |
 | **Pricing source** | [`قیمت نهایی.xlsx`](قیمت%20نهایی.xlsx) — relations compiled/normalized in product-spec §4.3 |
 
 ---
@@ -84,14 +84,16 @@ No `/deploy` Dockerfiles, no `docker-compose.yml`, no `.devcontainer`. DB, backu
 |---|---|---|
 | 1 | Initiation & planning (this brief + specs) | ✅ 2026-10-14 |
 | 2 | Core stack (back-end: ledger, DB, API, imports, reports, security) | ✅ 2026-10-14 |
-| 3 | Core stack (frontend SPA) | ⏳ awaiting "proceed" |
-| 4 | Database & persistence layer | ⏳ |
-| 5 | Integration, auth & security | ⏳ |
+| 3 | Core stack (frontend SPA) | ✅ 2026-10-14 |
+| 4 | Database & persistence layer | ✅ 2026-10-14 |
+| 5 | Integration, auth & security | ✅ 2026-10-14 |
 | 6 | Deployment & DevOps (Windows-native) | ⏳ |
 | 7 | Enhancements & localization | ⏳ |
 | 8 | Installer, release tags & in-app delta updates | ⏳ |
 
 **Phase 2 highlights** (details in code + tests): exact scaled-integer money (`app/money.py`, never float); double-entry engine with atomic posting/reversal/void, optimistic locking, fiscal-period locks, immutable posted entries (SQLite triggers + service validation); STRICT-table schema via Alembic 0001 with audit trail (JSON snapshots, redaction, trigger-protected); FastAPI REST (health, auth with Argon2id + HttpOnly cookies + CSRF + TOTP, accounts, journal, reports with recursive-CTE rollups + Polars series, bank imports with FITID/hash idempotency + RapidFuzz/sklearn categorization, FX via Frankfurter, content-addressed receipt storage + OCR/PDF (WeasyPrint/Jinja2); APScheduler recurring entries; online backups with restore verification; `scripts/setup_windows.ps1`, `start/stop_vira.bat/.ps1`, `backup_vira.ps1`. Tests: pytest + httpx.AsyncClient + Hypothesis (71 green); ruff + mypy clean.
+
+**Phase 5 highlights** (details in [`docs/security.md`](docs/security.md)): Alembic 0003 (`mfa_recovery_codes`, `api_keys`, `external_credentials`, `webhook_events`, immutable `security_audit_logs`); TOTP secrets envelope-encrypted (MultiFernet `APP_ENCRYPTION_KEY` with rotation) + 10 single-use Argon2id-hashed recovery codes; RBAC wired globally (auditor read-only 403, `ingest_api` keys scoped to draft journal + receipts); 5-minute HMAC sudo step-up gating period reopen / un-reconcile / DB-dump export / API-key CRUD; login rate limit 5/min with exponential lockout; Idempotency-Key auto-generated on every frontend POST/PATCH (stable across retries) + reconciliation finish; silent session refresh + 401 → draft-snapshot → `/login` (TanStack Router); HMAC-SHA256 webhooks with ±5-min freshness + event dedup; resilient httpx+tenacity external clients (timeouts, backoff, Retry-After); strict production boot validation; security headers (HSTS/CSP/XFO/nosniff/Referrer) + strict CORS; defusedxml XXE hardening; CSV formula-injection sanitization; structlog redaction; `/login` page + sudo dialog. Scans: Bandit 0 medium+, pip-audit clean, npm audit down to 1 unfixable dev-only advisory (braces).
 
 **Phase 3 highlights** (`frontend/`): React 19 + TypeScript strict + Vite, typed client generated from the backend OpenAPI (`openapi-typescript` + `openapi-fetch`, CSRF interceptor); decimal.js money math (never JS number), `<Money />` with ISO code + inflow/outflow colors + accounting negatives; Persian RTL fa-IR throughout (Vazirmatn + JetBrains Mono, tabular-nums, Persian digits, Jalali dates via `date-fns-jalali`); TanStack Router (URL params) + Query v5 + Zustand; TanStack Table v8 + Virtual (50k-row grid with pinned summary footer); journal multi-split form (RHF + Zod + useFieldArray, live Σdebit=Σcredit superRefine, auto-balance); cmdk + react-hotkeys-hook command palette (Ctrl+K); bank-import wizard (PapaParse + react-dropzone, client-side column mapping) + dual-pane reconciliation with confidence badges (amount/date/description/ref weights, auto ≥85%); statements with ECharts; pricing calculator normalized from `قیمت نهایی.xlsx` (all 14 output lines); receipt upload with OCR status. 40 Vitest tests green, `tsc` clean, Vite build green, live smoke (login → draft → post → balanced trial balance through the dev proxy). Playwright config + smoke specs included (browser download blocked in this sandbox — runs on dev machines).
 

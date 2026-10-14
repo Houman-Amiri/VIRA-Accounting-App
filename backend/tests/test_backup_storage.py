@@ -231,4 +231,4 @@ def test_plain_bundle_and_migration_version(database, tmp_path: Path) -> None:
     assert result.encrypted is False
     drill = restore_bundle(out)
     assert drill.ok
-    assert drill.migration_version == "0002_persistence"
+    assert drill.migration_version == "0003_security"

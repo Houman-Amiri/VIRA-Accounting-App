@@ -7,10 +7,18 @@ from .fx import ExchangeRate
 from .ledger import Account, JournalEntry, TransactionSplit
 from .ops import Document, RecurringEntry, User
 from .persistence import AccountBalanceSnapshot, Currency, IdempotencyKey
+from .security import (
+    ApiKey,
+    ExternalCredential,
+    MfaRecoveryCode,
+    SecurityAuditLog,
+    WebhookEvent,
+)
 
 __all__ = [
     "Account",
     "AccountBalanceSnapshot",
+    "ApiKey",
     "AuditLog",
     "BankImportBatch",
     "BankStatementLine",
@@ -18,11 +26,15 @@ __all__ = [
     "Currency",
     "Document",
     "ExchangeRate",
+    "ExternalCredential",
     "FiscalPeriod",
     "IdempotencyKey",
     "JournalEntry",
+    "MfaRecoveryCode",
     "ReconciliationSession",
     "RecurringEntry",
+    "SecurityAuditLog",
     "TransactionSplit",
     "User",
+    "WebhookEvent",
 ]

@@ -2,6 +2,7 @@
 import { createRoute, createRouter } from "@tanstack/react-router";
 import { rootRoute } from "@/routes/root";
 import { DashboardPage } from "@/routes/dashboard";
+import { LoginPage } from "@/routes/login";
 import { JournalListPage } from "@/routes/journal-list";
 import { JournalNewPage } from "@/routes/journal-new";
 import { AccountsPage } from "@/routes/accounts";
@@ -14,6 +15,7 @@ import { ReceiptsPage } from "@/routes/receipts";
 export const routes = [
   rootRoute,
   createRoute({ getParentRoute: () => rootRoute, path: "/", component: DashboardPage }),
+  createRoute({ getParentRoute: () => rootRoute, path: "/login", component: LoginPage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/journal", component: JournalListPage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/journal/new", component: JournalNewPage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/accounts", component: AccountsPage }),

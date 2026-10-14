@@ -33,6 +33,7 @@ dependencies = [
     "APScheduler>=3.10",
     "structlog>=24.1",
     "cryptography>=42.0",
+    "defusedxml>=0.7",
 ]
 
 [project.optional-dependencies]

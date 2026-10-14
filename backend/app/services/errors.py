@@ -102,3 +102,9 @@ class FileTooLarge(FileRejectedError):
 class UnsupportedMediaType(FileRejectedError):
     code = "unsupported_media_type"
     title = "Unsupported media type"
+
+
+class SudoRequiredError(DomainError):
+    code = "sudo_required"
+    title = "Sudo re-authentication required"
+    status = 403

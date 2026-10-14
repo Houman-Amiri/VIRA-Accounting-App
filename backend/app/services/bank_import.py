@@ -12,7 +12,6 @@ from __future__ import annotations
 import hashlib
 import io
 import re
-import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from pathlib import Path
@@ -225,7 +224,9 @@ _CMT_NS = {
 
 def parse_camt053(data: bytes, *, currency: str = "IRR") -> ParseResult:
     """Internal CAMT.053 XML parser (namespaces 02 and 08)."""
-    root = ET.fromstring(data)
+    from defusedxml import ElementTree as SafeET  # XXE hardening (Phase 5 §7)
+
+    root = SafeET.fromstring(data)
     ns_uri = root.tag.split("}")[0].strip("{") if "}" in root.tag else ""
     if ns_uri:
         def q(name: str) -> str:

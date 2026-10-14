@@ -29,6 +29,15 @@ def downgrade_migrations() -> None:
     command.downgrade(cfg, "base")
 
 
+@pytest.fixture(autouse=True)
+def _reset_rate_limiter() -> Iterator[None]:
+    """Rate limiter state is process-wide — reset per test for isolation."""
+    from app.security.ratelimit import limiter
+
+    limiter.reset()
+    yield
+
+
 @pytest.fixture()
 def db_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     path = tmp_path / "vira.sqlite3"
@@ -41,6 +50,13 @@ def db_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 @pytest.fixture()
 def database(db_path: Path) -> Iterator:
     run_migrations()
+    # WAL so the test-session connection and the app connection don't block
+    # each other between statements (readers never block writers).
+    import sqlite3
+
+    conn = sqlite3.connect(db_path)
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.close()
     from app.config import load_settings
     from app.db import Database
 

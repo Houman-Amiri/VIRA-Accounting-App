@@ -16,7 +16,7 @@ from ..models import Document
 from ..services.errors import NotFoundError
 from ..services.ocr import parse_receipt_text
 from ..services.storage import save_receipt
-from .deps import enforce_csrf, get_db, get_settings, require_roles
+from .deps import enforce_csrf, get_db, get_settings, require_roles, require_user_or_ingest
 
 router = APIRouter(
     prefix="/api/v1/documents",
@@ -29,12 +29,18 @@ router = APIRouter(
 def upload_receipt(
     session: Annotated[Session, Depends(get_db)],
     settings: Annotated[Settings, Depends(get_settings)],
-    _user: Annotated[object, Depends(require_roles("OWNER", "BOOKKEEPER"))],
+    _user: Annotated[tuple[str, object], Depends(require_user_or_ingest())],
     file: Annotated[UploadFile, File()],
     journal_entry_id: Annotated[str | None, Form()] = None,
 ) -> dict[str, object]:
     assert settings.receipt_dir is not None
-    data = file.file.read()
+    from ..services.storage import MAX_RECEIPT_BYTES
+
+    data = file.file.read(MAX_RECEIPT_BYTES + 1)
+    if len(data) > MAX_RECEIPT_BYTES:
+        from ..services.errors import FileTooLarge
+
+        raise FileTooLarge("receipt exceeds 10 MB limit")
     meta = save_receipt(data, file.filename or "receipt", settings.receipt_dir)
     existing = session.scalar(select(Document).where(Document.sha256 == meta["sha256"]))
     if existing is not None:

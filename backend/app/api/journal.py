@@ -21,7 +21,7 @@ from ..services.idempotency import (
     request_hash,
 )
 from ..services.ledger import LedgerService
-from .deps import enforce_csrf, get_db, require_roles
+from .deps import enforce_csrf, get_db, require_roles, require_user_or_ingest
 
 router = APIRouter(
     prefix="/api/v1/journal-entries",
@@ -99,7 +99,7 @@ def create_entry(
     payload: JournalEntryCreate,
     session: Annotated[Session, Depends(get_db)],
     response: Response,
-    _user: Annotated[object, Depends(require_roles("OWNER", "BOOKKEEPER"))],
+    _user: Annotated[tuple[str, object], Depends(require_user_or_ingest())],
     idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
 ) -> JournalEntryRead:
     service = LedgerService(session)

@@ -1,6 +1,15 @@
 /** Root route: RTL app shell — sidebar nav, command palette, theme toggle. */
-import { Link, Outlet, createRootRoute } from "@tanstack/react-router";
+import { useEffect } from "react";
+import {
+  Link,
+  Outlet,
+  createRootRoute,
+  useNavigate,
+} from "@tanstack/react-router";
 import { CommandPalette } from "@/components/command-palette";
+import { SudoProvider } from "@/components/sudo-dialog";
+import { api, getCsrfToken, onUnauthorized } from "@/api/client";
+import { snapshotDrafts } from "@/lib/drafts";
 import { useUiStore } from "@/store/ui";
 import { Moon, Sun, Command } from "lucide-react";
 import {
@@ -30,7 +39,21 @@ const NAV = [
 export const rootRoute = createRootRoute({
   component: () => {
     const { theme, toggleTheme, setCommandPaletteOpen } = useUiStore();
+    const navigate = useNavigate();
+    // Phase 5 §4: 401 → snapshot unsaved form drafts, redirect to /login.
+    useEffect(() => {
+      onUnauthorized(() => {
+        snapshotDrafts();
+        void navigate({ to: "/login" });
+      });
+      // Silent session refresh on app start (Phase 5 §2) — re-issues the
+      // HttpOnly cookie while the session is still valid; fails silently.
+      if (getCsrfToken()) {
+        void api.POST("/api/v1/auth/refresh", {}).catch(() => undefined);
+      }
+    }, [navigate]);
     return (
+      <SudoProvider>
       <div className="flex min-h-screen">
         <aside className="flex w-56 shrink-0 flex-col gap-1 border-l bg-card/60 p-3">
           <div className="mb-4 flex items-center gap-2 px-2">
@@ -81,6 +104,7 @@ export const rootRoute = createRootRoute({
         </main>
         <CommandPalette />
       </div>
+      </SudoProvider>
     );
   },
 });
