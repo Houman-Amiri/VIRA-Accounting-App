@@ -4,9 +4,16 @@
  * hierarchical account picker, pinned balance footer.
  */
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useForm, useFieldArray, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { journalEntrySchema, splitTotals, autoBalance, type JournalEntryForm, type SplitForm } from "@/lib/journal";
+import {
+  journalEntrySchema,
+  splitTotals,
+  autoBalance,
+  type JournalEntryForm,
+  type SplitForm,
+} from "@/lib/journal";
 import { Money } from "@/components/money";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { api, newIdempotencyKey, parseError, ApiError } from "@/api/client";
 import { clearDraft, loadDraft, registerDraft } from "@/lib/drafts";
+import { trackEvent } from "@/lib/analytics";
 import { faDate } from "@/lib/fa";
 import { toMoneyString, tomanToRial } from "@/lib/money";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +36,7 @@ interface AccountOption {
 }
 
 export function JournalNewPage(): React.JSX.Element {
+  const { t } = useTranslation("ledger");
   const {
     register,
     control,
@@ -112,7 +121,8 @@ export function JournalNewPage(): React.JSX.Element {
       if (res.error) throw await parseError(res.response);
       idemKeyRef.current = newIdempotencyKey(); // next entry is a new operation
       clearDraft("journal-new");
-      window.alert("سند با موفقیت ثبت شد.");
+      window.alert(t("journalNew.saved"));
+      trackEvent("journal_entry_created", { route: "/journal/new", status: "ok" });
     } catch (e) {
       if (e instanceof ApiError && e.isStale) {
         // Phase 2 §9: compare/refresh before overwriting — never silent overwrite.
@@ -122,38 +132,46 @@ export function JournalNewPage(): React.JSX.Element {
         if (reload) window.location.reload();
         return;
       }
-      window.alert(e instanceof Error ? e.message : "خطا در ثبت سند");
+      window.alert(e instanceof Error ? e.message : t("journalNew.saveError"));
     }
   };
 
   return (
     <div className="mx-auto max-w-5xl space-y-4" dir="rtl">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">سند حسابداری جدید</h1>
+        <h1 className="text-xl font-bold">{t("journalNew.title")}</h1>
         <Badge variant={totals.balanced ? "success" : "destructive"}>
-          {totals.balanced ? "متوازن" : "نامتوازن"}
+          {totals.balanced ? t("journalNew.balanced") : t("journalNew.unbalanced")}
         </Badge>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle>مشخصات سند</CardTitle>
+            <CardTitle>{t("journalNew.details")}</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="date">تاریخ</Label>
+              <Label htmlFor="date">{t("journalNew.date")}</Label>
               <Input id="date" data-testid="entry-date" {...register("date")} />
               <p className="mt-1 text-xs text-muted-foreground">{faDate(watch("date"))}</p>
-              {errors.date && <p className="mt-1 text-xs text-destructive">{errors.date.message}</p>}
+              {errors.date && (
+                <p className="mt-1 text-xs text-destructive">{errors.date.message}</p>
+              )}
             </div>
             <div>
-              <Label htmlFor="description">شرح</Label>
-              <Input id="description" data-testid="entry-description" {...register("description")} />
-              {errors.description && <p className="mt-1 text-xs text-destructive">{errors.description.message}</p>}
+              <Label htmlFor="description">{t("journalNew.description")}</Label>
+              <Input
+                id="description"
+                data-testid="entry-description"
+                {...register("description")}
+              />
+              {errors.description && (
+                <p className="mt-1 text-xs text-destructive">{errors.description.message}</p>
+              )}
             </div>
             <div>
-              <Label htmlFor="reference">مرجع</Label>
+              <Label htmlFor="reference">{t("journalNew.reference")}</Label>
               <Input id="reference" {...register("reference")} />
             </div>
           </CardContent>
@@ -161,7 +179,7 @@ export function JournalNewPage(): React.JSX.Element {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>ردیف‌های سند</CardTitle>
+            <CardTitle>{t("journalNew.rows")}</CardTitle>
             <div className="flex gap-2">
               <Button
                 type="button"
@@ -176,22 +194,31 @@ export function JournalNewPage(): React.JSX.Element {
                   });
                 }}
               >
-                <Wand2 /> ترازنامه خودکار
+                <Wand2 /> {t("journalNew.autoBalance")}
               </Button>
               <Button
                 type="button"
                 size="sm"
                 onClick={() =>
-                  append({ account_id: "", debit: "0", credit: "0", description: "", cost_center_id: "" })
+                  append({
+                    account_id: "",
+                    debit: "0",
+                    credit: "0",
+                    description: "",
+                    cost_center_id: "",
+                  })
                 }
               >
-                <Plus /> افزودن ردیف
+                <Plus /> {t("journalNew.addRow")}
               </Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
             {errors.splits?.message && (
-              <p className="rounded-md bg-destructive/10 p-2 text-sm text-destructive" data-testid="balance-error">
+              <p
+                className="rounded-md bg-destructive/10 p-2 text-sm text-destructive"
+                data-testid="balance-error"
+              >
                 {errors.splits.message}
               </p>
             )}
@@ -202,13 +229,13 @@ export function JournalNewPage(): React.JSX.Element {
                 data-testid={`split-row-${index}`}
               >
                 <div className="col-span-5">
-                  <Label>حساب</Label>
+                  <Label>{t("journalNew.account")}</Label>
                   <select
                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
                     data-testid={`split-account-${index}`}
                     {...register(`splits.${index}.account_id`)}
                   >
-                    <option value="">انتخاب حساب…</option>
+                    <option value="">{t("journalNew.accountPlaceholder")}</option>
                     {(accountsQuery.data ?? []).map((a) => (
                       <option key={a.id} value={a.id}>
                         {a.code} — {a.name}
@@ -216,11 +243,13 @@ export function JournalNewPage(): React.JSX.Element {
                     ))}
                   </select>
                   {errors.splits?.[index]?.account_id && (
-                    <p className="mt-1 text-xs text-destructive">{errors.splits[index]?.account_id?.message}</p>
+                    <p className="mt-1 text-xs text-destructive">
+                      {errors.splits[index]?.account_id?.message}
+                    </p>
                   )}
                 </div>
                 <div className="col-span-2">
-                  <Label>بدهکار</Label>
+                  <Label>{t("journalNew.debit")}</Label>
                   <Input
                     inputMode="decimal"
                     className="num"
@@ -229,7 +258,7 @@ export function JournalNewPage(): React.JSX.Element {
                   />
                 </div>
                 <div className="col-span-2">
-                  <Label>بستانکار</Label>
+                  <Label>{t("journalNew.credit")}</Label>
                   <Input
                     inputMode="decimal"
                     className="num"
@@ -238,7 +267,7 @@ export function JournalNewPage(): React.JSX.Element {
                   />
                 </div>
                 <div className="col-span-2">
-                  <Label>شرح</Label>
+                  <Label>{t("journalNew.description")}</Label>
                   <Input {...register(`splits.${index}.description`)} />
                 </div>
                 <div className="col-span-1">
@@ -246,7 +275,7 @@ export function JournalNewPage(): React.JSX.Element {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    aria-label="حذف ردیف"
+                    aria-label={t("journalNew.removeRow")}
                     disabled={fields.length <= 2}
                     onClick={() => remove(index)}
                   >
@@ -270,25 +299,34 @@ export function JournalNewPage(): React.JSX.Element {
         >
           <div className="flex items-center gap-6">
             <div>
-              <div className="text-xs text-muted-foreground">جمع بدهکار</div>
+              <div className="text-xs text-muted-foreground">{t("journalNew.totalDebit")}</div>
               <Money value={totals.totalDebit.toFixed(4)} currency="TOMAN" />
             </div>
             <div>
-              <div className="text-xs text-muted-foreground">جمع بستانکار</div>
+              <div className="text-xs text-muted-foreground">{t("journalNew.totalCredit")}</div>
               <Money value={totals.totalCredit.toFixed(4)} currency="TOMAN" />
             </div>
             <div>
-              <div className="text-xs text-muted-foreground">اختلاف</div>
-              <Money value={totals.difference.toFixed(4)} currency="TOMAN" signedColors accounting={false} />
+              <div className="text-xs text-muted-foreground">{t("journalNew.difference")}</div>
+              <Money
+                value={totals.difference.toFixed(4)}
+                currency="TOMAN"
+                signedColors
+                accounting={false}
+              />
             </div>
             {totals.balanced && (
               <Badge variant="success" data-testid="balanced-badge">
-                <CheckCircle2 className="h-3 w-3" /> متوازن
+                <CheckCircle2 className="h-3 w-3" /> {t("journalNew.balanced")}
               </Badge>
             )}
           </div>
-          <Button type="submit" disabled={isSubmitting || !totals.balanced} data-testid="submit-entry">
-            ثبت سند
+          <Button
+            type="submit"
+            disabled={isSubmitting || !totals.balanced}
+            data-testid="submit-entry"
+          >
+            {t("journalNew.submit")}
           </Button>
         </div>
       </form>

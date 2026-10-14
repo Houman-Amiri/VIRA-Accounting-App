@@ -1,6 +1,7 @@
 /** چارت حساب‌ها — hierarchical tree table (expand/collapse, depth indent). */
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
+import { SearchFilterBar } from "@/components/search-filter-bar";
 import { api, parseError } from "@/api/client";
 import { Badge } from "@/components/ui/badge";
 import { ChevronDown, ChevronLeft } from "lucide-react";
@@ -48,6 +49,7 @@ export function AccountsPage(): React.JSX.Element {
   return (
     <div className="space-y-4" dir="rtl">
       <h1 className="text-xl font-bold">چارت حساب‌ها</h1>
+      <SearchFilterBar entity="account" data-testid="accounts-search" />
       <div className="rounded-lg border bg-card">
         {rows.map(({ node, depth }) => {
           const hasChildren = (accountsQuery.data ?? []).some((a) => a.parent_id === node.id);
@@ -70,7 +72,11 @@ export function AccountsPage(): React.JSX.Element {
                     })
                   }
                 >
-                  {collapsed.has(node.id) ? <ChevronLeft className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  {collapsed.has(node.id) ? (
+                    <ChevronLeft className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
                 </button>
               ) : (
                 <span className="w-4" />
@@ -84,7 +90,9 @@ export function AccountsPage(): React.JSX.Element {
             </div>
           );
         })}
-        {rows.length === 0 && <div className="p-8 text-center text-muted-foreground">در حال بارگذاری…</div>}
+        {rows.length === 0 && (
+          <div className="p-8 text-center text-muted-foreground">در حال بارگذاری…</div>
+        )}
       </div>
     </div>
   );

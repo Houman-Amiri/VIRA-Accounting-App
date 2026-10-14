@@ -75,3 +75,13 @@
     @apply bg-muted-foreground/30 rounded-full;
   }
 }
+
+/* --- Print-to-PDF: Jalali reports stay RTL; chrome hidden (Phase 7 §3) --- */
+@media print {
+  .print\:hidden {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}

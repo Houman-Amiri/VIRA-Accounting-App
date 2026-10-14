@@ -13,6 +13,7 @@
  * tabular digits throughout.
  */
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Decimal, rialToToman, toDecimal, type MoneyLike } from "@/lib/money";
 import { faNumber } from "@/lib/fa";
 import { cn } from "@/lib/cn";
@@ -46,6 +47,7 @@ export function Money({
   className,
   title,
 }: MoneyProps): React.JSX.Element {
+  const { t } = useTranslation();
   let amount: Decimal;
   try {
     amount = toDecimal(value);
@@ -57,23 +59,28 @@ export function Money({
   if (currency === "IRR") {
     if (display === "toman") {
       amount = rialToToman(amount);
-      label = "تومان";
+      label = t("money.toman");
     } else {
-      label = "ریال";
+      label = t("money.rial");
     }
   } else if (currency === "TOMAN") {
-    label = "تومان";
+    label = t("money.toman");
   }
 
   const negative = amount.isNegative();
   // Keep exactly 4 decimals trimmed of trailing zeros: "12.5000" → "12.5"
-  const fixed = amount.abs().toFixed(4).replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
+  const fixed = amount
+    .abs()
+    .toFixed(4)
+    .replace(/(\.\d*?)0+$/, "$1")
+    .replace(/\.$/, "");
   const shown = faNumber(fixed);
   const body = accounting && negative ? `(${shown})` : negative ? `−${shown}` : shown;
 
   const tone =
     signedColors || direction !== "neutral"
-      ? direction === "inflow" || (direction === "neutral" && signedColors && !negative && !amount.isZero())
+      ? direction === "inflow" ||
+        (direction === "neutral" && signedColors && !negative && !amount.isZero())
         ? "text-positive"
         : direction === "outflow" || (direction === "neutral" && signedColors && negative)
           ? "text-negative"

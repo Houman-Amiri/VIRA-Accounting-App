@@ -45,7 +45,9 @@ export function DashboardPage(): React.JSX.Element {
       <div className="grid grid-cols-3 gap-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm text-muted-foreground">جمع بدهکار (ترازنامه آزمایشی)</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">
+              جمع بدهکار (ترازنامه آزمایشی)
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <Money value={trialTotals.totalDebit.toFixed(4)} />

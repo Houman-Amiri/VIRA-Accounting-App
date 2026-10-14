@@ -4,6 +4,7 @@
  * un-reconcile). `requestSudo()` resolves with a fresh token or rejects.
  */
 import { createContext, useCallback, useContext, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { api, parseError, setSudoToken } from "@/api/client";
 
 type SudoFn = () => Promise<string>;
@@ -22,6 +23,7 @@ interface SudoResponseBody {
 }
 
 export function SudoProvider({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation();
   const [pending, setPending] = useState<{
     resolve: (token: string) => void;
     reject: (err: Error) => void;
@@ -51,7 +53,7 @@ export function SudoProvider({ children }: { children: React.ReactNode }) {
       });
       if (res.error || !res.data) {
         const err = await parseError(res.response);
-        setError(err.status === 403 ? "رمز عبور نادرست است." : err.message);
+        setError(err.status === 403 ? t("sudo.wrongPassword") : err.message);
         return;
       }
       const data = res.data as SudoResponseBody;
@@ -60,7 +62,7 @@ export function SudoProvider({ children }: { children: React.ReactNode }) {
       pending.resolve(data.sudo_token);
       setPending(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "خطای غیرمنتظره");
+      setError(err instanceof Error ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
@@ -85,10 +87,8 @@ export function SudoProvider({ children }: { children: React.ReactNode }) {
         }}
       >
         <form onSubmit={submit} className="space-y-4 p-6">
-          <h2 className="text-base font-bold">احراز هویت مجدد</h2>
-          <p className="text-sm text-muted-foreground">
-            این عملیات حساس است. برای ادامه، رمز عبور خود را وارد کنید.
-          </p>
+          <h2 className="text-base font-bold">{t("sudo.title")}</h2>
+          <p className="text-sm text-muted-foreground">{t("sudo.prompt")}</p>
           <input
             type="password"
             className="w-full rounded-md border bg-background px-3 py-2 text-sm"
@@ -115,7 +115,7 @@ export function SudoProvider({ children }: { children: React.ReactNode }) {
               disabled={busy}
               className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60"
             >
-              {busy ? "در حال بررسی…" : "تأیید"}
+              {busy ? t("sudo.busy") : t("sudo.confirm")}
             </button>
           </div>
         </form>

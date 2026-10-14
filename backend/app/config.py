@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     sqlite_database_path: Path | None = None
     storage_provider: str = "local"  # local|s3
     receipt_dir: Path | None = None
+    # --- S3-compatible storage (STORAGE_PROVIDER=s3; Phase 7 §2) ---
+    s3_bucket: str = ""
+    s3_endpoint_url: str = ""  # MinIO / R2 / B2 endpoint; empty = AWS
+    s3_region: str = ""
+    s3_sse: str = "AES256"  # server-side encryption on write
 
     # --- security ---
     session_secret: str = "dev-only-insecure-session-secret-change-me"

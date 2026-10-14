@@ -184,3 +184,13 @@ cmdkey /generic:VIRA-Backup /user:vira /pass:(Read-Host "Passphrase")
   **Tailscale** استفاده کنید (Firewall ویندوز + MagicDNS) —
   جزئیات در [`docs/security.md`](security.md) §9. فایل SQLite و پورت‌های
   اضافه هرگز در معرض عموم قرار نمی‌گیرند.
+
+### Phase 7 additions (Enhancements & Localization)
+
+| Variable | Purpose |
+|---|---|
+| `STORAGE_PROVIDER` | `local` (default) or `s3` for receipt storage |
+| `S3_BUCKET`, `S3_ENDPOINT_URL`, `S3_REGION`, `S3_SSE` | S3-compatible bucket (MinIO/R2/AWS); server-side encryption on write (`AES256` default); `GET /documents/receipts/{id}` issues a 300-s presigned redirect |
+| `VITE_UMAMI_WEBSITE_ID`, `VITE_UMAMI_SCRIPT_URL` | Opt-in privacy-first Umami analytics (both must be set; zero-PII redaction wrapper) |
+
+UI localization is Persian-only: react-i18next namespaces under `frontend/src/locales/fa/` (`common`, `ledger`, `reports`, `validation`) with no language switcher or numeral toggle; the fiscal year is the full Iranian year starting 1 Farvardin.

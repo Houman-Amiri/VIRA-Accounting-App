@@ -3,6 +3,7 @@
  * confidence badges (auto ≥85%, suggestion 60–84%, manual).
  */
 import * as React from "react";
+import { trackEvent } from "@/lib/analytics";
 import { scoreMatch, confidenceOf, CONFIDENCE_LABELS, type MatchCandidate } from "@/lib/similarity";
 import { Money } from "@/components/money";
 import { Badge } from "@/components/ui/badge";
@@ -14,14 +15,44 @@ import { Check, Link2, X } from "lucide-react";
 
 // Demo fixtures (server data joins in Phase 5 hardening).
 const bankLines: MatchCandidate[] = [
-  { amount: "1250000.0000", dateIso: "2026-10-01", description: "واریز به ازای فاکتور ۱۰۲۴ شرکت آریا", refNo: "1024" },
-  { amount: "480000.0000", dateIso: "2026-10-03", description: "خرید فیلامنت PLA سفید", refNo: "8811" },
-  { amount: "2500000.0000", dateIso: "2026-10-05", description: "فروش عمده پایه موبایل", refNo: "5510" },
+  {
+    amount: "1250000.0000",
+    dateIso: "2026-10-01",
+    description: "واریز به ازای فاکتور ۱۰۲۴ شرکت آریا",
+    refNo: "1024",
+  },
+  {
+    amount: "480000.0000",
+    dateIso: "2026-10-03",
+    description: "خرید فیلامنت PLA سفید",
+    refNo: "8811",
+  },
+  {
+    amount: "2500000.0000",
+    dateIso: "2026-10-05",
+    description: "فروش عمده پایه موبایل",
+    refNo: "5510",
+  },
 ];
 const openTx: MatchCandidate[] = [
-  { amount: "1250000.0000", dateIso: "2026-10-01", description: "دریافت از آریا — فاکتور ۱۰۲۴", refNo: "1024" },
-  { amount: "480000.0000", dateIso: "2026-10-04", description: "فیلامنت PLA سفید — فروشنده پارس", refNo: "8811" },
-  { amount: "1700000.0000", dateIso: "2026-10-06", description: "فروش عمده پایه موبایل — بازارگاه", refNo: "5510" },
+  {
+    amount: "1250000.0000",
+    dateIso: "2026-10-01",
+    description: "دریافت از آریا — فاکتور ۱۰۲۴",
+    refNo: "1024",
+  },
+  {
+    amount: "480000.0000",
+    dateIso: "2026-10-04",
+    description: "فیلامنت PLA سفید — فروشنده پارس",
+    refNo: "8811",
+  },
+  {
+    amount: "1700000.0000",
+    dateIso: "2026-10-06",
+    description: "فروش عمده پایه موبایل — بازارگاه",
+    refNo: "5510",
+  },
 ];
 
 export function ReconcilePage(): React.JSX.Element {
@@ -82,7 +113,9 @@ export function ReconcilePage(): React.JSX.Element {
                   <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                     <span className="num">{faDate(line.dateIso)}</span>
                     <Badge
-                      variant={conf === "auto" ? "success" : conf === "suggested" ? "warning" : "outline"}
+                      variant={
+                        conf === "auto" ? "success" : conf === "suggested" ? "warning" : "outline"
+                      }
                       data-testid={`confidence-${i}`}
                     >
                       {CONFIDENCE_LABELS[conf]} — <span className="num">{best.match.score}%</span>
@@ -124,8 +157,14 @@ export function ReconcilePage(): React.JSX.Element {
         className="w-full"
         data-testid="confirm-matches"
         onClick={() => {
+          trackEvent("reconciliation_completed", { route: "/reconcile", status: "ok" });
           setMatched(
-            Object.fromEntries(scored.map(({ best }, i) => [i, confidenceOf(best.match) !== "manual" ? best.ti : null])),
+            Object.fromEntries(
+              scored.map(({ best }, i) => [
+                i,
+                confidenceOf(best.match) !== "manual" ? best.ti : null,
+              ]),
+            ),
           );
         }}
       >

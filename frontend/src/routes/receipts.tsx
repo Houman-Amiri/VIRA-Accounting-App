@@ -6,6 +6,7 @@ import * as React from "react";
 import { useDropzone } from "react-dropzone";
 import { api, parseError } from "@/api/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ReceiptViewer } from "@/components/receipt-viewer";
 import { Badge } from "@/components/ui/badge";
 import { FileUp, ScanText } from "lucide-react";
 
@@ -18,6 +19,7 @@ interface ReceiptMeta {
 export function ReceiptsPage(): React.JSX.Element {
   const [receipts, setReceipts] = React.useState<ReceiptMeta[]>([]);
   const [error, setError] = React.useState<string | null>(null);
+  const [selectedId, setSelectedId] = React.useState<string | null>(null);
 
   const onDrop = React.useCallback(async (accepted: File[]) => {
     const file = accepted[0];
@@ -53,7 +55,9 @@ export function ReceiptsPage(): React.JSX.Element {
       >
         <input {...getInputProps()} />
         <FileUp className="mb-2 h-8 w-8 text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">برای استخراج خودکار اطلاعات، تصویر رسید یا PDF را اینجا رها کنید</p>
+        <p className="text-sm text-muted-foreground">
+          برای استخراج خودکار اطلاعات، تصویر رسید یا PDF را اینجا رها کنید
+        </p>
       </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}
@@ -64,25 +68,42 @@ export function ReceiptsPage(): React.JSX.Element {
         </CardHeader>
         <CardContent className="space-y-2">
           {receipts.map((r) => (
-            <div key={r.id} className="flex items-center justify-between rounded-lg border p-3">
+            <div
+              key={r.id}
+              className="flex cursor-pointer items-center justify-between rounded-lg border p-3 hover:bg-accent/50"
+              onClick={() => setSelectedId((cur) => (cur === r.id ? null : r.id))}
+              data-testid={`receipt-row-${r.id}`}
+            >
               <div className="flex items-center gap-2">
                 <ScanText className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">{r.filename}</span>
               </div>
               <Badge
                 variant={
-                  r.ocr_status === "done" ? "success" : r.ocr_status === "failed" ? "destructive" : "secondary"
+                  r.ocr_status === "done"
+                    ? "success"
+                    : r.ocr_status === "failed"
+                      ? "destructive"
+                      : "secondary"
                 }
               >
-                {r.ocr_status === "done" ? "OCR کامل" : r.ocr_status === "failed" ? "OCR ناموفق" : "در صف OCR"}
+                {r.ocr_status === "done"
+                  ? "OCR کامل"
+                  : r.ocr_status === "failed"
+                    ? "OCR ناموفق"
+                    : "در صف OCR"}
               </Badge>
             </div>
           ))}
           {receipts.length === 0 && (
-            <p className="p-6 text-center text-sm text-muted-foreground">هنوز رسیدی ثبت نشده است.</p>
+            <p className="p-6 text-center text-sm text-muted-foreground">
+              هنوز رسیدی ثبت نشده است.
+            </p>
           )}
         </CardContent>
       </Card>
+
+      {selectedId && <ReceiptViewer url={`/api/v1/documents/receipts/${selectedId}`} />}
     </div>
   );
 }

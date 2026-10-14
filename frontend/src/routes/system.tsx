@@ -4,17 +4,13 @@
  * restore-verification, and the «بررسی به‌روزرسانی» update check (Phase 8).
  */
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { api, ApiError, getSudoToken, parseError } from "@/api/client";
 import { useRequestSudo } from "@/components/sudo-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type SystemStatus = {
   version: string;
@@ -54,6 +50,7 @@ function fmtBytes(n: number | null): string {
 }
 
 export function SystemPage(): React.JSX.Element {
+  const { t } = useTranslation();
   const requestSudo = useRequestSudo();
   const [sudoReady, setSudoReady] = React.useState(false);
   const [actionMsg, setActionMsg] = React.useState<string | null>(null);
@@ -89,10 +86,10 @@ export function SystemPage(): React.JSX.Element {
       const res = await api.POST("/api/v1/system/backup", {});
       if (res.error) throw await parseError(res.response);
       const data = res.data as unknown as { dir: string; size_bytes: number };
-      setActionMsg(`پشتیبان رمزنگاری‌شده ساخته شد (${fmtBytes(data.size_bytes)}).`);
+      setActionMsg(t("system.backupCreated", { size: fmtBytes(data.size_bytes) }));
       void statusQuery.refetch();
     } catch (e) {
-      setActionMsg(e instanceof ApiError ? e.message : "خطا در پشتیبان‌گیری");
+      setActionMsg(e instanceof ApiError ? e.message : t("system.backupError"));
     } finally {
       setBusy(false);
     }
@@ -101,7 +98,7 @@ export function SystemPage(): React.JSX.Element {
   async function verifyBackup() {
     const last = statusQuery.data?.last_backup?.path;
     if (!last) {
-      setActionMsg("هنوز پشتیبانی ثبت نشده است.");
+      setActionMsg(t("system.noBackup"));
       return;
     }
     setBusy(true);
@@ -112,13 +109,9 @@ export function SystemPage(): React.JSX.Element {
       });
       if (res.error) throw await parseError(res.response);
       const data = res.data as unknown as { ok: boolean; integrity_check: string };
-      setActionMsg(
-        data.ok
-          ? "راستی‌آزمایی پشتیبان موفق بود: یکپارچگی پایگاه‌داده و تراز اسناد تأیید شد."
-          : "راستی‌آزمایی ناموفق بود — جزئیات در گزارش ثبت شد.",
-      );
+      setActionMsg(data.ok ? t("system.verifyOk") : t("system.verifyFail"));
     } catch (e) {
-      setActionMsg(e instanceof ApiError ? e.message : "خطا در راستی‌آزمایی");
+      setActionMsg(e instanceof ApiError ? e.message : t("system.verifyError"));
     } finally {
       setBusy(false);
     }
@@ -132,7 +125,7 @@ export function SystemPage(): React.JSX.Element {
       if (res.error) throw await parseError(res.response);
       setUpdate(res.data as unknown as UpdateCheck);
     } catch (e) {
-      setActionMsg(e instanceof ApiError ? e.message : "خطا در بررسی به‌روزرسانی");
+      setActionMsg(e instanceof ApiError ? e.message : t("system.checkError"));
     } finally {
       setBusy(false);
     }
@@ -143,9 +136,9 @@ export function SystemPage(): React.JSX.Element {
   return (
     <div className="mx-auto max-w-4xl space-y-4" dir="rtl">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">سیستم و عملیات</h1>
+        <h1 className="text-xl font-bold">{t("system.title")}</h1>
         <Badge variant={s ? "success" : "secondary"}>
-          {s ? `نسخه ${s.version}` : "در حال بارگذاری…"}
+          {s ? t("system.versionBadge", { version: s.version }) : t("common:actions.loading")}
         </Badge>
       </div>
 
@@ -159,35 +152,39 @@ export function SystemPage(): React.JSX.Element {
         <>
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">وضعیت برنامه</CardTitle>
+              <CardTitle className="text-base">{t("system.appStatus")}</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-2 text-sm md:grid-cols-3">
               <div>
-                نسخه: <span className="num font-mono">{s.version}</span>
+                {t("system.version")}: <span className="num font-mono">{s.version}</span>
               </div>
               <div>
-                کامیت: <span className="num font-mono">{s.commit}</span>
-              </div>
-              <div>محیط: {s.environment}</div>
-              <div>
-                Python: <span className="num font-mono">{s.python_version}</span>
+                {t("system.commit")}: <span className="num font-mono">{s.commit}</span>
               </div>
               <div>
-                SQLite: <span className="num font-mono">{s.sqlite_version}</span>
+                {t("system.environment")}: {s.environment}
               </div>
               <div>
-                مهاجرت دیتابیس:{" "}
+                {t("system.python")}: <span className="num font-mono">{s.python_version}</span>
+              </div>
+              <div>
+                {t("system.sqlite")}: <span className="num font-mono">{s.sqlite_version}</span>
+              </div>
+              <div>
+                {t("system.migration")}:{" "}
                 <span className="num font-mono">{s.alembic_revision ?? "—"}</span>
               </div>
               <div className="col-span-2 truncate">
-                پایگاه‌داده: <span className="font-mono text-xs">{s.database_path}</span>
+                {t("system.database")}: <span className="font-mono text-xs">{s.database_path}</span>
               </div>
               <div>
-                زمان‌بند:{" "}
+                {t("system.scheduler")}:{" "}
                 {s.scheduler_running ? (
-                  <Badge variant="success">فعال ({s.scheduler_jobs} کار)</Badge>
+                  <Badge variant="success">
+                    {t("system.schedulerActive", { count: s.scheduler_jobs })}
+                  </Badge>
                 ) : (
-                  <Badge variant="secondary">غیرفعال</Badge>
+                  <Badge variant="secondary">{t("system.schedulerInactive")}</Badge>
                 )}
               </div>
             </CardContent>
@@ -195,11 +192,11 @@ export function SystemPage(): React.JSX.Element {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">پشتیبان‌گیری</CardTitle>
+              <CardTitle className="text-base">{t("system.backup")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div>
-                آخرین پشتیبان:{" "}
+                {t("system.lastBackup")}:{" "}
                 {s.last_backup.at ? (
                   <span className="num font-mono">
                     {s.last_backup.at} ({fmtBytes(s.last_backup.size_bytes)})
@@ -210,7 +207,7 @@ export function SystemPage(): React.JSX.Element {
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button onClick={runBackup} disabled={busy} data-testid="system-backup">
-                  پشتیبان رمزنگاری‌شده اکنون
+                  {t("system.backupNow")}
                 </Button>
                 <Button
                   variant="outline"
@@ -218,7 +215,7 @@ export function SystemPage(): React.JSX.Element {
                   disabled={busy}
                   data-testid="system-verify-backup"
                 >
-                  راستی‌آزمایی پشتیبان
+                  {t("system.verifyBackup")}
                 </Button>
               </div>
             </CardContent>
@@ -226,20 +223,20 @@ export function SystemPage(): React.JSX.Element {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">به‌روزرسانی‌ها</CardTitle>
+              <CardTitle className="text-base">{t("system.updates")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div className="flex items-center gap-2">
                 <Button onClick={checkUpdates} disabled={busy} data-testid="system-check-updates">
-                  بررسی به‌روزرسانی
+                  {t("system.checkUpdates")}
                 </Button>
                 {update && (
                   <span>
                     {update.update_available
-                      ? `نسخه جدید ${update.latest} موجود است.`
+                      ? t("system.updateAvailable", { version: update.latest })
                       : update.checked
-                        ? "شما از آخرین نسخه استفاده می‌کنید."
-                        : `بررسی ممکن نشد (${update.reason ?? "عدم دسترسی"}).`}
+                        ? t("system.upToDate")
+                        : t("system.checkFailed", { reason: update.reason ?? "عدم دسترسی" })}
                   </span>
                 )}
               </div>

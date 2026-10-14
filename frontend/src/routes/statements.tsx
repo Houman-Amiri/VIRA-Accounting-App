@@ -4,6 +4,10 @@
  */
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import { trackEvent } from "@/lib/analytics";
+import { faDate } from "@/lib/fa";
+import { currentFiscalYear } from "@/lib/fiscal";
 import * as echarts from "echarts";
 import { api, parseError } from "@/api/client";
 import { Money } from "@/components/money";
@@ -11,12 +15,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function StatementsPage(): React.JSX.Element {
+  const { t } = useTranslation("reports");
   const chartRef = React.useRef<HTMLDivElement>(null);
 
   const trial = useQuery({
     queryKey: ["reports", "trial-balance"],
     queryFn: async () => {
       const res = await api.GET("/api/v1/reports/trial-balance");
+      trackEvent("report_viewed", { route: "/statements", entity: "trial-balance" });
       if (res.error) throw await parseError(res.response);
       return res.data as unknown as {
         rows: Array<{ code: string; name: string; debit: string; credit: string; balance: string }>;
@@ -45,19 +51,41 @@ export function StatementsPage(): React.JSX.Element {
 
   return (
     <div className="space-y-4" dir="rtl">
-      <h1 className="text-xl font-bold">صورت‌های مالی</h1>
+      {/* Print/PDF header — Jalali fiscal-year dating (Phase 7 §3). */}
+      <div className="print-only hidden rounded-md border p-3 text-sm">
+        <div className="font-bold">
+          {t("statements.title")} — {t("statements.fiscalYear")}{" "}
+          {currentFiscalYear(new Date().toISOString().slice(0, 10)).label}
+        </div>
+        <div>
+          {t("statements.from")}{" "}
+          {faDate(currentFiscalYear(new Date().toISOString().slice(0, 10)).startIso)} —{" "}
+          {t("statements.to")}{" "}
+          {faDate(currentFiscalYear(new Date().toISOString().slice(0, 10)).endIso)}
+        </div>
+      </div>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold">{t("statements.title")}</h1>
+        <button
+          type="button"
+          className="rounded-md border px-3 py-1.5 text-sm print:hidden"
+          onClick={() => window.print()}
+        >
+          {t("statements.print")}
+        </button>
+      </div>
       <Tabs defaultValue="balance-sheet">
         <TabsList>
-          <TabsTrigger value="balance-sheet">ترازنامه</TabsTrigger>
-          <TabsTrigger value="income">سود و زیان</TabsTrigger>
-          <TabsTrigger value="cash-flow">جریان وجوه نقد</TabsTrigger>
-          <TabsTrigger value="trial">ترازنامه آزمایشی</TabsTrigger>
+          <TabsTrigger value="balance-sheet">{t("statements.balanceSheet")}</TabsTrigger>
+          <TabsTrigger value="income">{t("statements.incomeStatement")}</TabsTrigger>
+          <TabsTrigger value="cash-flow">{t("statements.cashFlow")}</TabsTrigger>
+          <TabsTrigger value="trial">{t("statements.trialBalance")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="trial">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">ترازنامه آزمایشی</CardTitle>
+              <CardTitle className="text-base">{t("statements.trialBalance")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="divide-y">
@@ -82,7 +110,8 @@ export function StatementsPage(): React.JSX.Element {
         <TabsContent value="balance-sheet">
           <Card>
             <CardContent className="p-8 text-center text-muted-foreground">
-              ترازنامه — داده‌ها از /api/v1/reports/balance-sheet بارگذاری می‌شوند (Phase 5 تکمیل درخت تفکیکی).
+              ترازنامه — داده‌ها از /api/v1/reports/balance-sheet بارگذاری می‌شوند (Phase 5 تکمیل
+              درخت تفکیکی).
             </CardContent>
           </Card>
         </TabsContent>

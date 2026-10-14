@@ -79,7 +79,9 @@ export function PriceCalcPage(): React.JSX.Element {
               <select
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
                 value={inputs.variant}
-                onChange={(e) => setInputs((i) => ({ ...i, variant: e.target.value as PriceInputs["variant"] }))}
+                onChange={(e) =>
+                  setInputs((i) => ({ ...i, variant: e.target.value as PriceInputs["variant"] }))
+                }
               >
                 <option value="plain">ساده</option>
                 <option value="chain">حلقه‌دار (زنجیر)</option>
@@ -90,7 +92,9 @@ export function PriceCalcPage(): React.JSX.Element {
               <select
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
                 value={inputs.channel}
-                onChange={(e) => setInputs((i) => ({ ...i, channel: e.target.value as PriceInputs["channel"] }))}
+                onChange={(e) =>
+                  setInputs((i) => ({ ...i, channel: e.target.value as PriceInputs["channel"] }))
+                }
               >
                 <option value="direct">مستقیم</option>
                 <option value="marketplace">بازارگاه</option>
@@ -162,7 +166,11 @@ export function PriceCalcPage(): React.JSX.Element {
                 ] as const
               ).map((key) => (
                 <div key={key} className="flex items-center justify-between py-2 text-sm">
-                  <span className={key === "unitFinalPrice" || key === "batchTotal" ? "font-semibold" : ""}>
+                  <span
+                    className={
+                      key === "unitFinalPrice" || key === "batchTotal" ? "font-semibold" : ""
+                    }
+                  >
                     {BREAKDOWN_LABELS[key]}
                   </span>
                   <Money value={breakdown[key].toFixed(4)} currency="TOMAN" hideCurrency />

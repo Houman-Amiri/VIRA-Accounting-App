@@ -6,8 +6,13 @@ import { routeTree } from "./routeTree";
 import "@fontsource-variable/vazirmatn";
 import "@fontsource/jetbrains-mono";
 import "./index.css";
+import { initAnalytics } from "@/lib/analytics";
+import "@/lib/i18n";
 
 const router = createRouter({ routeTree, defaultPreload: "intent" });
+
+// Privacy-first Umami — injected only when VITE_UMAMI_* are configured (Phase 7 §5).
+initAnalytics();
 
 declare module "@tanstack/react-router" {
   interface Register {

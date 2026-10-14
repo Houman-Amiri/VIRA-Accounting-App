@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path
+from typing import Protocol
 
 from ..ids import utc_now_iso, uuid7
 from ..services.errors import FileTooLarge, UnsupportedMediaType
@@ -64,6 +65,8 @@ def strip_image_metadata(data: bytes, kind: str) -> bytes:
 
 
 class LocalStorageBackend:
+    """Content-addressable local storage — `ab/cd/<sha256>.<ext>` under root."""
+
     def __init__(self, root: Path) -> None:
         self.root = Path(root)
         self.root.mkdir(parents=True, exist_ok=True)
@@ -87,6 +90,94 @@ class LocalStorageBackend:
 
     def relative_path(self, sha256: str, kind: str) -> str:
         return str(self._path_for(sha256, kind).relative_to(self.root))
+
+    def url_for(self, sha256: str, kind: str, *, expires_seconds: int = 300) -> str | None:
+        return None  # local files are streamed through the API
+
+
+class S3StorageBackend:
+    """S3-compatible content-addressable storage (MinIO/R2/B2/AWS) — Phase 7 §2.
+
+    Server-side encryption (AES256) on write; presigned GET URLs for the
+    authenticated <ReceiptViewer /> delivery path.  boto3 is imported lazily so
+    local-only deployments never need it.
+    """
+
+    def __init__(
+        self,
+        bucket: str,
+        *,
+        endpoint_url: str | None = None,
+        region: str | None = None,
+        sse: str = "AES256",
+    ) -> None:
+        import boto3  # lazy — optional dependency
+
+        self.bucket = bucket
+        self.sse = sse
+        self.client = boto3.client(
+            "s3", endpoint_url=endpoint_url, region_name=region
+        )
+
+    def _key_for(self, sha256: str, ext: str) -> str:
+        return f"{sha256[:2]}/{sha256[2:4]}/{sha256}.{ext}"
+
+    def store(self, data: bytes, *, kind: str) -> tuple[str, str]:
+        sha = hashlib.sha256(data).hexdigest()
+        key = self._key_for(sha, kind)
+        self.client.put_object(
+            Bucket=self.bucket,
+            Key=key,
+            Body=data,
+            ServerSideEncryption=self.sse,
+            ContentType=ALLOWED_MEDIA[kind],
+        )
+        return sha, key
+
+    def load(self, sha256: str, kind: str) -> bytes:
+        obj = self.client.get_object(Bucket=self.bucket, Key=self._key_for(sha256, kind))
+        return obj["Body"].read()
+
+    def relative_path(self, sha256: str, kind: str) -> str:
+        return self._key_for(sha256, kind)
+
+    def url_for(self, sha256: str, kind: str, *, expires_seconds: int = 300) -> str | None:
+        return self.client.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": self.bucket, "Key": self._key_for(sha256, kind)},
+            ExpiresIn=expires_seconds,
+        )
+
+
+class StorageBackend(Protocol):
+    """Pluggable storage contract — switched via STORAGE_PROVIDER (§2)."""
+
+    def store(self, data: bytes, *, kind: str) -> tuple[str, object]: ...
+
+    def load(self, sha256: str, kind: str) -> bytes: ...
+
+    def relative_path(self, sha256: str, kind: str) -> str: ...
+
+    def url_for(self, sha256: str, kind: str, *, expires_seconds: int = 300) -> str | None: ...
+
+
+def get_storage(settings: object) -> StorageBackend:
+    """Build the configured backend: local filesystem or S3-compatible."""
+    provider = str(getattr(settings, "storage_provider", "local") or "local")
+    if provider == "s3":
+        bucket = getattr(settings, "s3_bucket", None)
+        if not bucket:
+            raise UnsupportedMediaType("STORAGE_PROVIDER=s3 requires S3_BUCKET")
+        return S3StorageBackend(
+            str(bucket),
+            endpoint_url=getattr(settings, "s3_endpoint_url", None) or None,
+            region=getattr(settings, "s3_region", None) or None,
+            sse=str(getattr(settings, "s3_sse", "AES256") or "AES256"),
+        )
+    root = getattr(settings, "receipt_dir", None)
+    if root is None:
+        raise UnsupportedMediaType("receipt_dir is not configured")
+    return LocalStorageBackend(Path(root))
 
 
 def validate_upload(data: bytes, filename: str) -> str:
@@ -113,11 +204,12 @@ def validate_upload(data: bytes, filename: str) -> str:
     return kind
 
 
-def save_receipt(data: bytes, filename: str, root: Path) -> dict[str, object]:
+def save_receipt_with(
+    backend: StorageBackend, data: bytes, filename: str
+) -> dict[str, object]:
     kind = validate_upload(data, filename)
     clean = strip_image_metadata(data, kind)
-    backend = LocalStorageBackend(root)
-    sha, path = backend.store(clean, kind=kind)
+    sha, stored = backend.store(clean, kind=kind)
     return {
         "id": uuid7(),
         "sha256": sha,
@@ -128,3 +220,8 @@ def save_receipt(data: bytes, filename: str, root: Path) -> dict[str, object]:
         "storage_path": backend.relative_path(sha, kind),
         "uploaded_at": utc_now_iso(),
     }
+
+
+def save_receipt(data: bytes, filename: str, root: Path) -> dict[str, object]:
+    """Local-filesystem convenience wrapper (Phase 2 contract, kept)."""
+    return save_receipt_with(LocalStorageBackend(root), data, filename)

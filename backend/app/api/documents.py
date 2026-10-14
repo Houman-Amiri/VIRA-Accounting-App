@@ -15,7 +15,6 @@ from ..ids import uuid7
 from ..models import Document
 from ..services.errors import NotFoundError
 from ..services.ocr import parse_receipt_text
-from ..services.storage import save_receipt
 from .deps import enforce_csrf, get_db, get_settings, require_roles, require_user_or_ingest
 
 router = APIRouter(
@@ -41,7 +40,9 @@ def upload_receipt(
         from ..services.errors import FileTooLarge
 
         raise FileTooLarge("receipt exceeds 10 MB limit")
-    meta = save_receipt(data, file.filename or "receipt", settings.receipt_dir)
+    from ..services.storage import get_storage, save_receipt_with
+
+    meta = save_receipt_with(get_storage(settings), data, file.filename or "receipt")
     existing = session.scalar(select(Document).where(Document.sha256 == meta["sha256"]))
     if existing is not None:
         return {"id": existing.id, "sha256": existing.sha256, "duplicate": True}
@@ -70,12 +71,22 @@ def get_receipt(
     doc = session.get(Document, doc_id)
     if doc is None:
         raise NotFoundError(f"document {doc_id} not found")
-    assert settings.receipt_dir is not None
-    path = Path(settings.receipt_dir) / doc.storage_path
-    if not path.exists():
-        raise NotFoundError("stored file missing")
+    from ..services.storage import get_storage
+
+    backend = get_storage(settings)
+    kind = Path(doc.storage_path).suffix.lstrip(".")
+    # S3: presigned delivery to <ReceiptViewer />; local: authenticated streaming.
+    presigned = backend.url_for(doc.sha256, kind)
+    if presigned is not None:
+        from fastapi.responses import RedirectResponse
+
+        return RedirectResponse(presigned, status_code=302)  # type: ignore[return-value]
+    try:
+        content = backend.load(doc.sha256, kind)
+    except Exception as exc:  # noqa: BLE001 - normalize backend errors
+        raise NotFoundError("stored file missing") from exc
     return Response(
-        content=path.read_bytes(),
+        content=content,
         media_type=doc.media_type,
         headers={
             "Content-Disposition": f'inline; filename="{doc.id}"',

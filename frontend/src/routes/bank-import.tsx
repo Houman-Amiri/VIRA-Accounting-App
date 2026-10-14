@@ -4,6 +4,7 @@
  */
 import * as React from "react";
 import { useDropzone } from "react-dropzone";
+import { trackEvent } from "@/lib/analytics";
 import Papa from "papaparse";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ export function BankImportPage(): React.JSX.Element {
     Papa.parse<string[]>(file, {
       skipEmptyLines: true,
       complete: (result) => {
+        trackEvent("bank_statement_imported", { route: "/bank-import", status: "parsed" });
         const [headers, ...rows] = result.data as string[][];
         setParsed({ fileName: file.name, headers: headers ?? [], rows });
       },
@@ -73,26 +75,36 @@ export function BankImportPage(): React.JSX.Element {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-5 gap-3">
-              {(["date", "amount", "description", "reference", "account_number"] as const).map((field) => (
-                <div key={field}>
-                  <label className="mb-1 block text-xs text-muted-foreground">
-                    {{ date: "تاریخ", amount: "مبلغ", description: "شرح", reference: "مرجع", account_number: "شماره حساب" }[field]}
-                  </label>
-                  <select
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
-                    value={mapping[field]}
-                    onChange={(e) => setMapping((m) => ({ ...m, [field]: e.target.value }))}
-                    data-testid={`map-${field}`}
-                  >
-                    <option value="">—</option>
-                    {parsed.headers.map((h, i) => (
-                      <option key={`${h}-${i}`} value={h}>
-                        {h}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ))}
+              {(["date", "amount", "description", "reference", "account_number"] as const).map(
+                (field) => (
+                  <div key={field}>
+                    <label className="mb-1 block text-xs text-muted-foreground">
+                      {
+                        {
+                          date: "تاریخ",
+                          amount: "مبلغ",
+                          description: "شرح",
+                          reference: "مرجع",
+                          account_number: "شماره حساب",
+                        }[field]
+                      }
+                    </label>
+                    <select
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+                      value={mapping[field]}
+                      onChange={(e) => setMapping((m) => ({ ...m, [field]: e.target.value }))}
+                      data-testid={`map-${field}`}
+                    >
+                      <option value="">—</option>
+                      {parsed.headers.map((h, i) => (
+                        <option key={`${h}-${i}`} value={h}>
+                          {h}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ),
+              )}
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">

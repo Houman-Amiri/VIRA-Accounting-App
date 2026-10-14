@@ -1,0 +1,20 @@
+{
+  "required": "این فیلد الزامی است.",
+  "dateRequired": "تاریخ را وارد کنید",
+  "descriptionRequired": "شرح سند را وارد کنید",
+  "accountRequired": "حساب را انتخاب کنید",
+  "minSplits": "سند باید حداقل دو ردیف داشته باشد",
+  "amountNonZero": "مبلغ ردیف نمی‌تواند صفر باشد",
+  "amountNonNegative": "مبلغ منفی مجاز نیست",
+  "amountInvalid": "مبلغ نامعتبر است",
+  "debitXorCredit": "هر ردیف فقط بدهکار یا بستانکار است",
+  "unbalanced": "سند نامتوازن است (بدهکار {{debit}} − بستانکار {{credit}} = {{difference}})",
+  "invalidDate": "تاریخ نامعتبر است.",
+  "invalidNumber": "مقدار عددی نامعتبر است.",
+  "positiveAmount": "مبلغ باید بزرگ‌تر از صفر باشد.",
+  "duplicateAccount": "تکرار حساب در اقلام مجاز نیست.",
+  "maxAmount": "مبلغ از حد مجاز بیشتر است.",
+  "fileTooLarge": "حجم فایل بیش از حد مجاز است.",
+  "unsupportedFile": "نوع فایل پشتیبانی نمی‌شود.",
+  "network": "خطای شبکه — اتصال خود را بررسی کنید."
+}

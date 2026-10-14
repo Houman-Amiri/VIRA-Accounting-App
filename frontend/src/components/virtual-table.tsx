@@ -65,7 +65,7 @@ export function VirtualTable<T>({
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
-                    className="h-10 whitespace-nowrap px-2 text-right font-medium text-muted-foreground select-none"
+                    className="h-10 whitespace-nowrap px-2 text-end font-medium text-muted-foreground select-none"
                     style={{ width: header.getSize() }}
                     onClick={header.column.getToggleSortingHandler()}
                     aria-sort={

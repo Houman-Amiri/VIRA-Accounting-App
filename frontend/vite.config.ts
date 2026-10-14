@@ -8,6 +8,18 @@ export default defineConfig({
   resolve: {
     alias: { "@": path.resolve(__dirname, "src") },
   },
+  // Phase 7 §2 — heavy/worker packages stay out of the dep optimizer so their
+  // web workers (react-pdf) and ESM entry graphs resolve natively.
+  optimizeDeps: {
+    exclude: [
+      "react-dropzone",
+      "react-pdf",
+      "react-zoom-pan-pinch",
+      "echarts",
+      "@tiptap/react",
+      "@tiptap/starter-kit",
+    ],
+  },
   server: {
     port: 5173,
     host: "0.0.0.0",

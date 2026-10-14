@@ -1,10 +1,12 @@
 /** Login page (Phase 5 §4) — RTL Persian, redirects to the app after login. */
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { api, ApiError, parseError, setSudoToken } from "@/api/client";
 import { clearAllDrafts } from "@/lib/drafts";
 
 export function LoginPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -21,18 +23,14 @@ export function LoginPage() {
       });
       if (res.error) {
         const err = await parseError(res.response);
-        setError(
-          err.status === 429
-            ? "تعداد تلاش‌های ورود بیش از حد مجاز است؛ لطفاً کمی بعد دوباره تلاش کنید."
-            : "نام کاربری یا رمز عبور نادرست است.",
-        );
+        setError(err.status === 429 ? t("login.rateLimited") : t("login.error"));
         return;
       }
       clearAllDrafts(); // fresh session; unsaved drafts restored per-form instead
       void setSudoToken; // no-op reference; sudo handled separately
       void navigate({ to: "/" });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "خطای غیرمنتظره رخ داد.");
+      setError(err instanceof ApiError ? err.message : t("login.unexpected"));
     } finally {
       setBusy(false);
     }
@@ -48,11 +46,11 @@ export function LoginPage() {
           <div className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-primary-foreground text-xl font-bold">
             و
           </div>
-          <h1 className="text-lg font-bold">حسابداری ویرا</h1>
-          <p className="text-xs text-muted-foreground">برای ادامه وارد شوید</p>
+          <h1 className="text-lg font-bold">{t("login.heading")}</h1>
+          <p className="text-xs text-muted-foreground">{t("login.prompt")}</p>
         </div>
         <label className="block space-y-1">
-          <span className="text-sm">نام کاربری</span>
+          <span className="text-sm">{t("login.username")}</span>
           <input
             className="w-full rounded-md border bg-background px-3 py-2 text-sm"
             value={username}
@@ -62,7 +60,7 @@ export function LoginPage() {
           />
         </label>
         <label className="block space-y-1">
-          <span className="text-sm">رمز عبور</span>
+          <span className="text-sm">{t("login.password")}</span>
           <input
             type="password"
             className="w-full rounded-md border bg-background px-3 py-2 text-sm"
@@ -73,7 +71,10 @@ export function LoginPage() {
           />
         </label>
         {error && (
-          <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
+          <p
+            className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive"
+            role="alert"
+          >
             {error}
           </p>
         )}
@@ -82,7 +83,7 @@ export function LoginPage() {
           disabled={busy}
           className="w-full rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60"
         >
-          {busy ? "در حال ورود…" : "ورود"}
+          {busy ? t("login.busy") : t("login.submit")}
         </button>
       </form>
     </div>

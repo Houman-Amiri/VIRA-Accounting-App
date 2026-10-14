@@ -1,9 +1,11 @@
 /** دفتر اسناد — virtualized grid (50k rows) with pinned summary footer. */
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { api, parseError } from "@/api/client";
 import { VirtualTable } from "@/components/virtual-table";
+import { SearchFilterBar } from "@/components/search-filter-bar";
 import { Money } from "@/components/money";
 import { Badge } from "@/components/ui/badge";
 import { faDate, faDigits } from "@/lib/fa";
@@ -19,6 +21,7 @@ interface EntryRow {
 }
 
 export function JournalListPage(): React.JSX.Element {
+  const { t } = useTranslation("ledger");
   const entriesQuery = useQuery({
     queryKey: ["journal-entries"],
     queryFn: async () => {
@@ -32,20 +35,20 @@ export function JournalListPage(): React.JSX.Element {
     () => [
       {
         accessorKey: "entry_number",
-        header: "شماره سند",
+        header: t("journalList.entryNumber"),
         size: 110,
         cell: (info) => faDigits(String(info.getValue())),
       },
       {
         accessorKey: "transaction_date",
-        header: "تاریخ",
+        header: t("journalList.date"),
         size: 110,
         cell: (info) => faDate(String(info.getValue())),
       },
-      { accessorKey: "description", header: "شرح", size: 280 },
+      { accessorKey: "description", header: t("journalList.description"), size: 280 },
       {
         id: "total_debit",
-        header: "بدهکار",
+        header: t("journalList.debit"),
         size: 150,
         cell: (info) => (
           <Money
@@ -56,7 +59,7 @@ export function JournalListPage(): React.JSX.Element {
       },
       {
         id: "total_credit",
-        header: "بستانکار",
+        header: t("journalList.credit"),
         size: 150,
         cell: (info) => (
           <Money
@@ -67,19 +70,25 @@ export function JournalListPage(): React.JSX.Element {
       },
       {
         accessorKey: "status",
-        header: "وضعیت",
+        header: t("journalList.status"),
         size: 100,
         cell: (info) => {
           const v = String(info.getValue());
           return (
-            <Badge variant={v === "posted" ? "success" : v === "voided" ? "destructive" : "secondary"}>
-              {v === "posted" ? "ثبت‌شده" : v === "voided" ? "ابطال‌شده" : "پیش‌نویس"}
+            <Badge
+              variant={v === "posted" ? "success" : v === "voided" ? "destructive" : "secondary"}
+            >
+              {v === "posted"
+                ? t("journalList.statusPosted")
+                : v === "voided"
+                  ? t("journalList.statusVoid")
+                  : t("journalList.statusDraft")}
             </Badge>
           );
         },
       },
     ],
-    [],
+    [t],
   );
 
   const rows = entriesQuery.data ?? [];
@@ -88,13 +97,14 @@ export function JournalListPage(): React.JSX.Element {
 
   return (
     <div className="space-y-4" dir="rtl">
-      <h1 className="text-xl font-bold">دفتر اسناد</h1>
+      <h1 className="text-xl font-bold">{t("journalList.title")}</h1>
+      <SearchFilterBar entity="entry" data-testid="journal-search" />
       <VirtualTable<EntryRow>
         columns={columns}
         data={rows}
         footer={
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">جمع کل</span>
+            <span className="text-muted-foreground">{t("journalList.total")}</span>
             <div className="flex gap-8">
               <Money value={totalDebit.toFixed(4)} />
               <Money value={totalCredit.toFixed(4)} />

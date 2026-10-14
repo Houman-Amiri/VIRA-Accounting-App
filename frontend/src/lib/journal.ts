@@ -4,10 +4,11 @@
  * unbalanced entry. All amounts are decimal.js; the form keeps raw strings.
  */
 import { z } from "zod";
+import i18n from "@/lib/i18n";
 import { Decimal, toDecimal } from "./money";
 
 export const splitSchema = z.object({
-  account_id: z.string().min(1, "حساب را انتخاب کنید"),
+  account_id: z.string().min(1, i18n.t("validation:accountRequired")),
   debit: z.string().default("0"),
   credit: z.string().default("0"),
   description: z.string().optional().default(""),
@@ -18,11 +19,11 @@ export type SplitForm = z.infer<typeof splitSchema>;
 
 export const journalEntrySchema = z
   .object({
-    date: z.string().min(1, "تاریخ را وارد کنید"),
-    description: z.string().min(1, "شرح سند را وارد کنید"),
+    date: z.string().min(1, i18n.t("validation:dateRequired")),
+    description: z.string().min(1, i18n.t("validation:descriptionRequired")),
     reference: z.string().optional().default(""),
     currency_code: z.string().default("IRR"),
-    splits: z.array(splitSchema).min(2, "سند باید حداقل دو ردیف داشته باشد"),
+    splits: z.array(splitSchema).min(2, i18n.t("validation:minSplits")),
   })
   .superRefine((entry, ctx) => {
     let totalDebit = new Decimal(0);
@@ -34,7 +35,7 @@ export const journalEntrySchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["splits", i, d === null ? "debit" : "credit"],
-          message: "مبلغ نامعتبر است",
+          message: i18n.t("validation:amountInvalid"),
         });
         return;
       }
@@ -42,21 +43,21 @@ export const journalEntrySchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["splits", i],
-          message: "مبلغ منفی مجاز نیست",
+          message: i18n.t("validation:amountNonNegative"),
         });
       }
       if (d.gt(0) && c.gt(0)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["splits", i],
-          message: "هر ردیف فقط بدهکار یا بستانکار است",
+          message: i18n.t("validation:debitXorCredit"),
         });
       }
       if (d.isZero() && c.isZero()) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["splits", i],
-          message: "مبلغ ردیف نمی‌تواند صفر باشد",
+          message: i18n.t("validation:amountNonZero"),
         });
       }
       totalDebit = totalDebit.plus(d);
@@ -66,7 +67,11 @@ export const journalEntrySchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["splits"],
-        message: `سند نامتوازن است (بدهکار ${totalDebit.toFixed()} − بستانکار ${totalCredit.toFixed()} = ${totalDebit.minus(totalCredit).toFixed()})`,
+        message: i18n.t("validation:unbalanced", {
+          debit: totalDebit.toFixed(),
+          credit: totalCredit.toFixed(),
+          difference: totalDebit.minus(totalCredit).toFixed(),
+        }),
       });
     }
   });

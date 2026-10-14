@@ -1,0 +1,36 @@
+{
+  "statements": {
+    "title": "صورت‌های مالی",
+    "trialBalance": "ترازنامه آزمایشی",
+    "balanceSheet": "ترازنامه",
+    "incomeStatement": "سود و زیان",
+    "cashFlow": "جریان وجوه نقد",
+    "from": "از تاریخ",
+    "to": "تا تاریخ",
+    "accountCode": "کد حساب",
+    "accountName": "نام حساب",
+    "debit": "بدهکار",
+    "credit": "بستانکار",
+    "balance": "مانده",
+    "total": "جمع کل",
+    "empty": "داده‌ای برای نمایش وجود ندارد.",
+    "exportCsv": "خروجی CSV",
+    "print": "چاپ گزارش",
+    "asOf": "در تاریخ {{date}}",
+    "fiscalYear": "سال مالی",
+    "assets": "دارایی‌ها",
+    "liabilities": "بدهی‌ها",
+    "equity": "سرمایه",
+    "revenue": "درآمدها",
+    "expenses": "هزینه‌ها",
+    "netIncome": "سود (زیان) خالص"
+  },
+  "search": {
+    "title": "جستجوی سراسری",
+    "placeholder": "جستجو در اسناد، حساب‌ها و مبالغ…",
+    "entityEntry": "سند",
+    "entityAccount": "حساب",
+    "noResults": "نتیجه‌ای یافت نشد.",
+    "backend": "موتور جستجو: {{backend}}"
+  }
+}
