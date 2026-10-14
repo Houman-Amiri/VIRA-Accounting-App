@@ -73,7 +73,10 @@ export interface PriceBreakdown {
   batchTotal: Decimal;
 }
 
-export function computePrice(inputs: PriceInputs, c: PriceConstants = DEFAULT_CONSTANTS): PriceBreakdown {
+export function computePrice(
+  inputs: PriceInputs,
+  c: PriceConstants = DEFAULT_CONSTANTS,
+): PriceBreakdown {
   const w = toDecimal(inputs.weightG);
   const t = toDecimal(inputs.printHours);
   const q = toDecimal(inputs.quantity);

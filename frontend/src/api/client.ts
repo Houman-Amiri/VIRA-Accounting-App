@@ -12,7 +12,8 @@ export const API_BASE = "/api/v1";
 // Schema paths are already origin-absolute (`/api/v1/...`). Base must be the
 // bare origin (never a path prefix) so openapi-fetch does not double `/api/v1`;
 // using the origin also keeps Request URLs absolute (required outside browsers).
-const ORIGIN = typeof window !== "undefined" && window.location?.origin ? window.location.origin : "";
+const ORIGIN =
+  typeof window !== "undefined" && window.location?.origin ? window.location.origin : "";
 
 export const api = createClient<paths>({
   baseUrl: ORIGIN,

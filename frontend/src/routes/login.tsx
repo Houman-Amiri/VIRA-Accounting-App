@@ -52,6 +52,7 @@ export function LoginPage() {
         <label className="block space-y-1">
           <span className="text-sm">{t("login.username")}</span>
           <input
+            data-testid="login-username"
             className="w-full rounded-md border bg-background px-3 py-2 text-sm"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -63,6 +64,7 @@ export function LoginPage() {
           <span className="text-sm">{t("login.password")}</span>
           <input
             type="password"
+            data-testid="login-password"
             className="w-full rounded-md border bg-background px-3 py-2 text-sm"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -81,6 +83,7 @@ export function LoginPage() {
         <button
           type="submit"
           disabled={busy}
+          data-testid="login-submit"
           className="w-full rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60"
         >
           {busy ? t("login.busy") : t("login.submit")}

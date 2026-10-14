@@ -69,10 +69,22 @@ describe("price calculator", () => {
 
   it("rejects invalid inputs", () => {
     expect(() =>
-      computePrice({ weightG: "-1", printHours: "1", quantity: "1", variant: "plain", channel: "direct" }),
+      computePrice({
+        weightG: "-1",
+        printHours: "1",
+        quantity: "1",
+        variant: "plain",
+        channel: "direct",
+      }),
     ).toThrow();
     expect(() =>
-      computePrice({ weightG: "1", printHours: "1", quantity: "0", variant: "plain", channel: "direct" }),
+      computePrice({
+        weightG: "1",
+        printHours: "1",
+        quantity: "0",
+        variant: "plain",
+        channel: "direct",
+      }),
     ).toThrow();
   });
 

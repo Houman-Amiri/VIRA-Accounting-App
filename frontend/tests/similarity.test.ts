@@ -68,7 +68,12 @@ describe("scoreMatch + confidence", () => {
   it("suggests best candidate and refuses weak ones", () => {
     const txs: MatchCandidate[] = [
       { amount: "5.0000", dateIso: "2026-01-01", description: "بی‌ربط", refNo: "9" },
-      { amount: "1250000.0000", dateIso: "2026-10-02", description: "فاکتور ۱۰۲۴ آریا", refNo: "1024" },
+      {
+        amount: "1250000.0000",
+        dateIso: "2026-10-02",
+        description: "فاکتور ۱۰۲۴ آریا",
+        refNo: "1024",
+      },
     ];
     const best = bestMatch(line, txs);
     expect(best).not.toBeNull();

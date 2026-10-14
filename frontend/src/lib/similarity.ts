@@ -89,7 +89,10 @@ export const CONFIDENCE_LABELS: Record<Confidence, string> = {
 };
 
 /** Best candidate for a line, or null when nothing reaches the suggest floor. */
-export function bestMatch(line: MatchCandidate, txs: MatchCandidate[]): { tx: MatchCandidate; match: MatchScore } | null {
+export function bestMatch(
+  line: MatchCandidate,
+  txs: MatchCandidate[],
+): { tx: MatchCandidate; match: MatchScore } | null {
   let best: { tx: MatchCandidate; match: MatchScore } | null = null;
   for (const tx of txs) {
     const match = scoreMatch(line, tx);

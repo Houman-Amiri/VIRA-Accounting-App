@@ -1,8 +1,24 @@
-/** E2E smoke — shell, RTL, command palette, journal form balance rules. */
-import { expect, test } from "@playwright/test";
+/**
+ * E2E smoke — login, Persian RTL shell, command palette, journal form balance rules.
+ * The e2e job seeds an owner user (VIRA_ADMIN_PASSWORD) before Playwright runs.
+ */
+import { expect, test, type Page } from "@playwright/test";
+
+const USER = process.env.VIRA_E2E_USER || "owner";
+const PASS = process.env.VIRA_E2E_PASSWORD || "e2e-owner-password";
+
+async function login(page: Page): Promise<void> {
+  await page.goto("/");
+  if (page.url().includes("/login")) {
+    await page.getByTestId("login-username").fill(USER);
+    await page.getByTestId("login-password").fill(PASS);
+    await page.getByTestId("login-submit").click();
+    await expect(page).not.toHaveURL(/\/login/);
+  }
+}
 
 test("app shell renders in Persian RTL with sidebar nav", async ({ page }) => {
-  await page.goto("/");
+  await login(page);
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   await expect(page.locator("html")).toHaveAttribute("lang", "fa");
   await expect(page.getByRole("navigation", { name: "ناوبری اصلی" })).toBeVisible();
@@ -10,14 +26,16 @@ test("app shell renders in Persian RTL with sidebar nav", async ({ page }) => {
 });
 
 test("command palette opens with Ctrl+K and navigates", async ({ page }) => {
-  await page.goto("/");
+  await login(page);
   await page.keyboard.press("Control+k");
-  await expect(page.getByRole("dialog", { name: "پالت فرمان‌ها" })).toBeVisible();
-  await page.getByText("سند جدید").click();
+  const dialog = page.getByRole("dialog", { name: "پالت فرمان‌ها" });
+  await expect(dialog).toBeVisible();
+  await dialog.getByText("سند جدید").click();
   await expect(page).toHaveURL(/\/journal\/new/);
 });
 
 test("journal form enforces zero-balance before submit", async ({ page }) => {
+  await login(page);
   await page.goto("/journal/new");
   await page.getByTestId("entry-description").fill("سند آزمایشی");
   await page.getByTestId("split-debit-0").fill("100");

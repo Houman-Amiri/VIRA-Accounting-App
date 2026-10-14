@@ -26,7 +26,7 @@ jobs:
       - name: Sync dependencies (lockfile check)
         run: |
           uv lock --check   # fails clearly when pyproject.toml and uv.lock drift
-          uv sync --frozen
+          uv sync --frozen --all-extras
 
       - name: Ruff (lint)
         run: uv run ruff check backend/app backend/tests scripts
@@ -142,7 +142,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
 
-      - run: uv sync --frozen
+      - run: uv sync --frozen --all-extras
       - working-directory: frontend
         run: pnpm install --frozen-lockfile
 
@@ -184,7 +184,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
 
-      - run: uv sync --frozen
+      - run: uv sync --frozen --all-extras
       - working-directory: frontend
         run: pnpm install --frozen-lockfile
 
@@ -194,6 +194,12 @@ jobs:
           SQLITE_DATABASE_PATH: ${{ runner.temp }}/vira-e2e.sqlite3
         run: uv run alembic upgrade head
 
+      - name: Seed charts + owner user for e2e
+        env:
+          SQLITE_DATABASE_PATH: ${{ runner.temp }}/vira-e2e.sqlite3
+          VIRA_ADMIN_PASSWORD: e2e-owner-password
+        run: uv run python -m app.seed
+
       - name: Install Chromium
         working-directory: frontend
         run: pnpm exec playwright install --with-deps chromium
@@ -202,6 +208,8 @@ jobs:
         working-directory: frontend
         env:
           SQLITE_DATABASE_PATH: ${{ runner.temp }}/vira-e2e.sqlite3
+          VIRA_E2E_USER: owner
+          VIRA_E2E_PASSWORD: e2e-owner-password
         run: pnpm e2e
 
       - name: Upload Playwright report
@@ -236,7 +244,7 @@ jobs:
         shell: pwsh
         run: |
           $env:SQLITE_DATABASE_PATH = Join-Path $env:RUNNER_TEMP "vira-win.sqlite3"
-          uv sync --frozen
+          uv sync --frozen --all-extras
           Set-Location backend
           uv run alembic upgrade head
           Set-Location ..

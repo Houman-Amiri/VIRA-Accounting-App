@@ -1,12 +1,6 @@
 /** Phase 5 §4 — draft snapshot registry survives a 401→login round-trip. */
 import { beforeEach, describe, expect, it } from "vitest";
-import {
-  clearAllDrafts,
-  clearDraft,
-  loadDraft,
-  registerDraft,
-  snapshotDrafts,
-} from "@/lib/drafts";
+import { clearAllDrafts, clearDraft, loadDraft, registerDraft, snapshotDrafts } from "@/lib/drafts";
 
 describe("draft snapshots", () => {
   beforeEach(() => {

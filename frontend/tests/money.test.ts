@@ -1,6 +1,15 @@
 /** Client money math — decimal.js exactness, API string round-trip. */
 import { describe, expect, it } from "vitest";
-import { Decimal, balance, isZero, rialToToman, sumMoney, toDecimal, toMoneyString, tomanToRial } from "@/lib/money";
+import {
+  Decimal,
+  balance,
+  isZero,
+  rialToToman,
+  sumMoney,
+  toDecimal,
+  toMoneyString,
+  tomanToRial,
+} from "@/lib/money";
 
 describe("money math (decimal.js, never float)", () => {
   it("parses API 4-decimal strings exactly", () => {

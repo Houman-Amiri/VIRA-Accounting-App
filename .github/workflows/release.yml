@@ -40,7 +40,7 @@ jobs:
       - name: Build SPA + sync backend deps
         shell: pwsh
         run: |
-          uv sync --frozen
+          uv sync --frozen --all-extras
           Set-Location frontend
           pnpm install --frozen-lockfile
           pnpm build

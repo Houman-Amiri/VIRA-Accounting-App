@@ -57,7 +57,12 @@ export function VirtualTable<T>({
 
   return (
     <div className={cn("flex flex-col rounded-lg border bg-card", className)}>
-      <div ref={parentRef} className="scrollbar-thin max-h-[60vh] overflow-auto" role="grid" aria-rowcount={rows.length}>
+      <div
+        ref={parentRef}
+        className="scrollbar-thin max-h-[60vh] overflow-auto"
+        role="grid"
+        aria-rowcount={rows.length}
+      >
         <table className="w-full text-sm" style={{ width: table.getCenterTotalSize() }}>
           <thead className="sticky top-0 z-10 bg-card shadow-[0_1px_0_hsl(var(--border))]">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -78,16 +83,18 @@ export function VirtualTable<T>({
                   >
                     <div className="flex items-center gap-1 cursor-pointer">
                       {flexRender(header.column.columnDef.header, header.getContext())}
-                      {header.column.getIsSorted() === "asc" ? " ▲" : header.column.getIsSorted() === "desc" ? " ▼" : ""}
+                      {header.column.getIsSorted() === "asc"
+                        ? " ▲"
+                        : header.column.getIsSorted() === "desc"
+                          ? " ▼"
+                          : ""}
                     </div>
                   </th>
                 ))}
               </tr>
             ))}
           </thead>
-          <tbody
-            style={{ height: `${virtualizer.getTotalSize()}px`, position: "relative" }}
-          >
+          <tbody style={{ height: `${virtualizer.getTotalSize()}px`, position: "relative" }}>
             {virtualizer.getVirtualItems().map((virtualRow) => {
               const row = rows[virtualRow.index];
               return (
@@ -103,7 +110,11 @@ export function VirtualTable<T>({
                   onClick={() => onRowClick?.(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-2 py-2 whitespace-nowrap" style={{ width: cell.column.getSize() }}>
+                    <td
+                      key={cell.id}
+                      className="px-2 py-2 whitespace-nowrap"
+                      style={{ width: cell.column.getSize() }}
+                    >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
@@ -121,7 +132,9 @@ export function VirtualTable<T>({
         </table>
       </div>
       {footer && (
-        <div className="sticky bottom-0 border-t bg-muted/60 backdrop-blur px-2 py-2 text-sm font-medium">{footer}</div>
+        <div className="sticky bottom-0 border-t bg-muted/60 backdrop-blur px-2 py-2 text-sm font-medium">
+          {footer}
+        </div>
       )}
     </div>
   );

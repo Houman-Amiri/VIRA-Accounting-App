@@ -83,8 +83,7 @@ describe("api client middleware", () => {
     const handler = vi.fn();
     onUnauthorized(handler);
     globalThis.fetch = vi.fn(
-      async () =>
-        new Response(JSON.stringify({ code: "unauthenticated" }), { status: 401 }),
+      async () => new Response(JSON.stringify({ code: "unauthenticated" }), { status: 401 }),
     ) as unknown as typeof fetch;
     await api.POST("/api/v1/journal-entries", { body: {} as never });
     expect(handler).toHaveBeenCalledTimes(1);
