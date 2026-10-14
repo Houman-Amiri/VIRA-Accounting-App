@@ -249,3 +249,12 @@ version the updater keeps `rollback/prev/` + `pre-update-*.sqlite3`; any failure
 restores the previous version with all data intact (forced-failure rollback is
 exercised in CI). The safe migration lifecycle (Phase 6 §7) runs after restart.
 
+### Pipeline debugging without burning tags
+
+Commits whose message contains `[release-dry-run]` run the full release
+pipeline on the branch (everything except the GitHub Release publish). Use
+this to validate installer/delta/updater/smoke changes before tagging.
+`workflow_dispatch` with a `version` input is also wired (requires an
+`actions:write`-capable token). Tags are immutable — a failed or unpublished
+tag never gets moved; fixes ship as a new patch version.
+

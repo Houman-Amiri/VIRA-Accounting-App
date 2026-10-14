@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Status** | Phase 8 (Installer, Versioned Releases & In-App Delta Updates) ✅ complete — 2026-10-14 · 8-phase plan delivered end-to-end |
+| **Status** | ✅ **v1.0.2 published** (2026-10-15) — 8-phase plan delivered end-to-end; Inno setup + deltas + updater on GitHub Releases & Actions artifacts; CI fully green (backend, frontend, contract, Playwright e2e, Windows smoke) |
 | **Master prompt** | [`MASTER_PROMPT.md`](MASTER_PROMPT.md) — compiled requirements; re-read before any phase work |
 | **Source request** | [`VIRA_SQLite_No_Docker.md`](VIRA_SQLite_No_Docker.md) — incl. user amendment 2026-10-14 (Phase 8) |
 | **Phase 1 docs** | [`docs/product-spec.md`](docs/product-spec.md) · [`docs/data-model.md`](docs/data-model.md) |
