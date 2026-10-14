@@ -7,7 +7,22 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
-## [1.0.1] — 2026-10-15
+## [1.0.2] — 2026-10-15
+
+First **published** release. `v1.0.0` and `v1.0.1` tags exist but were never
+published (pipeline debugging; tags are immutable, so each fix shipped as a
+new patch version). Validated end-to-end via `[release-dry-run]` runs before
+tagging: Inno Setup compile, `vira-updater.exe` (ps2exe), delta generation,
+and the Windows install/upgrade/rollback smoke test all pass.
+
+### Fixed — release pipeline
+- `InitializeUninstall` must be a Boolean function (Inno compile error).
+- `x64` instead of `x64compatible` for broad Inno 6 compatibility.
+- Smoke harness: forced-failure rollback fires after the snapshot (the thing
+  being tested); updater `Fail` throws (catchable) instead of `exit`; the
+  forced-failure stage carries its own `update.json`; `/DIR` quoted.
+
+## [1.0.1] — 2026-10-15 (never published)
 
 First **published** release — the complete 8-phase plan with a green CI/CD
 pipeline. The `v1.0.0` tag exists but was never published (the workflow file
