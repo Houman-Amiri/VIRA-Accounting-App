@@ -214,12 +214,16 @@ export function JournalNewPage(): React.JSX.Element {
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            {errors.splits?.message && (
+            {!totals.balanced && (
               <p
                 className="rounded-md bg-destructive/10 p-2 text-sm text-destructive"
                 data-testid="balance-error"
               >
-                {errors.splits.message}
+                {t("validation:unbalanced", {
+                  debit: totals.totalDebit.toFixed(),
+                  credit: totals.totalCredit.toFixed(),
+                  difference: totals.difference.toFixed(),
+                })}
               </p>
             )}
             {fields.map((field, index) => (
