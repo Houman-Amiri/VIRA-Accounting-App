@@ -96,7 +96,7 @@ begin
   Result := True;
 end;
 
-procedure InitializeUninstall();
+function InitializeUninstall(): Boolean;
 begin
   // §1: user data is NEVER deleted by default — explicit opt-in only
   DeleteDataPage := CreateInputOptionPage(wpWelcome,
@@ -106,6 +106,7 @@ begin
     False, False);
   DeleteDataPage.Add('حذف داده‌های برنامه (غیرقابل بازگشت)');
   DeleteDataPage.Values[0] := False;
+  Result := True;
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
