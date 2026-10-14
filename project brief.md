@@ -4,10 +4,11 @@
 
 | | |
 |---|---|
-| **Status** | Phase 1 (Initiation & Planning) ✅ complete — 2026-10-14 · awaiting "proceed" for **Phase 2 (Back-end core)** |
+| **Status** | Phase 2 (Core Stack — Back-end) ✅ complete — 2026-10-14 · awaiting "proceed" for **Phase 3 (Frontend SPA)** |
 | **Master prompt** | [`MASTER_PROMPT.md`](MASTER_PROMPT.md) — compiled requirements; re-read before any phase work |
 | **Source request** | [`VIRA_SQLite_No_Docker.md`](VIRA_SQLite_No_Docker.md) — incl. user amendment 2026-10-14 (Phase 8) |
 | **Phase 1 docs** | [`docs/product-spec.md`](docs/product-spec.md) · [`docs/data-model.md`](docs/data-model.md) |
+| **Phase 2 code** | [`backend/`](backend/) (FastAPI + SQLAlchemy 2.0 + Alembic) · [`scripts/`](scripts/) — 71 tests green, ruff + mypy clean |
 | **Pricing source** | [`قیمت نهایی.xlsx`](قیمت%20نهایی.xlsx) — relations compiled/normalized in product-spec §4.3 |
 
 ---
@@ -80,13 +81,15 @@ No `/deploy` Dockerfiles, no `docker-compose.yml`, no `.devcontainer`. DB, backu
 | Phase | Scope | Status |
 |---|---|---|
 | 1 | Initiation & planning (this brief + specs) | ✅ 2026-10-14 |
-| 2 | Core stack (back-end: ledger, DB, API) | ⏳ awaiting "proceed" |
-| 3 | Core stack (frontend SPA) | ⏳ |
+| 2 | Core stack (back-end: ledger, DB, API, imports, reports, security) | ✅ 2026-10-14 |
+| 3 | Core stack (frontend SPA) | ⏳ awaiting "proceed" |
 | 4 | Database & persistence layer | ⏳ |
 | 5 | Integration, auth & security | ⏳ |
 | 6 | Deployment & DevOps (Windows-native) | ⏳ |
 | 7 | Enhancements & localization | ⏳ |
 | 8 | Installer, release tags & in-app delta updates | ⏳ |
+
+**Phase 2 highlights** (details in code + tests): exact scaled-integer money (`app/money.py`, never float); double-entry engine with atomic posting/reversal/void, optimistic locking, fiscal-period locks, immutable posted entries (SQLite triggers + service validation); STRICT-table schema via Alembic 0001 with audit trail (JSON snapshots, redaction, trigger-protected); FastAPI REST (health, auth with Argon2id + HttpOnly cookies + CSRF + TOTP, accounts, journal, reports with recursive-CTE rollups + Polars series, bank imports with FITID/hash idempotency + RapidFuzz/sklearn categorization, FX via Frankfurter, content-addressed receipt storage + OCR/PDF (WeasyPrint/Jinja2); APScheduler recurring entries; online backups with restore verification; `scripts/setup_windows.ps1`, `start/stop_vira.bat/.ps1`, `backup_vira.ps1`. Tests: pytest + httpx.AsyncClient + Hypothesis (71 green); ruff + mypy clean.
 
 ## 8. Working agreements
 

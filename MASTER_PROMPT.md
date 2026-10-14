@@ -290,4 +290,4 @@ Source: `قیمت نهایی.xlsx`, single `Sheet1`, cells A1:F35. This is the b
 
 ---
 
-*Compiled from `VIRA_SQLite_No_Docker.md` and `قیمت نهایی.xlsx` (Sheet1, A1:F35), plus user amendments. **Status:** Phase 1 complete 2026-10-14 — deliverables: `project brief.md`, `docs/product-spec.md`, `docs/data-model.md`. Awaiting the user's **"proceed"** to start Phase 2 (Core Stack — Back-end).*
+*Compiled from `VIRA_SQLite_No_Docker.md` and `قیمت نهایی.xlsx` (Sheet1, A1:F35), plus user amendments. **Status:** Phase 2 complete 2026-10-14 — backend (`backend/`), scripts, 71 tests green (pytest + Hypothesis + httpx.AsyncClient), ruff + mypy clean. Deliverables: ledger engine, SQLite/STRICT + Alembic + audit triggers, FastAPI API, bank imports, recursive-CTE reports, FX, storage/OCR/PDF, scheduler, auth (Argon2id/CSRF/TOTP), backups, Windows scripts. Awaiting the user's **"proceed"** to start Phase 3 (Core Stack — Frontend SPA).*

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>پیش‌فاکتور فروش {{ order.order_number }}</title>
+  <style>
+    @page { size: A4; margin: 18mm 14mm; }
+    body { font-family: Vazirmatn, Tahoma, sans-serif; color: #111; font-size: 12px; }
+    h1 { font-size: 20px; margin: 0 0 4px; }
+    .muted { color: #666; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: right; }
+    th { background: #f4f4f4; }
+    .num { font-family: "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+    .totals { margin-top: 12px; width: 45%; margin-right: 0; margin-left: auto; }
+    .totals td { border: none; padding: 3px 6px; }
+    .totals .grand td { font-weight: bold; border-top: 2px solid #111; }
+    .footer { margin-top: 28px; display: flex; justify-content: space-between; }
+  </style>
+</head>
+<body>
+  <h1>پیش‌فاکتور فروش</h1>
+  <div class="muted">{{ company.name }} — {{ company.tagline }}</div>
+
+  <table>
+    <tr><th>شماره سفارش</th><td class="num">{{ order.order_number }}</td>
+        <th>تاریخ</th><td class="num">{{ order.order_date_jalali or order.order_date }}</td></tr>
+    <tr><th>مشتری</th><td>{{ order.customer.name }}</td>
+        <th>شماره تماس</th><td class="num">{{ order.customer.phone }}</td></tr>
+    <tr><th>آدرس</th><td colspan="3">{{ order.customer.address }}</td></tr>
+  </table>
+
+  <table>
+    <thead>
+      <tr><th>شرح محصول</th><th>تعداد</th><th>قیمت واحد (تومان)</th><th>جمع (تومان)</th></tr>
+    </thead>
+    <tbody>
+      {% for line in order.lines %}
+      <tr>
+        <td>{{ line.description }}</td>
+        <td class="num">{{ line.quantity }}</td>
+        <td class="num">{{ line.unit_price }}</td>
+        <td class="num">{{ line.line_total }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <table class="totals">
+    <tr><td>جمع کل</td><td class="num">{{ order.subtotal }}</td></tr>
+    <tr><td>تخفیف</td><td class="num">{{ order.discount }}</td></tr>
+    <tr class="grand"><td>مبلغ قابل پرداخت (تومان)</td><td class="num">{{ order.total }}</td></tr>
+  </table>
+
+  <div class="footer">
+    <div>مهر و امضای فروشنده</div>
+    <div>تایید خریدار</div>
+  </div>
+</body>
+</html>
