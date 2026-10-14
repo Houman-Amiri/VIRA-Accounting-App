@@ -13,6 +13,7 @@ Here's my App idea in a phased execution plan (contains 8 phases):&#x20;
 - Treat SQLite's typing, locking, and trigger limitations as design constraints. Use integer-scaled storage for exact monetary values, application-level `Decimal` validation, short write transactions, WAL mode, and SQLite-compatible SQL only.
 - The canonical frontend is the React + TypeScript + Vite SPA in Phase 3, backed by FastAPI. Do not build a separate HTMX/Alpine frontend; Jinja2 may be used for server-rendered PDF documents only.
 - Create and maintain a `project brief.md` containing the actual selected stack and these non-negotiable constraints. If any later section conflicts with these constraints, these constraints take precedence.
+- Ship and update the application as a native Windows product: an **Inno Setup** installer with a user-selectable install directory, published from GitHub (Actions artifacts + versioned Release assets), strict `vX.Y.Z` release tags for every version, and an in-app **Check for updates** system that downloads only the parts that changed (delta updates) and never loses user data (see Phase 8). No container-based packaging or update channels.
 - build the the app separatly in phases, start with compiling requests in this file and right its master prompt and place it in the repo so you can read it any time needed.when ready wait for me to say "proceed", then you can start phase one.
 
 Phase 1(initiation & planning):
@@ -182,6 +183,7 @@ Use the following Python development stack and architectural specifications to b
   * Bind to `127.0.0.1` by default. Enable LAN access only through an explicit setting and Windows Firewall rule. For remote private access, document native Tailscale installation; do not deploy the app through Docker or Docker Compose.
   * Keep configuration in environment variables or Windows Credential Manager. Never store secrets in the repository or in the SQLite database in plaintext.
 
+* **Application Updates (see Phase 8):** Distribute the app through the Inno Setup installer and keep it current with the in-app delta updater defined in Phase 8. Updates are fetched from GitHub releases only — never Docker or container registries — and must never touch user data.
 * **SQLite Backups & Recovery:**
   * Use Python's `sqlite3.Connection.backup()` API or SQLite's supported online backup mechanism to create consistent snapshots while the application is running. Do not back up an active database by copying only the `.db` file while ignoring its `-wal` state.
   * Back up the SQLite database and the receipt-storage directory together on a schedule using Windows Task Scheduler. Optionally encrypt backup artifacts with `age` or `Restic` before copying them to an external disk or S3-compatible destination.
@@ -600,6 +602,7 @@ Use GitHub's Web interface for repository editing and code review, and GitHub Ac
 
 * **Backend:** Install dependencies through `uv sync` into a local Python virtual environment. Document any native Windows prerequisites for `WeasyPrint`, OCR libraries, or file-type inspection. If a dependency is unsupported on Windows, choose and document a compatible alternative instead of requiring a Linux container.
 * **Frontend:** Use Node.js 22 and `pnpm install --frozen-lockfile`, generate API types from the FastAPI schema, run `pnpm lint`, `pnpm typecheck`, and `pnpm build`.
+* **Distribution artifacts:** Build the `vira-updater.exe` helper and compile the Inno Setup installer (Phase 8) in CI; the installed app must run self-contained on Windows without requiring separate Python or Node.js installations.
 * **Local serving:** Serve the compiled React assets through FastAPI or a separately installed native static-file server. Keep API and frontend on the same origin where practical; document CORS/CSRF settings when origins differ.
 * Never build or publish Docker images, and do not require a container registry.
 
@@ -617,7 +620,7 @@ Use GitHub's Web interface for repository editing and code review, and GitHub Ac
 ### 6. Secrets & Native Deployment Workflow
 
 * Store production secrets in Windows Credential Manager or in restricted environment configuration outside the repository. GitHub Actions secrets may be used only for CI or a deliberately configured deployment workflow; never commit secret values.
-* Provide a release workflow that runs tests, builds the frontend, packages source/build artifacts, and publishes a versioned GitHub Release artifact. Deployment to the target Windows machine should be a reviewed, explicit step using the release artifact or a secured self-hosted GitHub Actions runner.
+* Provide a release workflow that runs tests, builds the frontend, packages source/build artifacts, compiles the Inno Setup installer (Phase 8), generates delta update packages against the previous release tags, uploads the full setup as a GitHub Actions workflow artifact, and publishes a versioned GitHub Release — created from an annotated `vX.Y.Z` git tag — carrying the installer, delta packages, `latest.json`, `SHA256SUMS`, and Persian release notes. Deployment to the target Windows machine should be a reviewed, explicit step using the release artifact or a secured self-hosted GitHub Actions runner.
 * Do not use automatic unreviewed production schema migrations. Before applying Alembic migrations, create and verify a SQLite online backup. Apply the migration, run a health check and accounting-invariant check, then mark deployment successful. If migration fails, stop the service and follow a documented tested restore procedure.
 * If a self-hosted runner is used, restrict repository and environment permissions, protect production environments, and never expose the runner to untrusted pull-request code.
 
@@ -630,7 +633,7 @@ Use GitHub's Web interface for repository editing and code review, and GitHub Ac
 ### 8. Scheduled Encrypted Backups & In-App Management
 
 * Use Windows Task Scheduler to run daily SQLite online backups and copy the receipt-storage directory. Encrypt completed snapshots with `age` or `Restic`; upload to an external or S3-compatible destination only if configured.
-* Provide a `Sudo`-protected System & Operations area in the React UI showing the app version/Git commit, schema migration revision, last backup status/time/size, and a one-click encrypted-snapshot download.
+* Provide a `Sudo`-protected System & Operations area in the React UI showing the app version/Git commit, schema migration revision, last backup status/time/size, a one-click encrypted-snapshot download, and a «بررسی به‌روزرسانی» (Check for updates) action with current/latest version status, driven by the Phase 8 update system.
 * Offer a restore-verification operation that restores to a temporary location, runs SQLite integrity and foreign-key checks, and verifies `sum(debits) = sum(credits)` before reporting the backup healthy.
 
 ### 9. Health Checks, Logging & Private Access
@@ -737,3 +740,79 @@ Implement the following enhancement modules on top of the Core Stack (FastAPI + 
 * **Strict Financial Zero-PII Redaction Guard:**
 
   * Enforce a client-side sanitization wrapper around `window\.umami.track()` that strips URL query parameters (`?search=...`, `?amount=...`), masks UUIDs in route paths (`/accounts/:id` instead of the raw UUID), and strictly forbids transmitting monetary figures, account names, payee descriptions, or receipt filenames in analytics payloads.
+
+
+## Phase 8: Installer, Versioned Releases & In-App Delta Updates (Windows-Native)
+
+Deliver V.I.R.A as a distributable Windows product: an **Inno Setup** installer published from GitHub, strict **version tagging** for every release, and a safe **in-app update system** that downloads only the parts that changed and never loses user data. All mandatory architecture constraints still apply (SQLite-only, no Docker, user data outside the install directory). This phase completes the 8-phase plan promised above.
+
+### 1. Windows Installer (`Inno Setup 6`)
+
+* **Installer build:** Compile a native Windows installer with **Inno Setup 6** (`iscc`) inside GitHub Actions. The full setup (`VIRA-Setup-vX.Y.Z.exe`) must be published **both** as a GitHub Actions workflow artifact on the release run **and** as an immutable GitHub Release asset (the durable download used by end users and the updater's full-install fallback).
+* **"Select where to install" step:** The wizard must always show an explicit **«مسیر نصب» (Select where to install)** destination-directory page (`DisableDirPage=no`), defaulting to `{autopf}\VIRA` (or `{localappdata}\Programs\VIRA` for per-user installs). The chosen `InstallDir` is recorded under a stable registry key (`HKLM\SOFTWARE\VIRA\InstallDir`, or `HKCU` equivalent for per-user installs) so the updater and uninstaller can reliably locate the installation.
+* **Package contents:** the bundled FastAPI backend (PyInstaller one-folder bundle or embedded CPython with `uv sync` locked site-packages), the compiled React SPA static assets served by FastAPI, the native PowerShell/batch scripts, `vira-updater.exe` (see §6), `version.json`, and `install_manifest.json` (per-file `path`, `SHA-256`, `size` for every installed file — the baseline for delta updates).
+* **Wizard steps:** welcome → license (optional) → **directory selection (select where to install)** → additional tasks (desktop shortcut, Start menu, launch-at-login, register the Task Scheduler backup job) → install progress → finish. A Start menu/launcher shortcut runs `start_vira`, which starts FastAPI and opens the app in the default browser at `http://127.0.0.1:<port>`.
+* **Uninstaller:** ship the standard Inno uninstaller. It must never delete user data (`%LOCALAPPDATA%\VIRA\data` SQLite files, receipt storage, encryption keys, logs, backups) — offer a "delete application data" checkbox only as an explicit opt-in, unchecked by default.
+
+### 2. Versioning & Release Tags (SemVer + GitHub Releases)
+
+* **Single version source of truth** (e.g., `backend/pyproject.toml`), stamped at build time into `version.json`, the installer metadata, the `openapi.json` / `/api/v1/health/ready` payload, and the UI (System & Operations page). Use strict SemVer `MAJOR.MINOR.PATCH`.
+* **Tag every version:** when a version is finalized, create an annotated git tag `vX.Y.Z` and push it (`git tag -a vX.Y.Z -m "Release vX.Y.Z"` / `git push origin vX.Y.Z`). The release workflow triggers on `v*` tags. Tags are immutable — never move or re-use a tag; fixes ship as a new patch version. Maintain a `CHANGELOG.md`.
+* **Release contents:** `VIRA-Setup-vX.Y.Z.exe`, delta update packages (§5), `latest.json` (§3), `SHA256SUMS`, and release notes in Persian (`notes_fa`) plus English.
+* **Release workflow (extends Phase 6 §6):** run the full test suite (pytest + Hypothesis + Vitest + Playwright), build the SPA and backend bundle, compile the Inno Setup installer, generate delta packages against the last K = 3 released tags, upload the setup as a GitHub Actions workflow artifact, then publish the GitHub Release with all assets.
+
+### 3. Update Channel & Manifest (`latest.json`)
+
+* Every release publishes a machine-readable `latest.json` asset: `{schema_version, version, pub_date, min_app_version, notes_fa, notes_en, full_installer: {url, sha256, size}, deltas: [{from_version, url, sha256, size}], files_manifest_sha256}`. URLs must point to immutable GitHub Release assets.
+* The app checks for updates via `GET https://api.github.com/repos/<owner>/<repo>/releases/latest`, then reads `latest.json` from the release assets. Use conditional requests (ETag caching), handle `403`/`429` rate limits gracefully with a retry-later Persian message, and support an optional `APP_UPDATE_URL` override for a self-hosted mirror.
+* Never embed GitHub tokens in the app; anonymous public-repository access only. All update configuration is validated by `pydantic-settings`.
+
+### 4. In-App Update UX ("Check for updates" — «بررسی به‌روزرسانی»)
+
+* Add a Persian-only **«بررسی به‌روزرسانی»** button in the Sudo-protected **System & Operations** area (Phase 6 §8), available to the `owner` role after step-up re-authentication. Also run a non-blocking background check at application startup that shows a subtle "update available" badge; never auto-download or auto-install without explicit user confirmation.
+* When a newer version exists, show an RTL Persian dialog that conveys exactly the required message **"A new update available, do you want to download and install?"**:
+  * Title: **«به‌روزرسانی جدید موجود است»**
+  * Message: **«به‌روزرسانی جدیدی در دسترس است (نسخهٔ X.Y.Z). آیا می‌خواهید دانلود و نصب شود؟»**
+  * A short release-notes summary, and buttons: **«دانلود و نصب»**, **«بعداً»**, **«مشاهدهٔ جزئیات»**.
+* Show download progress (including the delta/download size), verification status, and a "restart to finish" step. On failure or rollback, show a clear Persian error («خطا در به‌روزرسانی. نسخهٔ قبلی بازگردانی شد.») with the log path. All user-facing update strings live in `/locales/fa/…`.
+* Update checks and installs use the existing typed `openapi-fetch`/httpx patterns, TanStack Query cache for status, and Zod-validated `latest.json` parsing.
+
+### 5. Delta Update Engine (download only the changed parts)
+
+* **Never re-download the full installer when a delta applies.** Maintain per-file SHA-256 manifests (from `install_manifest.json`). Each release publishes delta packages covering the last **K = 3** released versions: `VIRA-vX.Y.Z-delta-from-vA.B.C.zip`.
+* **Delta package contents:** `update.json` (base version, target version, ordered file operations), `files/` (new/changed small files — templates, JS/CSS, scripts — stored as-is), `patches/` (**bsdiff** binary patches for large files such as `.exe`/`.dll`/`.pyd` above a threshold, e.g., 256 KB), `delete.json` (files removed in the target version), and a hash for every member.
+* **Client-side selection:** if the current version has a matching delta → download the delta (typically a small fraction of the setup size). If the installation is older than the covered bases → fall back to the **full installer** (Inno Setup supports silent upgrade, `/SILENT`, into the recorded `InstallDir`). If reaching the target requires a chain of deltas, apply each hop with full verification, or fall back to the full installer.
+* **Generation:** CI computes the file-manifest diff between the new build and each base tag's manifest and produces the per-base delta zips plus `SHA256SUMS`.
+* Alternative mechanisms (zsync-style range diffs, MSIX/appinstaller) may replace this design only if they remain Windows-native, non-container, and satisfy "no full re-download" and "no data loss"; the manifest + bsdiff design above is the reference implementation.
+
+### 6. Updater Helper & Transactional Apply (`vira-updater.exe`)
+
+* The running application cannot overwrite its own files. Ship a tiny dedicated **updater helper** (native single executable) that the main app launches after the user confirms: it stages the verified package in `%LOCALAPPDATA%\VIRA\updates\<version>\`, gracefully stops FastAPI and the scheduler (reuse `stop_vira` semantics), then applies the file operations.
+* **Single instance:** a named Windows mutex plus a local lock file prevent concurrent updates and prevent the app from starting mid-update.
+* **Elevation:** request UAC elevation (`requireAdministrator`) only when `InstallDir` requires it; per-user installs update without elevation.
+* **Transactional apply:** (1) snapshot every file scheduled to change into `{app}\rollback\prev\` and copy the current `install_manifest.json`/`version.json`; (2) apply copies and `bspatch` patches and delete removed files; (3) rewrite `install_manifest.json` + `version.json`; (4) relaunch the app. On **any** failure at any step: restore the snapshot and manifests, relaunch the previous version, and surface the Persian error with the log path. Keep the rollback snapshot until the new version reports healthy (first successful `/api/v1/health/ready` + accounting-invariant check).
+* **After restart:** run the standard safe migration lifecycle (Phase 6 §7: SQLite online backup → `alembic upgrade head` → `PRAGMA integrity_check` / `PRAGMA foreign_key_check` → debit/credit equality) and record the outcome on the System & Operations page.
+
+### 7. No Data Loss — Non-Negotiable
+
+* User data (SQLite `vira.sqlite3` + WAL/SHM, receipt storage, encryption keys, configuration, logs, backups) lives exclusively outside `{app}` under `%LOCALAPPDATA%\VIRA\`. Updates, repair installs, and uninstallers must never overwrite or delete it.
+* Before the first boot of a new version, the updater creates a pre-update SQLite online backup (`%LOCALAPPDATA%\VIRA\backups\pre-update-<version>.sqlite3`) and keeps the file-level rollback snapshot until health checks pass.
+* A verified restore path is mandatory and tested; a failed update must always return the user to a working previous version with **all data intact**.
+
+### 8. Update Security
+
+* TLS to GitHub only; verify `SHA-256` of every downloaded package against `latest.json` before staging anything; recommended: an Ed25519/minisign signature over `latest.json` with the public key baked into the app (protects against tampered release assets or mirrors).
+* No file from a package is executed or written into `InstallDir` before verification succeeds. Unknown `latest.json` `schema_version` → refuse and prompt for a manual install.
+* Rate-limit-aware GitHub API usage with ETag caching; never log update URLs containing credentials; no secrets in the repository or the update channel.
+
+### 9. CI Verification (extends Phase 6 §5)
+
+* On `v*` tags the release workflow builds everything in §2 and additionally uploads `VIRA-Setup-vX.Y.Z.exe` as a workflow artifact (GitHub artifact), satisfying "downloadable from GitHub artifacts" alongside the Release asset.
+* A Windows CI job runs a silent-install smoke test (`VIRA-Setup-vX.Y.Z.exe /VERYSILENT /DIR=<temp>`), an upgrade test from the previous version using a real delta package (asserting downloaded bytes ≈ delta size, not the full setup), a data-preservation check (SQLite checksum identical across the update), and a forced-failure rollback test.
+
+### 10. Testing & Acceptance Criteria
+
+* **Unit:** manifest diffing, delta generation and selection, SemVer comparison, SHA-256 verification, rollback state machine, `latest.json` parsing (including malformed/old schema versions).
+* **Frontend (Vitest/Playwright):** the «بررسی به‌روزرسانی» button and dialog copy (mocked GitHub API), progress UI, decline path, startup badge behavior, RTL/Persian rendering.
+* **Integration (Windows):** fresh install shows the "select where to install" step and honors the chosen directory; in-app delta update downloads only the delta; user data byte-identical after update; rollback restores the previous version; uninstall keeps data by default.
+* **Acceptance:** the full setup is downloadable from GitHub (Release asset + Actions artifact) with a visible "select where to install" step; every released version has a `vX.Y.Z` tag; in-app updates fetch from GitHub, announce with the required message, and **never re-download the whole setup when a delta exists**; zero data loss in every scenario.
