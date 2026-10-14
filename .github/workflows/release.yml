@@ -104,12 +104,18 @@ jobs:
         shell: pwsh
         run: |
           $setup = (Get-ChildItem dist-release/VIRA-Setup-*.exe | Select-Object -First 1).FullName
-          ./scripts/windows_smoke_test.ps1 -Setup $setup 2>&1 | Tee-Object -Variable out
-          if ($LASTEXITCODE -ne 0) {
-            $flat = ($out | Out-String) -replace "\r?\n", "|" -replace ",", ";"
-            if ($flat.Length -gt 3000) { $flat = $flat.Substring(0, 3000) }
+          $out = ""
+          try {
+            $out = (& ./scripts/windows_smoke_test.ps1 -Setup $setup *>&1 | Out-String)
+          } catch {
+            $out += "`nEXCEPTION: " + ($_ | Out-String)
+          }
+          Write-Output $out
+          if ($out -notmatch "all legs passed") {
+            $flat = $out -replace "\r?\n", "|" -replace ",", ";"
+            if ($flat.Length -gt 3000) { $flat = $flat.Substring($flat.Length - 3000) }
             echo "::notice title=smoke-output::$flat"
-            exit $LASTEXITCODE
+            throw "windows smoke test failed"
           }
 
       - name: Upload workflow artifact (full setup + assets)

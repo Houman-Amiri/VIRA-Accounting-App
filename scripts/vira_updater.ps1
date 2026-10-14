@@ -30,7 +30,7 @@ $logPath = if ($Log) { $Log } else { Join-Path $Stage "update.log" }
 function Write-Log([string]$msg) {
     $line = "[{0}] {1}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $msg
     Add-Content -Path $logPath -Value $line -Encoding utf8
-    Write-Host $line
+    Write-Output $line
 }
 
 function Invoke-Rollback {
@@ -57,16 +57,16 @@ function Fail([string]$reason) {
     Write-Log "FAILED: $reason"
     Invoke-Rollback
     Write-Log "ROLLED BACK — previous version restored"
-    Write-Host "خطا در به‌روزرسانی. نسخهٔ قبلی بازگردانی شد."
-    Write-Host "جزئیات: $logPath"
-    exit 1
+    Write-Output "خطا در به‌روزرسانی. نسخهٔ قبلی بازگردانی شد."
+    Write-Output "جزئیات: $logPath"
+    throw "vira-updater failed: $reason (previous version restored)"
 }
 
 # ---------------------------------------------------------------- mutex ----
 $mutex = New-Object System.Threading.Mutex($false, "Global\VIRA-Updater")
 if (-not $mutex.WaitOne(0)) {
-    Write-Host "به‌روزرسانی دیگری در حال اجرا است."
-    exit 2
+    Write-Output "به‌روزرسانی دیگری در حال اجرا است."
+    throw "another update is already running"
 }
 $lockFile = Join-Path $env:LOCALAPPDATA "VIRA\updates\.update.lock"
 New-Item -ItemType Directory -Force -Path (Split-Path $lockFile) | Out-Null
