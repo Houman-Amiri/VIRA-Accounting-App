@@ -19,7 +19,7 @@ $install = Join-Path $tmp "install"
 New-Item -ItemType Directory -Force -Path $install | Out-Null
 
 Write-Host "[smoke] 1/4 silent install -> $install"
-Start-Process -FilePath $Setup -ArgumentList "/VERYSILENT", "/DIR=$install", "/SUPPRESSMSGBOXES" -Wait
+Start-Process -FilePath $Setup -ArgumentList "/VERYSILENT", "/DIR=`"$install`"", "/SUPPRESSMSGBOXES" -Wait
 if (-not (Test-Path (Join-Path $install "install_manifest.json"))) { throw "silent install did not produce install_manifest.json" }
 $reg = Get-ItemProperty -Path "HKLM:\SOFTWARE\VIRA", "HKCU:\SOFTWARE\VIRA" -Name InstallDir -ErrorAction SilentlyContinue
 Write-Host "[smoke] InstallDir registry: $($reg.InstallDir)"
@@ -52,6 +52,12 @@ Write-Host "[smoke] user data checksum identical: $dbHashAfter"
 
 Write-Host "[smoke] 4/4 forced-failure rollback"
 $stage = Join-Path $env:LOCALAPPDATA "VIRA\updates\smoke"
+New-Item -ItemType Directory -Force -Path $stage | Out-Null
+# self-contained stage: a minimal valid update.json even when no delta exists
+if (-not (Test-Path (Join-Path $stage "update.json"))) {
+    @{ base_version = "smoke"; target_version = "forced-fail"; operations = @() } |
+        ConvertTo-Json | Set-Content -Encoding utf8 (Join-Path $stage "update.json")
+}
 $failed = $false
 try { ./scripts/vira_updater.ps1 -Stage $stage -Log (Join-Path $stage "rollback.log") -InstallDir $install -ForceFailure } catch { $failed = $true }
 if (-not $failed) { throw "forced failure did not roll back" }

@@ -94,8 +94,6 @@ try {
     Start-Sleep -Seconds 2
     schtasks /End /TN "VIRA\Backup" 2>$null | Out-Null
 
-    if ($ForceFailure) { Fail "forced failure (CI rollback test)" }
-
     # ------------------------------------------------ snapshot → rollback/prev ----
     $rollback = Join-Path $InstallDir "rollback\prev"
     New-Item -ItemType Directory -Force -Path $rollback | Out-Null
@@ -111,6 +109,8 @@ try {
         }
     }
     Write-Log "snapshot complete -> $rollback"
+
+    if ($ForceFailure) { Fail "forced failure (CI rollback test)" }
 
     # --------------------------------------------------------- apply ops ----
     $bspatch = Join-Path $InstallDir "tools\bspatch.exe"
