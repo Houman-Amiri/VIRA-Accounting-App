@@ -7,6 +7,23 @@ import { expect, test, type Page } from "@playwright/test";
 const USER = process.env.VIRA_E2E_USER || "owner";
 const PASS = process.env.VIRA_E2E_PASSWORD || "e2e-owner-password";
 
+// Debug channel: artifact/log hosts are unreachable from the sandbox, so on
+// failure we dump the page state into the job log (surfaced via annotations).
+test.afterEach(async ({ page }, testInfo) => {
+  if (testInfo.status !== testInfo.expectedStatus) {
+    const html = await page.content().catch(() => "<unavailable>");
+    console.log("DEBUG URL:", page.url());
+    console.log("DEBUG TITLE:", await page.title().catch(() => "?"));
+    console.log("DEBUG HTML:", html.replace(/\s+/g, " ").slice(0, 2200));
+  }
+});
+test.beforeEach(async ({ page }) => {
+  page.on("console", (msg) => {
+    if (msg.type() === "error") console.log("CONSOLE ERROR:", msg.text().slice(0, 400));
+  });
+  page.on("pageerror", (err) => console.log("PAGE ERROR:", String(err).slice(0, 400)));
+});
+
 async function login(page: Page): Promise<void> {
   // Deterministic: the shell is public but any background 401 redirects to
   // /login — so authenticate there first, then continue in the app.
