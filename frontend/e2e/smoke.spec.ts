@@ -8,13 +8,13 @@ const USER = process.env.VIRA_E2E_USER || "owner";
 const PASS = process.env.VIRA_E2E_PASSWORD || "e2e-owner-password";
 
 async function login(page: Page): Promise<void> {
-  await page.goto("/");
-  if (page.url().includes("/login")) {
-    await page.getByTestId("login-username").fill(USER);
-    await page.getByTestId("login-password").fill(PASS);
-    await page.getByTestId("login-submit").click();
-    await expect(page).not.toHaveURL(/\/login/);
-  }
+  // Deterministic: the shell is public but any background 401 redirects to
+  // /login — so authenticate there first, then continue in the app.
+  await page.goto("/login");
+  await page.getByTestId("login-username").fill(USER);
+  await page.getByTestId("login-password").fill(PASS);
+  await page.getByTestId("login-submit").click();
+  await page.waitForURL((url) => !url.pathname.includes("/login"), { timeout: 15_000 });
 }
 
 test("app shell renders in Persian RTL with sidebar nav", async ({ page }) => {

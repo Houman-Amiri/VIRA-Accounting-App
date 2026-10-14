@@ -19,11 +19,13 @@ export default defineConfig({
       command: "cd .. && .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8787",
       url: "http://127.0.0.1:8787/api/v1/health/live",
       reuseExistingServer: true,
+      timeout: 120_000,
     },
     {
       command: "pnpm dev",
       url: "http://127.0.0.1:5173",
       reuseExistingServer: true,
+      timeout: 120_000,
     },
   ],
 });
