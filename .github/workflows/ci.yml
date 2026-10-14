@@ -210,8 +210,15 @@ jobs:
           SQLITE_DATABASE_PATH: ${{ runner.temp }}/vira-e2e.sqlite3
           VIRA_E2E_USER: owner
           VIRA_E2E_PASSWORD: e2e-owner-password
-        run: pnpm e2e
+        run: |
+          set -o pipefail
+          pnpm e2e 2>&1 | tee ../e2e.log
 
+      - name: Publish e2e failure to annotations (log access is restricted)
+        if: failure()
+        run: |
+          echo "::notice title=e2e-log-head::$(head -c 2500 e2e.log | tr '\n' '|' | tr ',' ';')"
+          echo "::notice title=e2e-log-tail::$(tail -c 3500 e2e.log | tr '\n' '|' | tr ',' ';')"
       - name: Upload Playwright report
         if: failure()
         uses: actions/upload-artifact@v4
