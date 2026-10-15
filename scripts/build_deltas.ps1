@@ -32,8 +32,21 @@ New-Item -ItemType Directory -Force -Path $tmp | Out-Null
 foreach ($tag in $tags) {
     $baseV = $tag.TrimStart("v")
     if ($baseV -eq $v) { continue }
-    $zipUrl = "https://github.com/$repo/releases/download/$tag/VIRA-v$baseV.zip"
-    $baseZip = Join-Path $tmp "VIRA-v$baseV.zip"
+    # the portable asset's name has varied across releases (VIRA-v1.0.0.zip vs
+    # vira-v1.0.2-portable.zip) — ask the API instead of guessing
+    $baseZip = Join-Path $tmp "base-$baseV.zip"
+    $zipUrl = $null
+    try {
+        $assets = gh api "repos/$repo/releases/tags/$tag" --jq ".assets[].name" 2>$null
+        $name = $assets | Where-Object { $_ -match "portable" -and $_ -notmatch "delta|Setup" } | Select-Object -First 1
+        if (-not $name) { $name = $assets | Where-Object { $_ -match "^VIRA-v.*\.zip$" -and $_ -notmatch "delta|portable" } | Select-Object -First 1 }
+        if ($name) { $zipUrl = "https://github.com/$repo/releases/download/$tag/$name" }
+    }
+    catch { $zipUrl = $null }
+    if (-not $zipUrl) {
+        Write-Host "[build_deltas] base $tag has no downloadable portable zip — skipping (full-installer fallback covers it)"
+        continue
+    }
     try {
         Write-Host "[build_deltas] fetching base $zipUrl"
         Invoke-WebRequest -Uri $zipUrl -OutFile $baseZip -MaximumRetryCount 2 | Out-Null

@@ -31,26 +31,59 @@ $db = Join-Path $dataDir "vira.sqlite3"
 "seed-data" | Set-Content -Path $db -Encoding ascii
 $dbHashBefore = (Get-FileHash -Algorithm SHA256 $db).Hash
 
-Write-Output "[smoke] 2/4 delta upgrade"
-$delta = Get-ChildItem (Split-Path $Setup) -Filter "*delta*.zip" | Select-Object -First 1
-if ($delta) {
-    $setupSize = (Get-Item $Setup).Length
+Write-Output "[smoke] 2/5 legacy delta upgrade (previous portable + matching delta)"
+$v = (Get-Content (Join-Path $install "version.json") -Raw | ConvertFrom-Json).version
+$setupSize = (Get-Item $Setup).Length
+$legacyRoot = Join-Path $env:LOCALAPPDATA "VIRA\smoke-legacy"
+if (Test-Path $legacyRoot) { Remove-Item $legacyRoot -Recurse -Force }
+New-Item -ItemType Directory -Force -Path $legacyRoot | Out-Null
+$repo = if ($env:GITHUB_REPOSITORY) { $env:GITHUB_REPOSITORY } else { "Houman-Amiri/VIRA-Accounting-App" }
+$upgraded = $false
+foreach ($delta in (Get-ChildItem (Split-Path $Setup) -Filter "*delta*.zip" | Sort-Object Name -Descending)) {
+    if ($delta.Name -notmatch "delta-from-v([\d.]+)\.zip") { continue }
+    $fromV = $Matches[1]
     if ($delta.Length -ge $setupSize) { throw "delta ($($delta.Length)) is not smaller than the setup ($setupSize)" }
-    Write-Output "[smoke] delta $($delta.Name) = $($delta.Length) bytes < setup $setupSize bytes"
+    # fetch the previous release's portable zip (same discovery as build_deltas)
+    $tag = "v$fromV"
+    $assetNames = gh api "repos/$repo/releases/tags/$tag" --jq ".assets[].name" 2>$null
+    $pName = $assetNames | Where-Object { $_ -match "portable" -and $_ -notmatch "delta|Setup" } | Select-Object -First 1
+    if (-not $pName) { Write-Output "[smoke] no portable base for $tag — skipping $($delta.Name)"; continue }
+    $baseZip = Join-Path $legacyRoot "base-$fromV.zip"
+    try {
+        Invoke-WebRequest -Uri "https://github.com/$repo/releases/download/$tag/$pName" -OutFile $baseZip -MaximumRetryCount 2 | Out-Null
+    } catch { Write-Output "[smoke] base $tag not downloadable — skipping $($delta.Name)"; continue }
+
+    Write-Output "[smoke] $($delta.Name) = $($delta.Length) bytes < setup $setupSize — upgrading $tag portable -> v$v"
+    $legacy = Join-Path $legacyRoot "install"
+    if (Test-Path $legacy) { Remove-Item $legacy -Recurse -Force }
+    Expand-Archive $baseZip -DestinationPath $legacy -Force
     $stage = Join-Path $env:LOCALAPPDATA "VIRA\updates\smoke"
+    if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
     New-Item -ItemType Directory -Force -Path $stage | Out-Null
     Expand-Archive $delta.FullName -DestinationPath $stage -Force
-    ./scripts/vira_updater.ps1 -Stage $stage -Log (Join-Path $stage "update.log") -InstallDir $install
-} else {
-    Write-Output "[smoke] no delta published for this run (first release?) — skipping upgrade leg"
-}
+    $env:VIRA_PORT = "8799"   # keep the updater's relaunch off the smoke port
+    ./scripts/vira_updater.ps1 -Stage $stage -Log (Join-Path $stage "update.log") -InstallDir $legacy
 
-Write-Output "[smoke] 3/4 data preservation"
+    $ver = (Get-Content (Join-Path $legacy "version.json") -Raw | ConvertFrom-Json).version
+    if ($ver -ne $v) { throw "legacy upgrade reached version '$ver', expected '$v'" }
+    $man = Get-Content (Join-Path $legacy "install_manifest.json") -Raw | ConvertFrom-Json
+    if (-not $man.files_manifest_sha256) { throw "legacy upgrade did not rewrite install_manifest.json" }
+    if (-not (Test-Path (Join-Path $legacy "start_vira.cmd"))) { throw "legacy upgrade lost start_vira.cmd" }
+    Get-CimInstance Win32_Process -Filter "Name='python.exe' or Name='cmd.exe' or Name='powershell.exe'" |
+        Where-Object { $_.CommandLine -like "*$legacy*" } |
+        ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+    Write-Output "[smoke] legacy $tag -> v$v OK — version + manifest rewritten, files verified"
+    $upgraded = $true
+    break
+}
+if (-not $upgraded) { Write-Output "[smoke] no delta with a downloadable base this run — skipping upgrade leg" }
+
+Write-Output "[smoke] 3/5 data preservation"
 $dbHashAfter = (Get-FileHash -Algorithm SHA256 $db).Hash
 if ($dbHashAfter -ne $dbHashBefore) { throw "user data changed across the update — DATA LOSS" }
 Write-Output "[smoke] user data checksum identical: $dbHashAfter"
 
-Write-Output "[smoke] 4/4 forced-failure rollback"
+Write-Output "[smoke] 4/5 forced-failure rollback"
 $stage = Join-Path $env:LOCALAPPDATA "VIRA\updates\smoke"
 New-Item -ItemType Directory -Force -Path $stage | Out-Null
 # self-contained stage: a minimal valid update.json even when no delta exists

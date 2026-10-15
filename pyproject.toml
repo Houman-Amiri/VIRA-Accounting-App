@@ -1,6 +1,6 @@
 [project]
 name = "vira-accounting"
-version = "1.0.3"
+version = "1.0.4"
 description = "V.I.R.A — Persian accounting & operations app for 3D-printing businesses (FastAPI + SQLite)"
 requires-python = ">=3.11"
 readme = "README.md"

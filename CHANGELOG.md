@@ -7,6 +7,29 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+## [1.0.4] — 2026-10-15
+
+v1.0.3 installed and ran correctly, but published **no delta packages** — the
+delta builder guessed the previous release's portable-zip filename and silently
+skipped every base it could not fetch, so updates fell back to the full
+installer.
+
+### Fixed
+- **Delta discovery** — `build_deltas` now asks the GitHub API for each previous
+  release's portable asset (the filename varied: `VIRA-v1.0.0.zip` vs
+  `vira-v1.0.2-portable.zip`) instead of guessing, and its `latest.json`
+  `deltas[]` entries point at assets that are actually published.
+- **Smoke leg 2 is the real update path** — it downloads the previous release's
+  portable install, applies the matching delta with the shipped updater, and
+  asserts the install reaches the new version with rewritten manifests (and a
+  delta strictly smaller than the setup). The old leg applied a delta onto a
+  fresh same-version install, which never happens in the field.
+
+### Verified
+- v1.0.3's install experience: silent install, shortcut resolution via the
+  Windows shell, first-run migrate+seed+credentials, healthy SPA on
+  `http://127.0.0.1:8787` — all CI-gated (smoke legs 1 and 5).
+
 ## [1.0.3] — 2026-10-15
 
 Fixes the broken installed experience reported after v1.0.2 (shortcut points
