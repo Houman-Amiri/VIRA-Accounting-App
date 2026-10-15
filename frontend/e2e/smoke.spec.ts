@@ -73,23 +73,7 @@ test("pricing reproduces the original Excel cells for single and multiple quanti
 }) => {
   await login(page);
   await page.goto("/price-calc");
-  const final = page.getByTestId("row-unitFinalPrice");
-  await expect(final).toContainText("۲٬۷۶۰٬۷۴۸.۵");
-  await expect(final).toContainText("۲٬۷۸۰٬۷۴۸.۵");
-  await expect(final).toContainText("E35");
-  await page.getByTestId("input-qty").fill("۱۰");
-  await expect(final).toContainText("۲۹۱٬۱۹۴.۸۵");
-  await expect(final).toContainText("۳۱۱٬۱۹۴.۸۵");
-  await page.getByTestId("const-filamentPerGram").fill("9000");
-  await page.getByRole("button", { name: "مقادیر نمونهٔ اکسل" }).click();
-  await expect(page.getByTestId("input-qty")).toHaveValue("1");
-  await expect(page.getByTestId("const-filamentPerGram")).toHaveValue("3000");
-  await expect(final).toContainText("۲٬۷۸۰٬۷۴۸.۵");
-});
-
-test("pricing report highlights B25, B29 and B35 in light and dark themes", async ({ page }) => {
-  await login(page);
-  await page.goto("/price-calc");
+  // Reuse this authenticated journey: a sixth login hits the real auth rate limit.
   const rows = [
     ["productionTotal", "rgb(220, 252, 231)", "rgba(20, 83, 45, 0.4)"],
     ["unitSalePrice", "rgb(219, 234, 254)", "rgba(30, 58, 138, 0.4)"],
@@ -104,6 +88,18 @@ test("pricing report highlights B25, B29 and B35 in light and dark themes", asyn
       );
     }
   }
+  const final = page.getByTestId("row-unitFinalPrice");
+  await expect(final).toContainText("۲٬۷۶۰٬۷۴۸.۵");
+  await expect(final).toContainText("۲٬۷۸۰٬۷۴۸.۵");
+  await expect(final).toContainText("E35");
+  await page.getByTestId("input-qty").fill("۱۰");
+  await expect(final).toContainText("۲۹۱٬۱۹۴.۸۵");
+  await expect(final).toContainText("۳۱۱٬۱۹۴.۸۵");
+  await page.getByTestId("const-filamentPerGram").fill("9000");
+  await page.getByRole("button", { name: "مقادیر نمونهٔ اکسل" }).click();
+  await expect(page.getByTestId("input-qty")).toHaveValue("1");
+  await expect(page.getByTestId("const-filamentPerGram")).toHaveValue("3000");
+  await expect(final).toContainText("۲٬۷۸۰٬۷۴۸.۵");
 });
 
 // Only the update HTTP boundary is simulated; login, sudo, hooks and dialog are real.
