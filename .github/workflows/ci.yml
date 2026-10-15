@@ -247,6 +247,15 @@ jobs:
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
 
+      - name: Parse PowerShell release scripts
+        shell: pwsh
+        run: |
+          Get-ChildItem scripts/*.ps1 | ForEach-Object {
+            $tokens = $null; $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count) { throw "$($_.Name): $($errors | Out-String)" }
+          }
+
       - name: Backend deps + migrations + tests (native Windows)
         shell: pwsh
         run: |

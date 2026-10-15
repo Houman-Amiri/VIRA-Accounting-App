@@ -87,6 +87,13 @@ def main() -> int:
         target_version_json = args.target_dir / "version.json"
         if target_version_json.is_file():
             zf.writestr("version.json", target_version_json.read_bytes())
+        # Run the new helper OUTSIDE {app}: an installed/running .exe cannot
+        # replace itself on Windows. Older clients already prefer this location.
+        helper = args.target_dir / "vira-updater.exe"
+        if helper.is_file():
+            data = helper.read_bytes()
+            zf.writestr("vira-updater.exe", data)
+            hashes["vira-updater.exe"] = sha256_bytes(data)
         update_doc = plan.to_json()
         update_doc["hashes"] = hashes
         update_doc["delete_sha256"] = sha256_bytes(

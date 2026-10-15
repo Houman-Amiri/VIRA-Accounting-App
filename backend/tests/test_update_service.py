@@ -257,8 +257,8 @@ class TestUpdaterDiscovery:
         # compiled PowerShell script) and the install dir passed explicitly, so
         # no registry record is required for portable/unzipped installs.
         assert argv[1:5] == ["-stage", str(stage), "-log", str(stage / "update.log")]
-        assert "-install-dir" in argv
-        assert argv[argv.index("-install-dir") + 1] == str(root)
+        assert "-InstallDir" in argv
+        assert argv[argv.index("-InstallDir") + 1] == str(root)
         assert log == stage / "update.log"
 
     def test_falls_back_to_shipped_powershell_helper(

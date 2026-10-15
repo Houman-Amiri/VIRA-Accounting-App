@@ -75,22 +75,30 @@ foreach ($delta in $deltaZips) {
     # visible once a real delta existed, i.e. from v1.0.5 on)
     $prevPort = $env:VIRA_PORT
     $env:VIRA_PORT = "8799"
-    # Prefer the helper that ships INSIDE the installation (v1.0.5+) — that is
-    # exactly what the app launches at apply time; the repo script is only the
-    # fallback for bases built before the helper was staged into {app}.
+    # Mirror client discovery: staged helper first, then the installed helper.
+    # The staged helper can replace {app}/vira-updater.exe without a file lock.
+    $stagedUpdater = Join-Path $stage "vira-updater.exe"
     $installUpdater = Join-Path $legacy "vira-updater.exe"
-    if (Test-Path $installUpdater) {
-        Write-Output "[smoke] applying delta with the install's own vira-updater.exe"
-        & $installUpdater -stage $stage -log (Join-Path $stage "update.log") -install-dir $legacy
+    if (Test-Path $stagedUpdater) {
+        Write-Output "[smoke] applying delta with staged helper (legacy client arguments)"
+        # v1.0.5 clients used -install-dir. Keep that alias working as well.
+        & $stagedUpdater -stage $stage -log (Join-Path $stage "update.log") -install-dir $legacy
+    } elseif (Test-Path $installUpdater) {
+        & $installUpdater -Stage $stage -Log (Join-Path $stage "update.log") -InstallDir $legacy
     } else {
-        Write-Output "[smoke] base predates the staged helper - using scripts/vira_updater.ps1"
         ./scripts/vira_updater.ps1 -Stage $stage -Log (Join-Path $stage "update.log") -InstallDir $legacy
     }
 
     if ($null -ne $prevPort) { $env:VIRA_PORT = $prevPort } else { Remove-Item Env:VIRA_PORT -ErrorAction SilentlyContinue }
 
     $ver = (Get-Content (Join-Path $legacy "version.json") -Raw | ConvertFrom-Json).version
-    if ($ver -ne $v) { throw "legacy upgrade reached version '$ver', expected '$v'" }
+    if ($ver -ne $v) {
+        # never fail blind again: the updater's log says exactly which operation broke
+        $ulog = Join-Path $stage "update.log"
+        $tail = if (Test-Path $ulog) { (Get-Content $ulog -Raw) } else { "<no update.log>" }
+        if ($tail.Length -gt 2500) { $tail = $tail.Substring($tail.Length - 2500) }
+        throw "legacy upgrade reached version '$ver', expected '$v' — updater log:`n$tail"
+    }
     $man = Get-Content (Join-Path $legacy "install_manifest.json") -Raw | ConvertFrom-Json
     if (-not $man.files_manifest_sha256) { throw "legacy upgrade did not rewrite install_manifest.json" }
     if (-not (Test-Path (Join-Path $legacy "start_vira.cmd"))) { throw "legacy upgrade lost start_vira.cmd" }

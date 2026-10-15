@@ -20,7 +20,7 @@
 param(
     [Parameter(Mandatory = $true)][string]$Stage,   # staging dir: %LOCALAPPDATA%\VIRA\updates\<version>\
     [Parameter(Mandatory = $true)][string]$Log,     # update.log path
-    [string]$InstallDir = "",                       # recorded InstallDir (registry fallback)
+    [Alias("install-dir")][string]$InstallDir = "",                       # recorded InstallDir (registry fallback)
     [switch]$ForceFailure                           # CI forced-failure rollback test
 )
 
@@ -133,23 +133,37 @@ try {
             }
             "patch" {
                 $patchFile = Join-Path $Stage ($op.patch -replace "/", "\")
-                $applier = $null; $applierArgs = @()
+                # Initialize before building argv (otherwise the applier gets
+                # an empty/stale output path).
+                $tmp = $target + ".new"
+                Remove-Item $tmp -Force -ErrorAction SilentlyContinue
+                $applier = $null
+                $applierArgs = @()
                 if (Test-Path $bspatch) {
-                    $applier = $bspatch; $applierArgs = @($target, $tmp, $patchFile)
+                    $applier = $bspatch
+                    $applierArgs = @($target, $tmp, $patchFile)
                 } else {
                     # pure-Python fallback shipped with the payload (v1.0.3+)
                     $py = Join-Path $InstallDir "python\python.exe"
                     if (-not (Test-Path $py)) { $py = "python" }
                     $bspatchPy = Join-Path $InstallDir "scripts\bspatch.py"
                     if (-not (Test-Path $bspatchPy)) { Fail "no patch applier available (tools\bspatch.exe / scripts\bspatch.py)" }
-                    $applier = $py; $applierArgs = @($bspatchPy, $target, $tmp, $patchFile)
+                    # the applier imports the engine (pydantic) — the bundled
+                    # interpreter needs the payload's site-packages, which is
+                    # NOT on the default path when the updater runs standalone
+                    $env:PYTHONPATH = (Join-Path $InstallDir "site-packages") + ";" + $InstallDir
+                    $applier = $py
+                    $applierArgs = @($bspatchPy, $target, $tmp, $patchFile)
                 }
-                $tmp = "$target.new"
                 $prevEap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
-                & $applier @applierArgs
+                $applierOutput = (& $applier @applierArgs 2>&1 | Out-String)
                 $code = $LASTEXITCODE
                 $ErrorActionPreference = $prevEap
-                if ($code -ne 0 -or -not (Test-Path $tmp)) { Fail "bspatch failed: $rel" }
+                if ($code -ne 0) {
+                    Write-Log "applier said: $($applierOutput.Trim())"
+                    Fail "bspatch failed: $rel (exit $code)"
+                }
+                if (-not (Test-Path $tmp)) { Fail "bspatch produced no output: $rel" }
                 $hash = (Get-FileHash -Algorithm SHA256 $tmp).Hash.ToLower()
                 if ($op.sha256 -and $hash -ne $op.sha256.ToLower()) { Fail "patched SHA-256 mismatch: $rel" }
                 Move-Item $tmp $target -Force

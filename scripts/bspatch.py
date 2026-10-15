@@ -17,6 +17,10 @@ from pathlib import Path
 _root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_root / "backend"))
 sys.path.insert(0, str(_root))
+# the engine imports pydantic: the bundled interpreter holds the payload's
+# dependencies in {app}/site-packages, which is not on the default path when
+# the updater runs standalone (v1.0.6 smoke catch)
+sys.path.insert(0, str(_root / "site-packages"))
 
 from app.services.update_engine import apply_bsdiff  # noqa: E402
 

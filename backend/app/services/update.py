@@ -450,7 +450,7 @@ def _updater_command(settings: Settings, staged_path: str) -> tuple[list[str], P
             # PowerShell script compiled to an exe (ps2exe).
             argv = [str(exe), "-stage", str(stage), "-log", str(log_path)]
             if root is not None:
-                argv += ["-install-dir", str(root)]
+                argv += ["-InstallDir", str(root)]
             return argv, log_path
 
     if root is not None:
