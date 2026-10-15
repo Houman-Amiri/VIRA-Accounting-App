@@ -15,6 +15,7 @@ from .operations import (
 )
 from .ops import Document, RecurringEntry, User
 from .persistence import AccountBalanceSnapshot, Currency, IdempotencyKey
+from .pricing import PricingSettings
 from .security import (
     ApiKey,
     ExternalCredential,
@@ -37,6 +38,7 @@ __all__ = [
     "Order",
     "OrderItem",
     "ProductionJob",
+    "PricingSettings",
     "StockMovement",
     "Supplier",
     "ExchangeRate",

@@ -40,6 +40,7 @@ from .api import (
 from .api import (
     operations as operations_api,
 )
+from .api import pricing as pricing_api
 from .api import system as system_api
 from .api import (
     webhooks as webhooks_api,
@@ -183,6 +184,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(fx.router, dependencies=[Depends(auditor_read_only)])
     app.include_router(documents.router, dependencies=[Depends(auditor_read_only)])
     app.include_router(api_keys_api.router, dependencies=[Depends(auditor_read_only)])
+    app.include_router(pricing_api.router, dependencies=[Depends(auditor_read_only)])
     app.include_router(system_api.router, dependencies=[Depends(auditor_read_only)])
     app.include_router(fiscal.router, dependencies=[Depends(auditor_read_only)])
     app.include_router(webhooks_api.router)

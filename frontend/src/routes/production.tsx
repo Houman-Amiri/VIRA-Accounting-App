@@ -14,7 +14,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Money } from "@/components/money";
-import { computePrice, DEFAULT_CONSTANTS, type PriceInputs } from "@/lib/priceCalc";
+import { computePrice, type PriceInputs } from "@/lib/priceCalc";
+import { pricingConstants, usePricingSettings } from "@/lib/pricing-settings";
 import { faNumber } from "@/lib/fa";
 
 type Job = {
@@ -83,6 +84,7 @@ function errText(error: unknown): string {
 }
 
 export function ProductionPage(): React.JSX.Element {
+  const pricingQuery = usePricingSettings();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = React.useState("");
   const [message, setMessage] = React.useState<string | null>(null);
@@ -153,6 +155,8 @@ export function ProductionPage(): React.JSX.Element {
 
   const createJob = useMutation({
     mutationFn: async () => {
+      if (!pricingQuery.data || pricingQuery.isError || pricingQuery.isPending)
+        throw new Error("ثابت‌های قیمت‌گذاری در دسترس نیستند؛ دوباره تلاش کنید.");
       const inputs: PriceInputs = {
         weightG: form.filament_grams || "0",
         printHours: form.print_hours || "0",
@@ -163,7 +167,7 @@ export function ProductionPage(): React.JSX.Element {
       let unitCost = "0";
       let unitPrice = "0";
       try {
-        const priced = computePrice(inputs, DEFAULT_CONSTANTS);
+        const priced = computePrice(inputs, pricingConstants(pricingQuery.data));
         unitCost = priced.unitProductionCost.toFixed(4);
         unitPrice = priced.unitFinalPrice.toFixed(4);
       } catch {
@@ -495,9 +499,8 @@ export function ProductionPage(): React.JSX.Element {
               </select>
             </div>
             <p className="text-xs text-muted-foreground">
-              بهای تمام‌شده و قیمت فروش هر عدد هنگام ثبت، از ماشین‌حساب قیمت‌گذاری (فایل اکسل)
-              محاسبه و ذخیره می‌شود. در این فرمول، وزن و زمان ورودی بدون ضرب خودکار در تعداد استفاده
-              می‌شوند و بهای تولید کل اکسل برای ثبت بهای واحد بر تعداد تقسیم می‌شود.
+              بهای تمام‌شده و قیمت فروش هر عدد با ثابت‌های ذخیره‌شده محاسبه و هنگام ثبت ذخیره
+              می‌شوند.
             </p>
             <Button
               className="w-full"

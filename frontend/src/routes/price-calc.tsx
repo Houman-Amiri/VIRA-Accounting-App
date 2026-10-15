@@ -10,12 +10,9 @@ import * as React from "react";
 import {
   BREAKDOWN_ROWS,
   computePrice,
-  DEFAULT_CONSTANTS,
   SALE_ROWS,
-  SHEET_EXPECTED,
   SHEET_EXAMPLE_INPUTS,
   type PriceBreakdown,
-  type PriceConstants,
   type PriceInputs,
 } from "@/lib/priceCalc";
 import { Money } from "@/components/money";
@@ -24,19 +21,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
-
-const CONSTANT_FIELDS: ReadonlyArray<[keyof PriceConstants, string, string]> = [
-  ["filamentPerGram", "قیمت هر گرم فیلامنت", "B3"],
-  ["electricityPerKwh", "قیمت هر کیلووات برق", "B4"],
-  ["depreciationPerHour", "استهلاک پرینتر در هر ساعت", "B5"],
-  ["profitFactor", "ضریب سود (×)", "B6"],
-  ["commissionPercent", "کمیسیون بازارگاه (٪)", "B7"],
-  ["chainPerUnit", "حلقه و زنجیر", "B9"],
-  ["shipmentPerBatch", "هزینه ارسال محموله", "B10"],
-  ["labelPerUnit", "هزینه لیبل", "B23"],
-  ["printerPowerKw", "توان مصرفی پرینتر (کیلووات)", "B2"],
-  ["nylonPerUnit", "نایلون بسته‌بندی", "B8"],
-];
+import { Link } from "@tanstack/react-router";
+import { pricingConstants, usePricingSettings } from "@/lib/pricing-settings";
 
 // Presentation only: keep the workbook formulas and numeric values unchanged.
 const REPORT_ROW_HIGHLIGHTS: Partial<Record<keyof PriceBreakdown, string>> = {
@@ -46,10 +32,15 @@ const REPORT_ROW_HIGHLIGHTS: Partial<Record<keyof PriceBreakdown, string>> = {
 };
 
 export function PriceCalcPage(): React.JSX.Element {
-  const [constants, setConstants] = React.useState<PriceConstants>(DEFAULT_CONSTANTS);
+  const settings = usePricingSettings();
+  const constants = React.useMemo(
+    () => (settings.data ? pricingConstants(settings.data) : null),
+    [settings.data],
+  );
   const [inputs, setInputs] = React.useState<PriceInputs>(SHEET_EXAMPLE_INPUTS);
 
   const plain = React.useMemo<PriceBreakdown | null>(() => {
+    if (!constants) return null;
     try {
       return computePrice({ ...inputs, variant: "plain" }, constants);
     } catch {
@@ -58,6 +49,7 @@ export function PriceCalcPage(): React.JSX.Element {
   }, [inputs, constants]);
 
   const chain = React.useMemo<PriceBreakdown | null>(() => {
+    if (!constants) return null;
     try {
       return computePrice({ ...inputs, variant: "chain" }, constants);
     } catch {
@@ -65,10 +57,18 @@ export function PriceCalcPage(): React.JSX.Element {
     }
   }, [inputs, constants]);
 
-  const setConst = (key: keyof PriceConstants, raw: string): void =>
-    setConstants((c) => ({ ...c, [key]: raw }));
-
   const rows = [...BREAKDOWN_ROWS, ...SALE_ROWS];
+
+  if (settings.isPending) return <p role="status">در حال دریافت ثابت‌های قیمت‌گذاری…</p>;
+  if (settings.error)
+    return (
+      <div role="alert" className="space-y-2 text-destructive">
+        <p>دریافت ثابت‌های قیمت‌گذاری ناموفق بود؛ محاسبه با مقدارهای قدیمی انجام نمی‌شود.</p>
+        <button onClick={() => void settings.refetch()} className="underline">
+          تلاش مجدد
+        </button>
+      </div>
+    );
 
   return (
     <div className="mx-auto max-w-5xl space-y-4" dir="rtl">
@@ -81,25 +81,11 @@ export function PriceCalcPage(): React.JSX.Element {
         )}
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        در کانال بازارگاه، فرمول‌ها عیناً از فایل <span className="num">قیمت نهایی.xlsx</span>{" "}
-        برداشته شده‌اند؛ شمارهٔ سلول هر ردیف کنار آن نوشته شده تا بتوانید با اکسل تطبیق دهید. نمونهٔ
-        خود فایل (۲۴۰ گرم، ۱۰ ساعت، تیراژ ۱) باید بدهد{" "}
-        <span className="num">{SHEET_EXPECTED.plain}</span> تومان (ساده) و{" "}
-        <span className="num">{SHEET_EXPECTED.chain}</span> تومان (زنجیردار).
-      </p>
+      <Link to="/settings" className="inline-block text-sm text-primary hover:underline">
+        تغییر ثابت‌ها در تنظیمات
+      </Link>
 
-      <p
-        className="rounded-md border border-border bg-muted/30 p-3 text-xs"
-        data-testid="sheet-policy"
-      >
-        مطابق خود اکسل، وزن و زمان بدون ضرب خودکار در تیراژ وارد فرمول می‌شوند؛ قیمت فروش کل بر
-        تیراژ تقسیم می‌شود. کمیسیون هر دو مدل از B31 (مدل ساده، ۱۳٫۱٪) گرفته می‌شود و بافر هر دو مدل
-        از B34 ساده با نرخ ۱۰٪ گرفته می‌شود. ثابت‌های B2، B7 و B8 در فرمول‌های فایل استفاده
-        نشده‌اند.
-      </p>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="space-y-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base">مشخصات محصول</CardTitle>
@@ -108,17 +94,14 @@ export function PriceCalcPage(): React.JSX.Element {
               className="text-xs text-primary underline-offset-2 hover:underline"
               onClick={() => {
                 setInputs(SHEET_EXAMPLE_INPUTS);
-                setConstants(DEFAULT_CONSTANTS);
               }}
             >
-              مقادیر نمونهٔ اکسل
+              بازنشانی ورودی‌ها
             </button>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="grid gap-3 sm:grid-cols-2">
             <div>
-              <Label htmlFor="price-weight">
-                وزن محصول (گرم) <span className="text-[0.7em] text-muted-foreground">B13</span>
-              </Label>
+              <Label htmlFor="price-weight">وزن محصول (گرم)</Label>
               <Input
                 className="num"
                 id="price-weight"
@@ -128,10 +111,7 @@ export function PriceCalcPage(): React.JSX.Element {
               />
             </div>
             <div>
-              <Label htmlFor="price-hours">
-                مدت زمان پرینت (ساعت){" "}
-                <span className="text-[0.7em] text-muted-foreground">B14</span>
-              </Label>
+              <Label htmlFor="price-hours">مدت زمان پرینت (ساعت)</Label>
               <Input
                 className="num"
                 id="price-hours"
@@ -141,9 +121,7 @@ export function PriceCalcPage(): React.JSX.Element {
               />
             </div>
             <div>
-              <Label htmlFor="price-qty">
-                تیراژ (تعداد) <span className="text-[0.7em] text-muted-foreground">B15</span>
-              </Label>
+              <Label htmlFor="price-qty">تیراژ (تعداد)</Label>
               <Input
                 className="num"
                 id="price-qty"
@@ -167,38 +145,6 @@ export function PriceCalcPage(): React.JSX.Element {
                 <option value="direct">فروش مستقیم (بدون کمیسیون)</option>
               </select>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">ثابت‌ها</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {CONSTANT_FIELDS.map(([key, label, cell]) => (
-              <div key={key} className="grid grid-cols-2 items-center gap-2">
-                <Label htmlFor={`price-const-${key}`} className="text-xs">
-                  {label} <span className="text-[0.9em] text-muted-foreground">{cell}</span>
-                </Label>
-                <Input
-                  className="num h-8"
-                  id={`price-const-${key}`}
-                  readOnly={["printerPowerKw", "commissionPercent", "nylonPerUnit"].includes(key)}
-                  aria-description={
-                    ["printerPowerKw", "commissionPercent", "nylonPerUnit"].includes(key)
-                      ? "در فرمول‌های اکسل استفاده نشده است؛ فقط جهت نمایش"
-                      : undefined
-                  }
-                  data-testid={`const-${key}`}
-                  value={String(constants[key])}
-                  onChange={(e) => setConst(key, e.target.value)}
-                />
-              </div>
-            ))}
-            <p className="border-t pt-3 text-xs text-muted-foreground">
-              توان پرینتر، کمیسیون B7 و نایلون صرفاً ثابت‌های تعریف‌شدهٔ فایل هستند و اینجا فقط
-              خواندنی‌اند. فرمول B31 نرخ ثابت ۱۳٫۱٪ و فرمول نهایی بافر ثابت ۱۰٪ دارد.
-            </p>
           </CardContent>
         </Card>
       </div>
@@ -250,11 +196,6 @@ export function PriceCalcPage(): React.JSX.Element {
                   ))}
                 </tbody>
               </table>
-              <p className="pt-3 text-xs text-muted-foreground">
-                فروش مستقیم، حالت تکمیلی خارج از فایل اکسل است: فقط کمیسیون صفر می‌شود و بافر ۱۰٪
-                باقی می‌ماند. ردیف B32 فقط در ستون سادهٔ فایل وجود دارد. هزینهٔ ارسال محموله بین
-                تعداد سفارش تقسیم می‌شود (B22 = B21 ÷ B15).
-              </p>
             </div>
           ) : (
             <p className="p-6 text-center text-destructive">

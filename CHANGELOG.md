@@ -8,6 +8,13 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 ## [Unreleased]
 
 ### Changed
+- Remove the Excel explanation banners from pricing and move constant editing to
+  Settings → Pricing constants. Save seven active constants in SQLite (scaled
+  integer Rials; exact Toman API strings), with validation, CSRF, role checks,
+  revision conflict protection and an audit event. New calculations in pricing,
+  orders and production share the saved values; existing prices are untouched.
+  Resetting product inputs no longer resets saved preferences. Migration
+  `0005_pricing_settings` adds only the settings table with the existing defaults.
 - Pricing report highlights the entire B25/E25 row in green, B29/E29 in blue,
   and B35/E35 in red, with readable light/dark backgrounds. Workbook formulas,
   displayed amounts and the derived batch-price row are unchanged.

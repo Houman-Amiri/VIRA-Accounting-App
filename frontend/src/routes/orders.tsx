@@ -15,7 +15,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Money } from "@/components/money";
-import { computePrice, DEFAULT_CONSTANTS, parseNum, type PriceInputs } from "@/lib/priceCalc";
+import { computePrice, parseNum, type PriceInputs } from "@/lib/priceCalc";
+import { pricingConstants, usePricingSettings } from "@/lib/pricing-settings";
 import { faDate, faNumber } from "@/lib/fa";
 
 type OrderLine = {
@@ -109,6 +110,7 @@ function errText(error: unknown): string {
 }
 
 export function OrdersPage(): React.JSX.Element {
+  const pricingQuery = usePricingSettings();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = React.useState("");
   const [channelFilter, setChannelFilter] = React.useState("");
@@ -229,6 +231,11 @@ export function OrdersPage(): React.JSX.Element {
 
   /** Fill unit price/cost from the sheet-exact pricing engine. */
   const priceLine = (index: number): void => {
+    if (!pricingQuery.data || pricingQuery.isError || pricingQuery.isPending) {
+      setMessage("ثابت‌های قیمت‌گذاری در دسترس نیستند؛ دوباره تلاش کنید.");
+      void pricingQuery.refetch();
+      return;
+    }
     const line = form.items[index];
     try {
       const inputs: PriceInputs = {
@@ -238,7 +245,7 @@ export function OrdersPage(): React.JSX.Element {
         variant: line.variant,
         channel: form.channel,
       };
-      const result = computePrice(inputs, DEFAULT_CONSTANTS);
+      const result = computePrice(inputs, pricingConstants(pricingQuery.data));
       updateLine(index, {
         unit_price: result.unitFinalPrice.toFixed(4),
         unit_cost: result.unitProductionCost.toFixed(4),
@@ -487,10 +494,6 @@ export function OrdersPage(): React.JSX.Element {
 
             <div className="space-y-2 rounded-md border p-2">
               <p className="text-xs font-medium">اقلام سفارش</p>
-              <p className="text-xs text-muted-foreground">
-                محاسبهٔ قیمت عین فرمول اکسل است: وزن و زمان بدون ضرب خودکار در تعداد وارد فرمول
-                می‌شوند؛ بهای تولید کل اکسل برای ثبت بهای واحد بر تعداد تقسیم می‌شود.
-              </p>
               {form.items.map((line, index) => (
                 <div
                   key={index}
@@ -534,7 +537,12 @@ export function OrdersPage(): React.JSX.Element {
                       value={line.print_hours}
                       onChange={(e) => updateLine(index, { print_hours: e.target.value })}
                     />
-                    <Button size="sm" variant="outline" onClick={() => priceLine(index)}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={pricingQuery.isPending}
+                      onClick={() => priceLine(index)}
+                    >
                       محاسبهٔ قیمت
                     </Button>
                   </div>

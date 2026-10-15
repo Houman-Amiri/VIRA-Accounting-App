@@ -4387,6 +4387,208 @@
         }
       }
     },
+    "/api/v1/settings/pricing": {
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Read Pricing",
+        "operationId": "read_pricing_api_v1_settings_pricing_get",
+        "parameters": [
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          },
+          {
+            "name": "vira_csrf",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Csrf"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PricingRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Update Pricing",
+        "operationId": "update_pricing_api_v1_settings_pricing_put",
+        "parameters": [
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          },
+          {
+            "name": "vira_csrf",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Csrf"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PricingUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PricingRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/system/status": {
       "get": {
         "tags": [
@@ -10390,6 +10592,174 @@
           "closed_at"
         ],
         "title": "PeriodRead"
+      },
+      "PricingRead": {
+        "properties": {
+          "filamentPerGram": {
+            "type": "string",
+            "title": "Filamentpergram"
+          },
+          "electricityPerKwh": {
+            "type": "string",
+            "title": "Electricityperkwh"
+          },
+          "depreciationPerHour": {
+            "type": "string",
+            "title": "Depreciationperhour"
+          },
+          "profitFactor": {
+            "type": "string",
+            "title": "Profitfactor"
+          },
+          "chainPerUnit": {
+            "type": "string",
+            "title": "Chainperunit"
+          },
+          "shipmentPerBatch": {
+            "type": "string",
+            "title": "Shipmentperbatch"
+          },
+          "labelPerUnit": {
+            "type": "string",
+            "title": "Labelperunit"
+          },
+          "version_id": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version Id"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "filamentPerGram",
+          "electricityPerKwh",
+          "depreciationPerHour",
+          "profitFactor",
+          "chainPerUnit",
+          "shipmentPerBatch",
+          "labelPerUnit",
+          "version_id",
+          "updated_at"
+        ],
+        "title": "PricingRead"
+      },
+      "PricingUpdate": {
+        "properties": {
+          "filamentPerGram": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Filamentpergram"
+          },
+          "electricityPerKwh": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Electricityperkwh"
+          },
+          "depreciationPerHour": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Depreciationperhour"
+          },
+          "profitFactor": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Profitfactor"
+          },
+          "chainPerUnit": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Chainperunit"
+          },
+          "shipmentPerBatch": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Shipmentperbatch"
+          },
+          "labelPerUnit": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Labelperunit"
+          },
+          "version_id": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "filamentPerGram",
+          "electricityPerKwh",
+          "depreciationPerHour",
+          "profitFactor",
+          "chainPerUnit",
+          "shipmentPerBatch",
+          "labelPerUnit",
+          "version_id"
+        ],
+        "title": "PricingUpdate"
       },
       "ProductionJobCreate": {
         "properties": {

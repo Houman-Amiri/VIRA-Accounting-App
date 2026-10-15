@@ -703,6 +703,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/settings/pricing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Pricing */
+        get: operations["read_pricing_api_v1_settings_pricing_get"];
+        /** Update Pricing */
+        put: operations["update_pricing_api_v1_settings_pricing_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/system/status": {
         parameters: {
             query?: never;
@@ -1937,6 +1955,46 @@ export interface components {
             is_closed: boolean;
             /** Closed At */
             closed_at: string | null;
+        };
+        /** PricingRead */
+        PricingRead: {
+            /** Filamentpergram */
+            filamentPerGram: string;
+            /** Electricityperkwh */
+            electricityPerKwh: string;
+            /** Depreciationperhour */
+            depreciationPerHour: string;
+            /** Profitfactor */
+            profitFactor: string;
+            /** Chainperunit */
+            chainPerUnit: string;
+            /** Shipmentperbatch */
+            shipmentPerBatch: string;
+            /** Labelperunit */
+            labelPerUnit: string;
+            /** Version Id */
+            version_id: number;
+            /** Updated At */
+            updated_at: string;
+        };
+        /** PricingUpdate */
+        PricingUpdate: {
+            /** Filamentpergram */
+            filamentPerGram: number | string;
+            /** Electricityperkwh */
+            electricityPerKwh: number | string;
+            /** Depreciationperhour */
+            depreciationPerHour: number | string;
+            /** Profitfactor */
+            profitFactor: number | string;
+            /** Chainperunit */
+            chainPerUnit: number | string;
+            /** Shipmentperbatch */
+            shipmentPerBatch: number | string;
+            /** Labelperunit */
+            labelPerUnit: number | string;
+            /** Version Id */
+            version_id: number;
         };
         /** ProductionJobCreate */
         ProductionJobCreate: {
@@ -4201,6 +4259,80 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiKeyRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_pricing_api_v1_settings_pricing_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PricingRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_pricing_api_v1_settings_pricing_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PricingUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PricingRead"];
                 };
             };
             /** @description Validation Error */

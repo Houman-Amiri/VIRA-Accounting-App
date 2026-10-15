@@ -95,11 +95,37 @@ test("pricing reproduces the original Excel cells for single and multiple quanti
   await page.getByTestId("input-qty").fill("۱۰");
   await expect(final).toContainText("۲۹۱٬۱۹۴.۸۵");
   await expect(final).toContainText("۳۱۱٬۱۹۴.۸۵");
-  await page.getByTestId("const-filamentPerGram").fill("9000");
-  await page.getByRole("button", { name: "مقادیر نمونهٔ اکسل" }).click();
-  await expect(page.getByTestId("input-qty")).toHaveValue("1");
-  await expect(page.getByTestId("const-filamentPerGram")).toHaveValue("3000");
-  await expect(final).toContainText("۲٬۷۸۰٬۷۴۸.۵");
+  await expect(page.getByTestId("sheet-policy")).toHaveCount(0);
+  await expect(page.getByText(/اکسل|xlsx/)).toHaveCount(0);
+  await page.getByRole("link", { name: "تغییر ثابت‌ها در تنظیمات" }).click();
+  await page.getByTestId("const-filamentPerGram").fill("۹۰۰۰");
+  await page.getByRole("button", { name: "ذخیرهٔ تغییرات" }).click();
+  await expect(page.getByText("ثابت‌های قیمت‌گذاری ذخیره شدند.")).toBeVisible();
+  try {
+    await page.reload();
+    await expect(page.getByTestId("const-filamentPerGram")).toHaveValue("9000.0000");
+    await page.goto("/price-calc");
+    await expect(page.getByTestId("row-productionTotal")).toContainText("۲٬۲۷۴٬۰۰۰");
+    await page.getByTestId("input-qty").fill("۱۰");
+    await page.getByRole("button", { name: "بازنشانی ورودی‌ها" }).click();
+    await expect(page.getByTestId("input-qty")).toHaveValue("1");
+    await expect(page.getByTestId("row-productionTotal")).toContainText("۲٬۲۷۴٬۰۰۰");
+    // A different pricing consumer must use the saved values, too.
+    await page.goto("/orders");
+    await page.getByTestId("order-channel").selectOption("marketplace");
+    const line = page.getByTestId("line-0");
+    await line.getByPlaceholder("وزن (گرم)").fill("240");
+    await line.getByPlaceholder("زمان (ساعت)").fill("10");
+    await line.getByRole("button", { name: "محاسبهٔ قیمت" }).click();
+    await expect(line.getByPlaceholder("قیمت واحد")).toHaveValue("7239508.5000");
+  } finally {
+    await page.goto("/settings");
+    await page.getByTestId("const-filamentPerGram").fill("3000");
+    await page.getByRole("button", { name: "ذخیرهٔ تغییرات" }).click();
+    await expect(page.getByText("ثابت‌های قیمت‌گذاری ذخیره شدند.")).toBeVisible();
+  }
+  await page.goto("/price-calc");
+  await expect(page.getByTestId("row-unitFinalPrice")).toContainText("۲٬۷۸۰٬۷۴۸.۵");
 });
 
 // Only the update HTTP boundary is simulated; login, sudo, hooks and dialog are real.

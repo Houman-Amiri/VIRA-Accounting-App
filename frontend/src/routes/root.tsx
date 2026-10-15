@@ -38,6 +38,7 @@ const NAV = [
   { to: "/production", labelKey: "nav.production", icon: Factory },
   { to: "/price-calc", labelKey: "nav.priceCalc", icon: Tag },
   { to: "/receipts", labelKey: "nav.receipts", icon: Receipt },
+  { to: "/settings", labelKey: "nav.settings", icon: Settings2 },
   { to: "/system", labelKey: "nav.system", icon: Settings2 },
 ] as const;
 
