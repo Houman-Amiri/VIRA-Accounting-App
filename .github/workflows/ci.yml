@@ -255,7 +255,14 @@ jobs:
           Set-Location backend
           uv run alembic upgrade head
           Set-Location ..
-          uv run pytest -q
+          $out = (uv run pytest -q --tb=short 2>&1 | Out-String)
+          Write-Host $out
+          if ($LASTEXITCODE -ne 0) {
+            ($out -split "`n") | Select-Object -Last 40 | ForEach-Object {
+              if ($_.Trim()) { Write-Host "::error title=pytest (native Windows)::$(($_ -replace '%','%25') -replace "`r",'')" }
+            }
+            throw "pytest failed on native Windows"
+          }
 
       - name: Frontend install + build (native Windows)
         working-directory: frontend
