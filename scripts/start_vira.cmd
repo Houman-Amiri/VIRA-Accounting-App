@@ -56,6 +56,9 @@ if not exist "%SQLITE_DATABASE_PATH%" (
 )
 
 REM --------------------- build stamp (System & Operations page) ----
+REM app root, so app/version.py finds version.json even when a system
+REM Python (not the bundled one) ends up running the backend
+set "VIRA_APP_DIR=%~dp0"
 if exist "%~dp0version.json" (
   if not defined VIRA_VERSION for /f "delims=" %%V in ('"%VIRA_PY%" -c "import json;print(json.load(open(r'%~dp0version.json',encoding='utf-8')).get('version',''))" 2^>nul') do set "VIRA_VERSION=%%V"
   if not defined VIRA_GIT_COMMIT for /f "delims=" %%C in ('"%VIRA_PY%" -c "import json;print(json.load(open(r'%~dp0version.json',encoding='utf-8')).get('commit','') or 'unknown')" 2^>nul') do set "VIRA_GIT_COMMIT=%%C"

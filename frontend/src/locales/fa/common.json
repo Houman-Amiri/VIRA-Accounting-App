@@ -124,7 +124,10 @@
     "updateAvailable": "نسخه جدید {{version}} موجود است.",
     "upToDate": "شما از آخرین نسخه استفاده می‌کنید.",
     "checkFailed": "بررسی ممکن نشد ({{reason}}).",
-    "checkError": "خطا در بررسی به‌روزرسانی"
+    "checkError": "خطا در بررسی به‌روزرسانی",
+    "manualInstallNeeded": "این نسخه به نصب دستی نیاز دارد",
+    "downloadInstaller": "دانلود فایل نصب کامل",
+    "updateErrorTitle": "خطا در بررسی به‌روزرسانی"
   },
   "errors": {
     "generic": "خطای غیرمنتظره رخ داد.",

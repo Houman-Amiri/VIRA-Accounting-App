@@ -336,6 +336,10 @@ def update_download(
     result = check_for_update(version_info()["version"], settings)
     if not result.update_available or result.choice is None:
         raise DomainError("به‌روزرسانی موجود نیست")
+    if result.manual_required:
+        # No delta base for this install (e.g. an unstamped «0.0.0-unknown»
+        # build): the full installer must be run by hand, never staged.
+        raise DomainError(result.reason_fa or "این به‌روزرسانی نیاز به نصب دستی دارد.")
     with contextlib.suppress(Exception):  # status carries the Persian error
         manager.start_download(result, settings)
     return UpdateStatusOut(**manager.status())

@@ -9,7 +9,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 
-import { api } from "@/api/client";
+import { api, parseError } from "@/api/client";
 
 export const UpdatePackageSchema = z.object({
   url: z.string().url().or(z.string().startsWith("/")),
@@ -62,7 +62,11 @@ export type UpdateStatus = z.infer<typeof UpdateStatusSchema>;
 
 export async function fetchUpdateCheck(): Promise<UpdateCheck> {
   const res = await api.GET("/api/v1/system/check-updates");
-  if (res.error) throw new Error("check failed");
+  if (res.error) {
+    // Surface the server's Persian RFC 9457 detail instead of a bare
+    // «check failed» — v1.0.4 hid a real SemVer crash behind that string.
+    throw await parseError(res.response);
+  }
   return UpdateCheckSchema.parse(res.data);
 }
 

@@ -230,6 +230,27 @@ export function SystemPage(): React.JSX.Element {
                   </span>
                 )}
               </div>
+              {update?.manual_required && (
+                <div
+                  className="space-y-1 rounded-md border border-amber-500/60 bg-amber-500/10 px-3 py-2 text-xs"
+                  data-testid="system-manual-update"
+                >
+                  <p className="font-semibold">{t("system.manualInstallNeeded")}</p>
+                  <p>{update.reason}</p>
+                  {update.choice?.packages?.[0]?.url && (
+                    <a
+                      className="num text-primary hover:underline"
+                      href={update.choice.packages[0].url}
+                      target="_blank"
+                      rel="noreferrer"
+                      data-testid="system-manual-download"
+                    >
+                      {t("system.downloadInstaller")} (
+                      {fmtBytes(update.choice.packages[0].size ?? 0)})
+                    </a>
+                  )}
+                </div>
+              )}
               {update?.update_available && update.notes_fa && (
                 <p className="rounded-md border bg-muted/40 px-3 py-2">{update.notes_fa}</p>
               )}

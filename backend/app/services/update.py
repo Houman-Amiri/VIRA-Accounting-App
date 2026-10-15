@@ -27,6 +27,7 @@ from .update_engine import (
     LatestManifest,
     SelectionKind,
     SemVer,
+    SemVerError,
     UpdateEvent,
     UpdateRun,
     UpdateSchemaError,
@@ -43,6 +44,11 @@ RATE_LIMIT_FA = "تعداد درخواست‌ها بیش از حد مجاز اس
 UNREACHABLE_FA = "دسترسی به منبع به‌روزرسانی ممکن نشد."
 SCHEMA_REFUSE_FA = "ساختار پیام به‌روزرسانی شناخته نشد؛ لطفاً نصب دستی را انجام دهید."
 NO_DELTA_FA = "بستهٔ تفاضلی موجود نیست؛ نصب کامل دانلود می‌شود."
+UNKNOWN_CURRENT_FA = (
+    "نسخهٔ نصب‌شدهٔ فعلی قابل تشخیص نیست، پس تفاضل‌گیری ممکن نیست. لطفاً فایل نصب "
+    "کامل (Setup) را دانلود و اجرا کنید؛ از آن پس نسخهٔ برنامه درست گزارش می‌شود و "
+    "به‌روزرسانی فقط بخش‌های تغییرکرده را می‌گیرد."
+)
 
 
 class UpdateChannelError(Exception):
@@ -179,6 +185,34 @@ class UpdateCheckResult:
     choice: PackageChoice | None = None
 
 
+def _parse_current(cur: str) -> SemVer | None:
+    """Parse the running version, or ``None`` when it cannot be compared.
+
+    Installs built before the provenance fix report ``0.0.0-unknown``; the update
+    check must degrade to a full manual install there instead of raising.
+    """
+    try:
+        return SemVer.parse(cur)
+    except (SemVerError, ValueError):
+        return None
+
+
+def _full_package_choice(m: LatestManifest, cur: str) -> PackageChoice:
+    """The full installer as a selectable package (no delta base available)."""
+    return PackageChoice(
+        kind="full",
+        packages=[
+            {
+                "url": m.full_installer.url,
+                "sha256": m.full_installer.sha256,
+                "size": m.full_installer.size,
+                "from_version": cur,
+            }
+        ],
+        total_bytes=m.full_installer.size,
+    )
+
+
 def check_for_update(current: str, settings: Settings) -> UpdateCheckResult:
     cur = current.lstrip("v")
     try:
@@ -186,15 +220,35 @@ def check_for_update(current: str, settings: Settings) -> UpdateCheckResult:
     except UpdateChannelError as exc:
         return UpdateCheckResult(cur, None, False, False, reason_fa=exc.reason_fa)
     m = channel.manifest
-    latest = SemVer.parse(m.version)
-    if latest <= SemVer.parse(cur):
+    try:
+        latest = SemVer.parse(m.version)
+    except (SemVerError, ValueError):
+        return UpdateCheckResult(cur, None, False, True, reason_fa=SCHEMA_REFUSE_FA)
+    run = _parse_current(cur)
+    if run is None:
+        # An unstamped install (e.g. «0.0.0-unknown») has no comparable base: a
+        # delta can never be applied, so offer the full installer instead.
+        # Reporting this is far better than the 500 the user saw in v1.0.4.
+        return UpdateCheckResult(
+            cur,
+            m.version,
+            True,
+            True,
+            reason_fa=UNKNOWN_CURRENT_FA,
+            notes_fa=m.notes_fa,
+            notes_en=m.notes_en,
+            min_app_version=m.min_app_version,
+            manual_required=True,
+            choice=_full_package_choice(m, cur),
+        )
+    if latest <= run:
         return UpdateCheckResult(
             cur, m.version, False, True, notes_fa=m.notes_fa, notes_en=m.notes_en,
             min_app_version=m.min_app_version,
         )
     # min_app_version gate: too-old installs must do a manual full install
     try:
-        if SemVer.parse(cur) < SemVer.parse(m.min_app_version):
+        if run < SemVer.parse(m.min_app_version):
             return UpdateCheckResult(
                 cur, m.version, True, True, notes_fa=m.notes_fa, notes_en=m.notes_en,
                 min_app_version=m.min_app_version, manual_required=True,
@@ -212,8 +266,20 @@ def check_for_update(current: str, settings: Settings) -> UpdateCheckResult:
             full_url=m.full_installer.url,
             full_size=m.full_installer.size,
         )
-    except ValueError:
-        return UpdateCheckResult(cur, m.version, False, True, notes_fa=m.notes_fa)
+    except (SemVerError, ValueError):
+        # No reconstructible delta path — never leave the user empty-handed.
+        return UpdateCheckResult(
+            cur,
+            m.version,
+            True,
+            True,
+            reason_fa=NO_DELTA_FA,
+            notes_fa=m.notes_fa,
+            notes_en=m.notes_en,
+            min_app_version=m.min_app_version,
+            manual_required=True,
+            choice=_full_package_choice(m, cur),
+        )
     return UpdateCheckResult(
         cur,
         m.version,

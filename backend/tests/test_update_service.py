@@ -182,6 +182,44 @@ class TestCheck:
         result = check_for_update("1.0.0", s)
         assert result.manual_required is True
 
+    @pytest.mark.parametrize("current", ["0.0.0-unknown", "unknown", "", "1.0"])
+    def test_unstamped_current_never_raises(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, current: str
+    ) -> None:
+        """Regression: v1.0.4 crashed with SemVerError on «0.0.0-unknown»."""
+        monkeypatch.setattr("httpx.get", lambda url, **kw: _Resp(200, _latest_bytes()))
+        s = _settings(tmp_path, app_update_url="https://mirror.example/latest.json")
+        result = check_for_update(current, s)  # must not raise
+        assert result.checked is True
+        assert result.update_available is True
+        assert result.manual_required is True
+        assert result.reason_fa is not None and "فایل نصب کامل" in result.reason_fa
+        assert result.choice is not None and result.choice.kind == "full"
+        assert result.choice.total_bytes == 50_000_000
+
+    def test_unstamped_current_reports_no_update_when_nothing_newer(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """An unstamped install still gets a sane answer for an old manifest."""
+        monkeypatch.setattr(
+            "httpx.get", lambda url, **kw: _Resp(200, _latest_bytes(version="0.0.0"))
+        )
+        s = _settings(tmp_path, app_update_url="https://mirror.example/latest.json")
+        result = check_for_update("0.0.0-unknown", s)
+        assert result.checked is True
+        assert result.manual_required is True
+
+    def test_unparseable_manifest_version_refused(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr(
+            "httpx.get", lambda url, **kw: _Resp(200, _latest_bytes(version="nightly"))
+        )
+        s = _settings(tmp_path, app_update_url="https://mirror.example/latest.json")
+        result = check_for_update("1.5.0", s)
+        assert result.checked is False
+        assert result.reason_fa is not None and "دستی" in result.reason_fa
+
     def test_no_update_when_current_is_latest(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:

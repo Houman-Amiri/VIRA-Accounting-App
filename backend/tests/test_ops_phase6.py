@@ -145,6 +145,36 @@ async def test_check_updates_degrades_gracefully(client) -> None:
         assert body["reason"]
 
 
+async def test_check_updates_with_unstamped_version_is_not_a_500(
+    client, monkeypatch
+) -> None:
+    """Regression for the v1.0.4 crash: «0.0.0-unknown» must degrade, not raise."""
+    import httpx
+
+    from app.api import system as system_api
+    from tests.test_update_service import _latest_bytes, _Resp
+
+    monkeypatch.setattr(httpx, "get", lambda url, **kw: _Resp(200, _latest_bytes()))
+    monkeypatch.setattr(
+        system_api,
+        "version_info",
+        lambda: {"version": "0.0.0-unknown", "commit": "unknown", "built_at": ""},
+    )
+    monkeypatch.setenv("APP_UPDATE_URL", "https://mirror.example/latest.json")
+
+    sudo = await client.post("/api/v1/auth/sudo", json={"password": "test-password-1"})
+    token = sudo.json()["sudo_token"]
+    r = await client.get("/api/v1/system/check-updates", headers={"X-Sudo-Token": token})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["current"] == "0.0.0-unknown"
+    assert body["checked"] is True
+    assert body["update_available"] is True
+    assert body["manual_required"] is True
+    assert "فایل نصب کامل" in (body["reason"] or "")
+    assert body["choice"]["kind"] == "full"
+
+
 async def test_health_ready_includes_scheduler(client) -> None:
     r = await client.get("/api/v1/health/ready")
     assert r.status_code == 200

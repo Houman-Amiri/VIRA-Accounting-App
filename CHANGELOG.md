@@ -31,6 +31,27 @@ the missing warehouse/production modules.
   `color-scheme: light|dark`, `select`/`option`/`optgroup` now inherit the card
   surface, and the four `bg-transparent` selects were dropped.
 
+### Fixed
+- **«بررسی به‌روزرسانی» crashed with HTTP 500 on unstamped installs.** v1.0.4
+  reported its version as `0.0.0-unknown` (no distribution metadata in the
+  installed payload), and `check_for_update` fed that straight into
+  `SemVer.parse`, raising `SemVerError` before any comparison — the user saw a
+  generic error and a traceback in the launcher console. The check now parses
+  the running version defensively: an unparseable/absent version is treated as
+  "no comparable base", so the app answers 200 with `manual_required: true`, a
+  Persian explanation and the full-installer package (POST
+  `/system/update/download` refuses to stage it, by design). A manifest whose
+  own `version` is not strict SemVer is refused with the Persian reason instead
+  of raising, and `fetchUpdateCheck` now surfaces the server's RFC 9457 detail
+  rather than a bare «check failed». «سیستم و عملیات» shows the manual step and
+  a direct «دانلود فایل نصب کامل» link. Regression tests:
+  `test_unstamped_current_never_raises`,
+  `test_unparseable_manifest_version_refused`,
+  `test_check_updates_with_unstamped_version_is_not_a_500`.
+- **`VIRA_APP_DIR` is exported by `start_vira.cmd`** so `version.json` is found
+  in the installed layout even when a system Python (not the bundled one) ends
+  up running the backend.
+
 ### Added
 - **داشبورد** — six KPI cards (assets, liabilities, equity, net income for the
   current fiscal year, warehouse value, net cash), four theme-aware ECharts
