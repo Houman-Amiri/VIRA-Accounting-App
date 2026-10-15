@@ -84,7 +84,7 @@ def test_verified_delta_is_extracted_before_staged(tmp_path, monkeypatch):
     assert (stage / "update.json").is_file()
     assert (stage / "vira-updater.exe").is_file()
     assert (stage / "files/app/new.py").read_bytes() == b"new code"
-    assert "verified" in Path(status["log_path"]).read_text()
+    assert "verified" in Path(status["log_path"]).read_text(encoding="utf-8")
 
 
 @pytest.mark.parametrize("extra,over", [
@@ -135,7 +135,7 @@ def test_download_failure_is_visible_logged_and_retryable(tmp_path, monkeypatch,
     status = manager.status()
     assert status["state"] == "failed" and status["error_fa"]
     assert "بازگردانی" not in status["error_fa"]  # no fake rollback before any install
-    assert "FAILED" in Path(status["log_path"]).read_text()
+    assert "FAILED" in Path(status["log_path"]).read_text(encoding="utf-8")
     assert not list(tmp_path.rglob("*.part"))
     stub_stream(monkeypatch, payload)
     success = manager.start_download(check_for(payload), settings)
@@ -247,10 +247,10 @@ def test_release_generator_output_can_be_staged(tmp_path):
     for root, version, content in ((base, "1.5.0", b"old" * 100), (target, "2.0.0", b"new" * 100)):
         (root / "app").mkdir(parents=True)
         (root / "app" / "module.py").write_bytes(content)
-        (root / "version.json").write_text(json.dumps({"version": version}))
+        (root / "version.json").write_text(json.dumps({"version": version}), encoding="utf-8")
         (root / "vira-updater.exe").write_bytes(b"MZ-fixture-helper")
     manifest = base / "install_manifest.json"
-    manifest.write_text(json.dumps(manifest_to_json(build_manifest(base))))
+    manifest.write_text(json.dumps(manifest_to_json(build_manifest(base))), encoding="utf-8")
     script = Path(__file__).resolve().parents[2] / "scripts" / "gen_delta.py"
     subprocess.run([
         sys.executable, str(script), "--base-manifest", str(manifest), "--base-dir", str(base),
@@ -259,7 +259,7 @@ def test_release_generator_output_can_be_staged(tmp_path):
     ], check=True, capture_output=True)
     stage = tmp_path / "payload"
     extract_delta(tmp_path / "VIRA-v2.0.0-delta-from-v1.5.0.zip", stage, "1.5.0", "2.0.0")
-    doc = json.loads((stage / "update.json").read_text())
+    doc = json.loads((stage / "update.json").read_text(encoding="utf-8"))
     assert any(op["op"] == "patch" for op in doc["operations"])
     assert (stage / "vira-updater.exe").read_bytes() == b"MZ-fixture-helper"
     assert (stage / "version.json").is_file()
