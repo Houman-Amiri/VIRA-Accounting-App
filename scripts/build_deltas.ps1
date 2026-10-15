@@ -97,6 +97,9 @@ Write-Host ("::notice title=build_deltas::done — $($deltas.Count) delta(s) fro
 if ($deltas.Count -eq 0 -and $probeHit) {
     throw "a portable base exists but 0 deltas were built — probe log: $($script:probeLog -join '; ')"
 }
+if ($deltas.Count -eq 0 -and ($script:probeLog | Where-Object { $_ -match "HTTP0" })) {
+    throw "asset probes errored (HTTP0) — cannot confirm any base; probe log: $($script:probeLog -join '; ')"
+}
 
 # ------------------------------------------------------ rewrite latest.json ---
 $latestPath = Join-Path $OutDir "latest.json"
