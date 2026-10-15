@@ -24,13 +24,23 @@ if (-not (Test-Path $AppDir)) { Write-Host "[build_deltas] no app dir at $AppDir
 $repo = $env:GITHUB_REPOSITORY
 if (-not $repo) { $repo = "Houman-Amiri/VIRA-Accounting-App" }
 
-# gh api needs a token even for public repos — without one every base is
-# "skipped" and the release ships with deltas[] empty (silent false green)
-$prevEap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
-gh api rate_limit --jq ".rate.remaining" 2>$null | Out-Null
-$authOk = ($LASTEXITCODE -eq 0)
-$ErrorActionPreference = $prevEap
-if (-not $authOk) { throw "gh api is not authenticated — set GH_TOKEN (github.token) so base releases can be discovered" }
+# probe the known historical portable-asset names (public assets need no auth)
+function Find-PortableUrl([string]$Repo, [string]$Tag, [string]$BaseV) {
+    foreach ($name in @("vira-v$BaseV-portable.zip", "VIRA-v$BaseV.zip", "VIRA-v$BaseV-portable.zip")) {
+        $url = "https://github.com/$Repo/releases/download/$Tag/$name"
+        $ok = $false
+        try {
+            $req = [System.Net.HttpWebRequest]::Create($url)
+            $req.Method = "HEAD"
+            $req.AllowAutoRedirect = $true
+            $resp = $req.GetResponse()
+            $ok = ([int]$resp.StatusCode -eq 200)
+            $resp.Close()
+        } catch { $ok = $false }
+        if ($ok) { return $url }
+    }
+    return $null
+}
 
 $tags = git tag --list "v*" --sort=-v:refname | Select-Object -First $Keep
 $deltas = @()
@@ -40,26 +50,9 @@ New-Item -ItemType Directory -Force -Path $tmp | Out-Null
 foreach ($tag in $tags) {
     $baseV = $tag.TrimStart("v")
     if ($baseV -eq $v) { continue }
-    # the portable asset's name has varied across releases (VIRA-v1.0.0.zip vs
-    # vira-v1.0.2-portable.zip) — ask the API instead of guessing; single-line
-    # JSON so ::notice lines can never be broken by embedded newlines
     $baseZip = Join-Path $tmp "base-$baseV.zip"
-    $zipUrl = $null
-    Write-Host ("::notice title=build_deltas::tag $tag (v=$v) — discovering portable asset")
-    try {
-        # tags without a release make gh api fail on stderr — 2>$null under
-        # EAP=Stop would turn that into a terminating error, so dampen first
-        $prevEap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
-        $json = gh api "repos/$repo/releases/tags/$tag" 2>$null | Out-String
-        $ErrorActionPreference = $prevEap
-        if ($json) {
-            $names = (ConvertFrom-Json $json).assets | ForEach-Object { $_.name }
-            $name = $names | Where-Object { $_ -match "portable" -and $_ -notmatch "delta|Setup" } | Select-Object -First 1
-            if (-not $name) { $name = $names | Where-Object { $_ -match "^VIRA-v.*\.zip$" -and $_ -notmatch "delta|portable" } | Select-Object -First 1 }
-            if ($name) { $zipUrl = "https://github.com/$repo/releases/download/$tag/$name" }
-        }
-    }
-    catch { $ErrorActionPreference = "Stop"; $zipUrl = $null }
+    Write-Host ("::notice title=build_deltas::tag $tag (v=$v) — probing portable asset")
+    $zipUrl = Find-PortableUrl $repo $tag $baseV
     if (-not $zipUrl) {
         Write-Host "[build_deltas] base $tag has no downloadable portable zip — skipping (full-installer fallback covers it)"
         Write-Host ("::notice title=build_deltas::$tag SKIP — no portable asset discovered")

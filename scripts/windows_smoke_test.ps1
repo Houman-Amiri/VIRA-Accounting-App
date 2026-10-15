@@ -44,16 +44,22 @@ foreach ($delta in $deltaZips) {
     if ($delta.Name -notmatch "delta-from-v([\d.]+)\.zip") { continue }
     $fromV = $Matches[1]
     if ($delta.Length -ge $setupSize) { throw "delta ($($delta.Length)) is not smaller than the setup ($setupSize)" }
-    # fetch the previous release's portable zip (same discovery as build_deltas)
+    # fetch the previous release's portable zip (same probe as build_deltas)
     $tag = "v$fromV"
-    $prevEap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
-    $assetNames = gh api "repos/$repo/releases/tags/$tag" --jq ".assets[].name" 2>$null
-    $ErrorActionPreference = $prevEap
-    $pName = $assetNames | Where-Object { $_ -match "portable" -and $_ -notmatch "delta|Setup" } | Select-Object -First 1
-    if (-not $pName) { Write-Output "[smoke] no portable base for $tag — skipping $($delta.Name)"; continue }
+    $pUrl = $null
+    foreach ($pName in @("vira-v$fromV-portable.zip", "VIRA-v$fromV.zip", "VIRA-v$fromV-portable.zip")) {
+        $tryUrl = "https://github.com/$repo/releases/download/$tag/$pName"
+        try {
+            $req = [System.Net.HttpWebRequest]::Create($tryUrl)
+            $req.Method = "HEAD"; $req.AllowAutoRedirect = $true
+            $resp = $req.GetResponse(); $ok = ([int]$resp.StatusCode -eq 200); $resp.Close()
+        } catch { $ok = $false }
+        if ($ok) { $pUrl = $tryUrl; break }
+    }
+    if (-not $pUrl) { Write-Output "[smoke] no portable base for $tag — skipping $($delta.Name)"; continue }
     $baseZip = Join-Path $legacyRoot "base-$fromV.zip"
     try {
-        Invoke-WebRequest -Uri "https://github.com/$repo/releases/download/$tag/$pName" -OutFile $baseZip -MaximumRetryCount 2 | Out-Null
+        Invoke-WebRequest -Uri $pUrl -OutFile $baseZip -MaximumRetryCount 2 | Out-Null
     } catch { Write-Output "[smoke] base $tag not downloadable — skipping $($delta.Name)"; continue }
 
     Write-Output "[smoke] $($delta.Name) = $($delta.Length) bytes < setup $setupSize — upgrading $tag portable -> v$v"
