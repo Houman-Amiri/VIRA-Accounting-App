@@ -3,12 +3,11 @@ restore verification and the «بررسی به‌روزرسانی» update check
 
 from __future__ import annotations
 
-import contextlib
 import tempfile
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import text
@@ -330,6 +329,7 @@ def check_updates(
 
 @router.post("/update/download", response_model=UpdateStatusOut)
 def update_download(
+    background_tasks: BackgroundTasks,
     settings: Annotated[Settings, Depends(get_settings)],
     user: Annotated[SessionUser, Depends(require_sudo)],
 ) -> UpdateStatusOut:
@@ -344,9 +344,9 @@ def update_download(
         # No delta base for this install (e.g. an unstamped «0.0.0-unknown»
         # build): the full installer must be run by hand, never staged.
         raise DomainError(result.reason_fa or "این به‌روزرسانی نیاز به نصب دستی دارد.")
-    with contextlib.suppress(Exception):  # status carries the Persian error
-        manager.start_download(result, settings)
-    return UpdateStatusOut(**manager.status())
+    initial = manager.prepare_download(result, settings)
+    background_tasks.add_task(manager.finish_download, result)
+    return UpdateStatusOut(**initial)
 
 
 @router.get("/update/status", response_model=UpdateStatusOut)

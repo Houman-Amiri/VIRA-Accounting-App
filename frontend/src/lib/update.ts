@@ -80,37 +80,49 @@ export function useUpdateCheck(enabled = true) {
   });
 }
 
-export function useUpdateFlow() {
+export function useUpdateFlow(enabled = true) {
   const qc = useQueryClient();
+  const storeStatus = async (data: UpdateStatus): Promise<void> => {
+    // A status GET started before the mutation must not overwrite its result.
+    await qc.cancelQueries({ queryKey: ["update-status"] });
+    qc.setQueryData(["update-status"], data);
+  };
   const download = useMutation({
     mutationFn: async (): Promise<UpdateStatus> => {
       const res = await api.POST("/api/v1/system/update/download", {});
-      if (res.error) throw new Error("download failed");
+      if (res.error) throw await parseError(res.response);
       return UpdateStatusSchema.parse(res.data);
     },
+    onSuccess: storeStatus,
   });
   const apply = useMutation({
     mutationFn: async (): Promise<UpdateStatus> => {
       const res = await api.POST("/api/v1/system/update/apply", {});
-      if (res.error) throw new Error("apply failed");
+      if (res.error) throw await parseError(res.response);
       return UpdateStatusSchema.parse(res.data);
     },
-    onSuccess: () => {
+    onSuccess: async (data) => {
+      await storeStatus(data);
       void qc.invalidateQueries({ queryKey: ["update-check"] });
     },
   });
   const status = useQuery({
     queryKey: ["update-status"],
+    enabled,
+    retry: false,
+    refetchIntervalInBackground: true,
     queryFn: async (): Promise<UpdateStatus> => {
       const res = await api.GET("/api/v1/system/update/status");
-      if (res.error) throw new Error("status failed");
+      if (res.error) throw await parseError(res.response);
       return UpdateStatusSchema.parse(res.data);
     },
     refetchInterval: (query) => {
       const s = query.state.data;
-      return s && (s.state === "downloading" || s.state === "verifying" || s.state === "applying")
-        ? 700
-        : false;
+      const busy =
+        download.isPending ||
+        apply.isPending ||
+        (s && ["downloading", "verifying", "applying"].includes(s.state));
+      return enabled && busy ? 700 : false;
     },
   });
   return { download, apply, status };

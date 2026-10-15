@@ -7,6 +7,18 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Fixed
+- Update dialog no longer stays at cached `idle` / zero bytes: mutation results
+  replace stale status, and polling runs while requests or server work are active.
+  Persian API/network errors and log paths are visible without claiming rollback.
+- Download jobs return an initial status before streaming in the background;
+  isolated, size-bounded `.part` files are hash-checked and safely extracted before
+  staging. Only a direct delta is accepted; no full-Setup update fallback.
+- Applying a verified delta now requires a verified WAL-aware SQLite backup before
+  launching the helper. These source fixes are **not yet released** and do not
+  establish a real Windows in-app upgrade. See
+  `docs/reports/update-zero-bytes-fa.md` for regression evidence and open gates.
+
 ## [1.0.7] — 2026-10-15
 
 ### Fixed

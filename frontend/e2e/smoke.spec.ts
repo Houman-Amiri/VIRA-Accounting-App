@@ -86,3 +86,72 @@ test("pricing reproduces the original Excel cells for single and multiple quanti
   await expect(page.getByTestId("const-filamentPerGram")).toHaveValue("3000");
   await expect(final).toContainText("۲٬۷۸۰٬۷۴۸.۵");
 });
+
+// Only the update HTTP boundary is simulated; login, sudo, hooks and dialog are real.
+test("update dialog leaves idle/zero bytes and reaches the verified apply step", async ({
+  page,
+}) => {
+  const baseStatus = {
+    state: "idle",
+    total_bytes: 100,
+    downloaded_bytes: 0,
+    verified: false,
+    staged_path: "",
+    log_path: "updates/update.log",
+    error_fa: null,
+    machine_state: "idle",
+  };
+  let started = false;
+  let polls = 0;
+  await page.route("**/api/v1/system/check-updates", (route) =>
+    route.fulfill({
+      json: {
+        current: "1.0.7",
+        latest: "1.0.8",
+        checked: true,
+        update_available: true,
+        manual_required: false,
+        notes_fa: "آزمون دریافت بسته",
+        choice: {
+          kind: "delta",
+          total_bytes: 100,
+          packages: [
+            {
+              url: "https://github.com/x/y/d.zip",
+              sha256: "ab".repeat(32),
+              size: 100,
+              from_version: "1.0.7",
+            },
+          ],
+        },
+      },
+    }),
+  );
+  await page.route("**/api/v1/system/update/status", (route) => {
+    if (!started) return route.fulfill({ json: baseStatus });
+    polls++;
+    return route.fulfill({
+      json: {
+        ...baseStatus,
+        state: polls === 1 ? "downloading" : "staged",
+        downloaded_bytes: polls === 1 ? 10 : 100,
+        verified: polls > 1,
+        staged_path: polls > 1 ? "updates/payload" : "",
+      },
+    });
+  });
+  await page.route("**/api/v1/system/update/download", (route) => {
+    started = true;
+    return route.fulfill({ json: { ...baseStatus, state: "downloading" } });
+  });
+  await login(page);
+  await page.goto("/system");
+  const sudo = page.locator("dialog:modal");
+  await sudo.locator('input[type="password"]').fill(PASS);
+  await sudo.locator('button[type="submit"]').click();
+  await page.getByTestId("system-check-updates").click();
+  await page.getByTestId("update-accept").click();
+  await expect(page.getByTestId("update-progress-text")).toContainText("10 B");
+  await expect(page.getByTestId("update-apply")).toBeVisible();
+  expect(polls).toBeGreaterThanOrEqual(2);
+});

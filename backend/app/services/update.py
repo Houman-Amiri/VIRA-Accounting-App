@@ -12,6 +12,7 @@ Never embeds tokens — anonymous public-repository access only.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import threading
@@ -19,6 +20,7 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 from ..config import Settings
 from .errors import DomainError
@@ -34,7 +36,6 @@ from .update_engine import (
     VerificationError,
     parse_latest,
     select_update,
-    sha256_bytes,
     verify_latest_signature,
 )
 
@@ -354,53 +355,111 @@ class UpdateManager:
                 "machine_state": j.run.state.value,
             }
 
-    def start_download(self, check: UpdateCheckResult, settings: Settings) -> dict[str, Any]:
-        import httpx
-
+    def prepare_download(self, check: UpdateCheckResult, settings: Settings) -> dict[str, Any]:
+        """Reserve the job before scheduling network work (double clicks cannot race)."""
+        if check.manual_required or check.choice is None:
+            raise DomainError(check.reason_fa or "این به‌روزرسانی نیاز به اقدام دستی دارد.")
+        if check.choice.kind != "delta" or len(check.choice.packages) != 1:
+            raise DomainError("فقط بستهٔ تفاضلی مستقیم در این مسیر قابل اعمال است؛ نصب کامل خودکار دانلود نمی‌شود.")
+        if not check.latest:
+            raise DomainError("نسخهٔ مقصد به‌روزرسانی مشخص نیست.")
+        SemVer.parse(check.latest)
+        package = check.choice.packages[0]
+        if package.get("from_version") != check.current:
+            raise DomainError("نسخهٔ پایهٔ بسته با نسخهٔ نصب‌شده هم‌خوان نیست.")
+        size = int(package["size"])
+        if size <= 0 or size > 256 * 1024 * 1024:
+            raise DomainError("اندازهٔ بستهٔ تفاضلی نامعتبر است.")
         with self._lock:
             if self._job.state in ("downloading", "verifying", "applying"):
                 raise DomainError("به‌روزرسانی دیگری در حال اجرا است")
-            if check.choice is None:
-                raise DomainError("بستهٔ به‌روزرسانی انتخاب نشده است")
-            version = check.latest or "unknown"
-            staging = self._staging_dir(settings, version)
-            staging.mkdir(parents=True, exist_ok=True)
-            self._job = UpdateJob(state="downloading", total_bytes=check.choice.total_bytes)
+            staging = self._staging_dir(settings, check.latest) / uuid4().hex
+            staging.mkdir(parents=True)
+            log_path = staging / "update.log"
+            log_path.write_text("download started\n", encoding="utf-8")
+            self._job = UpdateJob(
+                state="downloading", total_bytes=size, log_path=str(log_path),
+            )
             self._job.run.fire(UpdateEvent.START)
-            pkgs = check.choice.packages
-        log_path = staging / "update.log"
+        return self.status()
+
+    def start_download(self, check: UpdateCheckResult, settings: Settings) -> dict[str, Any]:
+        """Synchronous convenience for tests/tools; the HTTP route uses a background task."""
+        self.prepare_download(check, settings)
+        return self._download(check)
+
+    def finish_download(self, check: UpdateCheckResult) -> None:
+        """Background task exceptions are recorded, never lost after the HTTP response."""
         try:
-            for pkg in pkgs:
-                url = str(pkg["url"])
-                dest = staging / url.rsplit("/", 1)[-1]
-                data = bytearray()
-                with httpx.stream("GET", url, timeout=30.0, follow_redirects=True) as resp:
-                    if resp.status_code in (403, 429):
-                        raise UpdateChannelError(RATE_LIMIT_FA, status=resp.status_code)
-                    resp.raise_for_status()
-                    for chunk in resp.iter_bytes(1 << 16):
-                        data.extend(chunk)
+            self._download(check)
+        except Exception:  # noqa: BLE001 - _download has already recorded failure + log
+            return
+
+    def _download(self, check: UpdateCheckResult) -> dict[str, Any]:
+        import httpx
+
+        from .update_staging import extract_delta
+
+        assert check.choice is not None and check.latest is not None
+        package = check.choice.packages[0]
+        log_path = Path(self.status()["log_path"])
+        staging = log_path.parent
+        partial = staging / "package.zip.part"
+        expected_size = int(package["size"])
+        try:
+            digest = hashlib.sha256()
+            timeout = httpx.Timeout(30.0, connect=10.0)
+            with httpx.stream("GET", str(package["url"]), timeout=timeout,
+                              follow_redirects=True, headers={"User-Agent": "VIRA-Updater"}) as resp:
+                if resp.status_code in (403, 429):
+                    raise UpdateChannelError(RATE_LIMIT_FA, status=resp.status_code)
+                resp.raise_for_status()
+                with partial.open("wb") as output:
+                    for chunk in resp.iter_bytes(8192):
+                        output.write(chunk)
+                        digest.update(chunk)
                         with self._lock:
                             self._job.downloaded_bytes += len(chunk)
-                payload = bytes(data)
-                with self._lock:
-                    self._job.state = "verifying"
-                # verify BEFORE anything is written into the staging area (§8)
-                expected = str(pkg["sha256"])
-                if sha256_bytes(payload) != expected.lower():
-                    raise VerificationError("SHA-256 mismatch")
-                dest.write_bytes(payload)
+                            received = self._job.downloaded_bytes
+                        if received > expected_size:
+                            raise VerificationError("package exceeds declared size")
+            with self._lock:
+                self._job.state = "verifying"
+            if self.status()["downloaded_bytes"] != expected_size:
+                raise VerificationError("incomplete package")
+            if digest.hexdigest() != str(package["sha256"]).lower():
+                raise VerificationError("SHA-256 mismatch")
+            archive = staging / "package.zip"
+            partial.replace(archive)
+            payload = staging / "payload"
+            extract_delta(archive, payload, check.current, check.latest)
+            with log_path.open("a", encoding="utf-8") as log:
+                log.write("SHA-256 verified; delta extracted and validated\n")
             with self._lock:
                 self._job.verified = True
                 self._job.state = "staged"
-                self._job.staged_path = str(staging)
-                self._job.log_path = str(log_path)
+                self._job.staged_path = str(payload)
                 self._job.run.fire(UpdateEvent.STAGED)
-            log_path.write_text(f"staged {version} -> {staging}\n", encoding="utf-8")
-        except Exception as exc:  # noqa: BLE001 - normalize to job failure
+        except Exception as exc:  # noqa: BLE001 - normalize transport/staging failures
+            if isinstance(exc, httpx.TimeoutException):
+                reason = "مهلت دریافت بسته تمام شد؛ اتصال اینترنت را بررسی و دوباره تلاش کنید."
+            elif isinstance(exc, httpx.RequestError):
+                reason = "دریافت بسته ممکن نشد؛ اتصال شبکه و دسترسی به فایل‌های گیت‌هاب را بررسی کنید."
+            elif isinstance(exc, httpx.HTTPStatusError):
+                reason = f"دریافت بسته ناموفق بود (HTTP {exc.response.status_code})."
+            elif isinstance(exc, (VerificationError, ValueError)):
+                reason = "بستهٔ دریافت‌شده ناقص یا نامعتبر است؛ هیچ فایلی در نصب تغییر نکرد."
+            else:
+                reason = getattr(exc, "reason_fa", None) or "دانلود یا آماده‌سازی بسته ناموفق بود؛ نصب فعلی تغییر نکرد."
             with self._lock:
                 self._job.state = "failed"
-                self._job.error_fa = getattr(exc, "reason_fa", None) or "خطا در به‌روزرسانی. نسخهٔ قبلی بازگردانی شد."
+                self._job.verified = False
+                self._job.staged_path = ""
+                self._job.error_fa = reason
+            partial.unlink(missing_ok=True)
+            with log_path.open("a", encoding="utf-8") as log:
+                # No signed URLs, credentials or network exception payloads in the log.
+                log.write(f"FAILED {type(exc).__name__}: {reason}\n")
             raise
         return self.status()
 
@@ -408,6 +467,7 @@ class UpdateManager:
     def _staging_dir(settings: Settings, version: str) -> Path:
         if settings.data_dir is None:
             raise DomainError("data_dir is not configured")
+        SemVer.parse(version)
         return Path(settings.data_dir) / "updates" / version
 
 
@@ -483,24 +543,39 @@ def launch_updater(settings: Settings, staged_path: str) -> dict[str, Any]:
     argv, log_path = _updater_command(settings, staged_path)
     with manager._lock:  # noqa: SLF001 - module-private manager
         manager._job.state = "applying"
+        manager._job.log_path = str(log_path)
     subprocess.Popen(argv, close_fds=True)  # noqa: S603 - fixed argv, no shell
     _ = log_path
     return manager.status()
 
 
 def apply_update(settings: Settings) -> dict[str, Any]:
-    """Pre-update SQLite backup (§7) then launch the updater helper."""
+    """Verify a consistent WAL-aware backup before any helper can touch {app}."""
+    with manager._lock:  # noqa: SLF001 - reserve apply against concurrent requests
+        job = manager._job  # noqa: SLF001
+        if job.state != "staged" or not job.verified:
+            raise DomainError("ابتدا بستهٔ به‌روزرسانی را دانلود و راستی‌آزمایی کنید")
+        stage = Path(job.staged_path)
+        if not all((stage / name).is_file() for name in ("update.json", "version.json", "install_manifest.json", "vira-updater.exe")):
+            raise DomainError("بستهٔ به‌روزرسانی آمادهٔ اعمال نیست؛ دانلود را دوباره انجام دهید.")
+        job.state = "applying"
     backup_note = ""
-    status = manager.status()
-    if status["state"] != "staged":
-        raise DomainError("ابتدا بستهٔ به‌روزرسانی را دانلود کنید")
-    if settings.data_dir is not None and settings.sqlite_database_path is not None and Path(settings.sqlite_database_path).is_file():
-        backups = Path(settings.data_dir) / "backups"
-        backups.mkdir(parents=True, exist_ok=True)
-        target = backups / f"pre-update-{time.strftime('%Y%m%d-%H%M%S')}.sqlite3"
-        target.write_bytes(Path(settings.sqlite_database_path).read_bytes())
+    try:
+        if settings.data_dir is None or settings.sqlite_database_path is None or not Path(settings.sqlite_database_path).is_file():
+            raise DomainError("پایگاه‌داده برای پشتیبان پیش از به‌روزرسانی پیدا نشد؛ نصب متوقف شد.")
+        from .backup import create_backup
+
+        target = Path(settings.data_dir) / "backups" / f"pre-update-{time.strftime('%Y%m%d-%H%M%S')}-{uuid4().hex}.sqlite3"
+        report = create_backup(settings.sqlite_database_path, target)
+        if not report.ok:
+            raise DomainError("پشتیبان پیش از به‌روزرسانی تأیید نشد؛ نصب متوقف شد.")
         backup_note = str(target)
-    out = launch_updater(settings, str(status["staged_path"]))
+        out = launch_updater(settings, str(stage))
+    except Exception as exc:
+        with manager._lock:  # noqa: SLF001
+            manager._job.state = "failed"  # noqa: SLF001
+            manager._job.error_fa = str(exc) if isinstance(exc, DomainError) else "آماده‌سازی نصب ناموفق بود؛ نصب فعلی تغییر نکرد."  # noqa: SLF001
+        raise
     out["pre_update_backup"] = backup_note
     return out
 

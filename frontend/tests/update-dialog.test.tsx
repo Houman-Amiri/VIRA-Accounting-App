@@ -121,7 +121,7 @@ describe("UpdateDialog — mandated copy (§4)", () => {
     expect(screen.getByTestId("update-progress-text").textContent).toContain("244.1 KB");
   });
 
-  it("failure shows the mandated rollback message with the log path", () => {
+  it("failure without details shows a neutral message and the log path", () => {
     state.statusData = {
       ...state.statusData,
       state: "failed",
@@ -129,7 +129,7 @@ describe("UpdateDialog — mandated copy (§4)", () => {
     };
     render(wrap(<UpdateDialog check={CHECK as never} open onClose={() => {}} />));
     expect(screen.getByTestId("update-failed").textContent).toContain(
-      "خطا در به‌روزرسانی. نسخهٔ قبلی بازگردانی شد.",
+      "به‌روزرسانی ناموفق بود؛ جزئیات را در گزارش بررسی کنید.",
     );
     expect(screen.getByTestId("update-log-path").textContent).toContain("update.log");
   });

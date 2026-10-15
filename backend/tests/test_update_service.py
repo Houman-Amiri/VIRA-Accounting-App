@@ -299,6 +299,8 @@ class TestDownload:
         s = _settings(tmp_path, app_update_url="https://mirror.example/latest.json")
         check = check_for_update("1.5.0", s)
         assert check.choice is not None
+        check.choice.packages[0]["size"] = len(payload)
+        check.choice.total_bytes = len(payload)
 
         class _StreamResp:
             status_code = 200
@@ -329,12 +331,16 @@ class TestDownload:
     def test_successful_download_stages_verified_package(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        payload = b"delta-package-bytes"
+        from tests.test_update_download_flow import delta_bytes
+
+        payload = delta_bytes()
         monkeypatch.setattr("httpx.get", lambda url, **kw: _Resp(200, _latest_bytes()))
         s = _settings(tmp_path, app_update_url="https://mirror.example/latest.json")
         check = check_for_update("1.5.0", s)
         assert check.choice is not None
         check.choice.packages[0]["sha256"] = sha256_bytes(payload)
+        check.choice.packages[0]["size"] = len(payload)
+        check.choice.total_bytes = len(payload)
 
         class _StreamResp:
             status_code = 200
@@ -356,5 +362,7 @@ class TestDownload:
         assert status["state"] == "staged"
         assert status["verified"] is True
         staged = Path(status["staged_path"])
-        assert (staged / "VIRA-2.0.0-delta-from-1.5.0.zip").read_bytes() == payload
-        assert (staged / "update.log").is_file()
+        assert (staged.parent / "package.zip").read_bytes() == payload
+        assert (staged / "update.json").is_file()
+        assert (staged / "vira-updater.exe").is_file()
+        assert Path(status["log_path"]).is_file()

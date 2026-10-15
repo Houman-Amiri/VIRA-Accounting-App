@@ -5,7 +5,7 @@
  * «به‌روزرسانی جدیدی در دسترس است (نسخهٔ X.Y.Z). آیا می‌خواهید دانلود و نصب شود؟»
  * with «دانلود و نصب» / «بعداً» / «مشاهدهٔ جزئیات», download progress with the
  * delta size, verification status, and a "restart to finish" step. Failures
- * show «خطا در به‌روزرسانی. نسخهٔ قبلی بازگردانی شد.» with the log path.
+ * show the actual Persian failure reason with the log path (no assumed rollback).
  */
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -28,12 +28,17 @@ export function UpdateDialog({
   onClose,
 }: UpdateDialogProps): React.JSX.Element | null {
   const { t } = useTranslation();
-  const { download, apply, status } = useUpdateFlow();
+  const { download, apply, status } = useUpdateFlow(open);
   const [phase, setPhase] = React.useState<Phase>("confirm");
   const [showDetails, setShowDetails] = React.useState(false);
 
   React.useEffect(() => {
     const s = status.data;
+    if (!open) return;
+    if (download.error || apply.error || status.error) {
+      setPhase("failed");
+      return;
+    }
     if (!s) return;
     if (s.state === "downloading") setPhase("downloading");
     else if (s.state === "verifying") setPhase("verifying");
@@ -41,7 +46,7 @@ export function UpdateDialog({
     else if (s.state === "applying") setPhase("applying");
     else if (s.state === "failed") setPhase("failed");
     else if (s.state === "committed") setPhase("done");
-  }, [status.data]);
+  }, [open, status.data, status.error, download.error, apply.error]);
 
   if (!open) return null;
 
@@ -49,7 +54,12 @@ export function UpdateDialog({
   const isDelta = (check.choice?.kind ?? "full") !== "full";
   const done = status.data?.downloaded_bytes ?? 0;
   const pct = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
-  const errorFa = status.data?.error_fa ?? null;
+  const flowError = download.error ?? apply.error ?? status.error;
+  const errorFa = flowError
+    ? flowError instanceof Error && flowError.name === "ApiError"
+      ? flowError.message
+      : "ارتباط با سرویس به‌روزرسانی برقرار نشد؛ اتصال شبکه را بررسی کنید."
+    : (status.data?.error_fa ?? null);
   const logPath = status.data?.log_path ?? "";
 
   const start = (): void => {
