@@ -33,6 +33,19 @@ function Write-Log([string]$msg) {
     Write-Output $line
 }
 
+# ps2exe hosts do not always expose Get-FileHash. Use .NET directly so
+# verification also works in the compiled helper (Windows PowerShell 5.1).
+function Get-Sha256([string]$Path) {
+    $stream = [System.IO.File]::OpenRead($Path)
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        return ([System.BitConverter]::ToString($sha.ComputeHash($stream))).Replace("-", "").ToLowerInvariant()
+    } finally {
+        $sha.Dispose()
+        $stream.Dispose()
+    }
+}
+
 function Invoke-Rollback {
     try {
         $rollback = Join-Path $InstallDir "rollback\prev"
@@ -125,7 +138,7 @@ try {
             { $_ -in @("add", "replace") } {
                 $member = Join-Path $Stage ("files\" + ($op.path -replace "/", "\"))
                 if (-not (Test-Path $member)) { Fail "missing staged file $member" }
-                $hash = (Get-FileHash -Algorithm SHA256 $member).Hash.ToLower()
+                $hash = (Get-Sha256 $member)
                 if ($op.sha256 -and $hash -ne $op.sha256.ToLower()) { Fail "SHA-256 mismatch: $rel" }
                 New-Item -ItemType Directory -Force -Path (Split-Path $target) | Out-Null
                 Copy-Item $member $target -Force
@@ -164,7 +177,7 @@ try {
                     Fail "bspatch failed: $rel (exit $code)"
                 }
                 if (-not (Test-Path $tmp)) { Fail "bspatch produced no output: $rel" }
-                $hash = (Get-FileHash -Algorithm SHA256 $tmp).Hash.ToLower()
+                $hash = (Get-Sha256 $tmp)
                 if ($op.sha256 -and $hash -ne $op.sha256.ToLower()) { Fail "patched SHA-256 mismatch: $rel" }
                 Move-Item $tmp $target -Force
                 Write-Log "patched $rel"
