@@ -47,7 +47,7 @@ foreach ($delta in $deltaZips) {
     # fetch the previous release's portable zip (same probe as build_deltas)
     $tag = "v$fromV"
     $pUrl = $null
-    foreach ($pName in @("vira-v$fromV-portable.zip", "VIRA-v$fromV.zip", "VIRA-v$fromV-portable.zip")) {
+    foreach ($pName in @("vira-v$fromV-app.zip", "vira-v$fromV-portable.zip", "VIRA-v$fromV.zip", "VIRA-v$fromV-portable.zip")) {
         $tryUrl = "https://github.com/$repo/releases/download/$tag/$pName"
         try {
             $resp = Invoke-WebRequest -Uri $tryUrl -Method Head -SkipHttpErrorCheck -MaximumRedirection 5 -TimeoutSec 30

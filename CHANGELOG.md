@@ -30,10 +30,22 @@ installer.
   delta strictly smaller than the setup). The old leg applied a delta onto a
   fresh same-version install, which never happens in the field.
 
+### Added
+- **`vira-<version>-app.zip`** — the exact install-layout payload (`{app}`
+  directory, with `install_manifest.json`), published with every release. It is
+  the delta base for all future updates, and doubles as a true portable app
+  (unzip + `start_vira.cmd`). The older `*-portable.zip` bundles are source
+  trees and cannot serve as delta bases.
+
 ### Verified
 - v1.0.3's install experience: silent install, shortcut resolution via the
   Windows shell, first-run migrate+seed+credentials, healthy SPA on
   `http://127.0.0.1:8787` — all CI-gated (smoke legs 1 and 5).
+
+### Notes
+- Users updating from v1.0.2/v1.0.3 download the full installer one last time
+  (those releases shipped no reconstructible payload base). From v1.0.4 onward
+  updates are delta-only whenever changed parts exist.
 
 ## [1.0.3] — 2026-10-15
 

@@ -68,6 +68,14 @@ jobs:
         run: |
           ./scripts/stage_app_payload.ps1 -Version "${{ env.VIRA_VERSION }}" -OutDir dist-release/app
 
+      - name: Package install-layout payload (delta base + portable app)
+        shell: pwsh
+        run: |
+          # vira-<v>-app.zip IS the {app} directory — the only downloadable base
+          # whose install_manifest.json matches real installs (v1.0.4 fix). Deltas
+          # of the future are built against it; users can also unzip and run it.
+          Compress-Archive -Path dist-release/app/* -DestinationPath "dist-release/vira-${{ env.VIRA_VERSION }}-app.zip"
+
       - name: Compile Inno Setup installer (Phase 8 §1)
         shell: pwsh
         run: |

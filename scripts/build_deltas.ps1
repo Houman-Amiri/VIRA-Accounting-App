@@ -24,9 +24,11 @@ if (-not (Test-Path $AppDir)) { Write-Host "[build_deltas] no app dir at $AppDir
 $repo = $env:GITHUB_REPOSITORY
 if (-not $repo) { $repo = "Houman-Amiri/VIRA-Accounting-App" }
 
-# probe the known historical portable-asset names (public assets need no auth)
+# probe the known historical payload-asset names (public assets need no auth);
+# vira-v*-app.zip (v1.0.4+) is the install-layout payload = a valid delta base,
+# the older *-portable.zip bundles are source trees without install_manifest.json
 function Find-PortableUrl([string]$Repo, [string]$Tag, [string]$BaseV) {
-    foreach ($name in @("vira-v$BaseV-portable.zip", "VIRA-v$BaseV.zip", "VIRA-v$BaseV-portable.zip")) {
+    foreach ($name in @("vira-v$BaseV-app.zip", "vira-v$BaseV-portable.zip", "VIRA-v$BaseV.zip", "VIRA-v$BaseV-portable.zip")) {
         $url = "https://github.com/$Repo/releases/download/$Tag/$name"
         try {
             $resp = Invoke-WebRequest -Uri $url -Method Head -SkipHttpErrorCheck -MaximumRedirection 5 -TimeoutSec 30
