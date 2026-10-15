@@ -28,17 +28,12 @@ if (-not $repo) { $repo = "Houman-Amiri/VIRA-Accounting-App" }
 function Find-PortableUrl([string]$Repo, [string]$Tag, [string]$BaseV) {
     foreach ($name in @("vira-v$BaseV-portable.zip", "VIRA-v$BaseV.zip", "VIRA-v$BaseV-portable.zip")) {
         $url = "https://github.com/$Repo/releases/download/$Tag/$name"
-        $ok = $false
         try {
-            $req = [System.Net.HttpWebRequest]::Create($url)
-            $req.Method = "HEAD"
-            $req.AllowAutoRedirect = $false
-            $resp = $req.GetResponse()
-            # 302 = exists (signed asset URL follows); 404 = no such asset
-            $ok = ([int]$resp.StatusCode -in 200, 302)
-            $resp.Close()
-        } catch { $ok = $false }
-        if ($ok) { return $url }
+            $resp = Invoke-WebRequest -Uri $url -Method Head -SkipHttpErrorCheck -MaximumRedirection 5 -TimeoutSec 30
+            $code = [int]$resp.StatusCode
+        } catch { $code = 0; $msg = ("" + $_.Exception.Message -replace "[`r`n]", " ") }
+        Write-Host ("::notice title=probe::$Tag $name -> HTTP $code")
+        if ($code -in 200, 302) { return $url }
     }
     return $null
 }

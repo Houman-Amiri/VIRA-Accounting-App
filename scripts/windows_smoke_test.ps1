@@ -50,11 +50,10 @@ foreach ($delta in $deltaZips) {
     foreach ($pName in @("vira-v$fromV-portable.zip", "VIRA-v$fromV.zip", "VIRA-v$fromV-portable.zip")) {
         $tryUrl = "https://github.com/$repo/releases/download/$tag/$pName"
         try {
-            $req = [System.Net.HttpWebRequest]::Create($tryUrl)
-            $req.Method = "HEAD"; $req.AllowAutoRedirect = $false
-            $resp = $req.GetResponse(); $ok = ([int]$resp.StatusCode -in 200, 302); $resp.Close()
-        } catch { $ok = $false }
-        if ($ok) { $pUrl = $tryUrl; break }
+            $resp = Invoke-WebRequest -Uri $tryUrl -Method Head -SkipHttpErrorCheck -MaximumRedirection 5 -TimeoutSec 30
+            $code = [int]$resp.StatusCode
+        } catch { $code = 0 }
+        if ($code -in 200, 302) { $pUrl = $tryUrl; break }
     }
     if (-not $pUrl) { Write-Output "[smoke] no portable base for $tag — skipping $($delta.Name)"; continue }
     $baseZip = Join-Path $legacyRoot "base-$fromV.zip"
