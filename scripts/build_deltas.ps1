@@ -53,7 +53,6 @@ foreach ($tag in $tags) {
     $baseZip = Join-Path $tmp "base-$baseV.zip"
     Write-Host ("::notice title=build_deltas::tag $tag (v=$v) — probing portable asset")
     $zipUrl = Find-PortableUrl $repo $tag $baseV
-    if ($zipUrl) { $probeHit = $true }
     if (-not $zipUrl) {
         Write-Host "[build_deltas] base $tag has no downloadable portable zip — skipping (full-installer fallback covers it)"
         Write-Host ("::notice title=build_deltas::$tag SKIP — no portable asset discovered")
@@ -76,6 +75,7 @@ foreach ($tag in $tags) {
         Write-Host "[build_deltas] base $tag has no install_manifest.json — skipping"
         continue
     }
+    $probeHit = $true   # a USABLE base (payload with manifest) existed
     $out = & uv run python scripts/gen_delta.py `
         --base-manifest $baseManifest.FullName `
         --base-dir $baseManifest.Directory.FullName `
