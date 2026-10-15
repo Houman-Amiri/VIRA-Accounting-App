@@ -57,6 +57,7 @@ foreach ($tag in $tags) {
     catch { $ErrorActionPreference = "Stop"; $zipUrl = $null }
     if (-not $zipUrl) {
         Write-Host "[build_deltas] base $tag has no downloadable portable zip — skipping (full-installer fallback covers it)"
+        Write-Host "::notice title=build_deltas::$tag SKIP — no portable asset discovered (gh names: $assets)"
         continue
     }
     try {
@@ -65,6 +66,7 @@ foreach ($tag in $tags) {
     }
     catch {
         Write-Host "[build_deltas] base $tag not downloadable — skipping (full-installer fallback covers it)"
+        Write-Host "::notice title=build_deltas::$tag SKIP — download failed: $($_.Exception.Message)"
         continue
     }
     $baseDir = Join-Path $tmp "base-$baseV"
@@ -86,10 +88,14 @@ foreach ($tag in $tags) {
     $zipName = "VIRA-v$v-delta-from-v$baseV.zip"
     $zipPath = Join-Path $OutDir $zipName
     if (Test-Path $zipPath) {
+        Write-Host "::notice title=build_deltas::$zipName BUILT ($((Get-Item $zipPath).Length) bytes)"
         $hash = (Get-FileHash -Algorithm SHA256 $zipPath).Hash.ToLower()
         $deltas += @{ from_version = $baseV; url = "https://github.com/$repo/releases/download/v$v/$zipName"; sha256 = $hash; size = (Get-Item $zipPath).Length }
+    } else {
+        Write-Host "::notice title=build_deltas::$zipName MISSING after gen_delta — gen_delta output: $($out -join ' | ')"
     }
 }
+Write-Host "::notice title=build_deltas::done — $($deltas.Count) delta(s) from tags: $($tags -join ', ')"
 
 # ------------------------------------------------------ rewrite latest.json ---
 $latestPath = Join-Path $OutDir "latest.json"
