@@ -67,9 +67,13 @@ Write-Output "[smoke] rollback restored the previous version"
 # ---------------------------------------------------------------------------
 Write-Output "[smoke] 5/5 shortcut integrity + real launch (first-run journey)"
 $shell = New-Object -ComObject WScript.Shell
-$menuDir = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\V.I.R.A"
-$desktop = [Environment]::GetFolderPath("Desktop")
-$lnkDirs = @($menuDir, $desktop)
+# admin installs place shortcuts in the All Users locations ({autoprograms}/{autodesktop})
+$lnkDirs = @(
+    "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\V.I.R.A",
+    (Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\V.I.R.A"),
+    "C:\Users\Public\Desktop",
+    [Environment]::GetFolderPath("Desktop")
+)
 $checked = 0
 foreach ($dir in $lnkDirs) {
     if (Test-Path $dir) {
