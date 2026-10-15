@@ -89,6 +89,16 @@ if ($v -eq "1.0.8") {
     $deltaZips = @($deltaZips | Where-Object { $_.Name -eq "VIRA-v1.0.8-delta-from-v1.0.6.zip" })
     if ($deltaZips.Count -ne 1) { throw "required 1.0.6 -> 1.0.8 bootstrap delta missing" }
 }
+# v1.0.9 must exercise every supported direct baseline, including the user's
+# last confirmed 1.0.6 installation. Do not only test the newest (1.0.8) base.
+if ($v -eq "1.0.9") {
+    foreach ($base in @("1.0.6", "1.0.7", "1.0.8")) {
+        if (-not ($deltaZips | Where-Object { $_.Name -eq "VIRA-v$v-delta-from-v$base.zip" })) {
+            throw "required $base -> $v delta missing"
+        }
+    }
+}
+$exercisedBases = @()
 foreach ($delta in $deltaZips) {
     if ($delta.Name -notmatch "delta-from-v([\d.]+)\.zip") { continue }
     $fromV = $Matches[1]
@@ -155,7 +165,11 @@ foreach ($delta in $deltaZips) {
     Stop-SmokeRestartedApp -AppDir $legacy -Port 8799
     Write-Output "[smoke] legacy $tag -> v$v OK — version + manifest rewritten, files verified"
     $upgraded = $true
-    break
+    $exercisedBases += $fromV
+    if ($v -ne "1.0.9") { break }
+}
+if ($v -eq "1.0.9" -and $exercisedBases.Count -ne 3) {
+    throw "v1.0.9 must exercise all three direct deltas; exercised: $($exercisedBases -join ', ')"
 }
 if (-not $upgraded) {
     if ($deltaZips) { throw "deltas were published but none could be exercised against a previous portable base — delta updates are broken" }

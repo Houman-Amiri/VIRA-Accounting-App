@@ -7,6 +7,8 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+## [1.0.9] — 2026-10-16
+
 ### Changed
 - Remove the Excel explanation banners from pricing and move constant editing to
   Settings → Pricing constants. Save seven active constants in SQLite (scaled

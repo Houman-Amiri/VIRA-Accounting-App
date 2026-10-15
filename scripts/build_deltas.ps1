@@ -6,8 +6,8 @@
 #   - writes VIRA-v<target>-delta-from-v<base>.zip (update.json + files/ + patches/ + delete.json)
 # Then rewrites latest.json with the deltas[] array and SHA256SUMS.txt.
 #
-# A base without a downloadable artifact is skipped (its users get the full
-# installer fallback — never a corrupt delta).
+# A base without a downloadable artifact is skipped. The app must refuse
+# unsupported delta updates; the full installer is for fresh installs only.
 
 param(
     [Parameter(Mandatory = $true)][string]$Version,   # vX.Y.Z or X.Y.Z
@@ -40,7 +40,9 @@ function Find-PortableUrl([string]$Repo, [string]$Tag, [string]$BaseV) {
     return $null
 }
 
-$tags = git tag --list "v*" --sort=-v:refname | Select-Object -First $Keep
+# Exclude the target BEFORE counting bases, so tagged builds and branch dry
+# runs retain the same K bases (including the installed v1.0.6 for v1.0.9).
+$tags = git tag --list "v*" --sort=-v:refname | Where-Object { $_ -ne "v$v" } | Select-Object -First $Keep
 $deltas = @()
 $script:probeLog = @()
 $probeHit = $false
@@ -54,7 +56,7 @@ foreach ($tag in $tags) {
     Write-Host ("::notice title=build_deltas::tag $tag (v=$v) — probing portable asset")
     $zipUrl = Find-PortableUrl $repo $tag $baseV
     if (-not $zipUrl) {
-        Write-Host "[build_deltas] base $tag has no downloadable portable zip — skipping (full-installer fallback covers it)"
+        Write-Host "[build_deltas] base $tag has no downloadable portable zip — skipping (no automatic delta for this base)"
         Write-Host ("::notice title=build_deltas::$tag SKIP — no portable asset discovered")
         continue
     }
@@ -63,7 +65,7 @@ foreach ($tag in $tags) {
         Invoke-WebRequest -Uri $zipUrl -OutFile $baseZip -MaximumRetryCount 2 | Out-Null
     }
     catch {
-        Write-Host "[build_deltas] base $tag not downloadable — skipping (full-installer fallback covers it)"
+        Write-Host "[build_deltas] base $tag not downloadable — skipping (no automatic delta for this base)"
         Write-Host ("::notice title=build_deltas::$tag SKIP — download failed: " + ($_.Exception.Message -replace "`n", " "))
         continue
     }

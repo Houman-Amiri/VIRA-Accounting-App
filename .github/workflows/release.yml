@@ -155,6 +155,8 @@ jobs:
               print(f"Validated real delta {base} -> {version}: {archive.stat().st_size} bytes")
           if version == "1.0.8" and not {"1.0.6", "1.0.7"}.issubset(bases):
               raise ValueError("v1.0.8 requires direct deltas from both installed baselines 1.0.6 and 1.0.7")
+          if version == "1.0.9" and bases != {"1.0.6", "1.0.7", "1.0.8"}:
+              raise ValueError("v1.0.9 requires direct deltas from installed baselines 1.0.6, 1.0.7 and 1.0.8")
           '@ | uv run python -
           if ($LASTEXITCODE -ne 0) { throw "real delta staging validation failed" }
 
