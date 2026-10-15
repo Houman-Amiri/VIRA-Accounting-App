@@ -37,7 +37,12 @@ def delta_bytes(extra: dict[str, bytes] | None = None, **over: object) -> bytes:
     out = io.BytesIO()
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as zf:
         for name, value in members.items():
-            zf.writestr(name, value)
+            # ZipInfo normalizes host separators on Windows. Preserve the raw
+            # attack name so this fixture really tests backslash rejection there.
+            info = zipfile.ZipInfo(name)
+            info.filename = name
+            info.compress_type = zipfile.ZIP_DEFLATED
+            zf.writestr(info, value)
     return out.getvalue()
 
 
@@ -101,6 +106,8 @@ def test_verified_delta_is_extracted_before_staged(tmp_path, monkeypatch):
 def test_invalid_delta_cannot_be_applied(tmp_path, monkeypatch, extra, over):
     manager = update.UpdateManager()
     payload = delta_bytes(extra, **over)
+    with zipfile.ZipFile(io.BytesIO(payload)) as archive:
+        assert set(extra).issubset(archive.namelist())  # fixture must retain attack names
     stub_stream(monkeypatch, payload)
     with pytest.raises((VerificationError, ValueError)):
         manager.start_download(check_for(payload), Settings(data_dir=tmp_path))
