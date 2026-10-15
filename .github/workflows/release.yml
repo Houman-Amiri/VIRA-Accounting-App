@@ -133,6 +133,31 @@ jobs:
             throw "build_deltas failed (exit $LASTEXITCODE)"
           }
 
+      - name: Validate real delta ZIPs with the shipped staging validator
+        shell: pwsh
+        run: |
+          @'
+          import os
+          import re
+          from pathlib import Path
+          from tempfile import TemporaryDirectory
+          from app.services.update_staging import extract_delta
+          version = os.environ["VIRA_VERSION"].removeprefix("v")
+          bases = set()
+          for archive in sorted(Path("dist-release").glob(f"VIRA-v{version}-delta-from-v*.zip")):
+              match = re.fullmatch(r"VIRA-v[\d.]+-delta-from-v([\d.]+)\.zip", archive.name)
+              if not match:
+                  raise ValueError(f"Unexpected delta name: {archive.name}")
+              base = match[1]
+              with TemporaryDirectory() as tmp:
+                  extract_delta(archive, Path(tmp) / "payload", base, version)
+              bases.add(base)
+              print(f"Validated real delta {base} -> {version}: {archive.stat().st_size} bytes")
+          if version == "1.0.8" and not {"1.0.6", "1.0.7"}.issubset(bases):
+              raise ValueError("v1.0.8 requires direct deltas from both installed baselines 1.0.6 and 1.0.7")
+          '@ | uv run python -
+          if ($LASTEXITCODE -ne 0) { throw "real delta staging validation failed" }
+
       - name: Windows install/upgrade/rollback smoke test (Phase 8 §9)
         shell: pwsh
         env:

@@ -2,8 +2,8 @@
 #
 # 1. silent install into a temp dir (/VERYSILENT /DIR=...) — proves the
 #    "select where to install" page honors /DIR and the registry is written
-# 2. upgrade test with a real delta package — asserts the updater downloads/
-#    applies only the delta-sized bytes (never the full setup)
+# 2. manually stage and apply a real delta (NOT an in-app download test);
+#    assert the package is smaller than Setup and the helper upgrades the base
 # 3. data-preservation check — a seeded SQLite checksum must be byte-identical
 #    across the update (%LOCALAPPDATA%\VIRA is never touched)
 # 4. forced-failure rollback test — vira_updater.ps1 -ForceFailure must restore
@@ -15,7 +15,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $tmp = Join-Path ([IO.Path]::GetTempPath()) "vira-smoke"
-$install = Join-Path $tmp "install"
+$install = Join-Path $tmp "install with spaces"
 New-Item -ItemType Directory -Force -Path $install | Out-Null
 
 Write-Output "[smoke] 1/5 silent install -> $install"
@@ -40,6 +40,11 @@ New-Item -ItemType Directory -Force -Path $legacyRoot | Out-Null
 $repo = if ($env:GITHUB_REPOSITORY) { $env:GITHUB_REPOSITORY } else { "Houman-Amiri/VIRA-Accounting-App" }
 $upgraded = $false
 $deltaZips = Get-ChildItem (Split-Path $Setup) -Filter "*delta*.zip" | Sort-Object Name -Descending
+# The repair must bootstrap the user's actual 1.0.6 baseline, not just 1.0.7.
+if ($v -eq "1.0.8") {
+    $deltaZips = @($deltaZips | Where-Object { $_.Name -eq "VIRA-v1.0.8-delta-from-v1.0.6.zip" })
+    if ($deltaZips.Count -ne 1) { throw "required 1.0.6 -> 1.0.8 bootstrap delta missing" }
+}
 foreach ($delta in $deltaZips) {
     if ($delta.Name -notmatch "delta-from-v([\d.]+)\.zip") { continue }
     $fromV = $Matches[1]
@@ -62,7 +67,7 @@ foreach ($delta in $deltaZips) {
     } catch { Write-Output "[smoke] base $tag not downloadable — skipping $($delta.Name)"; continue }
 
     Write-Output "[smoke] $($delta.Name) = $($delta.Length) bytes < setup $setupSize — upgrading $tag portable -> v$v"
-    $legacy = Join-Path $legacyRoot "install"
+    $legacy = Join-Path $legacyRoot "install with spaces"
     if (Test-Path $legacy) { Remove-Item $legacy -Recurse -Force }
     Expand-Archive $baseZip -DestinationPath $legacy -Force
     $stage = Join-Path $env:LOCALAPPDATA "VIRA\updates\smoke"
