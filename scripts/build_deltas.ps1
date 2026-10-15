@@ -41,23 +41,28 @@ foreach ($tag in $tags) {
     $baseV = $tag.TrimStart("v")
     if ($baseV -eq $v) { continue }
     # the portable asset's name has varied across releases (VIRA-v1.0.0.zip vs
-    # vira-v1.0.2-portable.zip) — ask the API instead of guessing
+    # vira-v1.0.2-portable.zip) — ask the API instead of guessing; single-line
+    # JSON so ::notice lines can never be broken by embedded newlines
     $baseZip = Join-Path $tmp "base-$baseV.zip"
     $zipUrl = $null
+    Write-Host ("::notice title=build_deltas::tag $tag (v=$v) — discovering portable asset")
     try {
         # tags without a release make gh api fail on stderr — 2>$null under
         # EAP=Stop would turn that into a terminating error, so dampen first
         $prevEap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
-        $assets = gh api "repos/$repo/releases/tags/$tag" --jq ".assets[].name" 2>$null
+        $json = gh api "repos/$repo/releases/tags/$tag" 2>$null | Out-String
         $ErrorActionPreference = $prevEap
-        $name = $assets | Where-Object { $_ -match "portable" -and $_ -notmatch "delta|Setup" } | Select-Object -First 1
-        if (-not $name) { $name = $assets | Where-Object { $_ -match "^VIRA-v.*\.zip$" -and $_ -notmatch "delta|portable" } | Select-Object -First 1 }
-        if ($name) { $zipUrl = "https://github.com/$repo/releases/download/$tag/$name" }
+        if ($json) {
+            $names = (ConvertFrom-Json $json).assets | ForEach-Object { $_.name }
+            $name = $names | Where-Object { $_ -match "portable" -and $_ -notmatch "delta|Setup" } | Select-Object -First 1
+            if (-not $name) { $name = $names | Where-Object { $_ -match "^VIRA-v.*\.zip$" -and $_ -notmatch "delta|portable" } | Select-Object -First 1 }
+            if ($name) { $zipUrl = "https://github.com/$repo/releases/download/$tag/$name" }
+        }
     }
     catch { $ErrorActionPreference = "Stop"; $zipUrl = $null }
     if (-not $zipUrl) {
         Write-Host "[build_deltas] base $tag has no downloadable portable zip — skipping (full-installer fallback covers it)"
-        Write-Host "::notice title=build_deltas::$tag SKIP — no portable asset discovered (gh names: $assets)"
+        Write-Host ("::notice title=build_deltas::$tag SKIP — no portable asset discovered")
         continue
     }
     try {
@@ -66,7 +71,7 @@ foreach ($tag in $tags) {
     }
     catch {
         Write-Host "[build_deltas] base $tag not downloadable — skipping (full-installer fallback covers it)"
-        Write-Host "::notice title=build_deltas::$tag SKIP — download failed: $($_.Exception.Message)"
+        Write-Host ("::notice title=build_deltas::$tag SKIP — download failed: " + ($_.Exception.Message -replace "`n", " "))
         continue
     }
     $baseDir = Join-Path $tmp "base-$baseV"
@@ -88,14 +93,14 @@ foreach ($tag in $tags) {
     $zipName = "VIRA-v$v-delta-from-v$baseV.zip"
     $zipPath = Join-Path $OutDir $zipName
     if (Test-Path $zipPath) {
-        Write-Host "::notice title=build_deltas::$zipName BUILT ($((Get-Item $zipPath).Length) bytes)"
+        Write-Host ("::notice title=build_deltas::$zipName BUILT ($((Get-Item $zipPath).Length) bytes)")
         $hash = (Get-FileHash -Algorithm SHA256 $zipPath).Hash.ToLower()
         $deltas += @{ from_version = $baseV; url = "https://github.com/$repo/releases/download/v$v/$zipName"; sha256 = $hash; size = (Get-Item $zipPath).Length }
     } else {
-        Write-Host "::notice title=build_deltas::$zipName MISSING after gen_delta — gen_delta output: $($out -join ' | ')"
+        Write-Host ("::notice title=build_deltas::$zipName MISSING after gen_delta — output: " + (($out | Out-String) -replace "`n", " | "))
     }
 }
-Write-Host "::notice title=build_deltas::done — $($deltas.Count) delta(s) from tags: $($tags -join ', ')"
+Write-Host ("::notice title=build_deltas::done — $($deltas.Count) delta(s) from tags: $($tags -join ', ')")
 
 # ------------------------------------------------------ rewrite latest.json ---
 $latestPath = Join-Path $OutDir "latest.json"
