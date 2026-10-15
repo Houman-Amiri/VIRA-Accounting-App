@@ -15,6 +15,11 @@ skipped every base it could not fetch, so updates fell back to the full
 installer.
 
 ### Fixed
+- **Split ordering is deterministic** — `uuid7` is now monotonic within the
+  process (RFC 9562 §6.2 method 3: a counter absorbs same-millisecond calls).
+  Previously two ids minted in the same millisecond carried random tails, so
+  sorting splits by id could swap an entry's debit and credit rows at display
+  time. New tests: `test_ids.py`.
 - **Delta discovery** — `build_deltas` now asks the GitHub API for each previous
   release's portable asset (the filename varied: `VIRA-v1.0.0.zip` vs
   `vira-v1.0.2-portable.zip`) instead of guessing, and its `latest.json`
