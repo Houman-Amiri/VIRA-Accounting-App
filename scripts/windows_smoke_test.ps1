@@ -110,8 +110,8 @@ try {
         $tail = if (Test-Path $launchLog) { (Get-Content $launchLog -Raw) } else { "<no launcher log>" }
         throw "app did not become healthy on http://127.0.0.1:8787 — launcher output:`n$($tail.Substring([Math]::Max(0, $tail.Length - 1500)))"
     }
-    $home = Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:8787/" -TimeoutSec 5
-    if ($home.StatusCode -ne 200 -or $home.Content -notmatch "root") { throw "SPA not served at /" }
+    $spa = Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:8787/" -TimeoutSec 5
+    if ($spa.StatusCode -ne 200 -or $spa.Content -notmatch "root") { throw "SPA not served at /" }
     $creds = Join-Path $env:LOCALAPPDATA "VIRA\first-run-credentials.txt"
     if (-not (Test-Path $creds)) { throw "first-run credentials file was not created" }
     Write-Output "[smoke] launch ok — healthy, SPA served, first-run credentials written"
