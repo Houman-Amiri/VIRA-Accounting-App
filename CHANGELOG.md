@@ -7,6 +7,11 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+## [1.0.6] — 2026-10-15
+
+Makes a release *provable*: v1.0.5 installed the new code but a browser could keep
+running the previous UI, and nothing in the pipeline noticed.
+
 ### Fixed
 - **A successful upgrade could still show the previous UI.** v1.0.5 installed the
   new code and the new bundles, yet the browser kept running the *old* one — the
