@@ -37,6 +37,9 @@ class BackupStatus(BaseModel):
 class SystemStatus(BaseModel):
     version: str
     commit: str
+    #: build id of the SPA shell this install ships (index.html «vira-build») —
+    #: the UI compares it with the id it actually loaded and warns on mismatch
+    spa_build: str = ""
     environment: str
     python_version: str
     sqlite_version: str
@@ -162,6 +165,7 @@ def system_status(
     return SystemStatus(
         version=version_info()["version"],
         commit=version_info()["commit"],
+        spa_build=version_info().get("spa_build", ""),
         environment=settings.environment,
         python_version=sys.version.split()[0],
         sqlite_version=sqlite3.sqlite_version,

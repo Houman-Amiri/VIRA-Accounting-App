@@ -2437,6 +2437,11 @@ export interface components {
             version: string;
             /** Commit */
             commit: string;
+            /**
+             * Spa Build
+             * @default
+             */
+            spa_build: string;
             /** Environment */
             environment: string;
             /** Python Version */

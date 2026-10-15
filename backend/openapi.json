@@ -11980,6 +11980,11 @@
             "type": "string",
             "title": "Commit"
           },
+          "spa_build": {
+            "type": "string",
+            "title": "Spa Build",
+            "default": ""
+          },
           "environment": {
             "type": "string",
             "title": "Environment"

@@ -67,6 +67,15 @@ Source: "{#AppSource}\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
 ; updater helper (staged next to the app; also copied to %LOCALAPPDATA%\VIRA\updates)
 Source: "{#AppSource}\vira-updater.exe"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
+[InstallDelete]
+; v1.0.5 incident: the old hashed bundles stayed next to the new ones, so a
+; cached index.html could keep loading the previous UI. Code and SPA are
+; replaced wholesale on every install/upgrade (user data is untouched — it
+; lives under %LOCALAPPDATA%\VIRA).
+Type: filesandordirs; Name: "{app}\static"
+Type: filesandordirs; Name: "{app}\app"
+Type: filesandordirs; Name: "{app}\backend"
+
 [Icons]
 Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
@@ -96,7 +105,38 @@ begin
   Result := True;
 end;
 
+procedure StopRunningInstances();
+var
+  ResultCode: Integer;
+  AppDir: String;
+  Q: String;
+  Script: String;
+begin
+  // The app is started by the user (launcher window); a running interpreter
+  // locks python.exe/*.pyd so the upgrade could not replace them (Inno would
+  // then require a reboot). Only processes that live inside {app} are stopped.
+  AppDir := ExpandConstant('{app}');
+  Q := Chr(39);  // single quote
+  Script := 'Get-CimInstance Win32_Process | Where-Object { ' +
+            '(($_.Name -eq ' + Q + 'python.exe' + Q + ') -or ($_.Name -eq ' + Q + 'pythonw.exe' + Q + ')) -and ' +
+            '($_.ExecutablePath -like ' + Q + AppDir + '\*' + Q + ') } | ' +
+            'ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }; ' +
+            'Get-CimInstance Win32_Process -Filter ' + Q + 'Name=' + Q + Q + 'cmd.exe' + Q + Q + Q + ' | ' +
+            'Where-Object { $_.CommandLine -like ' + Q + '*' + AppDir + '\start_vira.cmd*' + Q + ' } | ' +
+            'ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }';
+  Exec('powershell.exe', '-NoProfile -ExecutionPolicy Bypass -Command "' + Script + '"',
+       '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Sleep(700);
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep = ssInstall then
+    StopRunningInstances;
+end;
+
 function InitializeUninstall(): Boolean;
+
 begin
   // §1: user data is NEVER deleted by default — explicit opt-in only
   DeleteDataPage := CreateInputOptionPage(wpWelcome,

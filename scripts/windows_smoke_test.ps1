@@ -177,6 +177,26 @@ try {
     if ($spa.StatusCode -ne 200 -or $spa.Content -notmatch "root") { throw "SPA not served at /" }
     $creds = Join-Path $env:LOCALAPPDATA "VIRA\first-run-credentials.txt"
     if (-not (Test-Path $creds)) { throw "first-run credentials file was not created" }
+    # — content proof: the installed app must serve exactly the payload this run
+    #   built. v1.0.5 shipped the new code but a stale cached shell, and nothing
+    #   in CI noticed; that is what this block prevents from recurring. —
+    $payloadIndex = Join-Path (Split-Path $Setup) "app\static\index.html"
+    if (-not (Test-Path $payloadIndex)) { throw "payload index.html missing at $payloadIndex" }
+    $builtId = [regex]::Match((Get-Content $payloadIndex -Raw), 'name="vira-build"\s+content="([^"]+)"').Groups[1].Value
+    if (-not $builtId) { throw "the built index.html carries no vira-build marker" }
+    $servedId = [regex]::Match($spa.Content, 'name="vira-build"\s+content="([^"]+)"').Groups[1].Value
+    if ($servedId -ne $builtId) { throw "STALE UI: the app serves build '$servedId' but the release payload is '$builtId'" }
+    $cacheControl = ($spa.Headers["Cache-Control"] -join ",")
+    if ($cacheControl -notmatch "no-store") { throw "the SPA shell was served without Cache-Control: no-store (stale-UI risk)" }
+    $assetName = [regex]::Match($spa.Content, 'src="/assets/([^"]+\.js)"').Groups[1].Value
+    if (-not $assetName) { throw "the served shell references no hashed asset bundle" }
+    $asset = Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:8787/assets/$assetName" -TimeoutSec 10
+    foreach ($marker in @("chart-stock", "job-submit", "order-submit", "movement-submit", "dashboard-alerts")) {
+        if ($asset.Content -notmatch $marker) { throw "the served bundle lacks the new UI marker '$marker' — the installed SPA is not the one that was built" }
+    }
+    $warehouse = Invoke-WebRequest -UseBasicParsing -SkipHttpErrorCheck "http://127.0.0.1:8787/api/v1/warehouse/items" -TimeoutSec 10
+    if ([int]$warehouse.StatusCode -eq 404) { throw "the operations API (/api/v1/warehouse/items) is missing from the installed backend" }
+    Write-Output "[smoke] content proof: build $servedId served, new-UI markers present, operations API reachable"
     Write-Output "[smoke] launch ok — healthy, SPA served, first-run credentials written"
 } finally {
     Get-Process -Name python -ErrorAction SilentlyContinue |

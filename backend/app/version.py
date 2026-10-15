@@ -80,8 +80,9 @@ def _stamp() -> dict[str, str]:
                 "version": str(data.get("version") or ""),
                 "commit": str(data.get("commit") or ""),
                 "built_at": str(data.get("built_at") or ""),
+                "spa_build": str(data.get("spa_build") or ""),
             }
-    return {"version": "", "commit": "", "built_at": ""}
+    return {"version": "", "commit": "", "built_at": "", "spa_build": ""}
 
 
 def _metadata_version() -> str:
@@ -111,14 +112,37 @@ def _git_commit() -> str:
 
 
 @lru_cache(maxsize=1)
-def version_info() -> dict[str, str]:
+def _provenance() -> dict[str, str]:
+    """Expensive part: the shipped stamp, the installed metadata and git.
+
+    The ``VIRA_*`` environment overrides are deliberately NOT part of the
+    cached value — ``version_info()`` re-reads them on every call, because a
+    cached read froze the first answer for the whole process (that is how an
+    unstamped install kept reporting itself as ``0.0.0-unknown``).
+    """
     stamp = _stamp()
-    version = os.environ.get("VIRA_VERSION") or stamp["version"] or __version__
-    commit = (
-        os.environ.get("VIRA_GIT_COMMIT")
-        or stamp["commit"]
-        or _git_commit()
-        or UNKNOWN_COMMIT
-    )
-    built_at = os.environ.get("VIRA_BUILT_AT") or stamp["built_at"]
-    return {"version": version, "commit": commit, "built_at": built_at}
+    return {
+        "version": stamp["version"] or __version__,
+        "commit": stamp["commit"] or _git_commit() or UNKNOWN_COMMIT,
+        "built_at": stamp["built_at"],
+        # Id of the SPA bundle this payload is supposed to serve (written into
+        # index.html at build time). «سیستم و عملیات» compares it with the id
+        # the browser actually loaded, so a stale cached UI becomes visible
+        # instead of silently hiding every new screen (v1.0.5 incident).
+        "spa_build": stamp.get("spa_build") or "",
+    }
+
+
+def version_info() -> dict[str, str]:
+    """Version + commit + build stamp, with live environment overrides."""
+    info = dict(_provenance())
+    for key, env in (
+        ("version", "VIRA_VERSION"),
+        ("commit", "VIRA_GIT_COMMIT"),
+        ("built_at", "VIRA_BUILT_AT"),
+        ("spa_build", "VIRA_SPA_BUILD"),
+    ):
+        override = os.environ.get(env)
+        if override:
+            info[key] = override
+    return info

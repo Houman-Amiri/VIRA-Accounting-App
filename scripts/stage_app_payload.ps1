@@ -52,11 +52,25 @@ if (-not $commit) {
     try { $commit = (git rev-parse --short HEAD 2>$null).Trim() } catch { $commit = "" }
 }
 if (-not $commit) { $commit = "unknown" }
+# build id of the SPA we just staged — «سیستم و عملیات» compares it with the id
+# the browser loaded, so a stale cached UI is visible instead of silent (v1.0.5)
+$spaBuild = ""
+$indexHtml = Join-Path $OutDir "static/index.html"
+if (Test-Path $indexHtml) {
+    $match = [regex]::Match((Get-Content $indexHtml -Raw), 'name="vira-build"\s+content="([^"]+)"')
+    if ($match.Success) { $spaBuild = $match.Groups[1].Value }
+}
+if (-not $spaBuild) {
+    Write-Warning "[stage_app_payload] static/index.html has no vira-build marker — falling back to the commit"
+    $spaBuild = $commit
+}
 @{
     version = $v
     commit = $commit
     built_at = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+    spa_build = $spaBuild
 } | ConvertTo-Json | Set-Content -Encoding utf8 (Join-Path $OutDir "version.json")
+Write-Host "[stage_app_payload] version.json: version=$v commit=$commit spa_build=$spaBuild"
 
 # per-file manifest — the delta baseline (Phase 8 §1/§5)
 uv run python scripts/build_manifest.py $OutDir

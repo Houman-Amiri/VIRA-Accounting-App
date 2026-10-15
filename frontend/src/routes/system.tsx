@@ -7,6 +7,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { fmtBytes } from "@/lib/money";
 import { fetchUpdateCheck, type UpdateCheck } from "@/lib/update";
+import { COMPILED_BUILD_ID, isStaleUi, UI_BUILD_ID } from "@/lib/build";
 import { UpdateDialog } from "@/components/update-dialog";
 import { useQuery } from "@tanstack/react-query";
 import { api, ApiError, getSudoToken, parseError } from "@/api/client";
@@ -18,6 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 type SystemStatus = {
   version: string;
   commit: string;
+  spa_build?: string | null;
   environment: string;
   python_version: string;
   sqlite_version: string;
@@ -230,6 +232,27 @@ export function SystemPage(): React.JSX.Element {
                   </span>
                 )}
               </div>
+              <div
+                className="grid grid-cols-2 gap-x-4 gap-y-1 border-t pt-3 text-xs text-muted-foreground"
+                data-testid="system-build-ids"
+              >
+                <span>شناسهٔ ساخت نصب (SPA)</span>
+                <span className="num">{s?.spa_build || "—"}</span>
+                <span>شناسهٔ ساخت بارگذاری‌شده در مرورگر</span>
+                <span className="num">{UI_BUILD_ID}</span>
+                <span>شناسهٔ ساخت کد کامپایل‌شده</span>
+                <span className="num">{COMPILED_BUILD_ID}</span>
+              </div>
+              {isStaleUi(s?.spa_build) && (
+                <div
+                  className="rounded-md border border-amber-500/60 bg-amber-500/10 px-3 py-2 text-xs"
+                  data-testid="system-stale-ui"
+                >
+                  نسخهٔ رابط کاربری در حافظهٔ مرورگر قدیمی است (مرورگر «{UI_BUILD_ID}» را اجرا
+                  می‌کند ولی این نصب «{s?.spa_build}» است). صفحه را با{" "}
+                  <span className="num">Ctrl+F5</span> تازه‌سازی کنید.
+                </div>
+              )}
               {update?.manual_required && (
                 <div
                   className="space-y-1 rounded-md border border-amber-500/60 bg-amber-500/10 px-3 py-2 text-xs"

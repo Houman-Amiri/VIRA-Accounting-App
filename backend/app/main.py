@@ -8,11 +8,17 @@ React SPA is served from ``frontend/dist`` when present (Phase 6 wiring).
 from __future__ import annotations
 
 import logging
+import os
 from contextlib import asynccontextmanager
+from os import PathLike
 from pathlib import Path
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from starlette.responses import Response
+from starlette.types import Scope
 
 from .api import (
     accounts,
@@ -186,12 +192,63 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(operations_api.production, dependencies=[Depends(auditor_read_only)])
 
     dist = spa_static_dir()
-    if dist is not None:  # pragma: no cover - frontend build
-        from fastapi.staticfiles import StaticFiles
-
-        app.mount("/", StaticFiles(directory=str(dist), html=True), name="spa")
+    if dist is not None:
+        _mount_spa(app, Path(dist))
 
     return app
+
+
+# ---------------------------------------------------------------- SPA mount ---
+class _ImmutableAssets(StaticFiles):
+    """Vite hashes asset filenames, so they may be cached hard."""
+
+    def file_response(  # type: ignore[override]
+        self,
+        full_path: str | PathLike[str],
+        stat_result: os.stat_result,
+        scope: Scope,
+        status_code: int = 200,
+    ) -> Response:
+        response = super().file_response(full_path, stat_result, scope, status_code)
+        if stat_result is not None:
+            response.headers["cache-control"] = "public, max-age=31536000, immutable"
+        return response
+
+
+def _spa_headers(spa_build: str) -> dict[str, str]:
+    headers = {"cache-control": "no-store, must-revalidate", "pragma": "no-cache"}
+    if spa_build:
+        headers["x-vira-spa-build"] = spa_build
+    return headers
+
+
+def _mount_spa(app: FastAPI, dist: Path) -> None:
+    """Serve the built SPA so an upgraded install can never serve an old UI.
+
+    v1.0.5 shipped fresh bundles but the browser kept its cached ``index.html``
+    (no ``Cache-Control`` at all) while the installer left the previous hashed
+    bundles in ``{app}\\static`` — users saw the *old* interface after a
+    successful upgrade. The shell is now served ``no-store``, hashed assets are
+    ``immutable``, and unknown non-API paths fall back to the shell (so
+    ``/warehouse`` deep links work).
+    """
+    from .version import version_info  # local import: avoids a cycle at startup
+
+    index = dist / "index.html"
+    spa_build = str(version_info().get("spa_build") or "")
+    assets = dist / "assets"
+    if assets.is_dir():
+        app.mount("/assets", _ImmutableAssets(directory=str(assets)), name="spa-assets")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    def spa_shell(full_path: str) -> Response:
+        if full_path.startswith("api/"):
+            # Unknown API paths must stay JSON 404s, never the SPA shell.
+            raise HTTPException(status_code=404, detail="Not Found")
+        candidate = (dist / full_path).resolve()
+        if full_path and candidate.is_file() and candidate.is_relative_to(dist.resolve()):
+            return FileResponse(candidate, headers={"cache-control": "no-cache"})
+        return FileResponse(index, media_type="text/html", headers=_spa_headers(spa_build))
 
 
 app = create_app()

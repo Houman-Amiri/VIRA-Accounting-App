@@ -7,6 +7,42 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Fixed
+- **A successful upgrade could still show the previous UI.** v1.0.5 installed the
+  new code and the new bundles, yet the browser kept running the *old* one — the
+  SPA shell (`index.html`) was served without any `Cache-Control`, and the
+  installer left the previous hashed bundles next to the new ones in
+  `{app}\static`, so a cached shell kept loading the old bundle. Users saw
+  «none of the changes applied».
+
+  - `app/main.py` — the SPA is now served by an explicit shell route: the shell
+    is `Cache-Control: no-store, must-revalidate` and never answers `304`
+    (a conditional hit would hand the browser its stale copy back), hashed
+    assets under `/assets/` are `immutable`, unknown non-API paths fall back to
+    the shell (so `/warehouse` deep links work), unknown `/api/**` paths stay
+    JSON 404s, and every shell response carries `X-VIRA-SPA-Build` with the
+    build id the installation ships.
+  - `installer/vira.iss` — `[InstallDelete]` removes `{app}\static`,
+    `{app}\app` and `{app}\backend` before copying the new payload, and the
+    installer stops any running instance inside `{app}` first (a live
+    interpreter locks `python.exe`/`.pyd`, which previously forced Inno to ask
+    for a reboot while leaving the old files in place).
+  - **Build identity is now visible**: vite stamps `<meta name="vira-build">`
+    into `index.html`, `stage_app_payload.ps1` records it as `spa_build` in
+    `version.json`, and «سیستم و عملیات» shows the installed id next to the id
+    the browser actually loaded — with an explicit warning to press `Ctrl+F5`
+    when they differ. A stale UI can no longer hide.
+  - `app/version.py` — `spa_build` joined `version_info()`, and the `VIRA_*`
+    environment overrides are no longer frozen by the `lru_cache` (that cache is
+    what kept an install reporting `0.0.0-unknown` after its stamp was fixed).
+  - CI now proves the content: the Windows smoke test compares the build id of
+    the *served* shell with the payload this run built, greps the served bundle
+    for the new screens' markers (`chart-stock`, `job-submit`, `order-submit`,
+    `movement-submit`, `dashboard-alerts`), asserts the operations API is present
+    in the installed backend, and asserts the shell is `no-store`. A stale
+    install can no longer be published silently.
+  - `backend/tests/test_spa_serving.py` — 6 regression tests for the above.
+
 ## [1.0.5] — 2026-10-15
 
 Closes the five defects reported after v1.0.4: fake version stamp, wrong
