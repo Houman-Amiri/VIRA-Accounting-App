@@ -18,8 +18,8 @@ permissions:
   contents: write
 
 env:
-  # tag pushes use the tag name; dry runs on branches get a fixed debug version
-  VIRA_VERSION: ${{ inputs.version || (startsWith(github.ref, 'refs/tags/v') && github.ref_name || '1.0.2-rc1') }}
+  # Tags/dispatch use the requested version; branch dry runs read pyproject.toml.
+  VIRA_VERSION: ${{ inputs.version || (startsWith(github.ref, 'refs/tags/v') && github.ref_name || '') }}
 
 jobs:
   test:
@@ -36,6 +36,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # delta generation needs previous release tags
+
+      - name: Resolve branch dry-run version
+        shell: pwsh
+        run: |
+          if (-not $env:VIRA_VERSION) {
+            $versionLine = Select-String -Path pyproject.toml -Pattern '^version = "([^"]+)"' | Select-Object -First 1
+            if (-not $versionLine) { throw "project version not found" }
+            "VIRA_VERSION=$($versionLine.Matches[0].Groups[1].Value)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          }
 
       - uses: astral-sh/setup-uv@v5
         with:
