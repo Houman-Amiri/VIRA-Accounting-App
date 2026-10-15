@@ -98,12 +98,13 @@ jobs:
         env:
           VIRA_UPDATE_SIGNING_KEY: ${{ secrets.VIRA_UPDATE_SIGNING_KEY }}
         run: |
-          try {
-            ./scripts/build_deltas.ps1 -Version "${{ env.VIRA_VERSION }}" -OutDir dist-release
-          } catch {
-            Write-Host "::error title=build_deltas::$(($_.Exception.Message) -replace '%','%25' -replace "`r",' ')"
-            Write-Host "::error title=build_deltas-stack::$(($_.ScriptStackTrace) -replace '%','%25' -replace "`r",' ' -replace "`n",' | ')"
-            throw
+          $out = (pwsh -NoProfile -File ./scripts/build_deltas.ps1 -Version "${{ env.VIRA_VERSION }}" -OutDir dist-release *>&1 | Out-String)
+          Write-Host $out
+          if ($LASTEXITCODE -ne 0) {
+            ($out -split "`n") | Select-Object -Last 30 | ForEach-Object {
+              if ($_.Trim()) { Write-Host "::error title=build_deltas::$(($_ -replace '%','%25') -replace "`r",'')" }
+            }
+            throw "build_deltas failed (exit $LASTEXITCODE)"
           }
 
       - name: Windows install/upgrade/rollback smoke test (Phase 8 §9)
