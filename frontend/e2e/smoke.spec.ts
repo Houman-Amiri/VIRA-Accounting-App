@@ -87,6 +87,25 @@ test("pricing reproduces the original Excel cells for single and multiple quanti
   await expect(final).toContainText("۲٬۷۸۰٬۷۴۸.۵");
 });
 
+test("pricing report highlights B25, B29 and B35 in light and dark themes", async ({ page }) => {
+  await login(page);
+  await page.goto("/price-calc");
+  const rows = [
+    ["productionTotal", "rgb(220, 252, 231)", "rgba(20, 83, 45, 0.4)"],
+    ["unitSalePrice", "rgb(219, 234, 254)", "rgba(30, 58, 138, 0.4)"],
+    ["unitFinalPrice", "rgb(254, 226, 226)", "rgba(127, 29, 29, 0.4)"],
+  ];
+  for (const dark of [false, true]) {
+    await page.evaluate((value) => document.documentElement.classList.toggle("dark", value), dark);
+    for (const [key, lightColor, darkColor] of rows) {
+      await expect(page.getByTestId(`row-${key}`)).toHaveCSS(
+        "background-color",
+        dark ? darkColor : lightColor,
+      );
+    }
+  }
+});
+
 // Only the update HTTP boundary is simulated; login, sudo, hooks and dialog are real.
 test("update dialog leaves idle/zero bytes and reaches the verified apply step", async ({
   page,

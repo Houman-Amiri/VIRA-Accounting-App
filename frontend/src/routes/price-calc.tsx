@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/cn";
 
 const CONSTANT_FIELDS: ReadonlyArray<[keyof PriceConstants, string, string]> = [
   ["filamentPerGram", "قیمت هر گرم فیلامنت", "B3"],
@@ -36,6 +37,13 @@ const CONSTANT_FIELDS: ReadonlyArray<[keyof PriceConstants, string, string]> = [
   ["printerPowerKw", "توان مصرفی پرینتر (کیلووات)", "B2"],
   ["nylonPerUnit", "نایلون بسته‌بندی", "B8"],
 ];
+
+// Presentation only: keep the workbook formulas and numeric values unchanged.
+const REPORT_ROW_HIGHLIGHTS: Partial<Record<keyof PriceBreakdown, string>> = {
+  productionTotal: "bg-green-100 font-semibold dark:bg-green-900/40",
+  unitSalePrice: "bg-blue-100 font-semibold dark:bg-blue-900/40",
+  unitFinalPrice: "bg-red-100 font-semibold dark:bg-red-900/40",
+};
 
 export function PriceCalcPage(): React.JSX.Element {
   const [constants, setConstants] = React.useState<PriceConstants>(DEFAULT_CONSTANTS);
@@ -216,7 +224,11 @@ export function PriceCalcPage(): React.JSX.Element {
                   {rows.map((row) => (
                     <tr
                       key={row.key}
-                      className={row.strong ? "border-t bg-muted/40 font-semibold" : "border-t"}
+                      className={cn(
+                        "border-t",
+                        REPORT_ROW_HIGHLIGHTS[row.key] ??
+                          (row.strong ? "bg-muted/40 font-semibold" : undefined),
+                      )}
                       data-testid={`row-${row.key}`}
                     >
                       <td className="py-2">{row.label}</td>

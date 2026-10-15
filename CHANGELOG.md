@@ -7,6 +7,11 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Changed
+- Pricing report highlights the entire B25/E25 row in green, B29/E29 in blue,
+  and B35/E35 in red, with readable light/dark backgrounds. Workbook formulas,
+  displayed amounts and the derived batch-price row are unchanged.
+
 ## [1.0.8] — 2026-10-16
 
 ### Fixed

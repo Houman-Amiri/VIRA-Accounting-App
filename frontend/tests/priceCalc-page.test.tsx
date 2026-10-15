@@ -16,6 +16,29 @@ describe("pricing page — literal Excel model", () => {
     expect(screen.getByTestId("sheet-policy")).toHaveTextContent("بدون ضرب خودکار");
   });
 
+  it.each([
+    ["productionTotal", "B25", "E25", "green"],
+    ["unitSalePrice", "B29", "E29", "blue"],
+    ["unitFinalPrice", "B35", "E35", "red"],
+  ])("highlights %s across both variants in %s/%s with %s", (key, plain, chain, color) => {
+    render(<PriceCalcPage />);
+    const row = screen.getByTestId(`row-${key}`);
+    expect(within(row).getByText(plain)).toBeInTheDocument();
+    expect(within(row).getByText(chain)).toBeInTheDocument();
+    expect(within(row).getAllByRole("cell")).toHaveLength(5);
+    expect(row).toHaveClass(`bg-${color}-100`, `dark:bg-${color}-900/40`, "font-semibold");
+    fireEvent.change(screen.getByTestId("input-qty"), { target: { value: "10" } });
+    expect(row).toHaveClass(`bg-${color}-100`, `dark:bg-${color}-900/40`);
+  });
+
+  it("does not color unrelated rows or the derived batch final price", () => {
+    render(<PriceCalcPage />);
+    const batchFinal = screen.getByTestId("row-batchFinalPrice");
+    expect(batchFinal).toHaveClass("bg-muted/40");
+    expect(batchFinal).not.toHaveClass("bg-red-100");
+    expect(screen.getByTestId("row-filamentCost")).toHaveAttribute("class", "border-t");
+  });
+
   it("recalculates quantity > 1 and Persian input using authored formulas", () => {
     render(<PriceCalcPage />);
     fireEvent.change(screen.getByLabelText(/تیراژ/), { target: { value: "۱۰" } });
