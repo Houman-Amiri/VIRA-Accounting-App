@@ -7,6 +7,48 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+## [1.0.5] — 2026-10-15
+
+Closes the five defects reported after v1.0.4: fake version stamp, wrong
+pricing-sheet interface, unreadable dark-mode dropdowns, a bare dashboard and
+the missing warehouse/production modules.
+
+### Fixed
+- **«سیستم و عملیات» showed `0.0.0-unknown`.** `app/version.py` now resolves
+  the version/commit with a real precedence chain — `VIRA_VERSION` /
+  `VIRA_GIT_COMMIT` / `VIRA_BUILT_AT` env → the shipped `version.json` (looked up
+  next to the interpreter, in `VIRA_APP_DIR`, the repo root and the cwd) →
+  `importlib.metadata` → `git rev-parse --short HEAD` → `0.0.0-unknown` as a
+  last resort. `stage_app_payload.ps1` stamps `commit`/`built_at` into
+  `version.json` and `start_vira.cmd` exports the env pair, so an installed app
+  always reports a concrete version and commit.
+- **Pricing-tab formulas did not match `قیمت نهایی.xlsx`.** `lib/priceCalc.ts`
+  is now a cell-exact transcription of the sheet (B3–B35 / E25 / E35) with the
+  sheet's own quirks preserved as opt-in switches and Persian/Arabic digit input
+  parsing. The page is a two-column B/E interface that mirrors the workbook
+  row-for-row (240 g / 10 h / 1 pc → 2,760,748.5 تومان, E35 2,785,630.5 تومان).
+- **Dark-mode dropdowns were unreadable** (white text on the white OS popup):
+  `color-scheme: light|dark`, `select`/`option`/`optgroup` now inherit the card
+  surface, and the four `bg-transparent` selects were dropped.
+
+### Added
+- **داشبورد** — six KPI cards (assets, liabilities, equity, net income for the
+  current fiscal year, warehouse value, net cash), four theme-aware ECharts
+  panels (financial structure, P&L, daily sales trend, warehouse composition),
+  an alert strip (unbalanced books, stock-out alarms with the suggested
+  supplier, open production jobs, new orders, available update) and the
+  recent-orders / active-jobs queues.
+- **انبار** — items (filament spools and produced goods), stock movements
+  (append-only, with insufficient-stock refusal), the stock-out alarm list with
+  per-item supplier suggestion, and suppliers scored on quality / delivery /
+  price.
+- **سفارش‌ها** — order intake priced by the sheet engine, status lifecycle
+  (NEW → … → DELIVERED), proforma document (PDF, HTML fallback), and the
+  daily/weekly/monthly/annual sales report.
+- **تولید** — production jobs per order line: start / finish (consumes the
+  filament grams × quantity, adds the finished models to stock) / cancel, with
+  planned-vs-done summary and the required-filament figure.
+
 ## [1.0.4] — 2026-10-15
 
 v1.0.3 installed and ran correctly, but published **no delta packages** — the
