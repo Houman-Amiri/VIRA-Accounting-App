@@ -199,7 +199,8 @@ try {
     $assetName = [regex]::Match($spa.Content, 'src="/assets/([^"]+\.js)"').Groups[1].Value
     if (-not $assetName) { throw "the served shell references no hashed asset bundle" }
     $asset = Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:8787/assets/$assetName" -TimeoutSec 10
-    foreach ($marker in @("chart-stock", "job-submit", "order-submit", "movement-submit", "dashboard-alerts")) {
+    # v1.0.7: prove the installed bundle also carries the literal-XLSX pricing correction.
+    foreach ($marker in @("chart-stock", "job-submit", "order-submit", "movement-submit", "dashboard-alerts", "sheet-policy", "2780748.5")) {
         if ($asset.Content -notmatch $marker) { throw "the served bundle lacks the new UI marker '$marker' — the installed SPA is not the one that was built" }
     }
     $warehouse = Invoke-WebRequest -UseBasicParsing -SkipHttpErrorCheck "http://127.0.0.1:8787/api/v1/warehouse/items" -TimeoutSec 10
