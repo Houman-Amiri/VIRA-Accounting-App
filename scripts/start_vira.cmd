@@ -77,14 +77,12 @@ if defined VIRA_FIRST_RUN (
   echo.
 )
 
-REM --------------------------- server window + browser on health ----
-echo [VIRA] Starting server on http://127.0.0.1:%VIRA_PORT% ...
-start "V.I.R.A — server logs" cmd /k ""%VIRA_PY%" -m uvicorn app.main:app --host 127.0.0.1 --port %VIRA_PORT%"
-
-powershell -NoProfile -Command ^
-  "$u='http://127.0.0.1:%VIRA_PORT%/';for($i=0;$i -lt 120;$i++){try{$r=Invoke-WebRequest -UseBasicParsing ($u+'api/v1/health/live') -TimeoutSec 2;if($r.StatusCode -eq 200){Start-Process $u;exit 0}}catch{};Start-Sleep -Milliseconds 500};Write-Host '[VIRA] Server did not become healthy in time.';exit 1"
+REM --------- browser opener (waits for health) + server in this console ----
+echo [VIRA] Starting server on http://127.0.0.1:%VIRA_PORT% (logs below — Ctrl+C or close to stop)
+start "" powershell -NoProfile -Command ^
+  "$u='http://127.0.0.1:%VIRA_PORT%/';for($i=0;$i -lt 180;$i++){try{$r=Invoke-WebRequest -UseBasicParsing ($u+'api/v1/health/live') -TimeoutSec 2;if($r.StatusCode -eq 200){Start-Process $u;exit 0}}catch{};Start-Sleep -Milliseconds 500}"
+"%VIRA_PY%" -m uvicorn app.main:app --host 127.0.0.1 --port %VIRA_PORT%
 if errorlevel 1 goto :fail
-echo [VIRA] Running. Close the "server logs" window to stop, or run scripts\stop_vira.ps1.
 exit /b 0
 
 :fail

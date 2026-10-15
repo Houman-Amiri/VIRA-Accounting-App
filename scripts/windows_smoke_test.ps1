@@ -92,7 +92,12 @@ if (-not (Test-Path $launcher)) { throw "launcher missing at $launcher" }
 # isolated first-run DB — leg 3's sentinel at data\vira.sqlite3 must stay untouched
 $env:SQLITE_DATABASE_PATH = Join-Path $env:LOCALAPPDATA "VIRA\data\vira-smoke-e2e.sqlite3"
 Remove-Item $env:SQLITE_DATABASE_PATH -Force -ErrorAction SilentlyContinue
-Start-Process -FilePath $launcher -WorkingDirectory $install | Out-Null
+$launchLog = Join-Path $env:LOCALAPPDATA "VIRA\logs\smoke-launch.log"
+New-Item -ItemType Directory -Force -Path (Split-Path $launchLog) | Out-Null
+Remove-Item $launchLog -Force -ErrorAction SilentlyContinue
+Start-Process -FilePath "cmd.exe" `
+    -ArgumentList "/c", "`"`"$launcher`" > `"$launchLog`" 2>&1`"" `
+    -WorkingDirectory $install -WindowStyle Hidden | Out-Null
 try {
     $ok = $false
     for ($i = 0; $i -lt 120; $i++) {
@@ -101,7 +106,10 @@ try {
             if ($r.StatusCode -eq 200) { $ok = $true; break }
         } catch { Start-Sleep -Milliseconds 500 }
     }
-    if (-not $ok) { throw "app did not become healthy on http://127.0.0.1:8787" }
+    if (-not $ok) {
+        $tail = if (Test-Path $launchLog) { (Get-Content $launchLog -Raw) } else { "<no launcher log>" }
+        throw "app did not become healthy on http://127.0.0.1:8787 — launcher output:`n$($tail.Substring([Math]::Max(0, $tail.Length - 1500)))"
+    }
     $home = Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:8787/" -TimeoutSec 5
     if ($home.StatusCode -ne 200 -or $home.Content -notmatch "root") { throw "SPA not served at /" }
     $creds = Join-Path $env:LOCALAPPDATA "VIRA\first-run-credentials.txt"
