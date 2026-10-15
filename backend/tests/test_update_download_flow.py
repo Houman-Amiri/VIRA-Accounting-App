@@ -107,7 +107,7 @@ def test_invalid_delta_cannot_be_applied(tmp_path, monkeypatch, extra, over):
     manager = update.UpdateManager()
     payload = delta_bytes(extra, **over)
     with zipfile.ZipFile(io.BytesIO(payload)) as archive:
-        assert set(extra).issubset(archive.namelist())  # fixture must retain attack names
+        assert set(extra).issubset(i.orig_filename for i in archive.infolist())  # raw attack names
     stub_stream(monkeypatch, payload)
     with pytest.raises((VerificationError, ValueError)):
         manager.start_download(check_for(payload), Settings(data_dir=tmp_path))
@@ -270,3 +270,21 @@ def test_release_generator_output_can_be_staged(tmp_path):
     assert any(op["op"] == "patch" for op in doc["operations"])
     assert (stage / "vira-updater.exe").read_bytes() == b"MZ-fixture-helper"
     assert (stage / "version.json").is_file()
+
+
+
+def test_rejects_raw_name_before_windows_zipfile_normalization(tmp_path, monkeypatch):
+    from app.services.update_staging import extract_delta
+
+    payload = delta_bytes({"files\\escape": b"bad"})
+    archive = tmp_path / "raw.zip"
+    archive.write_bytes(payload)
+    # Exercise ZipInfo's Windows branch on Linux too; do not weaken the guard.
+    monkeypatch.setattr(zipfile.os, "sep", "\\")
+    with zipfile.ZipFile(archive) as zf:
+        info = next(i for i in zf.infolist() if "escape" in i.filename)
+        assert info.filename == "files/escape"
+        assert info.orig_filename == "files\\escape"
+    with pytest.raises(VerificationError, match="unsafe delta path"):
+        extract_delta(archive, tmp_path / "payload", "1.5.0", "2.0.0")
+    assert not (tmp_path / "payload").exists()

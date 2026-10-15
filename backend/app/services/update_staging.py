@@ -39,7 +39,9 @@ def extract_delta(archive: Path, destination: Path, base: str, target: str) -> N
             raise VerificationError("delta expansion limit exceeded")
         names: set[str] = set()
         for info in infos:
-            name = safe_relative(info.filename)
+            # ZipInfo.filename normalizes backslashes on Windows and truncates
+            # NULs. Validate the original name, before those lossy conversions.
+            name = safe_relative(info.orig_filename)
             folded = name.casefold()
             if folded in names or stat.S_ISLNK(info.external_attr >> 16):
                 raise VerificationError("duplicate delta path or symbolic link")
