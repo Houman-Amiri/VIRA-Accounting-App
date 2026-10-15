@@ -7,6 +7,8 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+## [1.0.7] — 2026-10-15
+
 ### Fixed
 - **Literal pricing-workbook parity (repair phase 4, user-selected policy).**
   Previous tests repeated the application's normalized assumptions instead of
@@ -19,7 +21,7 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
   clearly marked derived values; reset restores constants as well as inputs.
   Orders/jobs use the same engine and derive unit-cost snapshots from the
   authored production total divided by quantity; existing saved prices remain
-  untouched. This correction is **not yet released**.
+  untouched. Installed-client verification remains pending in repair phase 4.
 
 ## [1.0.6] — 2026-10-15
 
