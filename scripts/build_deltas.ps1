@@ -24,6 +24,14 @@ if (-not (Test-Path $AppDir)) { Write-Host "[build_deltas] no app dir at $AppDir
 $repo = $env:GITHUB_REPOSITORY
 if (-not $repo) { $repo = "Houman-Amiri/VIRA-Accounting-App" }
 
+# gh api needs a token even for public repos — without one every base is
+# "skipped" and the release ships with deltas[] empty (silent false green)
+$prevEap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
+gh api rate_limit --jq ".rate.remaining" 2>$null | Out-Null
+$authOk = ($LASTEXITCODE -eq 0)
+$ErrorActionPreference = $prevEap
+if (-not $authOk) { throw "gh api is not authenticated — set GH_TOKEN (github.token) so base releases can be discovered" }
+
 $tags = git tag --list "v*" --sort=-v:refname | Select-Object -First $Keep
 $deltas = @()
 $tmp = Join-Path ([IO.Path]::GetTempPath()) "vira-delta-base"

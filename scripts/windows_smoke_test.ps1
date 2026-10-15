@@ -39,7 +39,8 @@ if (Test-Path $legacyRoot) { Remove-Item $legacyRoot -Recurse -Force }
 New-Item -ItemType Directory -Force -Path $legacyRoot | Out-Null
 $repo = if ($env:GITHUB_REPOSITORY) { $env:GITHUB_REPOSITORY } else { "Houman-Amiri/VIRA-Accounting-App" }
 $upgraded = $false
-foreach ($delta in (Get-ChildItem (Split-Path $Setup) -Filter "*delta*.zip" | Sort-Object Name -Descending)) {
+$deltaZips = Get-ChildItem (Split-Path $Setup) -Filter "*delta*.zip" | Sort-Object Name -Descending
+foreach ($delta in $deltaZips) {
     if ($delta.Name -notmatch "delta-from-v([\d.]+)\.zip") { continue }
     $fromV = $Matches[1]
     if ($delta.Length -ge $setupSize) { throw "delta ($($delta.Length)) is not smaller than the setup ($setupSize)" }
@@ -78,7 +79,10 @@ foreach ($delta in (Get-ChildItem (Split-Path $Setup) -Filter "*delta*.zip" | So
     $upgraded = $true
     break
 }
-if (-not $upgraded) { Write-Output "[smoke] no delta with a downloadable base this run — skipping upgrade leg" }
+if (-not $upgraded) {
+    if ($deltaZips) { throw "deltas were published but none could be exercised against a previous portable base — delta updates are broken" }
+    Write-Output "[smoke] no deltas published this run (first release) — skipping upgrade leg"
+}
 
 Write-Output "[smoke] 3/5 data preservation"
 $dbHashAfter = (Get-FileHash -Algorithm SHA256 $db).Hash

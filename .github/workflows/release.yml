@@ -96,6 +96,7 @@ jobs:
       - name: Delta update packages vs previous release tags (Phase 8 §5)
         shell: pwsh
         env:
+          GH_TOKEN: ${{ github.token }}
           VIRA_UPDATE_SIGNING_KEY: ${{ secrets.VIRA_UPDATE_SIGNING_KEY }}
         run: |
           $out = (pwsh -NoProfile -File ./scripts/build_deltas.ps1 -Version "${{ env.VIRA_VERSION }}" -OutDir dist-release *>&1 | Out-String)
@@ -109,6 +110,8 @@ jobs:
 
       - name: Windows install/upgrade/rollback smoke test (Phase 8 §9)
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           $setup = (Get-ChildItem dist-release/VIRA-Setup-*.exe | Select-Object -First 1).FullName
           $out = ""
