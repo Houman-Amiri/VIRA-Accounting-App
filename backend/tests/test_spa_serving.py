@@ -70,6 +70,13 @@ async def test_shell_ignores_conditional_requests(spa_client) -> None:
     assert "no-store" in r.headers["cache-control"]
 
 
+async def test_shell_answers_head(spa_client) -> None:
+    """Health probes and some browsers use HEAD — the shell must not 405."""
+    r = await spa_client.head("/")
+    assert r.status_code == 200
+    assert "no-store" in r.headers["cache-control"]
+
+
 async def test_hashed_assets_are_immutable(spa_client) -> None:
     r = await spa_client.get(f"/assets/index-{BUILD_ID}.js")
     assert r.status_code == 200

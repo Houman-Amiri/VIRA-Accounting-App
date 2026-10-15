@@ -240,7 +240,7 @@ def _mount_spa(app: FastAPI, dist: Path) -> None:
     if assets.is_dir():
         app.mount("/assets", _ImmutableAssets(directory=str(assets)), name="spa-assets")
 
-    @app.get("/{full_path:path}", include_in_schema=False)
+    @app.api_route("/{full_path:path}", methods=["GET", "HEAD"], include_in_schema=False)
     def spa_shell(full_path: str) -> Response:
         if full_path.startswith("api/"):
             # Unknown API paths must stay JSON 404s, never the SPA shell.
