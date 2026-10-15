@@ -222,7 +222,7 @@ You are a **world-class Iranian full-stack Windows app developer** — expert in
 
 ## Annex A — `قیمت نهایی.xlsx` Extracted Relations (preliminary)
 
-Source: `قیمت نهایی.xlsx`, single `Sheet1`, cells A1:F35. This is the basis for the **Sales Price Calculations page** (Phase 1 → Production). Phase 1 must formalize these relations into the product spec and normalize the dimensional quirks noted below. All amounts in **Toman**.
+Source: `قیمت نهایی.xlsx`, single `Sheet1`, cells A1:F35. This is the basis for the **Sales Price Calculations page** (Phase 1 → Production). Repair phase 4 user decision: preserve the authored formulas literally, including their dimensional quirks; do not silently normalize them. All amounts in **Toman**.
 
 ### A.1 Constants («ثابتها»)
 
@@ -238,7 +238,7 @@ Source: `قیمت نهایی.xlsx`, single `Sheet1`, cells A1:F35. This is the b
 | B9 | حلقه و زنجیر | Ring & chain (chain variant) | 8000 | Toman |
 | B10 | هزینه ارسال محموله | Shipment cost (per order/shipment) | 150000 | Toman |
 
-*(B8 نایلون بسته بندی is defined but not referenced by any formula — confirm intended use, e.g., inside packaging cost.) Also note B2 (printer power) is defined but not referenced by B19, which uses `B4*B14` only — the authored sheet omits `power × hours`; Phase 1 must decide whether to include `B2` (`1.3 × B14 × B4`).*
+*(B8 and B2 are defined but unused. Repair phase 4: the user selected literal spreadsheet parity; leave both unused.)*
 
 ### A.2 Product specs («مشخصات محصول»)
 
@@ -277,16 +277,20 @@ Source: `قیمت نهایی.xlsx`, single `Sheet1`, cells A1:F35. This is the b
 | B34 | قیمت هر عدد با لیبل دیجی کالا | `=B33+B23` | + label cost |
 | E34 | … زنجیر دار | `=E33+B23` | + label cost |
 | B35 | **قیمت نهایی** (با هزینه لیبل و کمیسیون و ارسال) دیجی کالا | `=B34+B24+(B34*(10/100))` | final unit price = unit+commission+label + per-unit delivery + 10% buffer on B34 |
-| E35 | … زنجیر دار | `=E34+B24+(E34*(10/100))` | final unit price (chain) |
+| E35 | … زنجیر دار | `=E34+B24+(B34*(10/100))` | final unit price (chain), reusing the plain B34 buffer |
 
-### A.5 Quirks to normalize in Phase 1 ("compile every relation and make it as perfect as you can")
+### A.5 Authored quirks — preserve literally (repair phase 4 user decision)
 
-1. **B6** labeled «درصد» (percent) but used as a ×2.5 multiplier (i.e., 250% of cost). Formalize as `sale_price = cost × profit_factor` with configurable factor.
-2. **B31** hardcodes `13.1` instead of referencing **B7**; and chain-variant commission (E33) reuses B31 (computed from non-chain B29) instead of `E29*B7/100`.
+1. **B6** labeled «درصد» (percent) but used as a ×2.5 multiplier (i.e., 250% of cost). Use it as a multiplier, exactly as the formula does.
+2. **B31** hardcodes `13.1` instead of referencing **B7**; and chain-variant commission (E33) reuses B31 (computed from non-chain B29) instead of `E29*B7/100`. Preserve the literal 13.1% and shared B31. B7 is display-only.
 3. **B32** mixes total (B28) with per-unit (B24) — dimensional inconsistency.
-4. **B2** (printer power kW) and **B8** (packaging nylon) are defined but unused by formulas — decide whether to wire them in (e.g., electricity `=B2*B14*B4`, packaging inside B21).
-5. **B35** adds B24 again plus a 10% contingency on B34; the 10% is an unnamed constant — expose it as a configurable "marketplace risk/return buffer".
+4. **B2** (printer power kW) and **B8** (packaging nylon) are defined but unused by formulas — do not wire them into the calculation.
+5. **B35** adds B24 again plus a 10% contingency on B34; the 10% is a literal constant. **E35 also references plain B34**, not E34, for its buffer; preserve this shared value.
 6. Currency is implicitly **Toman** everywhere; the page must follow §Phase-7 currency rules (Persian numerals, Toman default, LTR-isolated figures).
+7. B25 is **not** multiplied by B15. E25 adds only `B15*B9`. Both B29 and E29 then divide by B15. Preserve this even when quantity exceeds one.
+8. Reference sample (B13=240, B14=10, B15=1): **B35=2760748.5, E35=2780748.5 Toman**. The previously reported E35=2785630.5 was the app's normalized result, not the XLSX value.
+9. Reproducible reference: `scripts/extract_pricing_reference.py --check` validates the fixture against the original workbook formulas, cached values and SHA-256. The frontend tests compare all formula cells for seven scenarios, independently of app pricing logic. Changes affect new calculations only; never rewrite saved order/production price snapshots.
+
 
 ---
 

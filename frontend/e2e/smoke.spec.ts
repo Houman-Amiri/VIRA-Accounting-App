@@ -67,3 +67,22 @@ test("journal form enforces zero-balance before submit", async ({ page }) => {
   await expect(page.getByTestId("balanced-badge")).toBeVisible();
   await expect(page.getByTestId("submit-entry")).toBeEnabled();
 });
+
+test("pricing reproduces the original Excel cells for single and multiple quantities", async ({
+  page,
+}) => {
+  await login(page);
+  await page.goto("/price-calc");
+  const final = page.getByTestId("row-unitFinalPrice");
+  await expect(final).toContainText("۲٬۷۶۰٬۷۴۸.۵");
+  await expect(final).toContainText("۲٬۷۸۰٬۷۴۸.۵");
+  await expect(final).toContainText("E35");
+  await page.getByTestId("input-qty").fill("۱۰");
+  await expect(final).toContainText("۲۹۱٬۱۹۴.۸۵");
+  await expect(final).toContainText("۳۱۱٬۱۹۴.۸۵");
+  await page.getByTestId("const-filamentPerGram").fill("9000");
+  await page.getByRole("button", { name: "مقادیر نمونهٔ اکسل" }).click();
+  await expect(page.getByTestId("input-qty")).toHaveValue("1");
+  await expect(page.getByTestId("const-filamentPerGram")).toHaveValue("3000");
+  await expect(final).toContainText("۲٬۷۸۰٬۷۴۸.۵");
+});

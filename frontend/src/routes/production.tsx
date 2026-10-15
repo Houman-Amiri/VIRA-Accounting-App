@@ -164,7 +164,7 @@ export function ProductionPage(): React.JSX.Element {
       let unitPrice = "0";
       try {
         const priced = computePrice(inputs, DEFAULT_CONSTANTS);
-        unitCost = priced.unitProductionWithChain.toFixed(4);
+        unitCost = priced.unitProductionCost.toFixed(4);
         unitPrice = priced.unitFinalPrice.toFixed(4);
       } catch {
         // invalid numbers → the job is still created with zero price snapshot
@@ -496,7 +496,8 @@ export function ProductionPage(): React.JSX.Element {
             </div>
             <p className="text-xs text-muted-foreground">
               بهای تمام‌شده و قیمت فروش هر عدد هنگام ثبت، از ماشین‌حساب قیمت‌گذاری (فایل اکسل)
-              محاسبه و ذخیره می‌شود.
+              محاسبه و ذخیره می‌شود. در این فرمول، وزن و زمان ورودی بدون ضرب خودکار در تعداد استفاده
+              می‌شوند و بهای تولید کل اکسل برای ثبت بهای واحد بر تعداد تقسیم می‌شود.
             </p>
             <Button
               className="w-full"

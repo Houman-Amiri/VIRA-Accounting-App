@@ -1,25 +1,11 @@
 /**
- * Sales Price Calculations — **exact** model of `قیمت نهایی.xlsx` (Annex A of
- * MASTER_PROMPT.md). Every formula below mirrors one cell of Sheet1 so a price
- * computed here is byte-for-byte the sheet's number; all math is decimal.js,
- * never native floats. Currency: Toman.
- *
- * Cell map (see Annex A):
- *   B18 = B13*B3   filament      = weight × price/gram
- *   B19 = B4*B14   electricity   = price/kWh × hours   (B2 power is optional, off
- *                                                      by default — the sheet's
- *                                                      B19 ignores it)
- *   B20 = B5*B14   depreciation
- *   B25 = SUM(B18:B20)                 production per unit
- *   E25 = B25 + B15*B9                 + ring & chain × qty (chain variant)
- *   B21 = B10 / B22 = B21/B15          shipment, per-unit share
- *   B23 label (B8 nylon optional, off by default — unused by the sheet)
- *   B24 = B23+B22                      delivery bundle per unit
- *   B28 = (production) × B6            sale total;  B29 = B28/B15 per unit
- *   B31 = B29 × commission%            unit commission
- *   B33 = B29+B31                      with commission
- *   B34 = B33+B23                      with label
- *   B35 = B34 + B24 + B34×buffer%      FINAL unit price (E35 for chain)
+ * Literal model of `قیمت نهایی.xlsx` (Sheet1), selected by the user in repair
+ * phase 4. Do NOT silently normalize dimensional quirks:
+ * - B25 is NOT multiplied by quantity; E25 = B25 + quantity * chain cost.
+ * - B31 uses literal 13.1%, not B7, and BOTH B33/E33 reuse that plain commission.
+ * - BOTH B35/E35 reuse the plain B34 * 10% buffer; B2/B8 are unused.
+ * All money arithmetic is decimal.js. Only fixed-scale API/display boundaries
+ * round. Direct sales are an explicit extension (commission zero), not XLSX.
  */
 import Decimal from "decimal.js";
 import { toDecimal, type MoneyLike } from "./money";
@@ -42,84 +28,61 @@ export function parseNum(value: MoneyLike | null | undefined): Decimal {
 }
 
 export interface PriceConstants {
-  /** B2 — printer power (kW). Applied only when `applyPrinterPower` is true. */
-  printerPowerKw: MoneyLike;
-  /** B3 — filament price per gram (Toman). */
-  filamentPerGram: MoneyLike;
-  /** B4 — electricity price per kWh (Toman). */
-  electricityPerKwh: MoneyLike;
-  /** B5 — printer depreciation per hour (Toman). */
-  depreciationPerHour: MoneyLike;
-  /** B6 — profit factor (×cost). */
-  profitFactor: MoneyLike;
-  /** B7 — marketplace commission (%). */
-  commissionPercent: MoneyLike;
-  /** B8 — packaging nylon per unit (Toman). Applied only when `applyNylon`. */
-  nylonPerUnit: MoneyLike;
-  /** B9 — ring & chain per unit (Toman). */
-  chainPerUnit: MoneyLike;
-  /** B10 — shipment cost per batch/mahmule (Toman). */
-  shipmentPerBatch: MoneyLike;
-  /** B23 — label cost per unit (Toman). */
-  labelPerUnit: MoneyLike;
-  /** B35 — risk/return buffer (%) — the sheet's literal 10%. */
-  bufferPercent: MoneyLike;
-  /** Wire B2 into the electricity line (`power × hours × price`). Sheet: false. */
-  applyPrinterPower: boolean;
-  /** Wire B8 into the delivery bundle. Sheet: false (B8 is unused there). */
-  applyNylon: boolean;
+  printerPowerKw: MoneyLike; // B2: defined but unused in the workbook
+  filamentPerGram: MoneyLike; // B3
+  electricityPerKwh: MoneyLike; // B4
+  depreciationPerHour: MoneyLike; // B5
+  profitFactor: MoneyLike; // B6 (multiplier, not percent)
+  commissionPercent: MoneyLike; // B7: defined but B31 hardcodes 13.1%
+  nylonPerUnit: MoneyLike; // B8: defined but unused in the workbook
+  chainPerUnit: MoneyLike; // B9
+  shipmentPerBatch: MoneyLike; // B10
+  labelPerUnit: MoneyLike; // B23
 }
 
 export const DEFAULT_CONSTANTS: PriceConstants = {
-  printerPowerKw: "1.3", // B2
-  filamentPerGram: "3000", // B3
-  electricityPerKwh: "1400", // B4
-  depreciationPerHour: "10000", // B5
-  profitFactor: "2.5", // B6
-  commissionPercent: "13.1", // B7
-  nylonPerUnit: "2000", // B8
-  chainPerUnit: "8000", // B9
-  shipmentPerBatch: "150000", // B10
-  labelPerUnit: "8000", // B23
-  bufferPercent: "10", // B35 (unnamed literal in the sheet)
-  applyPrinterPower: false,
-  applyNylon: false,
+  printerPowerKw: "1.3",
+  filamentPerGram: "3000",
+  electricityPerKwh: "1400",
+  depreciationPerHour: "10000",
+  profitFactor: "2.5",
+  commissionPercent: "13.1",
+  nylonPerUnit: "2000",
+  chainPerUnit: "8000",
+  shipmentPerBatch: "150000",
+  labelPerUnit: "8000",
 };
 
 export interface PriceInputs {
-  /** B13 — product weight per unit (g). */
+  /** B13/B14 are used as entered, never automatically multiplied by B15. */
   weightG: MoneyLike;
-  /** B14 — print time per unit (h). */
   printHours: MoneyLike;
-  /** B15 — quantity (pcs). */
-  quantity: MoneyLike;
+  quantity: MoneyLike; // B15
   variant: "plain" | "chain";
   channel: "direct" | "marketplace";
 }
 
 export interface PriceBreakdown {
-  // --- هزینهها (B18..B25/E25) ---
-  unitFilamentCost: Decimal; // B18
-  unitEnergyCost: Decimal; // B19
-  unitDepreciationCost: Decimal; // B20
-  unitBaseProduction: Decimal; // B25
-  unitChainCost: Decimal; // B9 share of E25
-  unitProductionWithChain: Decimal; // E25 per unit
-  batchProductionWithChain: Decimal; // E25
+  filamentCost: Decimal; // B18
+  energyCost: Decimal; // B19
+  depreciationCost: Decimal; // B20
+  baseProduction: Decimal; // B25
+  productionTotal: Decimal; // B25 or E25
+  /** Derived per-unit snapshot for orders/jobs; NOT a separate Excel cell. */
+  unitProductionCost: Decimal; // (B25 or E25) / B15
   batchShipment: Decimal; // B21
   unitShippingShare: Decimal; // B22
-  unitLabelCost: Decimal; // B23 (+ optional nylon)
+  unitLabelCost: Decimal; // B23
   unitDeliveryCost: Decimal; // B24
-  // --- قیمت فروش و کمیسیون (B28..B34) ---
   batchSalePrice: Decimal; // B28/E28
   unitSalePrice: Decimal; // B29/E29
-  unitCommission: Decimal; // B31
+  unitCommission: Decimal; // B31 (shared for both variants)
+  saleWithDelivery: Decimal; // B32 only (no E32 in the workbook)
   unitWithCommission: Decimal; // B33/E33
   unitWithLabel: Decimal; // B34/E34
-  unitBuffer: Decimal; // B34 × buffer%
-  // --- نتیجه (B35/E35) ---
+  unitBuffer: Decimal; // B34 * 10%, shared by both variants
   unitFinalPrice: Decimal; // B35/E35
-  batchFinalPrice: Decimal; // × quantity
+  batchFinalPrice: Decimal; // derived: unit final * quantity
 }
 
 export function computePrice(
@@ -134,62 +97,63 @@ export function computePrice(
   }
   if (q.lte(0)) throw new Error("ورودی نامعتبر: تیراژ باید بزرگ‌تر از صفر باشد");
 
-  const filamentPerGram = parseNum(c.filamentPerGram);
-  const electricityPerKwh = parseNum(c.electricityPerKwh);
-  const depreciationPerHour = parseNum(c.depreciationPerHour);
-  const profitFactor = parseNum(c.profitFactor);
-  const commissionPercent = parseNum(c.commissionPercent);
-  const chainPerUnit = parseNum(c.chainPerUnit);
-  const shipmentPerBatch = parseNum(c.shipmentPerBatch);
-  const labelPerUnit = parseNum(c.labelPerUnit);
-  const bufferPercent = parseNum(c.bufferPercent);
-  const nylonPerUnit = c.applyNylon ? parseNum(c.nylonPerUnit) : new Decimal(0);
+  const costs = [
+    c.filamentPerGram,
+    c.electricityPerKwh,
+    c.depreciationPerHour,
+    c.profitFactor,
+    c.chainPerUnit,
+    c.shipmentPerBatch,
+    c.labelPerUnit,
+  ].map(parseNum);
+  if (costs.some((value) => value.isNegative())) {
+    throw new Error("ورودی نامعتبر: ثابت‌های هزینه و ضریب سود نباید منفی باشند");
+  }
+  const [
+    filamentPerGram,
+    electricityPerKwh,
+    depreciationPerHour,
+    profitFactor,
+    chainPerUnit,
+    shipmentPerBatch,
+    labelPerUnit,
+  ] = costs;
 
-  // ---- B18/B19/B20/B25 — production cost per unit -------------------------
-  const unitFilamentCost = w.times(filamentPerGram); // B18 = B13*B3
-  const energyPrice = c.applyPrinterPower
-    ? parseNum(c.printerPowerKw).times(electricityPerKwh) // B2 wired in (opt-in)
-    : electricityPerKwh; // B19 = B4*B14 — as authored
-  const unitEnergyCost = energyPrice.times(t);
-  const unitDepreciationCost = depreciationPerHour.times(t); // B20 = B5*B14
-  const unitBaseProduction = unitFilamentCost.plus(unitEnergyCost).plus(unitDepreciationCost); // B25
-
-  // ---- E25 — ring & chain × qty (chain variant) ---------------------------
-  const unitChainCost = inputs.variant === "chain" ? chainPerUnit : new Decimal(0);
-  const unitProductionWithChain = unitBaseProduction.plus(unitChainCost);
-  const batchProductionWithChain = unitProductionWithChain.times(q); // E25
-
-  // ---- B21/B22/B23/B24 — packaging & shipment ----------------------------
-  const batchShipment = shipmentPerBatch; // B21 = B10
-  const unitShippingShare = batchShipment.div(q); // B22 = B21/B15
-  const unitLabelCost = labelPerUnit.plus(nylonPerUnit); // B23 (+ optional B8)
-  const unitDeliveryCost = unitLabelCost.plus(unitShippingShare); // B24 = B23+B22
-
-  // ---- B28/B29 — sale price with the profit factor ------------------------
-  const batchSalePrice = batchProductionWithChain.times(profitFactor); // B28
-  const unitSalePrice = batchSalePrice.div(q); // B29 = B28/B15
-
-  // ---- B31/B33/B34 — commission, label ------------------------------------
+  const filamentCost = w.times(filamentPerGram); // B18 = B13*B3
+  const energyCost = electricityPerKwh.times(t); // B19 = B4*B14 (NOT B2)
+  const depreciationCost = depreciationPerHour.times(t); // B20 = B5*B14
+  const baseProduction = filamentCost.plus(energyCost).plus(depreciationCost); // B25
+  const productionTotal =
+    inputs.variant === "chain"
+      ? baseProduction.plus(q.times(chainPerUnit)) // E25 = B25+(B15*B9)
+      : baseProduction;
+  const unitProductionCost = productionTotal.div(q); // derived snapshot
+  const batchShipment = shipmentPerBatch; // B21
+  const unitShippingShare = batchShipment.div(q); // B22
+  const unitLabelCost = labelPerUnit; // B23 (NOT B8)
+  const unitDeliveryCost = unitLabelCost.plus(unitShippingShare); // B24
+  const batchSalePrice = productionTotal.times(profitFactor); // B28/E28
+  const unitSalePrice = batchSalePrice.div(q); // B29/E29
+  const plainSalePrice = baseProduction.times(profitFactor); // B28, even for chain
   const unitCommission =
     inputs.channel === "marketplace"
-      ? unitSalePrice.times(commissionPercent).div(100) // B31
+      ? plainSalePrice.div(q).times("13.1").div(100) // B31 (NOT B7 or E29)
       : new Decimal(0);
-  const unitWithCommission = unitSalePrice.plus(unitCommission); // B33
-  const unitWithLabel = unitWithCommission.plus(unitLabelCost); // B34
-
-  // ---- B35 — final: + delivery + buffer -----------------------------------
-  const unitBuffer = unitWithLabel.times(bufferPercent).div(100);
-  const unitFinalPrice = unitWithLabel.plus(unitDeliveryCost).plus(unitBuffer); // B35
-  const batchFinalPrice = unitFinalPrice.times(q);
+  const saleWithDelivery = plainSalePrice.plus(unitDeliveryCost); // B32
+  const unitWithCommission = unitSalePrice.plus(unitCommission); // B33/E33
+  const unitWithLabel = unitWithCommission.plus(unitLabelCost); // B34/E34
+  const plainWithLabel = plainSalePrice.div(q).plus(unitCommission).plus(unitLabelCost); // B34
+  const unitBuffer = plainWithLabel.times("0.1"); // BOTH B35/E35 reference B34, not E34
+  const unitFinalPrice = unitWithLabel.plus(unitDeliveryCost).plus(unitBuffer); // B35/E35
+  const batchFinalPrice = unitFinalPrice.times(q); // derived, not a workbook cell
 
   return {
-    unitFilamentCost,
-    unitEnergyCost,
-    unitDepreciationCost,
-    unitBaseProduction,
-    unitChainCost,
-    unitProductionWithChain,
-    batchProductionWithChain,
+    filamentCost,
+    energyCost,
+    depreciationCost,
+    baseProduction,
+    productionTotal,
+    unitProductionCost,
     batchShipment,
     unitShippingShare,
     unitLabelCost,
@@ -197,6 +161,7 @@ export function computePrice(
     batchSalePrice,
     unitSalePrice,
     unitCommission,
+    saleWithDelivery,
     unitWithCommission,
     unitWithLabel,
     unitBuffer,
@@ -205,52 +170,56 @@ export function computePrice(
   };
 }
 
-/** Breakdown rows in the sheet's own order and wording (A.3 + A.4). */
-export const BREAKDOWN_ROWS: ReadonlyArray<{
+export interface PriceRow {
   key: keyof PriceBreakdown;
   label: string;
   cell: string;
+  chainCell?: string;
+  plainOnly?: boolean;
   strong?: boolean;
-}> = [
-  { key: "unitFilamentCost", label: "قیمت فیلامنت مصرفی (هر عدد)", cell: "B18" },
-  { key: "unitEnergyCost", label: "هزینه برق مصرفی (هر عدد)", cell: "B19" },
-  { key: "unitDepreciationCost", label: "هزینه استهلاک پرینت (هر عدد)", cell: "B20" },
-  { key: "unitBaseProduction", label: "جمع هزینه‌های تولید (هر عدد)", cell: "B25" },
-  { key: "unitChainCost", label: "حلقه و زنجیر (هر عدد)", cell: "B9" },
-  {
-    key: "unitProductionWithChain",
-    label: "جمع هزینه‌های تولید با زنجیر (هر عدد)",
-    cell: "E25",
-  },
-  { key: "batchShipment", label: "هزینه ارسال محموله (کل)", cell: "B21" },
+}
+
+/** Original sheet order, cell addresses and wording; raw costs are not per-unit. */
+export const BREAKDOWN_ROWS: ReadonlyArray<PriceRow> = [
+  { key: "filamentCost", label: "قیمت فیلامنت مصرفی", cell: "B18" },
+  { key: "energyCost", label: "هزینه برق مصرفی", cell: "B19" },
+  { key: "depreciationCost", label: "هزینه استهلاک پرینت محصول", cell: "B20" },
+  { key: "batchShipment", label: "هزینه بسته‌بندی و ارسال محموله", cell: "B21" },
   { key: "unitShippingShare", label: "هزینه بسته‌بندی و ارسال هر عدد", cell: "B22" },
-  { key: "unitLabelCost", label: "هزینه لیبل (هر عدد)", cell: "B23" },
+  { key: "unitLabelCost", label: "هزینه لیبل", cell: "B23" },
   { key: "unitDeliveryCost", label: "جمع هزینه‌های ارسال یک عدد", cell: "B24" },
+  { key: "productionTotal", label: "جمع هزینه‌های تولید", cell: "B25", chainCell: "E25" },
 ];
 
-/** Final rows (kept separate so RTL table headers stay readable). */
-export const SALE_ROWS: ReadonlyArray<{
-  key: keyof PriceBreakdown;
-  label: string;
-  cell: string;
-  strong?: boolean;
-}> = [
-  { key: "batchSalePrice", label: "قیمت فروش کل (با ضریب سود)", cell: "B28" },
-  { key: "unitSalePrice", label: "قیمت فروش هر عدد", cell: "B29" },
-  { key: "unitCommission", label: "کمیسیون بازارگاه (هر عدد)", cell: "B31" },
-  { key: "unitWithCommission", label: "قیمت هر عدد با کمیسیون", cell: "B33" },
-  { key: "unitWithLabel", label: "قیمت هر عدد با لیبل", cell: "B34" },
-  { key: "unitBuffer", label: "بافر ریسک و مرجوعی", cell: "B35 ×٪" },
+export const SALE_ROWS: ReadonlyArray<PriceRow> = [
+  { key: "batchSalePrice", label: "قیمت فروش کل", cell: "B28", chainCell: "E28" },
+  { key: "unitSalePrice", label: "قیمت فروش هر عدد محصول", cell: "B29", chainCell: "E29" },
+  { key: "unitCommission", label: "کمیسیون بازارگاه برای هر عدد (مشترک)", cell: "B31" },
+  {
+    key: "saleWithDelivery",
+    label: "قیمت کل با هزینه ارسال بازارگاه",
+    cell: "B32",
+    plainOnly: true,
+  },
+  { key: "unitWithCommission", label: "قیمت هر عدد با کمیسیون", cell: "B33", chainCell: "E33" },
+  { key: "unitWithLabel", label: "قیمت هر عدد با لیبل", cell: "B34", chainCell: "E34" },
+  { key: "unitBuffer", label: "بافر ریسک و مرجوعی (۱۰٪)", cell: "B34×10%" },
   {
     key: "unitFinalPrice",
     label: "قیمت نهایی هر عدد (با لیبل، کمیسیون و ارسال)",
     cell: "B35",
+    chainCell: "E35",
     strong: true,
   },
-  { key: "batchFinalPrice", label: "قیمت نهایی کل (× تیراژ)", cell: "B35×B15", strong: true },
+  {
+    key: "batchFinalPrice",
+    label: "قیمت نهایی کل (محاسبهٔ تکمیلی × تیراژ)",
+    cell: "B35×B15",
+    chainCell: "E35×B15",
+    strong: true,
+  },
 ];
 
-/** The sheet's own example (B13=240 g, B14=10 h, B15=1) — for verification. */
 export const SHEET_EXAMPLE_INPUTS: PriceInputs = {
   weightG: "240",
   printHours: "10",
@@ -259,8 +228,5 @@ export const SHEET_EXAMPLE_INPUTS: PriceInputs = {
   channel: "marketplace",
 };
 
-/** Expected B35/E35 for `SHEET_EXAMPLE_INPUTS` with `DEFAULT_CONSTANTS`. */
-export const SHEET_EXPECTED = {
-  plain: "2760748.5",
-  chain: "2785630.5",
-} as const;
+/** Independently checked against the original cached B35/E35, not normalized math. */
+export const SHEET_EXPECTED = { plain: "2760748.5", chain: "2780748.5" } as const;

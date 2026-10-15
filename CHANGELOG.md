@@ -7,6 +7,20 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Fixed
+- **Literal pricing-workbook parity (repair phase 4, user-selected policy).**
+  Previous tests repeated the application's normalized assumptions instead of
+  validating the XLSX. Preserve B25/E25 quantity behavior, share B31 commission
+  and the plain B34×10% buffer across variants, and leave B2/B7/B8 unused.
+  The real cached sample is B35=2760748.5 and **E35=2780748.5 Toman**, not
+  E35=2785630.5. A stdlib-only extractor verifies all formulas and cached values,
+  pins the workbook SHA-256 and generates seven independent regression cases.
+- Pricing table now shows correct B/E cell references, the actual B32 row and
+  clearly marked derived values; reset restores constants as well as inputs.
+  Orders/jobs use the same engine and derive unit-cost snapshots from the
+  authored production total divided by quantity; existing saved prices remain
+  untouched. This correction is **not yet released**.
+
 ## [1.0.6] — 2026-10-15
 
 Makes a release *provable*: v1.0.5 installed the new code but a browser could keep

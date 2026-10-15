@@ -241,7 +241,7 @@ export function OrdersPage(): React.JSX.Element {
       const result = computePrice(inputs, DEFAULT_CONSTANTS);
       updateLine(index, {
         unit_price: result.unitFinalPrice.toFixed(4),
-        unit_cost: result.unitProductionWithChain.toFixed(4),
+        unit_cost: result.unitProductionCost.toFixed(4),
       });
       setMessage("قیمت از ماشین‌حساب قیمت‌گذاری محاسبه شد ✓");
     } catch (error) {
@@ -487,6 +487,10 @@ export function OrdersPage(): React.JSX.Element {
 
             <div className="space-y-2 rounded-md border p-2">
               <p className="text-xs font-medium">اقلام سفارش</p>
+              <p className="text-xs text-muted-foreground">
+                محاسبهٔ قیمت عین فرمول اکسل است: وزن و زمان بدون ضرب خودکار در تعداد وارد فرمول
+                می‌شوند؛ بهای تولید کل اکسل برای ثبت بهای واحد بر تعداد تقسیم می‌شود.
+              </p>
               {form.items.map((line, index) => (
                 <div
                   key={index}
