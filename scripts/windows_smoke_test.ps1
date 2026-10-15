@@ -15,6 +15,33 @@ param(
 
 $ErrorActionPreference = "Stop"
 if ($env:GITHUB_ACTIONS -ne "true") { throw "This destructive smoke fixture is for an isolated GitHub Actions runner only." }
+function Stop-SmokeRestartedApp([string]$AppDir, [int]$Port) {
+    # The helper restarts asynchronously. Wait for the upgraded app before
+    # stopping the launcher tree; otherwise cleanup can race a not-yet-born child.
+    $healthy = $false
+    for ($i = 0; $i -lt 120; $i++) {
+        try {
+            $r = Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:${Port}/api/v1/health/live" -TimeoutSec 2
+            if ($r.StatusCode -eq 200) { $healthy = $true; break }
+        } catch { Start-Sleep -Milliseconds 500 }
+    }
+    if (-not $healthy) { throw "restarted app failed to restart healthy on port $Port" }
+    $launchers = @(Get-CimInstance Win32_Process -Filter "Name='cmd.exe'" |
+        Where-Object { $_.CommandLine -like "*$AppDir*" })
+    foreach ($launcherProcess in $launchers) {
+        & taskkill.exe /PID $launcherProcess.ProcessId /T /F 2>&1 | Out-Null
+    }
+    $interpreters = @(Get-Process -Name python,pythonw -ErrorAction SilentlyContinue |
+        Where-Object { $_.Path -and $_.Path.StartsWith($AppDir + "\", [StringComparison]::OrdinalIgnoreCase) })
+    foreach ($interpreter in $interpreters) {
+        Stop-Process -Id $interpreter.Id -Force -ErrorAction SilentlyContinue
+        $interpreter.WaitForExit()
+    }
+    $remaining = @(Get-Process -Name python,pythonw -ErrorAction SilentlyContinue |
+        Where-Object { $_.Path -and $_.Path.StartsWith($AppDir + "\", [StringComparison]::OrdinalIgnoreCase) })
+    if ($remaining.Count) { throw "restarted app still holds the SQLite fixture open" }
+}
+
 $tmp = Join-Path ([IO.Path]::GetTempPath()) "vira-smoke"
 $install = Join-Path $tmp "install with spaces"
 New-Item -ItemType Directory -Force -Path $install | Out-Null
@@ -125,30 +152,7 @@ foreach ($delta in $deltaZips) {
     if (-not $man.files_manifest_sha256) { throw "legacy upgrade did not rewrite install_manifest.json" }
     if (-not (Test-Path (Join-Path $legacy "start_vira.cmd"))) { throw "legacy upgrade lost start_vira.cmd" }
     if (-not (Test-Path (Join-Path $legacy "vira-updater.exe"))) { throw "upgrade did not leave vira-updater.exe in the install (the next update would fail)" }
-    # The helper restarts asynchronously. Wait for the upgraded app before
-    # stopping the launcher tree; otherwise cleanup can race a not-yet-born child.
-    $healthy = $false
-    for ($i = 0; $i -lt 120; $i++) {
-        try {
-            $r = Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:8799/api/v1/health/live" -TimeoutSec 2
-            if ($r.StatusCode -eq 200) { $healthy = $true; break }
-        } catch { Start-Sleep -Milliseconds 500 }
-    }
-    if (-not $healthy) { throw "upgraded legacy app failed to restart healthy on port 8799" }
-    $launchers = @(Get-CimInstance Win32_Process -Filter "Name='cmd.exe'" |
-        Where-Object { $_.CommandLine -like "*$legacy*" })
-    foreach ($launcherProcess in $launchers) {
-        & taskkill.exe /PID $launcherProcess.ProcessId /T /F 2>&1 | Out-Null
-    }
-    $interpreters = @(Get-Process -Name python,pythonw -ErrorAction SilentlyContinue |
-        Where-Object { $_.Path -and $_.Path.StartsWith($legacy + "\", [StringComparison]::OrdinalIgnoreCase) })
-    foreach ($interpreter in $interpreters) {
-        Stop-Process -Id $interpreter.Id -Force -ErrorAction SilentlyContinue
-        $interpreter.WaitForExit()
-    }
-    $remaining = @(Get-Process -Name python,pythonw -ErrorAction SilentlyContinue |
-        Where-Object { $_.Path -and $_.Path.StartsWith($legacy + "\", [StringComparison]::OrdinalIgnoreCase) })
-    if ($remaining.Count) { throw "legacy app still holds the SQLite fixture open" }
+    Stop-SmokeRestartedApp -AppDir $legacy -Port 8799
     Write-Output "[smoke] legacy $tag -> v$v OK — version + manifest rewritten, files verified"
     $upgraded = $true
     break
@@ -184,9 +188,16 @@ if (-not (Test-Path (Join-Path $stage "update.json"))) {
         ConvertTo-Json | Set-Content -Encoding utf8 (Join-Path $stage "update.json")
 }
 $failed = $false
+$previousRollbackPort = $env:VIRA_PORT
+$env:VIRA_PORT = "8798"
 try { ./scripts/vira_updater.ps1 -Stage $stage -Log (Join-Path $stage "rollback.log") -InstallDir $install -ForceFailure } catch { $failed = $true }
+finally {
+    if ($null -ne $previousRollbackPort) { $env:VIRA_PORT = $previousRollbackPort } else { Remove-Item Env:VIRA_PORT -ErrorAction SilentlyContinue }
+}
 if (-not $failed) { throw "forced failure did not roll back" }
 if (-not (Test-Path (Join-Path $install "rollback\prev"))) { throw "rollback snapshot missing" }
+Stop-SmokeRestartedApp -AppDir $install -Port 8798
+if ((Get-FileHash -Algorithm SHA256 $db).Hash -ne $dbHashBefore) { throw "user data changed across rollback" }
 Write-Output "[smoke] rollback restored the previous version"
 
 # ---------------------------------------------------------------------------
