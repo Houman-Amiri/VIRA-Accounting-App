@@ -32,9 +32,10 @@ function Find-PortableUrl([string]$Repo, [string]$Tag, [string]$BaseV) {
         try {
             $req = [System.Net.HttpWebRequest]::Create($url)
             $req.Method = "HEAD"
-            $req.AllowAutoRedirect = $true
+            $req.AllowAutoRedirect = $false
             $resp = $req.GetResponse()
-            $ok = ([int]$resp.StatusCode -eq 200)
+            # 302 = exists (signed asset URL follows); 404 = no such asset
+            $ok = ([int]$resp.StatusCode -in 200, 302)
             $resp.Close()
         } catch { $ok = $false }
         if ($ok) { return $url }
