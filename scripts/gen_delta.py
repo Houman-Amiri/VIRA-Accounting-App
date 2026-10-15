@@ -31,6 +31,8 @@ from app.services.update_engine import (  # noqa: E402
     OpKind,
     build_manifest,
     manifest_from_json,
+    manifest_sha256,
+    manifest_to_json,
     plan_delta,
     sha256_bytes,
 )
@@ -74,6 +76,17 @@ def main() -> int:
             zf.writestr(member, data)
             hashes[member] = sha256_bytes(data)
         zf.writestr("delete.json", json.dumps({"deleted": deletes}, indent=2))
+        # the updater rewrites these after apply (§6 step 3) — without them the
+        # next delta would diff against a stale baseline
+        target_doc = manifest_to_json(target)
+        target_doc["files_manifest_sha256"] = manifest_sha256(target)
+        zf.writestr(
+            "install_manifest.json",
+            json.dumps(target_doc, indent=2, ensure_ascii=False),
+        )
+        target_version_json = args.target_dir / "version.json"
+        if target_version_json.is_file():
+            zf.writestr("version.json", target_version_json.read_bytes())
         update_doc = plan.to_json()
         update_doc["hashes"] = hashes
         update_doc["delete_sha256"] = sha256_bytes(

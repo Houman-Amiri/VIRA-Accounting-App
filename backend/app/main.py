@@ -44,6 +44,27 @@ from .services.scheduler import SchedulerManager
 log = logging.getLogger(__name__)
 
 
+def spa_static_dir(module_file: Path | None = None) -> Path | None:
+    """Locate the built SPA. Works in the dev checkout AND the installed payload.
+
+    * ``VIRA_STATIC_DIR`` env — explicit override
+    * ``<install>/static`` — installed payload (``{app}/app/main.py`` → ``{app}/static``)
+    * ``<repo>/frontend/dist`` — dev checkout (``<repo>/backend/app/main.py``)
+    """
+    import os
+
+    here = (module_file or Path(__file__)).resolve()
+    candidates = [
+        Path(os.environ["VIRA_STATIC_DIR"]) if os.environ.get("VIRA_STATIC_DIR") else None,
+        here.parents[1] / "static",           # installed: {app}/static
+        here.parents[2] / "frontend" / "dist",  # dev: <repo>/frontend/dist
+    ]
+    for c in candidates:
+        if c is not None and c.is_dir():
+            return c
+    return None
+
+
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or load_settings()
     # Structured logging with mandatory sensitive-field redaction (Phase 5 §9).
@@ -158,8 +179,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(webhooks_api.router)
     app.include_router(exports_api.router, dependencies=[Depends(auditor_read_only)])
 
-    dist = Path(__file__).resolve().parents[2] / "frontend" / "dist"
-    if dist.is_dir():  # pragma: no cover - frontend build
+    dist = spa_static_dir()
+    if dist is not None:  # pragma: no cover - frontend build
         from fastapi.staticfiles import StaticFiles
 
         app.mount("/", StaticFiles(directory=str(dist), html=True), name="spa")

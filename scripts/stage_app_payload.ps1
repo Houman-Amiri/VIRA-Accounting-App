@@ -19,14 +19,29 @@ uv pip install --target "$OutDir/site-packages" -r "$OutDir/requirements.lock.tx
 Remove-Item "$OutDir/requirements.lock.txt"
 Copy-Item -Recurse backend/app "$OutDir/app"
 
+# alembic bits — migrate_vira.py resolves {app}\backend\alembic(.ini)
+New-Item -ItemType Directory -Force -Path "$OutDir/backend" | Out-Null
+Copy-Item backend/alembic.ini "$OutDir/backend/alembic.ini"
+Copy-Item -Recurse backend/alembic "$OutDir/backend/alembic"
+
 # compiled SPA (served from app/static)
 if (Test-Path frontend/dist) {
     New-Item -ItemType Directory -Force -Path "$OutDir/static" | Out-Null
     Copy-Item -Recurse frontend/dist/* "$OutDir/static/"
 }
 
-# native scripts
+# native scripts + root launcher (shortcuts target {app}\start_vira.cmd)
 Copy-Item -Recurse scripts "$OutDir/scripts"
+Copy-Item scripts/start_vira.cmd "$OutDir/start_vira.cmd"
+
+# bundled CPython 3.11 (python-build-standalone via uv) — the installed app
+# must run on machines without a system Python (v1.0.3 fix)
+uv python install 3.11 | Out-Null
+$pyExe = (uv python find 3.11).Trim()
+if (-not (Test-Path $pyExe)) { throw "uv python find 3.11 returned nothing" }
+$pyDir = Split-Path -Parent $pyExe
+Copy-Item -Recurse $pyDir "$OutDir/python"
+Write-Host "[stage_app_payload] bundled CPython from $pyDir"
 
 # version stamp (single source of truth: backend/pyproject.toml → version_info())
 @{

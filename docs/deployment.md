@@ -238,9 +238,8 @@ UI localization is Persian-only: react-i18next namespaces under `frontend/src/lo
 add/replace/patch/delete ops), `files/` (new/changed small files), `patches/`
 (BSDIFF40 patches for changed files > 256 KB), `delete.json`. Client selection:
 matching delta (typical download ≈ delta size, never the full setup) → bounded
-delta chain → full installer silent upgrade. Applying patches requires
-`{app}\tools\bspatch.exe`; without it the updater refuses and the client falls
-back to the full installer.
+delta chain → full installer silent upgrade. Patches are applied by `{app}\tools\bspatch.exe` when present, otherwise by
+`{app}\scripts\bspatch.py` on the bundled CPython (v1.0.3+).
 
 ### Zero data loss
 
@@ -257,4 +256,16 @@ this to validate installer/delta/updater/smoke changes before tagging.
 `workflow_dispatch` with a `version` input is also wired (requires an
 `actions:write`-capable token). Tags are immutable — a failed or unpublished
 tag never gets moved; fixes ship as a new patch version.
+
+### Installed app (v1.0.3+)
+
+* Launch from the Desktop/Start-Menu shortcut (`{app}\start_vira.cmd`): runs
+  migrations + seed (idempotent), then serves the SPA at `http://127.0.0.1:8787`.
+* The app is self-contained — a bundled CPython 3.11 lives in `{app}\python`;
+  no system Python is required.
+* First run prints the initial login (user `owner`) and writes
+  `%LOCALAPPDATA%\VIRA\first-run-credentials.txt`. Change the password after
+  first login. `VIRA_PORT` / `SQLITE_DATABASE_PATH` / `SESSION_SECRET` env vars
+  override the defaults; the session secret is generated once into
+  `%LOCALAPPDATA%\VIRA\session.secret`.
 

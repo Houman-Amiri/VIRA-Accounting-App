@@ -62,4 +62,53 @@ $failed = $false
 try { ./scripts/vira_updater.ps1 -Stage $stage -Log (Join-Path $stage "rollback.log") -InstallDir $install -ForceFailure } catch { $failed = $true }
 if (-not $failed) { throw "forced failure did not roll back" }
 if (-not (Test-Path (Join-Path $install "rollback\prev"))) { throw "rollback snapshot missing" }
-Write-Output "[smoke] rollback restored the previous version — all legs passed"
+Write-Output "[smoke] rollback restored the previous version"
+
+# ---------------------------------------------------------------------------
+Write-Output "[smoke] 5/5 shortcut integrity + real launch (first-run journey)"
+$shell = New-Object -ComObject WScript.Shell
+$menuDir = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\V.I.R.A"
+$desktop = [Environment]::GetFolderPath("Desktop")
+$lnkDirs = @($menuDir, $desktop)
+$checked = 0
+foreach ($dir in $lnkDirs) {
+    if (Test-Path $dir) {
+        Get-ChildItem $dir -Filter "*.lnk" | ForEach-Object {
+            $target = $shell.CreateShortcut($_.FullName).TargetPath
+            if (-not (Test-Path $target)) { throw "shortcut $($_.Name) targets missing file: $target" }
+            Write-Output "[smoke] shortcut ok: $($_.Name) -> $target"
+            $checked++
+        }
+    }
+}
+if ($checked -lt 2) { throw "expected Start-Menu + Desktop shortcuts, found $checked" }
+
+$launcher = Join-Path $install "start_vira.cmd"
+if (-not (Test-Path $launcher)) { throw "launcher missing at $launcher" }
+# isolated first-run DB — leg 3's sentinel at data\vira.sqlite3 must stay untouched
+$env:SQLITE_DATABASE_PATH = Join-Path $env:LOCALAPPDATA "VIRA\data\vira-smoke-e2e.sqlite3"
+Remove-Item $env:SQLITE_DATABASE_PATH -Force -ErrorAction SilentlyContinue
+Start-Process -FilePath $launcher -WorkingDirectory $install | Out-Null
+try {
+    $ok = $false
+    for ($i = 0; $i -lt 120; $i++) {
+        try {
+            $r = Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:8787/api/v1/health/live" -TimeoutSec 2
+            if ($r.StatusCode -eq 200) { $ok = $true; break }
+        } catch { Start-Sleep -Milliseconds 500 }
+    }
+    if (-not $ok) { throw "app did not become healthy on http://127.0.0.1:8787" }
+    $home = Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:8787/" -TimeoutSec 5
+    if ($home.StatusCode -ne 200 -or $home.Content -notmatch "root") { throw "SPA not served at /" }
+    $creds = Join-Path $env:LOCALAPPDATA "VIRA\first-run-credentials.txt"
+    if (-not (Test-Path $creds)) { throw "first-run credentials file was not created" }
+    Write-Output "[smoke] launch ok — healthy, SPA served, first-run credentials written"
+} finally {
+    Get-Process -Name python -ErrorAction SilentlyContinue |
+        Where-Object { $_.Path -like "$install*" } |
+        Stop-Process -Force -ErrorAction SilentlyContinue
+    Get-Process -Name cmd -ErrorAction SilentlyContinue |
+        Where-Object { $_.MainWindowTitle -like "*V.I.R.A*" } |
+        Stop-Process -Force -ErrorAction SilentlyContinue
+}
+Write-Output "[smoke] all legs passed"

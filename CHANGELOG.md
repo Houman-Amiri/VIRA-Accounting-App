@@ -7,6 +7,37 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+## [1.0.3] — 2026-10-15
+
+Fixes the broken installed experience reported after v1.0.2 (shortcut points
+at a missing file; launch does nothing).
+
+### Fixed
+- **Shortcuts targeted a file that never existed.** The installer pointed
+  Desktop/Start-Menu/Startup shortcuts and the finish-page «اجرای V.I.R.A» at
+  `{app}\start_vira.cmd`, but no such file was ever created — hence
+  «Missing Shortcut» and silent launch failures. `scripts/start_vira.cmd` now
+  ships at the payload root: finds Python (bundled → dev venv → PATH), runs the
+  safe migration + seed (idempotent), mints and shows owner credentials on
+  first run (`%LOCALAPPDATA%\VIRA\first-run-credentials.txt`), starts uvicorn
+  in a visible log window and opens `http://127.0.0.1:8787` when health is green.
+- **Bundled CPython 3.11** (python-build-standalone via uv) is now staged with
+  the app — the installed app runs on machines without a system Python.
+- **SPA serving in the installed layout** — `spa_static_dir()` now resolves
+  `{app}\static` (installed) as well as `<repo>/frontend/dist` (dev); before,
+  the mounted path pointed outside the install directory and `/` was a 404.
+- **`migrate_vira.py` on installed payloads** — `backend/alembic(.ini)` is
+  staged alongside the app so first-run migrations work.
+- **Delta baseline integrity** — `gen_delta` now packs `install_manifest.json`
+  + `version.json` into every delta (the updater rewrites them after apply;
+  without them the next delta would diff against a stale baseline).
+- **Delta patches without `tools\bspatch.exe`** — `scripts/bspatch.py`
+  (pure-Python, wraps the tested engine applier) is the updater's fallback,
+  run by the bundled interpreter.
+- **New smoke leg 5** resolves every installed shortcut via the Windows shell
+  (any missing target fails CI), then really launches the app and asserts
+  `/api/v1/health/live`, the SPA at `/`, and the first-run credentials file.
+
 ## [1.0.2] — 2026-10-15
 
 First **published** release. `v1.0.0` and `v1.0.1` tags exist but were never

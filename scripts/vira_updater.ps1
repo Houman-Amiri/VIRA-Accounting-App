@@ -132,11 +132,24 @@ try {
                 Write-Log "$($op.op) $rel"
             }
             "patch" {
-                if (-not (Test-Path $bspatch)) { Fail "tools\bspatch.exe missing — falling back requires the full installer" }
                 $patchFile = Join-Path $Stage ($op.patch -replace "/", "\")
+                $applier = $null; $applierArgs = @()
+                if (Test-Path $bspatch) {
+                    $applier = $bspatch; $applierArgs = @($target, $tmp, $patchFile)
+                } else {
+                    # pure-Python fallback shipped with the payload (v1.0.3+)
+                    $py = Join-Path $InstallDir "python\python.exe"
+                    if (-not (Test-Path $py)) { $py = "python" }
+                    $bspatchPy = Join-Path $InstallDir "scripts\bspatch.py"
+                    if (-not (Test-Path $bspatchPy)) { Fail "no patch applier available (tools\bspatch.exe / scripts\bspatch.py)" }
+                    $applier = $py; $applierArgs = @($bspatchPy, $target, $tmp, $patchFile)
+                }
                 $tmp = "$target.new"
-                & $bspatch $target $tmp $patchFile
-                if ($LASTEXITCODE -ne 0) { Fail "bspatch failed: $rel" }
+                $prevEap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
+                & $applier @applierArgs
+                $code = $LASTEXITCODE
+                $ErrorActionPreference = $prevEap
+                if ($code -ne 0 -or -not (Test-Path $tmp)) { Fail "bspatch failed: $rel" }
                 $hash = (Get-FileHash -Algorithm SHA256 $tmp).Hash.ToLower()
                 if ($op.sha256 -and $hash -ne $op.sha256.ToLower()) { Fail "patched SHA-256 mismatch: $rel" }
                 Move-Item $tmp $target -Force
