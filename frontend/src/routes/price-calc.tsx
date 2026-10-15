@@ -78,10 +78,9 @@ export function PriceCalcPage(): React.JSX.Element {
 
       <p className="text-xs text-muted-foreground">
         همهٔ فرمول‌ها عیناً از فایل <span className="num">قیمت نهایی.xlsx</span> برداشته شده‌اند؛
-        شمارهٔ سلول هر ردیف کنار آن نوشته شده تا بتوانید با اکسل تطبیق دهید. نمونهٔ خود فایل
-        (۲۴۰ گرم، ۱۰ ساعت، تیراژ ۱) باید بدهد{" "}
-        <span className="num">{SHEET_EXPECTED.plain}</span> تومان (ساده) و{" "}
-        <span className="num">{SHEET_EXPECTED.chain}</span> تومان (زنجیردار).
+        شمارهٔ سلول هر ردیف کنار آن نوشته شده تا بتوانید با اکسل تطبیق دهید. نمونهٔ خود فایل (۲۴۰
+        گرم، ۱۰ ساعت، تیراژ ۱) باید بدهد <span className="num">{SHEET_EXPECTED.plain}</span> تومان
+        (ساده) و <span className="num">{SHEET_EXPECTED.chain}</span> تومان (زنجیردار).
       </p>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -226,9 +225,8 @@ export function PriceCalcPage(): React.JSX.Element {
                 </tbody>
               </table>
               <p className="pt-3 text-xs text-muted-foreground">
-                «بافر ریسک» و «کمیسیون» فقط در کانال بازارگاه محاسبه می‌شوند؛ در فروش مستقیم
-                کمیسیون صفر است. هزینهٔ ارسال محموله بین تعداد سفارش تقسیم می‌شود (B22 = B21 ÷
-                B15).
+                «بافر ریسک» و «کمیسیون» فقط در کانال بازارگاه محاسبه می‌شوند؛ در فروش مستقیم کمیسیون
+                صفر است. هزینهٔ ارسال محموله بین تعداد سفارش تقسیم می‌شود (B22 = B21 ÷ B15).
               </p>
             </div>
           ) : (

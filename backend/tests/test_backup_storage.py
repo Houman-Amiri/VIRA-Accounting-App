@@ -17,6 +17,7 @@ from app.services.ledger import LedgerService
 from app.services.ocr import parse_receipt_text
 from app.services.scheduler import RecurringEntryService
 from app.services.storage import save_receipt, sniff_kind, strip_image_metadata
+from tests.conftest import alembic_head
 
 # ---------------- backups ----------------
 
@@ -231,4 +232,4 @@ def test_plain_bundle_and_migration_version(database, tmp_path: Path) -> None:
     assert result.encrypted is False
     drill = restore_bundle(out)
     assert drill.ok
-    assert drill.migration_version == "0003_security"
+    assert drill.migration_version == alembic_head()

@@ -18,6 +18,15 @@ def test_upgrade_downgrade_cycle(db_path) -> None:
             ).fetchall()
         }
         assert {"accounts", "journal_entries", "transaction_splits", "audit_logs"} <= tables
+        # operations domain (0004_operations) — MASTER_PROMPT §3
+        assert {
+            "suppliers",
+            "inventory_items",
+            "stock_movements",
+            "orders",
+            "order_items",
+            "production_jobs",
+        } <= tables
         # STRICT tables actually strict?
         sql = conn.execute(
             text("SELECT sql FROM sqlite_master WHERE name='transaction_splits'")
@@ -32,6 +41,7 @@ def test_upgrade_downgrade_cycle(db_path) -> None:
         }
         assert "trg_audit_logs_no_delete" in triggers
         assert "trg_je_protect_locked_delete" in triggers
+        assert "trg_stock_movements_no_delete" in triggers
     engine.dispose()
 
     downgrade_migrations()

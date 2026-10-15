@@ -23,6 +23,15 @@ def run_migrations() -> None:
     command.upgrade(cfg, "head")
 
 
+def alembic_head() -> str:
+    """Current Alembic head revision (keeps provenance tests migration-proof)."""
+    from alembic.script import ScriptDirectory
+
+    cfg = Config(str(BACKEND_DIR / "alembic.ini"))
+    cfg.set_main_option("script_location", str(BACKEND_DIR / "alembic"))
+    return ScriptDirectory.from_config(cfg).get_current_head()
+
+
 def downgrade_migrations() -> None:
     cfg = Config(str(BACKEND_DIR / "alembic.ini"))
     cfg.set_main_option("script_location", str(BACKEND_DIR / "alembic"))

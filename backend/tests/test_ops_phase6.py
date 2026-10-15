@@ -8,6 +8,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.conftest import alembic_head
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
@@ -20,7 +22,7 @@ def test_migration_lifecycle_bootstrap_backup_gate(tmp_path: Path) -> None:
     report_path = tmp_path / "report.json"
     report = migrate_vira.run_migration(db, report_path)
     assert report["status"] == "migrated"
-    assert report["post"]["alembic_revision"] == "0003_security"
+    assert report["post"]["alembic_revision"] == alembic_head()
     assert report["post"]["integrity_check"] == "ok"
     assert report["post"]["foreign_key_violations"] == 0
     # verified backup was taken before the schema change
@@ -75,7 +77,7 @@ async def test_system_status_and_backup_flow(client, database, tmp_path) -> None
     r = await client.get("/api/v1/system/status", headers=headers)
     assert r.status_code == 200
     body = r.json()
-    assert body["alembic_revision"] == "0003_security"
+    assert body["alembic_revision"] == alembic_head()
     assert body["version"]
     assert "scheduler" in body or "scheduler_enabled" in body
     # one-click encrypted backup
@@ -149,7 +151,7 @@ async def test_health_ready_includes_scheduler(client) -> None:
     body = r.json()
     assert body["status"] in ("ready", "degraded")
     assert body["scheduler"]["enabled"] is False or body["scheduler"]["running"] is True
-    assert body["alembic_revision"] in ("0003_security", None)
+    assert body["alembic_revision"] in (alembic_head(), None)
 
 
 def test_version_info_shape() -> None:

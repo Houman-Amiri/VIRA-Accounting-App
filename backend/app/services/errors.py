@@ -108,3 +108,21 @@ class SudoRequiredError(DomainError):
     code = "sudo_required"
     title = "Sudo re-authentication required"
     status = 403
+
+
+class InsufficientStockError(DomainError):
+    code = "insufficient_stock"
+    title = "Insufficient warehouse stock"
+    status = 409
+
+
+class InvalidOperationsStateError(DomainError):
+    code = "invalid_operations_state"
+    title = "Illegal operations state transition"
+    status = 409
+
+
+class DuplicateEntityError(DomainError):
+    code = "duplicate_entity"
+    title = "Entity already exists"
+    status = 409

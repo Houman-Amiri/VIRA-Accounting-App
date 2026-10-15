@@ -31,6 +31,9 @@ from .api import api_keys as api_keys_api
 from .api import (
     exports as exports_api,
 )
+from .api import (
+    operations as operations_api,
+)
 from .api import system as system_api
 from .api import (
     webhooks as webhooks_api,
@@ -178,6 +181,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(fiscal.router, dependencies=[Depends(auditor_read_only)])
     app.include_router(webhooks_api.router)
     app.include_router(exports_api.router, dependencies=[Depends(auditor_read_only)])
+    app.include_router(operations_api.warehouse, dependencies=[Depends(auditor_read_only)])
+    app.include_router(operations_api.orders, dependencies=[Depends(auditor_read_only)])
+    app.include_router(operations_api.production, dependencies=[Depends(auditor_read_only)])
 
     dist = spa_static_dir()
     if dist is not None:  # pragma: no cover - frontend build

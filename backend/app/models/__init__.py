@@ -5,6 +5,14 @@ from .base import Base
 from .fiscal import AuditLog, FiscalPeriod
 from .fx import ExchangeRate
 from .ledger import Account, JournalEntry, TransactionSplit
+from .operations import (
+    InventoryItem,
+    Order,
+    OrderItem,
+    ProductionJob,
+    StockMovement,
+    Supplier,
+)
 from .ops import Document, RecurringEntry, User
 from .persistence import AccountBalanceSnapshot, Currency, IdempotencyKey
 from .security import (
@@ -25,6 +33,12 @@ __all__ = [
     "Base",
     "Currency",
     "Document",
+    "InventoryItem",
+    "Order",
+    "OrderItem",
+    "ProductionJob",
+    "StockMovement",
+    "Supplier",
     "ExchangeRate",
     "ExternalCredential",
     "FiscalPeriod",

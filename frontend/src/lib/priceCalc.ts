@@ -152,9 +152,7 @@ export function computePrice(
     : electricityPerKwh; // B19 = B4*B14 — as authored
   const unitEnergyCost = energyPrice.times(t);
   const unitDepreciationCost = depreciationPerHour.times(t); // B20 = B5*B14
-  const unitBaseProduction = unitFilamentCost
-    .plus(unitEnergyCost)
-    .plus(unitDepreciationCost); // B25
+  const unitBaseProduction = unitFilamentCost.plus(unitEnergyCost).plus(unitDepreciationCost); // B25
 
   // ---- E25 — ring & chain × qty (chain variant) ---------------------------
   const unitChainCost = inputs.variant === "chain" ? chainPerUnit : new Decimal(0);

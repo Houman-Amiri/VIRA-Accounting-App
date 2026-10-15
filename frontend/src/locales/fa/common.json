@@ -15,7 +15,10 @@
     "statements": "صورت‌های مالی",
     "priceCalc": "قیمت‌گذاری",
     "receipts": "رسیدها",
-    "system": "سیستم و عملیات"
+    "system": "سیستم و عملیات",
+    "warehouse": "انبار",
+    "orders": "سفارش‌ها",
+    "production": "تولید"
   },
   "actions": {
     "save": "ذخیره",
