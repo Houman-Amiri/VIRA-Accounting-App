@@ -90,7 +90,7 @@ export function BankImportPage(): React.JSX.Element {
                       }
                     </label>
                     <select
-                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+                      className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
                       value={mapping[field]}
                       onChange={(e) => setMapping((m) => ({ ...m, [field]: e.target.value }))}
                       data-testid={`map-${field}`}

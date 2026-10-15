@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    color-scheme: light;
     --background: 210 20% 98%;
     --foreground: 224 71% 4%;
     --card: 0 0% 100%;
@@ -27,6 +28,9 @@
   }
 
   .dark {
+    /* native widgets (select popups, scrollbars, date pickers) follow the theme —
+       without this the OS paints a white popup under our white text (v1.0.5 fix) */
+    color-scheme: dark;
     --background: 224 71% 4%;
     --foreground: 210 20% 98%;
     --card: 224 47% 8%;
@@ -55,6 +59,17 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "ss01", "cv01";
+  }
+
+  /* Native <select>: theme both the closed control and the OS popup list so
+     option text can never be white-on-white in dark mode (v1.0.5 fix). */
+  select {
+    @apply bg-background text-foreground;
+  }
+  select option,
+  select optgroup {
+    background-color: hsl(var(--card));
+    color: hsl(var(--card-foreground));
   }
 
   /* Financial figures: tabular monospace digits, isolated LTR inside RTL text */

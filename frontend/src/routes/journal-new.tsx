@@ -235,7 +235,7 @@ export function JournalNewPage(): React.JSX.Element {
                 <div className="col-span-5">
                   <Label>{t("journalNew.account")}</Label>
                   <select
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
                     data-testid={`split-account-${index}`}
                     {...register(`splits.${index}.account_id`)}
                   >

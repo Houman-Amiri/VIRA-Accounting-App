@@ -55,6 +55,12 @@ if not exist "%SQLITE_DATABASE_PATH%" (
   for /f "delims=" %%P in ('"%VIRA_PY%" -c "import secrets;print(secrets.token_urlsafe(12))"') do set "VIRA_ADMIN_PASSWORD=%%P"
 )
 
+REM --------------------- build stamp (System & Operations page) ----
+if exist "%~dp0version.json" (
+  if not defined VIRA_VERSION for /f "delims=" %%V in ('"%VIRA_PY%" -c "import json;print(json.load(open(r'%~dp0version.json',encoding='utf-8')).get('version',''))" 2^>nul') do set "VIRA_VERSION=%%V"
+  if not defined VIRA_GIT_COMMIT for /f "delims=" %%C in ('"%VIRA_PY%" -c "import json;print(json.load(open(r'%~dp0version.json',encoding='utf-8')).get('commit','') or 'unknown')" 2^>nul') do set "VIRA_GIT_COMMIT=%%C"
+)
+
 REM ------------------------- safe migrations + seed (idempotent) ----
 echo [VIRA] Applying database migrations...
 "%VIRA_PY%" "%~dp0scripts\migrate_vira.py" || goto :fail

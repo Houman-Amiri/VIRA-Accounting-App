@@ -156,8 +156,9 @@ def test_version_info_shape() -> None:
     from app.version import version_info
 
     info = version_info()
-    assert set(info) == {"version", "commit"}
+    assert {"version", "commit"} <= set(info)  # + built_at since v1.0.5
     assert info["version"]
+    assert info["commit"]
 
 
 def test_logging_rotation_install(tmp_path: Path) -> None:

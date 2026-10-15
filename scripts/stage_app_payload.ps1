@@ -44,9 +44,17 @@ if (Test-Path frontend/dist) {
 Copy-Item -Recurse scripts "$OutDir/scripts"
 Copy-Item scripts/start_vira.cmd "$OutDir/start_vira.cmd"
 
-# version stamp (single source of truth: backend/pyproject.toml → version_info())
+# version stamp (single source of truth: backend/pyproject.toml → version_info());
+# the commit is what the System & Operations page shows as «کامیت» (v1.0.5 fix)
+$commit = ""
+if ($env:GITHUB_SHA) { $commit = $env:GITHUB_SHA.Substring(0, [Math]::Min(7, $env:GITHUB_SHA.Length)) }
+if (-not $commit) {
+    try { $commit = (git rev-parse --short HEAD 2>$null).Trim() } catch { $commit = "" }
+}
+if (-not $commit) { $commit = "unknown" }
 @{
     version = $v
+    commit = $commit
     built_at = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 } | ConvertTo-Json | Set-Content -Encoding utf8 (Join-Path $OutDir "version.json")
 
