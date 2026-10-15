@@ -47,6 +47,23 @@ def _app_roots() -> list[Path]:
     return unique
 
 
+def app_root() -> Path | None:
+    """The directory the application is installed in (``{app}``), or ``None``.
+
+    The payload root carries ``version.json`` (and the installer's
+    ``install_manifest.json``); the bundled interpreter lives in
+    ``{app}/python/python.exe`` and the SPA in ``{app}/static``. A dev checkout
+    matches none of these and reports ``None``.
+    """
+    for root in _app_roots():
+        if (root / "version.json").is_file() or (root / "install_manifest.json").is_file():
+            return root
+    exe_root = Path(sys.executable).resolve().parent.parent
+    if (exe_root / "app").is_dir() and (exe_root / "static").is_dir():
+        return exe_root
+    return None
+
+
 @lru_cache(maxsize=1)
 def _stamp() -> dict[str, str]:
     """Read the build stamp (``version.json``) shipped with the application."""

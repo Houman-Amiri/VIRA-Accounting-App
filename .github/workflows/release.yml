@@ -59,6 +59,19 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm build
 
+      # Compiled FIRST so the helper is inside {app} (setup), inside the app
+      # payload zip (delta base) and inside every delta — before v1.0.5 it was
+      # built after both, so an installed app could not find it at apply time.
+      - name: Compile vira-updater.exe (Phase 8 §6)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist-release/app | Out-Null
+          Install-Module ps2exe -Force -Scope CurrentUser
+          Import-Module ps2exe
+          Invoke-ps2exe -inputFile scripts/vira_updater.ps1 -outputFile dist-release/app/vira-updater.exe -noConsole:$false
+          if (-not (Test-Path dist-release/app/vira-updater.exe)) { throw "ps2exe did not produce vira-updater.exe" }
+          Copy-Item dist-release/app/vira-updater.exe dist-release/vira-updater.exe
+
       - name: Package source/build artifacts + latest.json + SHA256SUMS + Persian notes
         shell: pwsh
         run: ./scripts/package_release.ps1 -Version "${{ env.VIRA_VERSION }}" -OutDir dist-release
@@ -91,15 +104,6 @@ jobs:
             throw "iscc failed with exit code $LASTEXITCODE"
           }
           Get-ChildItem installer/Output/*.exe | Copy-Item -Destination dist-release/
-
-      - name: Compile vira-updater.exe (Phase 8 §6)
-        shell: pwsh
-        run: |
-          Install-Module ps2exe -Force -Scope CurrentUser
-          Import-Module ps2exe
-          Invoke-ps2exe -inputFile scripts/vira_updater.ps1 -outputFile dist-release/app/vira-updater.exe -noConsole:$false
-          if (-not (Test-Path dist-release/app/vira-updater.exe)) { throw "ps2exe did not produce vira-updater.exe" }
-          Copy-Item dist-release/app/vira-updater.exe dist-release/vira-updater.exe
 
       - name: Delta update packages vs previous release tags (Phase 8 §5)
         shell: pwsh

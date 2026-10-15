@@ -52,6 +52,23 @@ the missing warehouse/production modules.
   in the installed layout even when a system Python (not the bundled one) ends
   up running the backend.
 
+- **The update could never apply itself: the helper was never in the install.**
+  `vira-updater.exe` was compiled *after* both the Inno setup and the app
+  payload zip, so `{app}\vira-updater.exe` did not exist in an installed app;
+  `launch_updater` only checked the staging directory and a wrong fallback
+  (`%LOCALAPPDATA%\vira-updater.exe`). The helper is now compiled *before* the
+  packaging steps, so it ships inside the setup, inside `vira-<v>-app.zip`
+  (delta base) and inside every delta; the app resolves it as
+  staging → `{app}` → data directory → `scripts\vira_updater.ps1` through
+  `powershell.exe`. It always passes the installation directory explicitly
+  (`-install-dir`), so a hand-unzipped or portable install no longer needs the
+  installer's registry record, and it uses single-dash PowerShell parameter
+  names (`--stage` is not a parameter prefix for every PowerShell host).
+  Smoke leg 2 now applies the delta with the installation's own
+  `vira-updater.exe` and asserts the helper survives the upgrade; a missing
+  helper reports a clear Persian error instead of a `FileNotFoundError`
+  traceback. Tests: `TestUpdaterDiscovery`.
+
 ### Added
 - **داشبورد** — six KPI cards (assets, liabilities, equity, net income for the
   current fiscal year, warehouse value, net cash), four theme-aware ECharts

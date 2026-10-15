@@ -230,6 +230,66 @@ class TestCheck:
         assert result.checked is True
 
 
+class TestUpdaterDiscovery:
+    """The helper must be found in the installed layout, not just in staging."""
+
+    def _install_tree(self, tmp_path: Path) -> Path:
+        root = tmp_path / "app"
+        (root / "scripts").mkdir(parents=True)
+        (root / "version.json").write_text('{"version": "1.0.5", "commit": "abc1234"}')
+        (root / "python").mkdir()
+        return root
+
+    def test_finds_helper_in_install_root(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from app.services.update import _updater_command
+
+        root = self._install_tree(tmp_path)
+        (root / "vira-updater.exe").write_bytes(b"MZ")
+        stage = tmp_path / "stage"
+        stage.mkdir()
+        monkeypatch.setenv("VIRA_APP_DIR", str(root))
+        s = _settings(tmp_path)
+        argv, log = _updater_command(s, str(stage))
+        assert argv[0] == str(root / "vira-updater.exe")
+        # single-dash PowerShell parameters (asserted verbatim — the exe is a
+        # compiled PowerShell script) and the install dir passed explicitly, so
+        # no registry record is required for portable/unzipped installs.
+        assert argv[1:5] == ["-stage", str(stage), "-log", str(stage / "update.log")]
+        assert "-install-dir" in argv
+        assert argv[argv.index("-install-dir") + 1] == str(root)
+        assert log == stage / "update.log"
+
+    def test_falls_back_to_shipped_powershell_helper(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from app.services.update import _updater_command
+
+        root = self._install_tree(tmp_path)
+        (root / "scripts" / "vira_updater.ps1").write_text("# updater")
+        stage = tmp_path / "stage"
+        stage.mkdir()
+        monkeypatch.setenv("VIRA_APP_DIR", str(root))
+        argv, _ = _updater_command(_settings(tmp_path), str(stage))
+        assert argv[0] == "powershell.exe"
+        assert "-InstallDir" in argv and argv[argv.index("-InstallDir") + 1] == str(root)
+
+    def test_missing_helper_raises_persian_error(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from app.services.errors import DomainError
+        from app.services.update import _updater_command
+
+        stage = tmp_path / "stage"
+        stage.mkdir()
+        monkeypatch.delenv("VIRA_APP_DIR", raising=False)
+        monkeypatch.setenv("VIRA_VERSION", "1.0.5")
+        with pytest.raises(DomainError) as excinfo:
+            _updater_command(_settings(tmp_path), str(stage))
+        assert "فایل نصب کامل" in str(excinfo.value)
+
+
 class TestDownload:
     def test_staging_verifies_sha256_before_write(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch

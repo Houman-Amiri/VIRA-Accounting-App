@@ -44,6 +44,10 @@ RATE_LIMIT_FA = "تعداد درخواست‌ها بیش از حد مجاز اس
 UNREACHABLE_FA = "دسترسی به منبع به‌روزرسانی ممکن نشد."
 SCHEMA_REFUSE_FA = "ساختار پیام به‌روزرسانی شناخته نشد؛ لطفاً نصب دستی را انجام دهید."
 NO_DELTA_FA = "بستهٔ تفاضلی موجود نیست؛ نصب کامل دانلود می‌شود."
+UPDATER_MISSING_FA = (
+    "برنامهٔ به‌روزرسان روی این نصب پیدا نشد؛ لطفاً فایل نصب کامل VIRA-Setup را "
+    "دانلود و دستی اجرا کنید."
+)
 UNKNOWN_CURRENT_FA = (
     "نسخهٔ نصب‌شدهٔ فعلی قابل تشخیص نیست، پس تفاضل‌گیری ممکن نیست. لطفاً فایل نصب "
     "کامل (Setup) را دانلود و اجرا کنید؛ از آن پس نسخهٔ برنامه درست گزارش می‌شود و "
@@ -410,23 +414,77 @@ class UpdateManager:
 manager = UpdateManager()
 
 
+def install_root(settings: Settings) -> Path | None:
+    """``{app}`` — the directory the running application is installed in.
+
+    ``None`` for a dev checkout. Used to find the updater and to tell it which
+    installation to patch, so an update never depends on the registry record
+    (hand-unzipped / portable installs have none).
+    """
+    from ..version import app_root
+
+    return app_root()
+
+
+def _updater_command(settings: Settings, staged_path: str) -> tuple[list[str], Path]:
+    """Locate the transactional updater and build its argv.
+
+    Search order: the staging directory (deltas ship the helper from v1.0.5 on)
+    → ``{app}\vira-updater.exe`` → next to the data directory → the shipped
+    ``scripts\vira_updater.ps1`` through ``powershell.exe`` (unzipped portable
+    installs, and the payload produced before the helper was compiled).
+    """
+    stage = Path(staged_path)
+    log_path = stage / "update.log"
+    root = install_root(settings)
+
+    candidates = [stage / "vira-updater.exe"]
+    if root is not None:
+        candidates.append(root / "vira-updater.exe")
+    if settings.data_dir is not None:
+        candidates.append(Path(settings.data_dir).parent / "vira-updater.exe")
+    for exe in candidates:
+        if exe.is_file():
+            # Single-dash PowerShell parameter names: «--name» is not a
+            # parameter prefix for every PowerShell host, and the helper is a
+            # PowerShell script compiled to an exe (ps2exe).
+            argv = [str(exe), "-stage", str(stage), "-log", str(log_path)]
+            if root is not None:
+                argv += ["-install-dir", str(root)]
+            return argv, log_path
+
+    if root is not None:
+        script = root / "scripts" / "vira_updater.ps1"
+        if script.is_file():
+            argv = [
+                "powershell.exe",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(script),
+                "-Stage",
+                str(stage),
+                "-Log",
+                str(log_path),
+                "-InstallDir",
+                str(root),
+            ]
+            return argv, log_path
+    raise DomainError(UPDATER_MISSING_FA)
+
+
 def launch_updater(settings: Settings, staged_path: str) -> dict[str, Any]:
     """Launch the transactional updater helper (Windows: vira-updater.exe). §6."""
     if os.name != "nt":
         raise DomainError("اجرای به‌روزرسانی خودکار فقط در ویندوز در دسترس است")
-    exe = Path(staged_path) / "vira-updater.exe"
-    if not exe.is_file():
-        # fall back next to the installation (shipped in the app package)
-        exe = Path(settings.data_dir or ".") .parent / "vira-updater.exe"
     import subprocess
 
+    argv, log_path = _updater_command(settings, staged_path)
     with manager._lock:  # noqa: SLF001 - module-private manager
         manager._job.state = "applying"
-    log_path = Path(staged_path) / "update.log"
-    subprocess.Popen(  # noqa: S603 - fixed argv, no shell
-        [str(exe), "--stage", staged_path, "--log", str(log_path)],
-        close_fds=True,
-    )
+    subprocess.Popen(argv, close_fds=True)  # noqa: S603 - fixed argv, no shell
+    _ = log_path
     return manager.status()
 
 
@@ -456,6 +514,7 @@ __all__ = [
     "apply_update",
     "check_for_update",
     "fetch_channel",
+    "install_root",
     "launch_updater",
     "manager",
 ]

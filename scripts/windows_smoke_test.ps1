@@ -70,13 +70,24 @@ foreach ($delta in $deltaZips) {
     New-Item -ItemType Directory -Force -Path $stage | Out-Null
     Expand-Archive $delta.FullName -DestinationPath $stage -Force
     $env:VIRA_PORT = "8799"   # keep the updater's relaunch off the smoke port
-    ./scripts/vira_updater.ps1 -Stage $stage -Log (Join-Path $stage "update.log") -InstallDir $legacy
+    # Prefer the helper that ships INSIDE the installation (v1.0.5+) — that is
+    # exactly what the app launches at apply time; the repo script is only the
+    # fallback for bases built before the helper was staged into {app}.
+    $installUpdater = Join-Path $legacy "vira-updater.exe"
+    if (Test-Path $installUpdater) {
+        Write-Output "[smoke] applying delta with the install's own vira-updater.exe"
+        & $installUpdater -stage $stage -log (Join-Path $stage "update.log") -install-dir $legacy
+    } else {
+        Write-Output "[smoke] base predates the staged helper - using scripts/vira_updater.ps1"
+        ./scripts/vira_updater.ps1 -Stage $stage -Log (Join-Path $stage "update.log") -InstallDir $legacy
+    }
 
     $ver = (Get-Content (Join-Path $legacy "version.json") -Raw | ConvertFrom-Json).version
     if ($ver -ne $v) { throw "legacy upgrade reached version '$ver', expected '$v'" }
     $man = Get-Content (Join-Path $legacy "install_manifest.json") -Raw | ConvertFrom-Json
     if (-not $man.files_manifest_sha256) { throw "legacy upgrade did not rewrite install_manifest.json" }
     if (-not (Test-Path (Join-Path $legacy "start_vira.cmd"))) { throw "legacy upgrade lost start_vira.cmd" }
+    if (-not (Test-Path (Join-Path $legacy "vira-updater.exe"))) { throw "upgrade did not leave vira-updater.exe in the install (the next update would fail)" }
     Get-CimInstance Win32_Process -Filter "Name='python.exe' or Name='cmd.exe' or Name='powershell.exe'" |
         Where-Object { $_.CommandLine -like "*$legacy*" } |
         ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
