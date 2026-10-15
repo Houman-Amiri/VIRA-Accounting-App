@@ -18,7 +18,7 @@ $tmp = Join-Path ([IO.Path]::GetTempPath()) "vira-smoke"
 $install = Join-Path $tmp "install"
 New-Item -ItemType Directory -Force -Path $install | Out-Null
 
-Write-Output "[smoke] 1/4 silent install -> $install"
+Write-Output "[smoke] 1/5 silent install -> $install"
 Start-Process -FilePath $Setup -ArgumentList "/VERYSILENT", "/DIR=`"$install`"", "/SUPPRESSMSGBOXES" -Wait
 if (-not (Test-Path (Join-Path $install "install_manifest.json"))) { throw "silent install did not produce install_manifest.json" }
 $reg = Get-ItemProperty -Path "HKLM:\SOFTWARE\VIRA", "HKCU:\SOFTWARE\VIRA" -Name InstallDir -ErrorAction SilentlyContinue
@@ -69,7 +69,12 @@ foreach ($delta in $deltaZips) {
     if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
     New-Item -ItemType Directory -Force -Path $stage | Out-Null
     Expand-Archive $delta.FullName -DestinationPath $stage -Force
-    $env:VIRA_PORT = "8799"   # keep the updater's relaunch off the smoke port
+    # the updater relaunches the app; keep that instance off the smoke port,
+    # and RESTORE the variable afterwards (leg 5 launches on 8787 — leaving
+    # VIRA_PORT set made the app bind 8799 and the health check fail; only
+    # visible once a real delta existed, i.e. from v1.0.5 on)
+    $prevPort = $env:VIRA_PORT
+    $env:VIRA_PORT = "8799"
     # Prefer the helper that ships INSIDE the installation (v1.0.5+) — that is
     # exactly what the app launches at apply time; the repo script is only the
     # fallback for bases built before the helper was staged into {app}.
@@ -81,6 +86,8 @@ foreach ($delta in $deltaZips) {
         Write-Output "[smoke] base predates the staged helper - using scripts/vira_updater.ps1"
         ./scripts/vira_updater.ps1 -Stage $stage -Log (Join-Path $stage "update.log") -InstallDir $legacy
     }
+
+    if ($null -ne $prevPort) { $env:VIRA_PORT = $prevPort } else { Remove-Item Env:VIRA_PORT -ErrorAction SilentlyContinue }
 
     $ver = (Get-Content (Join-Path $legacy "version.json") -Raw | ConvertFrom-Json).version
     if ($ver -ne $v) { throw "legacy upgrade reached version '$ver', expected '$v'" }
@@ -145,6 +152,7 @@ if ($checked -lt 2) { throw "expected Start-Menu + Desktop shortcuts, found $che
 $launcher = Join-Path $install "start_vira.cmd"
 if (-not (Test-Path $launcher)) { throw "launcher missing at $launcher" }
 # isolated first-run DB — leg 3's sentinel at data\vira.sqlite3 must stay untouched
+Remove-Item Env:VIRA_PORT -ErrorAction SilentlyContinue   # the app must bind 8787 here
 $env:SQLITE_DATABASE_PATH = Join-Path $env:LOCALAPPDATA "VIRA\data\vira-smoke-e2e.sqlite3"
 Remove-Item $env:SQLITE_DATABASE_PATH -Force -ErrorAction SilentlyContinue
 $launchLog = Join-Path $env:LOCALAPPDATA "VIRA\logs\smoke-launch.log"
