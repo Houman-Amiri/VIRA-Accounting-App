@@ -45,7 +45,9 @@ foreach ($delta in (Get-ChildItem (Split-Path $Setup) -Filter "*delta*.zip" | So
     if ($delta.Length -ge $setupSize) { throw "delta ($($delta.Length)) is not smaller than the setup ($setupSize)" }
     # fetch the previous release's portable zip (same discovery as build_deltas)
     $tag = "v$fromV"
+    $prevEap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
     $assetNames = gh api "repos/$repo/releases/tags/$tag" --jq ".assets[].name" 2>$null
+    $ErrorActionPreference = $prevEap
     $pName = $assetNames | Where-Object { $_ -match "portable" -and $_ -notmatch "delta|Setup" } | Select-Object -First 1
     if (-not $pName) { Write-Output "[smoke] no portable base for $tag — skipping $($delta.Name)"; continue }
     $baseZip = Join-Path $legacyRoot "base-$fromV.zip"

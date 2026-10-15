@@ -37,12 +37,16 @@ foreach ($tag in $tags) {
     $baseZip = Join-Path $tmp "base-$baseV.zip"
     $zipUrl = $null
     try {
+        # tags without a release make gh api fail on stderr — 2>$null under
+        # EAP=Stop would turn that into a terminating error, so dampen first
+        $prevEap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
         $assets = gh api "repos/$repo/releases/tags/$tag" --jq ".assets[].name" 2>$null
+        $ErrorActionPreference = $prevEap
         $name = $assets | Where-Object { $_ -match "portable" -and $_ -notmatch "delta|Setup" } | Select-Object -First 1
         if (-not $name) { $name = $assets | Where-Object { $_ -match "^VIRA-v.*\.zip$" -and $_ -notmatch "delta|portable" } | Select-Object -First 1 }
         if ($name) { $zipUrl = "https://github.com/$repo/releases/download/$tag/$name" }
     }
-    catch { $zipUrl = $null }
+    catch { $ErrorActionPreference = "Stop"; $zipUrl = $null }
     if (-not $zipUrl) {
         Write-Host "[build_deltas] base $tag has no downloadable portable zip — skipping (full-installer fallback covers it)"
         continue
