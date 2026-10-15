@@ -14,6 +14,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+if ($env:GITHUB_ACTIONS -ne "true") { throw "This destructive smoke fixture is for an isolated GitHub Actions runner only." }
 $tmp = Join-Path ([IO.Path]::GetTempPath()) "vira-smoke"
 $install = Join-Path $tmp "install with spaces"
 New-Item -ItemType Directory -Force -Path $install | Out-Null
@@ -28,7 +29,23 @@ Write-Output "[smoke] InstallDir registry: $($reg.InstallDir)"
 $dataDir = Join-Path $env:LOCALAPPDATA "VIRA\data"
 New-Item -ItemType Directory -Force -Path $dataDir | Out-Null
 $db = Join-Path $dataDir "vira.sqlite3"
-"seed-data" | Set-Content -Path $db -Encoding ascii
+if (Test-Path $db) { throw "Smoke requires a clean CI data directory; refusing to overwrite an existing database." }
+& uv run python scripts/migrate_vira.py --database $db | Out-Null
+if ($LASTEXITCODE -ne 0) { throw "could not migrate the smoke SQLite fixture" }
+$env:VIRA_SMOKE_DATABASE = $db
+@'
+import os
+import sqlite3
+conn = sqlite3.connect(os.environ["VIRA_SMOKE_DATABASE"])
+try:
+    conn.execute("CREATE TABLE smoke_sentinel (value TEXT NOT NULL)")
+    conn.execute("INSERT INTO smoke_sentinel VALUES ('preserve-real-sqlite-data')")
+    conn.commit()
+    conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+finally:
+    conn.close()
+'@ | uv run python -
+if ($LASTEXITCODE -ne 0) { throw "could not seed the smoke SQLite fixture" }
 $dbHashBefore = (Get-FileHash -Algorithm SHA256 $db).Hash
 
 Write-Output "[smoke] 2/5 legacy delta upgrade (previous portable + matching delta)"
@@ -108,9 +125,30 @@ foreach ($delta in $deltaZips) {
     if (-not $man.files_manifest_sha256) { throw "legacy upgrade did not rewrite install_manifest.json" }
     if (-not (Test-Path (Join-Path $legacy "start_vira.cmd"))) { throw "legacy upgrade lost start_vira.cmd" }
     if (-not (Test-Path (Join-Path $legacy "vira-updater.exe"))) { throw "upgrade did not leave vira-updater.exe in the install (the next update would fail)" }
-    Get-CimInstance Win32_Process -Filter "Name='python.exe' or Name='cmd.exe' or Name='powershell.exe'" |
-        Where-Object { $_.CommandLine -like "*$legacy*" } |
-        ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+    # The helper restarts asynchronously. Wait for the upgraded app before
+    # stopping the launcher tree; otherwise cleanup can race a not-yet-born child.
+    $healthy = $false
+    for ($i = 0; $i -lt 120; $i++) {
+        try {
+            $r = Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:8799/api/v1/health/live" -TimeoutSec 2
+            if ($r.StatusCode -eq 200) { $healthy = $true; break }
+        } catch { Start-Sleep -Milliseconds 500 }
+    }
+    if (-not $healthy) { throw "upgraded legacy app failed to restart healthy on port 8799" }
+    $launchers = @(Get-CimInstance Win32_Process -Filter "Name='cmd.exe'" |
+        Where-Object { $_.CommandLine -like "*$legacy*" })
+    foreach ($launcherProcess in $launchers) {
+        & taskkill.exe /PID $launcherProcess.ProcessId /T /F 2>&1 | Out-Null
+    }
+    $interpreters = @(Get-Process -Name python,pythonw -ErrorAction SilentlyContinue |
+        Where-Object { $_.Path -and $_.Path.StartsWith($legacy + "\", [StringComparison]::OrdinalIgnoreCase) })
+    foreach ($interpreter in $interpreters) {
+        Stop-Process -Id $interpreter.Id -Force -ErrorAction SilentlyContinue
+        $interpreter.WaitForExit()
+    }
+    $remaining = @(Get-Process -Name python,pythonw -ErrorAction SilentlyContinue |
+        Where-Object { $_.Path -and $_.Path.StartsWith($legacy + "\", [StringComparison]::OrdinalIgnoreCase) })
+    if ($remaining.Count) { throw "legacy app still holds the SQLite fixture open" }
     Write-Output "[smoke] legacy $tag -> v$v OK — version + manifest rewritten, files verified"
     $upgraded = $true
     break
@@ -121,6 +159,18 @@ if (-not $upgraded) {
 }
 
 Write-Output "[smoke] 3/5 data preservation"
+@'
+import os
+import sqlite3
+conn = sqlite3.connect(os.environ["VIRA_SMOKE_DATABASE"])
+try:
+    assert conn.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+    assert conn.execute("SELECT value FROM smoke_sentinel").fetchall() == [("preserve-real-sqlite-data",)]
+    conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+finally:
+    conn.close()
+'@ | uv run python -
+if ($LASTEXITCODE -ne 0) { throw "SQLite integrity or sentinel data changed during upgrade" }
 $dbHashAfter = (Get-FileHash -Algorithm SHA256 $db).Hash
 if ($dbHashAfter -ne $dbHashBefore) { throw "user data changed across the update — DATA LOSS" }
 Write-Output "[smoke] user data checksum identical: $dbHashAfter"
