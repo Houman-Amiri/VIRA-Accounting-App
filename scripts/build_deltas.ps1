@@ -32,7 +32,7 @@ function Find-PortableUrl([string]$Repo, [string]$Tag, [string]$BaseV) {
             $resp = Invoke-WebRequest -Uri $url -Method Head -SkipHttpErrorCheck -MaximumRedirection 5 -TimeoutSec 30
             $code = [int]$resp.StatusCode
         } catch { $code = 0; $msg = ("" + $_.Exception.Message -replace "[`r`n]", " ") }
-        Write-Host ("::notice title=probe::$Tag $name -> HTTP $code")
+        $script:probeLog += "$Tag/$name=HTTP$code"
         if ($code -in 200, 302) { return $url }
     }
     return $null
@@ -40,6 +40,8 @@ function Find-PortableUrl([string]$Repo, [string]$Tag, [string]$BaseV) {
 
 $tags = git tag --list "v*" --sort=-v:refname | Select-Object -First $Keep
 $deltas = @()
+$script:probeLog = @()
+$probeHit = $false
 $tmp = Join-Path ([IO.Path]::GetTempPath()) "vira-delta-base"
 New-Item -ItemType Directory -Force -Path $tmp | Out-Null
 
@@ -49,6 +51,7 @@ foreach ($tag in $tags) {
     $baseZip = Join-Path $tmp "base-$baseV.zip"
     Write-Host ("::notice title=build_deltas::tag $tag (v=$v) — probing portable asset")
     $zipUrl = Find-PortableUrl $repo $tag $baseV
+    if ($zipUrl) { $probeHit = $true }
     if (-not $zipUrl) {
         Write-Host "[build_deltas] base $tag has no downloadable portable zip — skipping (full-installer fallback covers it)"
         Write-Host ("::notice title=build_deltas::$tag SKIP — no portable asset discovered")
@@ -89,7 +92,11 @@ foreach ($tag in $tags) {
         Write-Host ("::notice title=build_deltas::$zipName MISSING after gen_delta — output: " + (($out | Out-String) -replace "`n", " | "))
     }
 }
+Write-Host ("[build_deltas] probe log: " + ($script:probeLog -join "; "))
 Write-Host ("::notice title=build_deltas::done — $($deltas.Count) delta(s) from tags: $($tags -join ', ')")
+if ($deltas.Count -eq 0 -and $probeHit) {
+    throw "a portable base exists but 0 deltas were built — probe log: $($script:probeLog -join '; ')"
+}
 
 # ------------------------------------------------------ rewrite latest.json ---
 $latestPath = Join-Path $OutDir "latest.json"
