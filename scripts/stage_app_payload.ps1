@@ -13,9 +13,19 @@ $ErrorActionPreference = "Stop"
 $v = $Version.TrimStart("v")
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 
-# backend + locked site-packages (runtime extras only — no dev group)
+# bundled CPython 3.11 (python-build-standalone via uv) — the installed app
+# must run on machines without a system Python (v1.0.3 fix)
+uv python install 3.11 | Out-Null
+$pyExe = (uv python find 3.11).Trim()
+if (-not (Test-Path $pyExe)) { throw "uv python find 3.11 returned nothing" }
+$pyDir = Split-Path -Parent $pyExe
+Copy-Item -Recurse $pyDir "$OutDir/python"
+Write-Host "[stage_app_payload] bundled CPython from $pyDir"
+
+# backend + locked site-packages FOR the bundled interpreter (cp311) —
+# without --python, uv targets the runner default and .pyd ABI tags mismatch
 uv export --frozen --no-dev --no-emit-project --output-file "$OutDir/requirements.lock.txt" | Out-Null
-uv pip install --target "$OutDir/site-packages" -r "$OutDir/requirements.lock.txt"
+uv pip install --python "$pyExe" --target "$OutDir/site-packages" -r "$OutDir/requirements.lock.txt"
 Remove-Item "$OutDir/requirements.lock.txt"
 Copy-Item -Recurse backend/app "$OutDir/app"
 
@@ -33,15 +43,6 @@ if (Test-Path frontend/dist) {
 # native scripts + root launcher (shortcuts target {app}\start_vira.cmd)
 Copy-Item -Recurse scripts "$OutDir/scripts"
 Copy-Item scripts/start_vira.cmd "$OutDir/start_vira.cmd"
-
-# bundled CPython 3.11 (python-build-standalone via uv) — the installed app
-# must run on machines without a system Python (v1.0.3 fix)
-uv python install 3.11 | Out-Null
-$pyExe = (uv python find 3.11).Trim()
-if (-not (Test-Path $pyExe)) { throw "uv python find 3.11 returned nothing" }
-$pyDir = Split-Path -Parent $pyExe
-Copy-Item -Recurse $pyDir "$OutDir/python"
-Write-Host "[stage_app_payload] bundled CPython from $pyDir"
 
 # version stamp (single source of truth: backend/pyproject.toml → version_info())
 @{
