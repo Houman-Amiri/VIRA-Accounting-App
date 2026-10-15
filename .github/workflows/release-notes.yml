@@ -1,0 +1,50 @@
+# Metadata-only repair: never rebuild/replace executable assets or move a tag.
+name: Reviewed release notes
+
+on:
+  push:
+    paths:
+      - "docs/releases/**"
+      - ".github/workflows/release-notes.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  publish-notes:
+    if: contains(github.event.head_commit.message, '[release-notes]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read project version and require an existing published release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(python3 -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')
+          echo "RELEASE_TAG=v$version" >> "$GITHUB_ENV"
+          echo "REVIEWED_NOTES=docs/releases/v$version-fa.md" >> "$GITHUB_ENV"
+          test -f "docs/releases/v$version-fa.md"
+          test "$(gh release view "v$version" --json isDraft --jq .isDraft)" = "false"
+      - name: Publish reviewed notes and update only their checksum
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          metadata="$RUNNER_TEMP/release-metadata"
+          mkdir -p "$metadata"
+          gh release download "$RELEASE_TAG" --pattern SHA256SUMS.txt --dir "$metadata"
+          cp "$REVIEWED_NOTES" "$metadata/release-notes-fa.md"
+          python3 - "$metadata" <<'PY'
+          import hashlib
+          import sys
+          from pathlib import Path
+          root = Path(sys.argv[1])
+          path = root / "SHA256SUMS.txt"
+          lines = path.read_text(encoding="utf-8-sig").splitlines()
+          unchanged = [line for line in lines if line.split()[-1] != "release-notes-fa.md"]
+          digest = hashlib.sha256((root / "release-notes-fa.md").read_bytes()).hexdigest()
+          path.write_text("\n".join(unchanged + [f"{digest}  release-notes-fa.md"]) + "\n", encoding="ascii")
+          PY
+          gh release upload "$RELEASE_TAG" "$metadata/release-notes-fa.md" "$metadata/SHA256SUMS.txt" --clobber
+          gh release edit "$RELEASE_TAG" --notes-file "$REVIEWED_NOTES"
+          gh release view "$RELEASE_TAG" --json assets --jq '.assets[] | {name, digest}'

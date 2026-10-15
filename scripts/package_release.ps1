@@ -111,7 +111,13 @@ Get-FileHash -Algorithm SHA256 $zipName
 ``````
 را با مقدار ثبت‌شده در ``SHA256SUMS.txt`` مقایسه کنید.
 "@
-$notes | Set-Content -Encoding utf8 (Join-Path $OutDirPath "release-notes-fa.md")
+# Prefer the human-reviewed notes; the template is only for debug/older tags.
+$reviewedNotes = Join-Path $root "docs/releases/v$v-fa.md"
+if (Test-Path $reviewedNotes) {
+    Copy-Item $reviewedNotes (Join-Path $OutDirPath "release-notes-fa.md") -Force
+} else {
+    $notes | Set-Content -Encoding utf8 (Join-Path $OutDirPath "release-notes-fa.md")
+}
 
 Write-Host "[vira-release] assets in $OutDirPath"
 Get-ChildItem $OutDirPath | Format-Table Name, Length
