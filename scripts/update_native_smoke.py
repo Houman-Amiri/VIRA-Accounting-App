@@ -442,7 +442,7 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
                     "powershell.exe",
                     "-NoProfile",
                     "-Command",
-                    "Get-Process -Name msedge -ErrorAction SilentlyContinue | ForEach-Object { $_.Id }",
+                    "$ErrorActionPreference='Stop'; @(Get-Process -Name msedge -ErrorAction SilentlyContinue) | ForEach-Object { $_.Id }; exit 0",
                 ],
                 text=True,
             )
@@ -519,7 +519,7 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
             # The genuine launcher opens the default Edge, separately from our
             # Playwright browser. Close ONLY new fixture-era Edge processes so
             # they cannot retain this disposable LOCALAPPDATA after teardown.
-            command = f"$before = @({browser_pids}); Get-Process -Name msedge -ErrorAction SilentlyContinue | Where-Object {{ $_.Id -notin $before }} | ForEach-Object {{ $p = $_; if (-not $p.HasExited) {{ $null = $p.Handle; Stop-Process -InputObject $p -Force -ErrorAction SilentlyContinue; if (-not $p.WaitForExit(10000)) {{ throw 'fixture browser still alive' }} }} }}"
+            command = f"$ErrorActionPreference='Stop'; $before = @({browser_pids}); Get-Process -Name msedge -ErrorAction SilentlyContinue | Where-Object {{ $_.Id -notin $before }} | ForEach-Object {{ $p = $_; if (-not $p.HasExited) {{ $null = $p.Handle; Stop-Process -InputObject $p -Force -ErrorAction SilentlyContinue; if (-not $p.WaitForExit(10000)) {{ throw 'fixture browser still alive' }} }} }}; exit 0"
             subprocess.run(
                 ["powershell.exe", "-NoProfile", "-Command", command], check=True, timeout=30
             )
