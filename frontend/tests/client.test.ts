@@ -6,6 +6,7 @@ import {
   getSudoToken,
   newIdempotencyKey,
   onUnauthorized,
+  parseError,
   setSudoToken,
 } from "@/api/client";
 
@@ -89,4 +90,27 @@ describe("api client middleware", () => {
     expect(handler).toHaveBeenCalledTimes(1);
     onUnauthorized(() => {}); // reset
   });
+});
+
+it("preserves real domain details after openapi-fetch has consumed the response", async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = vi.fn(
+    async () =>
+      new Response(JSON.stringify({ code: "insufficient_stock", detail: "موجودی کافی نیست" }), {
+        status: 409,
+        headers: { "Content-Type": "application/problem+json" },
+      }),
+  );
+  try {
+    const result = await api.POST("/api/v1/production/jobs/{job_id}/finish", {
+      params: { path: { job_id: "test" } },
+    });
+    expect(result.response.bodyUsed).toBe(true);
+    const error = await parseError(result.response);
+    expect(error.code).toBe("insufficient_stock");
+    expect(error.message).toBe("موجودی کافی نیست");
+    expect((await parseError(result.response)).message).toBe(error.message);
+  } finally {
+    globalThis.fetch = original;
+  }
 });

@@ -14,14 +14,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Money } from "@/components/money";
-import { computePrice, type PriceInputs } from "@/lib/priceCalc";
+import { computePrice, parseNum, type PriceInputs } from "@/lib/priceCalc";
 import { pricingConstants, usePricingSettings } from "@/lib/pricing-settings";
+import { QueryNotice } from "@/components/query-notice";
+import { collectOperationPages } from "@/lib/operation-pages";
+import { OperationPagination, OPERATION_PAGE_SIZE } from "@/components/operation-pagination";
+import { toDecimal } from "@/lib/money";
 import { faNumber } from "@/lib/fa";
 
 type Job = {
   id: string;
   job_number: number;
   order_id: string | null;
+  order_item_id: string | null;
   order_number: number | null;
   product_name: string;
   variant: "plain" | "chain";
@@ -54,6 +59,7 @@ type OrderOption = {
   id: string;
   order_number: number;
   customer_name: string;
+  channel: "direct" | "marketplace";
   status: string;
   items: Array<{
     id: string;
@@ -62,6 +68,9 @@ type OrderOption = {
     quantity: string;
     weight_g: string;
     print_hours: string;
+    unit_cost: string;
+    unit_price: string;
+    inventory_item_id?: string | null;
   }>;
 };
 
@@ -86,6 +95,8 @@ function errText(error: unknown): string {
 export function ProductionPage(): React.JSX.Element {
   const pricingQuery = usePricingSettings();
   const queryClient = useQueryClient();
+  const [page, setPage] = React.useState(0);
+  const [editingJob, setEditingJob] = React.useState<Job | null>(null);
   const [statusFilter, setStatusFilter] = React.useState("");
   const [message, setMessage] = React.useState<string | null>(null);
   const [form, setForm] = React.useState({
@@ -102,10 +113,16 @@ export function ProductionPage(): React.JSX.Element {
   });
 
   const jobsQuery = useQuery({
-    queryKey: ["production", "jobs", statusFilter],
+    queryKey: ["production", "jobs", statusFilter, page],
     queryFn: async () => {
       const res = await api.GET("/api/v1/production/jobs", {
-        params: { query: statusFilter ? { status: statusFilter } : {} },
+        params: {
+          query: {
+            ...(statusFilter ? { status: statusFilter } : {}),
+            limit: OPERATION_PAGE_SIZE + 1,
+            offset: page * OPERATION_PAGE_SIZE,
+          },
+        },
       });
       if (res.error) throw await parseError(res.response);
       return res.data as unknown as Job[];
@@ -129,19 +146,22 @@ export function ProductionPage(): React.JSX.Element {
   const itemsQuery = useQuery({
     queryKey: ["warehouse", "items", "for-production"],
     queryFn: async () => {
-      const res = await api.GET("/api/v1/warehouse/items", { params: { query: {} } });
+      const res = await api.GET("/api/v1/warehouse/summary");
       if (res.error) throw await parseError(res.response);
-      return res.data as unknown as Item[];
+      return res.data!.items as Item[];
     },
   });
 
   const ordersQuery = useQuery({
     queryKey: ["orders", "open"],
     queryFn: async () => {
-      const res = await api.GET("/api/v1/orders", { params: { query: {} } });
-      if (res.error) throw await parseError(res.response);
-      return (res.data as unknown as OrderOption[]).filter(
-        (o) => !["CANCELLED", "DELIVERED"].includes(o.status),
+      const rows = await collectOperationPages(async (offset, limit) => {
+        const res = await api.GET("/api/v1/orders", { params: { query: { offset, limit } } });
+        if (res.error) throw await parseError(res.response);
+        return res.data!;
+      });
+      return (rows as OrderOption[]).filter(
+        (o) => !["CANCELLED", "SHIPPED", "DELIVERED"].includes(o.status),
       );
     },
   });
@@ -155,8 +175,10 @@ export function ProductionPage(): React.JSX.Element {
 
   const createJob = useMutation({
     mutationFn: async () => {
-      if (!pricingQuery.data || pricingQuery.isError || pricingQuery.isPending)
-        throw new Error("ثابت‌های قیمت‌گذاری در دسترس نیستند؛ دوباره تلاش کنید.");
+      const order = ordersQuery.data?.find((o) => o.id === form.order_id);
+      const line = order?.items.find((line) => line.id === form.order_item_id);
+      if (form.order_id && (!line || ordersQuery.isError))
+        throw new Error("ردیف سفارش معتبر در دسترس نیست.");
       const inputs: PriceInputs = {
         weightG: form.filament_grams || "0",
         printHours: form.print_hours || "0",
@@ -164,27 +186,30 @@ export function ProductionPage(): React.JSX.Element {
         variant: form.variant,
         channel: form.channel,
       };
-      let unitCost = "0";
-      let unitPrice = "0";
-      try {
+      let unitCost: string;
+      let unitPrice: string;
+      if (line) {
+        unitCost = line.unit_cost;
+        unitPrice = line.unit_price;
+      } else {
+        if (!pricingQuery.data || pricingQuery.isError || pricingQuery.isPending)
+          throw new Error("ثابت‌های قیمت‌گذاری در دسترس نیستند؛ دوباره تلاش کنید.");
         const priced = computePrice(inputs, pricingConstants(pricingQuery.data));
         unitCost = priced.unitProductionCost.toFixed(4);
         unitPrice = priced.unitFinalPrice.toFixed(4);
-      } catch {
-        // invalid numbers → the job is still created with zero price snapshot
       }
       const res = await api.POST("/api/v1/production/jobs", {
         body: {
           product_name: form.product_name,
-          quantity: form.quantity || "1",
+          quantity: parseNum(form.quantity || "1").toString(),
           variant: form.variant,
           channel: form.channel,
           order_id: form.order_id || null,
           order_item_id: form.order_item_id || null,
           filament_item_id: form.filament_item_id || null,
           product_item_id: form.product_item_id || null,
-          filament_grams: form.filament_grams || "0",
-          print_hours: form.print_hours || "0",
+          filament_grams: parseNum(form.filament_grams || "0").toString(),
+          print_hours: parseNum(form.print_hours || "0").toString(),
           unit_cost: unitCost,
           unit_price: unitPrice,
         },
@@ -193,6 +218,8 @@ export function ProductionPage(): React.JSX.Element {
       return res.data;
     },
     onSuccess: () => {
+      setPage(0);
+      setStatusFilter("");
       setMessage("کار تولید ثبت شد ✓");
       setForm((f) => ({
         ...f,
@@ -223,41 +250,73 @@ export function ProductionPage(): React.JSX.Element {
     onError: (e) => setMessage(errText(e)),
   });
 
-  const filaments = (itemsQuery.data ?? []).filter((i) => i.kind === "FILAMENT");
-  const products = (itemsQuery.data ?? []).filter((i) => i.kind === "PRODUCT");
+  const saveMapping = useMutation({
+    mutationFn: async () => {
+      if (!editingJob) throw new Error("کاری انتخاب نشده است");
+      const res = await api.PATCH("/api/v1/production/jobs/{job_id}", {
+        params: { path: { job_id: editingJob.id } },
+        body: {
+          version_id: editingJob.version_id,
+          order_item_id: editingJob.order_item_id,
+          filament_item_id: editingJob.filament_item_id,
+          product_item_id: editingJob.product_item_id,
+          filament_grams: parseNum(editingJob.filament_grams).toString(),
+        },
+      });
+      if (res.error) throw await parseError(res.response);
+    },
+    onSuccess: () => {
+      setEditingJob(null);
+      setMessage("اتصال انبار ذخیره شد ✓");
+      invalidate();
+    },
+    onError: (e) => setMessage(errText(e)),
+  });
 
-  const pickOrder = (orderId: string): void => {
-    const order = (ordersQuery.data ?? []).find((o) => o.id === orderId);
-    const firstLine = order?.items[0];
+  const filaments = (itemsQuery.data ?? []).filter((i) => i.kind === "FILAMENT" && i.unit === "G");
+  const products = (itemsQuery.data ?? []).filter((i) => i.kind === "PRODUCT" && i.unit === "PCS");
+
+  const pickLine = (orderId: string, lineId?: string): void => {
+    const order = ordersQuery.data?.find((o) => o.id === orderId);
+    const line = lineId ? order?.items.find((l) => l.id === lineId) : order?.items[0];
     setForm((f) => ({
       ...f,
       order_id: orderId,
-      order_item_id: firstLine?.id ?? "",
-      product_name: firstLine?.product_name ?? f.product_name,
-      variant: firstLine?.variant ?? f.variant,
-      quantity: firstLine?.quantity ?? f.quantity,
-      filament_grams: firstLine?.weight_g ?? f.filament_grams,
-      print_hours: firstLine?.print_hours ?? f.print_hours,
+      order_item_id: line?.id ?? "",
+      product_name: line?.product_name ?? f.product_name,
+      variant: line?.variant ?? f.variant,
+      channel: order?.channel ?? f.channel,
+      quantity: line?.quantity ?? f.quantity,
+      filament_grams: line?.weight_g ?? f.filament_grams,
+      print_hours: line?.print_hours ?? f.print_hours,
+      product_item_id: line?.inventory_item_id ?? "",
     }));
   };
+  const selectedOrder = ordersQuery.data?.find((o) => o.id === form.order_id);
+  const selectedLine = selectedOrder?.items.find((l) => l.id === form.order_item_id);
 
   return (
     <div className="space-y-6" dir="rtl">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-bold">تولید</h1>
-        <div className="flex gap-2 text-sm">
-          <Badge variant="secondary">
-            برنامه‌ریزی‌شده: {faNumber(String(summaryQuery.data?.planned ?? 0))}
-          </Badge>
-          <Badge variant="warning">
-            در حال چاپ: {faNumber(String(summaryQuery.data?.in_progress ?? 0))}
-          </Badge>
-          <Badge variant="success">
-            تمام‌شده: {faNumber(String(summaryQuery.data?.done ?? 0))}
-          </Badge>
-          <Badge variant="outline">
-            فیلامنت موردنیاز: {faNumber(summaryQuery.data?.filament_grams_planned ?? "0")} گرم
-          </Badge>
+        <div className="flex flex-wrap gap-2 text-sm">
+          <QueryNotice query={summaryQuery} />
+          {summaryQuery.isSuccess && (
+            <>
+              <Badge variant="secondary">
+                برنامه‌ریزی‌شده: {faNumber(String(summaryQuery.data?.planned ?? 0))}
+              </Badge>
+              <Badge variant="warning">
+                در حال چاپ: {faNumber(String(summaryQuery.data?.in_progress ?? 0))}
+              </Badge>
+              <Badge variant="success">
+                تمام‌شده: {faNumber(String(summaryQuery.data?.done ?? 0))}
+              </Badge>
+              <Badge variant="outline">
+                فیلامنت موردنیاز: {faNumber(summaryQuery.data?.filament_grams_planned ?? "0")} گرم
+              </Badge>
+            </>
+          )}
         </div>
       </div>
 
@@ -275,7 +334,10 @@ export function ProductionPage(): React.JSX.Element {
               className="h-8 rounded-md border border-input bg-background px-2 text-sm text-foreground"
               value={statusFilter}
               data-testid="production-filter"
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPage(0);
+              }}
             >
               <option value="">همه</option>
               {Object.entries(STATUS_LABEL).map(([value, label]) => (
@@ -286,6 +348,7 @@ export function ProductionPage(): React.JSX.Element {
             </select>
           </CardHeader>
           <CardContent>
+            <QueryNotice query={jobsQuery} />
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -301,74 +364,94 @@ export function ProductionPage(): React.JSX.Element {
                   </tr>
                 </thead>
                 <tbody>
-                  {(jobsQuery.data ?? []).map((job) => (
-                    <tr key={job.id} className="border-b" data-testid={`job-${job.id}`}>
-                      <td className="num py-2">{faNumber(String(job.job_number))}</td>
-                      <td className="py-2">
-                        {job.product_name}
-                        {job.variant === "chain" && (
-                          <Badge variant="secondary" className="ms-1">
-                            زنجیر
+                  {(jobsQuery.isSuccess ? jobsQuery.data.slice(0, OPERATION_PAGE_SIZE) : []).map(
+                    (job) => (
+                      <tr key={job.id} className="border-b" data-testid={`job-${job.id}`}>
+                        <td className="num py-2">{faNumber(String(job.job_number))}</td>
+                        <td className="py-2">
+                          {job.product_name}
+                          {job.variant === "chain" && (
+                            <Badge variant="secondary" className="ms-1">
+                              زنجیر
+                            </Badge>
+                          )}
+                        </td>
+                        <td className="num py-2">
+                          {job.order_number ? faNumber(String(job.order_number)) : "—"}
+                        </td>
+                        <td className="num py-2">{faNumber(job.quantity)}</td>
+                        <td className="py-2 text-xs">
+                          {job.filament_item_name ?? "—"}
+                          {toDecimal(job.filament_grams).gt(0) && (
+                            <div className="num text-muted-foreground">
+                              {faNumber(job.filament_grams)} گرم × {faNumber(job.quantity)} ={" "}
+                              {faNumber(
+                                toDecimal(job.filament_grams).times(job.quantity).toString(),
+                              )}{" "}
+                              گرم
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-2">
+                          <Money value={job.unit_price} currency="TOMAN" />
+                        </td>
+                        <td className="py-2">
+                          <Badge variant={STATUS_VARIANT[job.status]}>
+                            {STATUS_LABEL[job.status]}
                           </Badge>
-                        )}
-                      </td>
-                      <td className="num py-2">
-                        {job.order_number ? faNumber(String(job.order_number)) : "—"}
-                      </td>
-                      <td className="num py-2">{faNumber(job.quantity)}</td>
-                      <td className="py-2 text-xs">
-                        {job.filament_item_name ?? "—"}
-                        {Number(job.filament_grams) > 0 && (
-                          <div className="num text-muted-foreground">
-                            {faNumber(job.filament_grams)} گرم × {faNumber(job.quantity)} ={" "}
-                            {faNumber(String(Number(job.filament_grams) * Number(job.quantity)))}{" "}
-                            گرم
+                        </td>
+                        <td className="py-2">
+                          <div className="flex flex-wrap gap-1">
+                            {job.status === "PLANNED" && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                data-testid={`job-${job.id}-start`}
+                                disabled={act.isPending}
+                                onClick={() => act.mutate({ job, action: "start" })}
+                              >
+                                شروع چاپ
+                              </Button>
+                            )}
+                            {(job.status === "PLANNED" || job.status === "IN_PROGRESS") && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  data-testid={`job-${job.id}-finish`}
+                                  disabled={
+                                    act.isPending ||
+                                    !job.filament_item_id ||
+                                    !job.product_item_id ||
+                                    !toDecimal(job.filament_grams).gt(0)
+                                  }
+                                  onClick={() => act.mutate({ job, action: "finish" })}
+                                >
+                                  پایان (کسر فیلامنت)
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  data-testid={`job-${job.id}-configure`}
+                                  onClick={() => setEditingJob({ ...job })}
+                                >
+                                  اتصال انبار
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  disabled={act.isPending}
+                                  onClick={() => act.mutate({ job, action: "cancel" })}
+                                >
+                                  لغو
+                                </Button>
+                              </>
+                            )}
                           </div>
-                        )}
-                      </td>
-                      <td className="py-2">
-                        <Money value={job.unit_price} currency="TOMAN" />
-                      </td>
-                      <td className="py-2">
-                        <Badge variant={STATUS_VARIANT[job.status]}>
-                          {STATUS_LABEL[job.status]}
-                        </Badge>
-                      </td>
-                      <td className="py-2">
-                        <div className="flex flex-wrap gap-1">
-                          {job.status === "PLANNED" && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              data-testid={`job-${job.id}-start`}
-                              onClick={() => act.mutate({ job, action: "start" })}
-                            >
-                              شروع چاپ
-                            </Button>
-                          )}
-                          {(job.status === "PLANNED" || job.status === "IN_PROGRESS") && (
-                            <>
-                              <Button
-                                size="sm"
-                                data-testid={`job-${job.id}-finish`}
-                                onClick={() => act.mutate({ job, action: "finish" })}
-                              >
-                                پایان (کسر فیلامنت)
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => act.mutate({ job, action: "cancel" })}
-                              >
-                                لغو
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {(jobsQuery.data ?? []).length === 0 && (
+                        </td>
+                      </tr>
+                    ),
+                  )}
+                  {jobsQuery.isSuccess && jobsQuery.data.length === 0 && (
                     <tr>
                       <td colSpan={8} className="py-6 text-center text-muted-foreground">
                         کار تولیدی ثبت نشده است.
@@ -378,6 +461,82 @@ export function ProductionPage(): React.JSX.Element {
                 </tbody>
               </table>
             </div>
+            <OperationPagination
+              page={page}
+              next={jobsQuery.isSuccess && jobsQuery.data.length > OPERATION_PAGE_SIZE}
+              busy={jobsQuery.isFetching}
+              onChange={setPage}
+            />
+            {editingJob && (
+              <div className="mt-3 space-y-2 rounded border p-3" data-testid="job-stock-editor">
+                <p className="text-sm font-medium">اتصال انبار — {editingJob.product_name}</p>
+                <QueryNotice query={itemsQuery} />
+                {editingJob.order_id && (
+                  <select
+                    aria-label="ردیف سفارش برای اصلاح اتصال"
+                    value={editingJob.order_item_id ?? ""}
+                    onChange={(e) =>
+                      setEditingJob({ ...editingJob, order_item_id: e.target.value || null })
+                    }
+                  >
+                    <option value="">ردیف سفارش را انتخاب کنید</option>
+                    {ordersQuery.data
+                      ?.find((o) => o.id === editingJob.order_id)
+                      ?.items.map((l, i) => (
+                        <option key={l.id} value={l.id}>
+                          {faNumber(String(i + 1))} — {l.product_name}
+                        </option>
+                      ))}
+                  </select>
+                )}
+                <select
+                  aria-label="فیلامنت کار تولید"
+                  data-testid="job-mapping-filament"
+                  value={editingJob.filament_item_id ?? ""}
+                  onChange={(e) =>
+                    setEditingJob({ ...editingJob, filament_item_id: e.target.value || null })
+                  }
+                >
+                  <option value="">فیلامنت را انتخاب کنید</option>
+                  {filaments.map((i) => (
+                    <option key={i.id} value={i.id}>
+                      {i.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  aria-label="محصول مقصد کار تولید"
+                  data-testid="job-mapping-product"
+                  value={editingJob.product_item_id ?? ""}
+                  onChange={(e) =>
+                    setEditingJob({ ...editingJob, product_item_id: e.target.value || null })
+                  }
+                >
+                  <option value="">محصول مقصد را انتخاب کنید</option>
+                  {products.map((i) => (
+                    <option key={i.id} value={i.id}>
+                      {i.name}
+                    </option>
+                  ))}
+                </select>
+                <Input
+                  aria-label="گرم فیلامنت هر عدد"
+                  data-testid="job-mapping-grams"
+                  value={editingJob.filament_grams}
+                  onChange={(e) => setEditingJob({ ...editingJob, filament_grams: e.target.value })}
+                />
+                <Button
+                  data-testid="job-mapping-save"
+                  disabled={saveMapping.isPending || !itemsQuery.isSuccess}
+                  onClick={() => saveMapping.mutate()}
+                >
+                  ذخیرهٔ اتصال
+                </Button>
+                <Button variant="ghost" onClick={() => setEditingJob(null)}>
+                  انصراف
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -392,7 +551,7 @@ export function ProductionPage(): React.JSX.Element {
                 className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
                 value={form.order_id}
                 data-testid="job-order"
-                onChange={(e) => pickOrder(e.target.value)}
+                onChange={(e) => pickLine(e.target.value)}
               >
                 <option value="">— بدون سفارش —</option>
                 {(ordersQuery.data ?? []).map((o) => (
@@ -402,6 +561,25 @@ export function ProductionPage(): React.JSX.Element {
                 ))}
               </select>
             </div>
+            <QueryNotice query={ordersQuery} />
+            <QueryNotice query={itemsQuery} />
+            {selectedOrder && (
+              <div>
+                <Label className="text-xs">ردیف سفارش</Label>
+                <select
+                  className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
+                  data-testid="job-order-line"
+                  value={form.order_item_id}
+                  onChange={(e) => pickLine(form.order_id, e.target.value)}
+                >
+                  {selectedOrder.items.map((l, i) => (
+                    <option key={l.id} value={l.id}>
+                      {faNumber(String(i + 1))} — {l.product_name} × {faNumber(l.quantity)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div>
               <Label className="text-xs">نام محصول</Label>
               <Input
@@ -444,6 +622,7 @@ export function ProductionPage(): React.JSX.Element {
                 <select
                   className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
                   value={form.variant}
+                  disabled={!!form.order_id}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, variant: e.target.value as "plain" | "chain" }))
                   }
@@ -457,6 +636,7 @@ export function ProductionPage(): React.JSX.Element {
                 <select
                   className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
                   value={form.channel}
+                  disabled={!!form.order_id}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, channel: e.target.value as "direct" | "marketplace" }))
                   }
@@ -498,10 +678,18 @@ export function ProductionPage(): React.JSX.Element {
                 ))}
               </select>
             </div>
-            <p className="text-xs text-muted-foreground">
-              بهای تمام‌شده و قیمت فروش هر عدد با ثابت‌های ذخیره‌شده محاسبه و هنگام ثبت ذخیره
-              می‌شوند.
-            </p>
+            {selectedLine ? (
+              <p className="text-xs text-muted-foreground" data-testid="job-price-snapshot">
+                قیمت و بهای واحد از ردیف ذخیره‌شدهٔ سفارش؛ بدون محاسبهٔ مجدد با ثابت‌های تازه:{" "}
+                <Money value={selectedLine.unit_price} currency="TOMAN" /> /{" "}
+                <Money value={selectedLine.unit_cost} currency="TOMAN" />
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                کار مستقل با ثابت‌های فعلی قیمت‌گذاری می‌شود. برای پایان تولید، فیلامنت، وزن مثبت و
+                محصول مقصد لازم است.
+              </p>
+            )}
             <Button
               className="w-full"
               data-testid="job-submit"

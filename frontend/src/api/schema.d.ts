@@ -2148,6 +2148,8 @@ export interface components {
         ProductionJobUpdate: {
             /** Version Id */
             version_id: number;
+            /** Order Item Id */
+            order_item_id?: string | null;
             /** Product Name */
             product_name?: string | null;
             /** Quantity */
@@ -5224,6 +5226,8 @@ export interface operations {
         parameters: {
             query?: {
                 item_id?: string | null;
+                limit?: number;
+                offset?: number;
             };
             header?: {
                 "x-csrf-token"?: string | null;
@@ -5335,6 +5339,8 @@ export interface operations {
                 search?: string | null;
                 date_from?: string | null;
                 date_to?: string | null;
+                limit?: number;
+                offset?: number;
             };
             header?: {
                 "x-csrf-token"?: string | null;
@@ -5600,6 +5606,8 @@ export interface operations {
         parameters: {
             query?: {
                 status?: string | null;
+                limit?: number;
+                offset?: number;
             };
             header?: {
                 "x-csrf-token"?: string | null;

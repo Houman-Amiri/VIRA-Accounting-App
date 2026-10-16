@@ -242,7 +242,7 @@ async def test_production_consumes_filament_and_yields_products(client) -> None:
     product = await _item(
         client, "مجسمهٔ گربه", kind="PRODUCT", unit="PCS", quantity="0", unit_price="1500000"
     )
-    order = await _order(client)
+    order = await _order(client, items=[{"product_name": "مجسمهٔ گربه", "quantity": "3", "unit_price": "2760748.5", "unit_cost": "1200000"}])
 
     job = await client.post(
         "/api/v1/production/jobs",
@@ -302,11 +302,13 @@ async def test_production_consumes_filament_and_yields_products(client) -> None:
 
 async def test_production_refuses_insufficient_filament(client) -> None:
     filament = await _item(client, "فیلامنت کمیاب", quantity="50", min_quantity="10")
+    product = await _item(client, "محصول مقصد", kind="PRODUCT", unit="PCS", quantity="0")
     job = await client.post(
         "/api/v1/production/jobs",
         json={
             "product_name": "قطعهٔ بزرگ",
             "quantity": "10",
+            "product_item_id": product["id"],
             "filament_item_id": filament["id"],
             "filament_grams": "40",
         },

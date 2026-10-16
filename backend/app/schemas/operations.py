@@ -9,7 +9,7 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, computed_field
+from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
 Amount = Annotated[Decimal, Field(max_digits=18, decimal_places=4)]
 
@@ -51,6 +51,14 @@ class SupplierUpdate(BaseModel):
     is_active: bool | None = None
 
 
+    @field_validator('name', 'score_price', 'score_quality', 'score_delivery', 'is_active', mode="before")
+    @classmethod
+    def reject_null(cls, value: object) -> object:
+        if value is None:
+            raise ValueError("مقدار این فیلد نمی‌تواند null باشد")
+        return value
+
+
 class SupplierRead(SupplierBase):
     model_config = ConfigDict(from_attributes=True)
 
@@ -73,15 +81,15 @@ class InventoryItemBase(BaseModel):
     kind: ItemKind = "FILAMENT"
     color: str | None = Field(default=None, max_length=50)
     unit: ItemUnit = "G"
-    min_quantity: Amount = Decimal(0)
-    unit_price: Amount = Decimal(0)
+    min_quantity: Amount = Field(default=Decimal(0), ge=0)
+    unit_price: Amount = Field(default=Decimal(0), ge=0)
     supplier_id: str | None = None
     purchased_at: str | None = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
     notes: str | None = None
 
 
 class InventoryItemCreate(InventoryItemBase):
-    quantity: Amount = Decimal(0)
+    quantity: Amount = Field(default=Decimal(0), ge=0)
 
 
 class InventoryItemUpdate(BaseModel):
@@ -89,12 +97,20 @@ class InventoryItemUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=200)
     color: str | None = None
     unit: ItemUnit | None = None
-    min_quantity: Amount | None = None
-    unit_price: Amount | None = None
+    min_quantity: Amount | None = Field(default=None, ge=0)
+    unit_price: Amount | None = Field(default=None, ge=0)
     supplier_id: str | None = None
     purchased_at: str | None = None
     notes: str | None = None
     is_active: bool | None = None
+
+
+    @field_validator('name', 'unit', 'min_quantity', 'unit_price', 'is_active', mode="before")
+    @classmethod
+    def reject_null(cls, value: object) -> object:
+        if value is None:
+            raise ValueError("مقدار این فیلد نمی‌تواند null باشد")
+        return value
 
 
 class InventoryItemRead(InventoryItemBase):
@@ -114,7 +130,7 @@ class StockMovementCreate(BaseModel):
     # IN/OUT must be > 0 (enforced in the service); ADJUST records the counted
     # quantity and may legitimately be zero.
     quantity: Amount = Field(ge=0)
-    unit_cost: Amount | None = None
+    unit_cost: Amount | None = Field(default=None, ge=0)
     reason: str | None = Field(default=None, max_length=100)
     reference_id: str | None = None
     note: str | None = None
@@ -159,10 +175,10 @@ class OrderItemIn(BaseModel):
     product_name: str = Field(min_length=1, max_length=200)
     variant: Variant = "plain"
     quantity: Amount = Field(gt=0)
-    unit_price: Amount = Decimal(0)
-    unit_cost: Amount = Decimal(0)
-    weight_g: Amount = Decimal(0)
-    print_hours: Amount = Decimal(0)
+    unit_price: Amount = Field(default=Decimal(0), ge=0)
+    unit_cost: Amount = Field(default=Decimal(0), ge=0)
+    weight_g: Amount = Field(default=Decimal(0), ge=0)
+    print_hours: Amount = Field(default=Decimal(0), ge=0)
     inventory_item_id: str | None = None
     notes: str | None = None
 
@@ -192,7 +208,15 @@ class OrderUpdate(BaseModel):
     status: OrderStatus | None = None
     channel: Channel | None = None
     notes: str | None = None
-    items: list[OrderItemIn] | None = None
+    items: list[OrderItemIn] | None = Field(default=None, min_length=1)
+
+
+    @field_validator('order_date', 'customer_name', 'status', 'channel', 'items', mode="before")
+    @classmethod
+    def reject_null(cls, value: object) -> object:
+        if value is None:
+            raise ValueError("مقدار این فیلد نمی‌تواند null باشد")
+        return value
 
 
 class OrderRead(BaseModel):
@@ -245,26 +269,35 @@ class ProductionJobCreate(BaseModel):
     order_item_id: str | None = None
     filament_item_id: str | None = None
     product_item_id: str | None = None
-    filament_grams: Amount = Decimal(0)
-    print_hours: Amount = Decimal(0)
-    unit_cost: Amount = Decimal(0)
-    unit_price: Amount = Decimal(0)
+    filament_grams: Amount = Field(default=Decimal(0), ge=0)
+    print_hours: Amount = Field(default=Decimal(0), ge=0)
+    unit_cost: Amount = Field(default=Decimal(0), ge=0)
+    unit_price: Amount = Field(default=Decimal(0), ge=0)
     note: str | None = None
 
 
 class ProductionJobUpdate(BaseModel):
     version_id: int
+    order_item_id: str | None = None
     product_name: str | None = Field(default=None, min_length=1, max_length=200)
     quantity: Amount | None = Field(default=None, gt=0)
     variant: Variant | None = None
     channel: Channel | None = None
     filament_item_id: str | None = None
     product_item_id: str | None = None
-    filament_grams: Amount | None = None
-    print_hours: Amount | None = None
-    unit_cost: Amount | None = None
-    unit_price: Amount | None = None
+    filament_grams: Amount | None = Field(default=None, ge=0)
+    print_hours: Amount | None = Field(default=None, ge=0)
+    unit_cost: Amount | None = Field(default=None, ge=0)
+    unit_price: Amount | None = Field(default=None, ge=0)
     note: str | None = None
+
+
+    @field_validator('product_name', 'quantity', 'variant', 'channel', 'filament_grams', 'print_hours', 'unit_cost', 'unit_price', mode="before")
+    @classmethod
+    def reject_null(cls, value: object) -> object:
+        if value is None:
+            raise ValueError("مقدار این فیلد نمی‌تواند null باشد")
+        return value
 
 
 class ProductionJobRead(BaseModel):

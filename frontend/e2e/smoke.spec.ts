@@ -3,6 +3,7 @@
  * The e2e job seeds an owner user (VIRA_ADMIN_PASSWORD) before Playwright runs.
  */
 import { expect, test, type Page } from "@playwright/test";
+import { auditOperations } from "./operations-audit";
 import { auditDashboard } from "./dashboard-audit";
 import { auditMenuThemes } from "./theme-audit";
 
@@ -57,6 +58,7 @@ test("command palette opens with Ctrl+K and navigates", async ({ page }) => {
 });
 
 test("journal form enforces zero-balance before submit", async ({ page }) => {
+  test.setTimeout(120_000);
   await login(page);
   await page.goto("/journal/new");
   await page.getByTestId("entry-description").fill("سند آزمایشی");
@@ -71,6 +73,7 @@ test("journal form enforces zero-balance before submit", async ({ page }) => {
   await page.getByTestId("auto-balance").click();
   await expect(page.getByTestId("balanced-badge")).toBeVisible();
   await expect(page.getByTestId("submit-entry")).toBeEnabled();
+  await auditOperations(page);
 });
 
 test("pricing reproduces the original Excel cells for single and multiple quantities", async ({

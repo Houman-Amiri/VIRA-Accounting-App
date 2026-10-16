@@ -32,6 +32,7 @@ from ..models import (
     StockMovement,
     Supplier,
 )
+from ..money import MAX_ABS_AMOUNT
 from ..schemas.operations import (
     InventoryItemCreate,
     InventoryItemUpdate,
@@ -168,6 +169,8 @@ class OperationsService:
     def create_item(self, data: InventoryItemCreate) -> InventoryItem:
         if data.supplier_id:
             self.get_supplier(data.supplier_id)
+        if (data.kind, data.unit) not in {("FILAMENT", "G"), ("PRODUCT", "PCS")}:
+            raise DomainError("واحد فیلامنت باید گرم و واحد محصول باید عدد باشد")
         now = utc_now_iso()
         item = InventoryItem(
             id=uuid7(),
@@ -208,12 +211,16 @@ class OperationsService:
                 f"(expected {data.version_id}, found {item.version_id})"
             )
         payload = data.model_dump(exclude={"version_id"}, exclude_unset=True)
+        if payload.get("unit", item.unit) != item.unit:
+            raise DomainError("واحد کالای ثبت‌شده قابل تغییر نیست؛ کالای جداگانه تعریف کنید")
         if "supplier_id" in payload and payload["supplier_id"]:
             self.get_supplier(payload["supplier_id"])
         if "is_active" in payload:
             item.is_active = 1 if payload.pop("is_active") else 0
         for field, value in payload.items():
             setattr(item, field, value)
+        if Decimal(item.quantity) * Decimal(item.unit_price) >= MAX_ABS_AMOUNT:
+            raise DomainError("ارزش کالا از حد مجاز مبلغ دقیق بیشتر می‌شود")
         item.version_id += 1
         item.updated_at = utc_now_iso()
         self.session.flush()
@@ -222,6 +229,8 @@ class OperationsService:
     def move_stock(self, item_id: str, data: StockMovementCreate) -> StockMovement:
         item = self.get_item(item_id)
         quantity = Decimal(data.quantity)
+        if not item.is_active:
+            raise DomainError("گردش برای کالای غیرفعال مجاز نیست")
         if data.kind in ("IN", "OUT") and quantity <= 0:
             raise DomainError("ورودی/خروجی انبار باید بزرگ‌تر از صفر باشد")
         if data.kind == "IN":
@@ -235,8 +244,13 @@ class OperationsService:
             item.quantity = Decimal(item.quantity) - quantity
         else:  # ADJUST — set the counted quantity
             item.quantity = quantity
+        if Decimal(item.quantity) >= MAX_ABS_AMOUNT:
+            raise DomainError("موجودی از حد مجاز عدد دقیق بیشتر می‌شود")
         if data.unit_cost is not None:
             item.unit_price = Decimal(data.unit_cost)
+        if Decimal(item.quantity) * Decimal(item.unit_price) >= MAX_ABS_AMOUNT:
+            raise DomainError("ارزش کالا از حد مجاز مبلغ دقیق بیشتر می‌شود")
+        item.version_id += 1
         item.updated_at = utc_now_iso()
         movement = StockMovement(
             id=uuid7(),
@@ -254,11 +268,11 @@ class OperationsService:
         self.session.flush()
         return movement
 
-    def list_movements(self, *, item_id: str | None = None, limit: int = 200) -> list[StockMovement]:
+    def list_movements(self, *, item_id: str | None = None, limit: int = 200, offset: int = 0) -> list[StockMovement]:
         stmt = select(StockMovement).options(selectinload(StockMovement.item))
         if item_id:
             stmt = stmt.where(StockMovement.item_id == item_id)
-        stmt = stmt.order_by(StockMovement.created_at.desc()).limit(limit)
+        stmt = stmt.order_by(StockMovement.created_at.desc(), StockMovement.id.desc()).offset(offset).limit(limit)
         return list(self.session.scalars(stmt))
 
     def low_stock_items(self) -> list[InventoryItem]:
@@ -304,6 +318,7 @@ class OperationsService:
         date_from: str | None = None,
         date_to: str | None = None,
         limit: int | None = 200,
+        offset: int = 0,
     ) -> list[Order]:
         stmt = select(Order).options(selectinload(Order.items))
         if status:
@@ -323,7 +338,7 @@ class OperationsService:
             stmt = stmt.where(Order.order_date >= date_from)
         if date_to:
             stmt = stmt.where(Order.order_date <= date_to)
-        stmt = stmt.order_by(Order.order_date.desc(), Order.order_number.desc()).limit(limit)
+        stmt = stmt.order_by(Order.order_date.desc(), Order.order_number.desc()).offset(offset).limit(limit)
         return list(self.session.scalars(stmt))
 
     def order_summary(self) -> dict[str, int]:
@@ -350,6 +365,10 @@ class OperationsService:
         return order
 
     def _apply_items(self, order: Order, items: list[OrderItemIn]) -> None:
+        for field in ("unit_price", "unit_cost"):
+            total = sum((Decimal(line.quantity) * Decimal(getattr(line, field)) for line in items), Decimal(0))
+            if total >= MAX_ABS_AMOUNT:
+                raise DomainError("جمع مبلغ سفارش از حد مجاز عدد دقیق بیشتر است")
         order.items.clear()
         for index, line in enumerate(items):
             if line.inventory_item_id:
@@ -400,10 +419,24 @@ class OperationsService:
                 f"order #{order.order_number} was modified concurrently "
                 f"(expected {data.version_id}, found {order.version_id})"
             )
-        if order.status in ("DELIVERED", "CANCELLED") and data.status is None:
-            raise InvalidOrderStateError(
-                f"سفارش #{order.order_number} بسته شده است و قابل ویرایش نیست"
-            )
+        if order.status in ("SHIPPED", "DELIVERED", "CANCELLED") and not (
+            order.status == "SHIPPED" and data.status == "DELIVERED" and
+            data.model_fields_set <= {"version_id", "status"}
+        ):
+            raise InvalidOrderStateError("سفارش بسته یا ارسال‌شده قابل ویرایش نیست")
+        jobs = self.order_linked_jobs(order.id)
+        if jobs and (data.items is not None or data.channel is not None):
+            raise InvalidOrderStateError("پس از اتصال تولید، تغییر ردیف‌ها یا کانال سفارش مجاز نیست")
+        if data.status in {"CANCELLED", "READY", "SHIPPED", "DELIVERED"} and any(
+            j.status in {"PLANNED", "IN_PROGRESS"} for j in jobs
+        ):
+            raise InvalidOrderStateError("ابتدا کارهای فعال تولید را پایان دهید یا لغو کنید")
+        if data.status in {"READY", "SHIPPED", "DELIVERED"} and jobs:
+            completed = {line.id: sum((Decimal(j.quantity) for j in jobs
+                if j.order_item_id == line.id and j.status == "DONE"), Decimal(0))
+                for line in order.items}
+            if any(completed[line.id] < Decimal(line.quantity) for line in order.items):
+                raise InvalidOrderStateError("تمام ردیف‌های سفارش هنوز تولید نشده‌اند")
         payload = data.model_dump(exclude={"version_id", "items"}, exclude_unset=True)
         for field, value in payload.items():
             setattr(order, field, value)
@@ -489,12 +522,12 @@ class OperationsService:
 
     # ------------------------------------------------------------ production ---
     def list_jobs(
-        self, *, status: str | None = None, limit: int | None = 200
+        self, *, status: str | None = None, limit: int | None = 200, offset: int = 0
     ) -> list[ProductionJob]:
         stmt = select(ProductionJob)
         if status:
             stmt = stmt.where(ProductionJob.status == status)
-        stmt = stmt.order_by(ProductionJob.created_at.desc()).limit(limit)
+        stmt = stmt.order_by(ProductionJob.created_at.desc(), ProductionJob.id.desc()).offset(offset).limit(limit)
         return list(self.session.scalars(stmt))
 
     def get_job(self, job_id: str) -> ProductionJob:
@@ -503,17 +536,38 @@ class OperationsService:
             raise NotFoundError(f"production job {job_id} not found")
         return job
 
+    def _validate_job(self, job: ProductionJobCreate | ProductionJob, *, finishing: bool = False) -> None:
+        if job.order_item_id and not job.order_id:
+            raise DomainError("ردیف سفارش بدون انتخاب سفارش معتبر نیست")
+        if job.order_id:
+            order = self.get_order(job.order_id)
+            if order.status in {"CANCELLED", "SHIPPED", "DELIVERED"}:
+                raise InvalidOrderStateError("سفارش بسته یا ارسال‌شده قابل تولید نیست")
+            line = next((line for line in order.items if line.id == job.order_item_id), None)
+            if line is None:
+                raise DomainError("ردیف تولید باید متعلق به همین سفارش باشد")
+            others = self.order_linked_jobs(order.id)
+            reserved = sum((Decimal(j.quantity) for j in others
+                if j.id != getattr(job, "id", None) and j.order_item_id == line.id
+                and j.status != "CANCELLED"), Decimal(0))
+            if reserved + Decimal(job.quantity) > Decimal(line.quantity):
+                raise DomainError("مقدار تولید از تعداد باقی‌ماندهٔ ردیف سفارش بیشتر است")
+        grams = Decimal(job.filament_grams) * Decimal(job.quantity)
+        if grams >= MAX_ABS_AMOUNT:
+            raise DomainError("وزن کل تولید از حد مجاز بیشتر است")
+        if grams != grams.quantize(Decimal("0.0001")):
+            raise DomainError("حاصل وزن هر عدد × تعداد باید حداکثر چهار رقم اعشار داشته باشد")
+        for item_id, kind, unit in [(job.filament_item_id, "FILAMENT", "G"),
+                                    (job.product_item_id, "PRODUCT", "PCS")]:
+            if item_id:
+                item = self.get_item(item_id)
+                if item.kind != kind or item.unit != unit or not item.is_active:
+                    raise DomainError("نوع، واحد یا فعال‌بودن کالای متصل به تولید معتبر نیست")
+        if finishing and (not job.filament_item_id or not job.product_item_id or grams <= 0):
+            raise DomainError("برای پایان تولید، فیلامنت، محصول مقصد و وزن مثبت هر عدد را مشخص کنید")
+
     def create_job(self, data: ProductionJobCreate) -> ProductionJob:
-        if data.order_id:
-            self.get_order(data.order_id)
-        if data.filament_item_id:
-            filament = self.get_item(data.filament_item_id)
-            if filament.kind != "FILAMENT":
-                raise DomainError("filament_item_id must point at a FILAMENT item")
-        if data.product_item_id:
-            product = self.get_item(data.product_item_id)
-            if product.kind != "PRODUCT":
-                raise DomainError("product_item_id must point at a PRODUCT item")
+        self._validate_job(data)
         now = utc_now_iso()
         job = ProductionJob(
             id=uuid7(),
@@ -557,6 +611,7 @@ class OperationsService:
         payload = data.model_dump(exclude={"version_id"}, exclude_unset=True)
         for field, value in payload.items():
             setattr(job, field, value)
+        self._validate_job(job)
         job.version_id += 1
         job.updated_at = utc_now_iso()
         self.session.flush()
@@ -566,6 +621,7 @@ class OperationsService:
         job = self.get_job(job_id)
         if job.status != "PLANNED":
             raise InvalidOrderStateError(f"job #{job.job_number} is {job.status}, not PLANNED")
+        self._validate_job(job)
         job.status = "IN_PROGRESS"
         job.started_at = utc_now_iso()
         job.version_id += 1
@@ -579,6 +635,9 @@ class OperationsService:
         job = self.get_job(job_id)
         if job.status not in ("PLANNED", "IN_PROGRESS"):
             raise InvalidOrderStateError(f"job #{job.job_number} is {job.status}")
+        # Validate BOTH stock legs before writing either one. get_db rolls back
+        # the whole transaction on failure; BEGIN IMMEDIATE serializes finishers.
+        self._validate_job(job, finishing=True)
         quantity = Decimal(job.quantity)
         grams = Decimal(job.filament_grams)
         if job.filament_item_id and grams > 0:
@@ -616,8 +675,8 @@ class OperationsService:
 
     def cancel_job(self, job_id: str) -> ProductionJob:
         job = self.get_job(job_id)
-        if job.status == "DONE":
-            raise InvalidOrderStateError(f"job #{job.job_number} is already DONE")
+        if job.status in {"DONE", "CANCELLED"}:
+            raise InvalidOrderStateError(f"job #{job.job_number} is already {job.status}")
         job.status = "CANCELLED"
         job.version_id += 1
         job.updated_at = utc_now_iso()
@@ -632,12 +691,15 @@ class OperationsService:
         order = self.session.get(Order, job.order_id)
         if order is None or order.status in ("SHIPPED", "DELIVERED", "CANCELLED"):
             return
-        jobs = self.order_linked_jobs(order.id)
-        if jobs and all(j.status == "DONE" for j in jobs):
+        jobs = [j for j in self.order_linked_jobs(order.id) if j.status != "CANCELLED"]
+        completed = {line.id: sum((Decimal(j.quantity) for j in jobs
+            if j.order_item_id == line.id and j.status == "DONE"), Decimal(0))
+            for line in order.items}
+        if order.items and not any(j.status in {"PLANNED", "IN_PROGRESS"} for j in jobs) and all(completed[line.id] >= Decimal(line.quantity) for line in order.items):
             order.status = "READY"
-        elif any(j.status == "IN_PROGRESS" for j in jobs) or job.status == "DONE":
+        elif any(j.status in {"IN_PROGRESS", "DONE"} for j in jobs):
             order.status = "IN_PRODUCTION"
-        elif order.status == "NEW":
+        else:
             order.status = "CONFIRMED"
         order.version_id += 1
         order.updated_at = utc_now_iso()

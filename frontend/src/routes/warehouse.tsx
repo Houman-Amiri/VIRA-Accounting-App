@@ -9,6 +9,9 @@
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, parseError } from "@/api/client";
+import { OperationPagination, OPERATION_PAGE_SIZE } from "@/components/operation-pagination";
+import { QueryNotice } from "@/components/query-notice";
+import { parseNum } from "@/lib/priceCalc";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -117,6 +120,7 @@ export function WarehousePage(): React.JSX.Element {
     score_quality: "50",
     score_delivery: "50",
   });
+  const [movementPage, setMovementPage] = React.useState(0);
   const [message, setMessage] = React.useState<string | null>(null);
 
   const summaryQuery = useQuery({
@@ -149,9 +153,13 @@ export function WarehousePage(): React.JSX.Element {
   });
 
   const movementsQuery = useQuery({
-    queryKey: ["warehouse", "movements"],
+    queryKey: ["warehouse", "movements", movementPage],
     queryFn: async () => {
-      const res = await api.GET("/api/v1/warehouse/movements", { params: { query: {} } });
+      const res = await api.GET("/api/v1/warehouse/movements", {
+        params: {
+          query: { offset: movementPage * OPERATION_PAGE_SIZE, limit: OPERATION_PAGE_SIZE + 1 },
+        },
+      });
       if (res.error) throw await parseError(res.response);
       return res.data as unknown as Movement[];
     },
@@ -170,9 +178,9 @@ export function WarehousePage(): React.JSX.Element {
           kind: newItem.kind,
           color: newItem.color || null,
           unit: newItem.unit,
-          quantity: newItem.quantity || "0",
-          min_quantity: newItem.min_quantity || "0",
-          unit_price: newItem.unit_price || "0",
+          quantity: parseNum(newItem.quantity || "0").toString(),
+          min_quantity: parseNum(newItem.min_quantity || "0").toString(),
+          unit_price: parseNum(newItem.unit_price || "0").toString(),
           supplier_id: newItem.supplier_id || null,
         },
       });
@@ -231,7 +239,7 @@ export function WarehousePage(): React.JSX.Element {
       if (!moveFor) throw new Error("کالا انتخاب نشده است");
       const res = await api.POST("/api/v1/warehouse/items/{item_id}/movements", {
         params: { path: { item_id: moveFor.id } },
-        body: { kind: moveKind, quantity: moveQty || "0", reason: "manual" },
+        body: { kind: moveKind, quantity: parseNum(moveQty || "0").toString(), reason: "manual" },
       });
       if (res.error) throw await parseError(res.response);
       return res.data;
@@ -245,7 +253,10 @@ export function WarehousePage(): React.JSX.Element {
     onError: (e) => setMessage(errText(e)),
   });
 
-  const items = React.useMemo(() => summaryQuery.data?.items ?? [], [summaryQuery.data]);
+  const items = React.useMemo(
+    () => (summaryQuery.isSuccess ? summaryQuery.data.items : []),
+    [summaryQuery.data, summaryQuery.isSuccess],
+  );
   const filtered = React.useMemo(
     () =>
       items.filter(
@@ -263,19 +274,33 @@ export function WarehousePage(): React.JSX.Element {
     <div className="space-y-6" dir="rtl">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-bold">انبار</h1>
-        <div className="flex gap-2 text-sm">
-          <Badge variant="secondary">
-            فیلامنت: {faNumber(String(summaryQuery.data?.filament_count ?? 0))}
-          </Badge>
-          <Badge variant="secondary">
-            محصول: {faNumber(String(summaryQuery.data?.product_count ?? 0))}
-          </Badge>
-          <Badge variant={alarmsQuery.data?.length ? "destructive" : "success"}>
-            هشدار موجودی: {faNumber(String(alarmsQuery.data?.length ?? 0))}
-          </Badge>
-          <Badge variant="outline">
-            ارزش انبار: <Money value={summaryQuery.data?.total_value ?? "0"} currency="TOMAN" />
-          </Badge>
+        <div className="flex flex-wrap gap-2 text-sm">
+          <QueryNotice query={summaryQuery} />
+          {summaryQuery.isSuccess && (
+            <>
+              <Badge variant="secondary">
+                فیلامنت: {faNumber(String(summaryQuery.data?.filament_count ?? 0))}
+              </Badge>
+              <Badge variant="secondary">
+                محصول: {faNumber(String(summaryQuery.data?.product_count ?? 0))}
+              </Badge>
+              <Badge
+                variant={
+                  !alarmsQuery.isSuccess
+                    ? "outline"
+                    : alarmsQuery.data?.length
+                      ? "destructive"
+                      : "success"
+                }
+              >
+                هشدار موجودی:{" "}
+                {alarmsQuery.isSuccess ? faNumber(String(alarmsQuery.data.length)) : "نامشخص"}
+              </Badge>
+              <Badge variant="outline">
+                ارزش انبار: <Money value={summaryQuery.data?.total_value ?? "0"} currency="TOMAN" />
+              </Badge>
+            </>
+          )}
         </div>
       </div>
 
@@ -306,6 +331,7 @@ export function WarehousePage(): React.JSX.Element {
                 <CardTitle className="text-base">کالاهای انبار</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
+                <QueryNotice query={summaryQuery} />
                 <div className="flex flex-wrap items-end gap-2">
                   <div className="w-48">
                     <Label className="text-xs">جستجو</Label>
@@ -395,7 +421,7 @@ export function WarehousePage(): React.JSX.Element {
                           </td>
                         </tr>
                       ))}
-                      {filtered.length === 0 && (
+                      {summaryQuery.isSuccess && filtered.length === 0 && (
                         <tr>
                           <td colSpan={9} className="py-6 text-center text-muted-foreground">
                             کالایی یافت نشد.
@@ -470,6 +496,7 @@ export function WarehousePage(): React.JSX.Element {
                     <select
                       className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
                       value={newItem.kind}
+                      data-testid="new-item-kind"
                       onChange={(e) =>
                         setNewItem((v) => ({
                           ...v,
@@ -512,7 +539,7 @@ export function WarehousePage(): React.JSX.Element {
                       onChange={(e) => setNewItem((v) => ({ ...v, supplier_id: e.target.value }))}
                     >
                       <option value="">—</option>
-                      {(suppliersQuery.data ?? []).map((s) => (
+                      {(suppliersQuery.isSuccess ? suppliersQuery.data : []).map((s) => (
                         <option key={s.id} value={s.id}>
                           {s.name}
                         </option>
@@ -535,6 +562,7 @@ export function WarehousePage(): React.JSX.Element {
                     <Input
                       className="num"
                       value={newItem.min_quantity}
+                      data-testid="new-item-min"
                       onChange={(e) => setNewItem((v) => ({ ...v, min_quantity: e.target.value }))}
                     />
                   </div>
@@ -543,6 +571,7 @@ export function WarehousePage(): React.JSX.Element {
                     <Input
                       className="num"
                       value={newItem.unit_price}
+                      data-testid="new-item-price"
                       onChange={(e) => setNewItem((v) => ({ ...v, unit_price: e.target.value }))}
                     />
                   </div>
@@ -562,6 +591,7 @@ export function WarehousePage(): React.JSX.Element {
 
         {/* ---------------------------------------------------------- alarms */}
         <TabsContent value="alarms">
+          <QueryNotice query={alarmsQuery} />
           <Card>
             <CardHeader>
               <CardTitle className="text-base">هشدار کمبود موجودی</CardTitle>
@@ -582,7 +612,7 @@ export function WarehousePage(): React.JSX.Element {
                     </tr>
                   </thead>
                   <tbody>
-                    {(alarmsQuery.data ?? []).map((a) => (
+                    {(alarmsQuery.isSuccess ? alarmsQuery.data : []).map((a) => (
                       <tr key={a.item_id} className="border-b" data-testid={`alarm-${a.item_id}`}>
                         <td className="py-2">
                           {a.name} <Badge variant="secondary">{KIND_LABEL[a.kind]}</Badge>
@@ -601,6 +631,7 @@ export function WarehousePage(): React.JSX.Element {
 
         {/* ------------------------------------------------------- suppliers */}
         <TabsContent value="suppliers">
+          <QueryNotice query={suppliersQuery} />
           <div className="grid gap-4 lg:grid-cols-3">
             <Card className="lg:col-span-2">
               <CardHeader>
@@ -637,7 +668,7 @@ export function WarehousePage(): React.JSX.Element {
                           <td className="py-2 text-xs text-muted-foreground">{s.phone ?? "—"}</td>
                         </tr>
                       ))}
-                    {(suppliersQuery.data ?? []).length === 0 && (
+                    {suppliersQuery.isSuccess && suppliersQuery.data.length === 0 && (
                       <tr>
                         <td colSpan={6} className="py-6 text-center text-muted-foreground">
                           تأمین‌کننده‌ای ثبت نشده است.
@@ -709,6 +740,7 @@ export function WarehousePage(): React.JSX.Element {
 
         {/* ------------------------------------------------------- movements */}
         <TabsContent value="movements">
+          <QueryNotice query={movementsQuery} />
           <Card>
             <CardHeader>
               <CardTitle className="text-base">گردش انبار (فقط افزودنی)</CardTitle>
@@ -726,7 +758,10 @@ export function WarehousePage(): React.JSX.Element {
                   </tr>
                 </thead>
                 <tbody>
-                  {(movementsQuery.data ?? []).map((m) => (
+                  {(movementsQuery.isSuccess
+                    ? movementsQuery.data.slice(0, OPERATION_PAGE_SIZE)
+                    : []
+                  ).map((m) => (
                     <tr key={m.id} className="border-b">
                       <td className="num py-2">{m.occurred_at}</td>
                       <td className="py-2">{m.item_name}</td>
@@ -740,7 +775,7 @@ export function WarehousePage(): React.JSX.Element {
                       <td className="py-2 text-xs text-muted-foreground">{m.note ?? "—"}</td>
                     </tr>
                   ))}
-                  {(movementsQuery.data ?? []).length === 0 && (
+                  {movementsQuery.isSuccess && movementsQuery.data.length === 0 && (
                     <tr>
                       <td colSpan={6} className="py-6 text-center text-muted-foreground">
                         گردشی ثبت نشده است.
@@ -749,6 +784,12 @@ export function WarehousePage(): React.JSX.Element {
                   )}
                 </tbody>
               </table>
+              <OperationPagination
+                page={movementPage}
+                next={movementsQuery.isSuccess && movementsQuery.data.length > OPERATION_PAGE_SIZE}
+                busy={movementsQuery.isFetching}
+                onChange={setMovementPage}
+              />
             </CardContent>
           </Card>
         </TabsContent>

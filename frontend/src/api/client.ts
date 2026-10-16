@@ -67,6 +67,11 @@ export function onUnauthorized(handler: UnauthorizedHandler): void {
   unauthorizedHandler = handler;
 }
 
+// openapi-fetch consumes error bodies before returning them to callers. Keep a
+// weakly-held parse promise from a clone so existing parseError(response) calls
+// can still display the actual domain detail (e.g. insufficient stock).
+const errorBodies = new WeakMap<Response, Promise<unknown>>();
+
 // Attach CSRF + Idempotency-Key + sudo token on every call.
 api.use({
   onRequest({ request }) {
@@ -88,6 +93,14 @@ api.use({
     return request;
   },
   onResponse({ response }) {
+    if (!response.ok)
+      errorBodies.set(
+        response,
+        response
+          .clone()
+          .json()
+          .catch(() => undefined),
+      );
     if (response.status === 401 && unauthorizedHandler) {
       unauthorizedHandler();
     }
@@ -125,7 +138,7 @@ export async function parseError(response: Response): Promise<ApiError> {
   let message = `خطای سرور (${response.status})`;
   let detail: unknown;
   try {
-    const body = (await response.json()) as Record<string, unknown>;
+    const body = (await (errorBodies.get(response) ?? response.json())) as Record<string, unknown>;
     if (typeof body.code === "string") code = body.code;
     if (typeof body.detail === "string") message = body.detail;
     detail = body;

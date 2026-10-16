@@ -37,3 +37,12 @@ update journey still mocks update download/status (not installation proof).
 Screenshots are test artifacts in `frontend/test-results/`; keep these and local
 sandbox browser configs out of commits. Native Windows popup acceptance and a
 real in-app delta installation are separate checks, not proven by Linux E2E.
+
+The journal journey also runs the Phase 7 operations audit, using the same real
+login (no extra auth attempts): define filament and two products, receive stock,
+create a two-line order with four-decimal Persian prices, create linked jobs,
+reject insufficient stock without side effects, replenish, finish both jobs,
+verify exact consumption/receipts and per-line readiness, reject duplicate
+completion, then request the actual proforma link. The PDF signature is checked
+when a native renderer is present; otherwise the printable HTML's customer and
+exact total are checked. HTML fallback is not claimed as a native PDF proof.

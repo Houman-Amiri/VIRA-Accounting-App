@@ -301,9 +301,11 @@ def list_movements(
     session: Annotated[Session, Depends(get_db)],
     _user: Annotated[object, Depends(require_roles(*READ_ROLES))],
     item_id: Annotated[str | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 200,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> list[StockMovementRead]:
     service = OperationsService(session)
-    return [_movement_read(m) for m in service.list_movements(item_id=item_id)]
+    return [_movement_read(m) for m in service.list_movements(item_id=item_id, limit=limit, offset=offset)]
 
 
 @warehouse.get("/alarms", response_model=list[InventoryAlarm])
@@ -356,6 +358,8 @@ def list_orders(
     search: Annotated[str | None, Query()] = None,
     date_from: Annotated[str | None, Query()] = None,
     date_to: Annotated[str | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 200,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> list[OrderRead]:
     service = OperationsService(session)
     return [
@@ -366,6 +370,7 @@ def list_orders(
             search=search,
             date_from=date_from,
             date_to=date_to,
+            limit=limit, offset=offset,
         )
     ]
 
@@ -537,9 +542,11 @@ def list_jobs(
     session: Annotated[Session, Depends(get_db)],
     _user: Annotated[object, Depends(require_roles(*READ_ROLES))],
     status: Annotated[str | None, Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 200,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> list[ProductionJobRead]:
     service = OperationsService(session)
-    return [_job_read(session, j) for j in service.list_jobs(status=status)]
+    return [_job_read(session, j) for j in service.list_jobs(status=status, limit=limit, offset=offset)]
 
 
 @production.post("/jobs", response_model=ProductionJobRead, status_code=201)

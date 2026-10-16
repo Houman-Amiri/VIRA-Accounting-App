@@ -9,6 +9,8 @@
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, parseError } from "@/api/client";
+import { QueryNotice } from "@/components/query-notice";
+import { OperationPagination, OPERATION_PAGE_SIZE } from "@/components/operation-pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -112,6 +114,7 @@ function errText(error: unknown): string {
 export function OrdersPage(): React.JSX.Element {
   const pricingQuery = usePricingSettings();
   const queryClient = useQueryClient();
+  const [page, setPage] = React.useState(0);
   const [statusFilter, setStatusFilter] = React.useState("");
   const [channelFilter, setChannelFilter] = React.useState("");
   const [search, setSearch] = React.useState("");
@@ -130,11 +133,13 @@ export function OrdersPage(): React.JSX.Element {
   });
 
   const ordersQuery = useQuery({
-    queryKey: ["orders", statusFilter, channelFilter, search, dateFrom, dateTo],
+    queryKey: ["orders", statusFilter, channelFilter, search, dateFrom, dateTo, page],
     queryFn: async () => {
       const res = await api.GET("/api/v1/orders", {
         params: {
           query: {
+            limit: OPERATION_PAGE_SIZE + 1,
+            offset: page * OPERATION_PAGE_SIZE,
             ...(statusFilter ? { status: statusFilter } : {}),
             ...(channelFilter ? { channel: channelFilter } : {}),
             ...(search ? { search } : {}),
@@ -178,11 +183,11 @@ export function OrdersPage(): React.JSX.Element {
           items: form.items.map((line) => ({
             product_name: line.product_name,
             variant: line.variant,
-            quantity: line.quantity || "1",
-            unit_price: line.unit_price || "0",
-            unit_cost: line.unit_cost || "0",
-            weight_g: line.weight_g || "0",
-            print_hours: line.print_hours || "0",
+            quantity: parseNum(line.quantity || "1").toString(),
+            unit_price: parseNum(line.unit_price || "0").toString(),
+            unit_cost: parseNum(line.unit_cost || "0").toString(),
+            weight_g: parseNum(line.weight_g || "0").toString(),
+            print_hours: parseNum(line.print_hours || "0").toString(),
           })),
         },
       });
@@ -190,6 +195,7 @@ export function OrdersPage(): React.JSX.Element {
       return res.data;
     },
     onSuccess: () => {
+      setPage(0);
       setForm((f) => ({
         ...f,
         customer_name: "",
@@ -241,7 +247,7 @@ export function OrdersPage(): React.JSX.Element {
       const inputs: PriceInputs = {
         weightG: line.weight_g || "0",
         printHours: line.print_hours || "0",
-        quantity: line.quantity || "1",
+        quantity: parseNum(line.quantity || "1").toString(),
         variant: line.variant,
         channel: form.channel,
       };
@@ -272,7 +278,12 @@ export function OrdersPage(): React.JSX.Element {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-bold">سفارش‌ها</h1>
         <Badge variant="outline">
-          فروش دوره: <Money value={reportQuery.data?.revenue ?? "0"} currency="TOMAN" />
+          فروش دوره:{" "}
+          {reportQuery.isSuccess ? (
+            <Money value={reportQuery.data.revenue} currency="TOMAN" />
+          ) : (
+            "نامشخص"
+          )}
         </Badge>
       </div>
 
@@ -294,7 +305,10 @@ export function OrdersPage(): React.JSX.Element {
                 <Input
                   data-testid="orders-search"
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(0);
+                  }}
                   placeholder="نام/تلفن/آدرس مشتری"
                 />
               </div>
@@ -303,7 +317,10 @@ export function OrdersPage(): React.JSX.Element {
                 <select
                   className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
+                  onChange={(e) => {
+                    setStatusFilter(e.target.value);
+                    setPage(0);
+                  }}
                 >
                   <option value="">همه</option>
                   {Object.entries(STATUS_LABEL).map(([value, label]) => (
@@ -318,7 +335,10 @@ export function OrdersPage(): React.JSX.Element {
                 <select
                   className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
                   value={channelFilter}
-                  onChange={(e) => setChannelFilter(e.target.value)}
+                  onChange={(e) => {
+                    setChannelFilter(e.target.value);
+                    setPage(0);
+                  }}
                 >
                   <option value="">همه</option>
                   <option value="direct">مستقیم</option>
@@ -330,7 +350,10 @@ export function OrdersPage(): React.JSX.Element {
                 <Input
                   data-testid="orders-from"
                   value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
+                  onChange={(e) => {
+                    setDateFrom(e.target.value);
+                    setPage(0);
+                  }}
                   placeholder="2026-01-01"
                 />
               </div>
@@ -339,12 +362,16 @@ export function OrdersPage(): React.JSX.Element {
                 <Input
                   data-testid="orders-to"
                   value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
+                  onChange={(e) => {
+                    setDateTo(e.target.value);
+                    setPage(0);
+                  }}
                   placeholder="2026-12-31"
                 />
               </div>
             </div>
 
+            <QueryNotice query={ordersQuery} />
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -360,7 +387,10 @@ export function OrdersPage(): React.JSX.Element {
                   </tr>
                 </thead>
                 <tbody>
-                  {(ordersQuery.data ?? []).map((order) => (
+                  {(ordersQuery.isSuccess
+                    ? ordersQuery.data.slice(0, OPERATION_PAGE_SIZE)
+                    : []
+                  ).map((order) => (
                     <tr key={order.id} className="border-b" data-testid={`order-${order.id}`}>
                       <td className="num py-2">{faNumber(String(order.order_number))}</td>
                       <td className="py-2">
@@ -405,6 +435,7 @@ export function OrdersPage(): React.JSX.Element {
                               size="sm"
                               variant={next === "CANCELLED" ? "ghost" : "outline"}
                               data-testid={`order-${order.id}-${next}`}
+                              disabled={setStatus.isPending}
                               onClick={() => setStatus.mutate({ order, status: next })}
                             >
                               {STATUS_LABEL[next]}
@@ -422,7 +453,7 @@ export function OrdersPage(): React.JSX.Element {
                       </td>
                     </tr>
                   ))}
-                  {(ordersQuery.data ?? []).length === 0 && (
+                  {ordersQuery.isSuccess && ordersQuery.data.length === 0 && (
                     <tr>
                       <td colSpan={8} className="py-6 text-center text-muted-foreground">
                         سفارشی یافت نشد.
@@ -432,6 +463,12 @@ export function OrdersPage(): React.JSX.Element {
                 </tbody>
               </table>
             </div>
+            <OperationPagination
+              page={page}
+              next={ordersQuery.isSuccess && ordersQuery.data.length > OPERATION_PAGE_SIZE}
+              busy={ordersQuery.isFetching}
+              onChange={setPage}
+            />
           </CardContent>
         </Card>
 
@@ -604,21 +641,24 @@ export function OrdersPage(): React.JSX.Element {
           </select>
         </CardHeader>
         <CardContent>
-          <div className="pb-3 flex flex-wrap gap-3 text-sm">
-            <span>
-              تعداد سفارش:{" "}
-              <span className="num">{faNumber(String(reportQuery.data?.orders ?? 0))}</span>
-            </span>
-            <span>
-              فروش: <Money value={reportQuery.data?.revenue ?? "0"} currency="TOMAN" />
-            </span>
-            <span>
-              بهای تمام‌شده: <Money value={reportQuery.data?.cost ?? "0"} currency="TOMAN" />
-            </span>
-            <span>
-              سود: <Money value={reportQuery.data?.profit ?? "0"} currency="TOMAN" />
-            </span>
-          </div>
+          <QueryNotice query={reportQuery} />
+          {reportQuery.isSuccess && (
+            <div className="pb-3 flex flex-wrap gap-3 text-sm">
+              <span>
+                تعداد سفارش:{" "}
+                <span className="num">{faNumber(String(reportQuery.data?.orders ?? 0))}</span>
+              </span>
+              <span>
+                فروش: <Money value={reportQuery.data?.revenue ?? "0"} currency="TOMAN" />
+              </span>
+              <span>
+                بهای تمام‌شده: <Money value={reportQuery.data?.cost ?? "0"} currency="TOMAN" />
+              </span>
+              <span>
+                سود: <Money value={reportQuery.data?.profit ?? "0"} currency="TOMAN" />
+              </span>
+            </div>
+          )}
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b text-muted-foreground">
@@ -630,7 +670,7 @@ export function OrdersPage(): React.JSX.Element {
               </tr>
             </thead>
             <tbody>
-              {(reportQuery.data?.rows ?? []).map((row) => (
+              {(reportQuery.isSuccess ? reportQuery.data.rows : []).map((row) => (
                 <tr key={row.period} className="border-b" data-testid={`report-${row.period}`}>
                   <td className="num py-2">{row.period}</td>
                   <td className="num py-2">{faNumber(String(row.orders))}</td>
@@ -643,7 +683,7 @@ export function OrdersPage(): React.JSX.Element {
                   </td>
                 </tr>
               ))}
-              {(reportQuery.data?.rows ?? []).length === 0 && (
+              {reportQuery.isSuccess && reportQuery.data.rows.length === 0 && (
                 <tr>
                   <td colSpan={5} className="py-6 text-center text-muted-foreground">
                     در این بازه فروشی ثبت نشده است.
