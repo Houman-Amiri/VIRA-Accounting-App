@@ -1,4 +1,4 @@
-# vira_updater.ps1 — transactional update helper (Phase 8 §6/§7)
+﻿# vira_updater.ps1 — transactional update helper (Phase 8 §6/§7)
 #
 # Compiled to vira-updater.exe in CI (ps2exe). The main app launches it after
 # the user confirms the update. It:

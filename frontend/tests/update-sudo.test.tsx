@@ -91,7 +91,8 @@ it("re-authenticates an expired apply grant and retries only after user confirma
     });
     fireEvent.click(screen.getByTestId("sudo-confirm"));
     await screen.findByTestId("update-restart");
-    expect(vi.mocked(api.POST).mock.calls.map(([url]) => url)).toEqual([
+    const calls = vi.mocked(api.POST).mock.calls as unknown as Array<[string, unknown]>;
+    expect(calls.map(([url]) => url)).toEqual([
       "/api/v1/system/update/apply",
       "/api/v1/auth/sudo",
       "/api/v1/system/update/apply",
