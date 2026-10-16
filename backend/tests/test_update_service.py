@@ -10,7 +10,7 @@ import pytest
 
 from app.config import Settings
 from app.services import update as update_mod
-from app.services.update import check_for_update, fetch_channel, manager
+from app.services.update import UpdateChannelError, check_for_update, fetch_channel, manager
 from app.services.update_engine import VerificationError, sha256_bytes
 
 
@@ -138,8 +138,7 @@ class TestChannel:
             return _Resp(200, raw)
 
         monkeypatch.setattr("httpx.get", fake_get)
-        # with override there is no .sig fetch — simulate direct asset + sig via GitHub-less path:
-        # use override for latest.json and no signature → verification skipped (sig absent)
+        # The mirror must provide a valid detached signature when a key is configured.
         s = _settings(
             tmp_path,
             app_update_url="https://mirror.example/latest.json",
