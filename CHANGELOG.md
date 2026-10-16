@@ -17,8 +17,27 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
   three-column amounts fit, oversized amounts scroll inside the report.
 - 158 frontend tests and five CI jobs passed on `b45e18e` (run 38969506200).
   No backend/schema/migration or release/version change. Calendar and dynamic
-  item master data remain pending; installed manual acceptance is deferred by
+  item master data were still pending at that checkpoint; installed manual acceptance is deferred by
   the user's instruction until the phases finish.
+
+### Changed — repair substep 4-B/2 (unpublished)
+- Real Jalali/Gregorian civil-date inputs for orders/new journals, shared date
+  filters, lists and entry previews. Persian/Arabic/Latin digit input, validity
+  checks and Tehran today; ISO date-only storage and UTC timestamps are unchanged.
+- Settings calendar selection is installation-wide, durable in existing SQLite
+  append-only events, authenticated/CSRF-protected and revision-checked. No DDL or
+  new migration; invalid/corrupt preference fails closed for date entry.
+- Calendar switching preserves the civil day, including an edited unsaved date;
+  fiscal boundaries stay on 1 Farvardin. Journal auth-recovery drafts retain date.
+- Responsive date forms and internally scrolling order tables keep mobile inputs
+  readable. Light/dark tokens and literal pricing formulas remain unchanged.
+- Local checks: 326 backend tests, 186 frontend tests and all five browser journeys
+  passed; browser calendar coverage uses real SQLite, two browser timezones,
+  frozen Tehran-midnight clock, reload and a fresh authenticated browser context.
+  All five CI jobs passed on `1defaad` (run 38981489594), including native Windows
+  and the OpenAPI contract. Evidence/limits: `docs/reports/phase4b-2-calendar-fa.md`.
+- No version/tag/publication or installed-user database changes. Dynamic item
+  master data and its schema-rollback prerequisite remain pending.
 
 ## [1.0.10] - 2026-10-16
 

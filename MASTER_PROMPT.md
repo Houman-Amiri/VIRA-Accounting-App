@@ -307,7 +307,12 @@ Track the next-update scope in
 - Give the light theme a very subtle cream or pale-green background through shared theme tokens, retaining accessible contrast, semantic highlights and the existing dark theme.
 
 Execution was authorized after v1.0.10. Substep 4-B/1 implements pricing presentation
-and light-theme changes; the calendar and item master-data work remains pending.
+and light-theme changes. Substep 4-B/2 adds genuine civil-date inputs, Tehran
+presentation and an installation-wide calendar preference stored as versioned,
+append-only SQLite security events (no DDL/revision change; backups include it).
+Only OWNER/BOOKKEEPER can change it, with CSRF and revision compare-and-swap;
+authenticated AUDITOR can read it. No browser-only preference or data rewrite.
+Item master-data work remains pending, including its real migration/rollback gate.
 The user deferred installed-data/manual acceptance until the phases finish, not
 automated tests. This is not authorization to publish another version. Preserve
 immutable releases, migration backups and delta-only routine updates. The detailed
