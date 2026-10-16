@@ -827,7 +827,11 @@ Deliver V.I.R.A as a distributable Windows product: an **Inno Setup** installer 
 
 ## User-requested next-update scope — repair subphase 4-B (2026-10-16)
 
-**Status: planned, not yet implemented or released.** The full scope, safe-deletion rules,
+**Status: in progress, unreleased.** Execution was authorized after v1.0.10;
+substep 4-B/1 covers pricing presentation and the light theme, while calendar and
+item master-data work remains pending. Installed-data/manual acceptance was deferred
+by the user until the phases finish; automated tests remain mandatory.
+The full scope, safe-deletion rules,
 timezone/date-only semantics and acceptance criteria are recorded in
 [`docs/plans/pricing-dates-catalog-theme-follow-up-fa.md`](docs/plans/pricing-dates-catalog-theme-follow-up-fa.md).
 

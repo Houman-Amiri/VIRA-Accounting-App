@@ -296,7 +296,7 @@ Source: `قیمت نهایی.xlsx`, single `Sheet1`, cells A1:F35. This is the b
 
 *Compiled from `VIRA_SQLite_No_Docker.md` and `قیمت نهایی.xlsx` (Sheet1, A1:F35), plus user amendments. **Status:** Phase 8 complete 2026-10-14 — Installer, Versioned Releases & In-App Delta Updates: Inno Setup 6 installer with the mandatory «مسیر نصب» directory-selection step (InstallDir recorded in the registry), strict vX.Y.Z annotated tags + CHANGELOG.md, schema-versioned latest.json (unknown versions refused) with full_installer + K=3 deltas, ETag-cached GitHub update checks with APP_UPDATE_URL override and Ed25519 signatures, delta engine (per-file SHA-256 manifests, manifest diffing, update.json + files/ + BSDIFF40 patches/ + delete.json, delta → chain → full-installer selection — never a full re-download when a delta applies), transactional vira-updater.exe (mutex, snapshot, verified apply, rollback with «خطا در به‌روزرسانی. نسخهٔ قبلی بازگردانی شد.»), mandated update dialog «به‌روزرسانی جدید موجود است» / «به‌روزرسانی جدیدی در دسترس است (نسخهٔ X.Y.Z). آیا می‌خواهید دانلود و نصب شود؟» + startup badge, zero data loss (pre-update backup + rollback until health checks), CI artifact + Release asset distribution with Windows install/upgrade/rollback smoke tests. 186 pytest + 70 Vitest green, ruff + mypy clean, tsc + eslint clean, build green, Bandit 0 medium+, pip-audit clean. **The 8-phase plan is fully delivered.***
 
-## User-requested follow-up — repair subphase 4-B (2026-10-16; planned)
+## User-requested follow-up — repair subphase 4-B (2026-10-16; in progress)
 
 Track the next-update scope in
 [`docs/plans/pricing-dates-catalog-theme-follow-up-fa.md`](docs/plans/pricing-dates-catalog-theme-follow-up-fa.md):
@@ -306,4 +306,9 @@ Track the next-update scope in
 - Add Settings → Item master data for adding/removing item types, units and suppliers; the New item form must consume persisted options. Reuse existing suppliers; protect references/history by deactivating used options rather than deleting their records. Dynamic types/units require real schema/API support, not just new labels over fixed enums; preserve stock/production semantics and explicit unit compatibility.
 - Give the light theme a very subtle cream or pale-green background through shared theme tokens, retaining accessible contrast, semantic highlights and the existing dark theme.
 
-These are queued requirements, not implemented functionality or authorization to publish a new version. Preserve immutable releases, migration backups and delta-only routine updates. The detailed plan defines acceptance tests and the report/approval stop before proceeding to another repair phase.
+Execution was authorized after v1.0.10. Substep 4-B/1 implements pricing presentation
+and light-theme changes; the calendar and item master-data work remains pending.
+The user deferred installed-data/manual acceptance until the phases finish, not
+automated tests. This is not authorization to publish another version. Preserve
+immutable releases, migration backups and delta-only routine updates. The detailed
+plan defines acceptance tests and per-step reporting.

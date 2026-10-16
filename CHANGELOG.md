@@ -7,7 +7,18 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
-No additional changes queued for publication. Phase 4-B remains planned separately.
+### Changed — repair substep 4-B/1 (unpublished)
+- Pricing report now exposes only description/plain/chain amounts, without cell
+  references or formula annotations. Literal workbook math and all three colored
+  total rows remain unchanged.
+- Warm cream light canvas, pale-green secondary surfaces, AA text/semantic colors
+  and stronger input borders; published dark tokens remain unchanged. Compact,
+  accessible mobile navigation retains the startup update notification; normal
+  three-column amounts fit, oversized amounts scroll inside the report.
+- 158 frontend tests and five CI jobs passed on `9bffa78` (run 38968254211).
+  No backend/schema/migration or release/version change. Calendar and dynamic
+  item master data remain pending; installed manual acceptance is deferred by
+  the user's instruction until the phases finish.
 
 ## [1.0.10] - 2026-10-16
 
