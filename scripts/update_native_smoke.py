@@ -137,7 +137,12 @@ def verify_payload(root: Path, *, runtime: bool = False) -> None:
     manifest = json.loads((root / "install_manifest.json").read_text(encoding="utf-8-sig"))
     for entry in manifest["files"]:
         relative = Path(entry["path"])
-        if relative.is_absolute() or ".." in relative.parts:
+        if (
+            relative.anchor
+            or ".." in relative.parts
+            or ":" in entry["path"]
+            or "\\" in entry["path"]
+        ):
             raise ValueError("unsafe payload manifest path")
         if runtime and ("__pycache__" in relative.parts or relative.suffix == ".pyc"):
             continue

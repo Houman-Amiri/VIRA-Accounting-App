@@ -44,7 +44,10 @@ def test_shipped_payload_verified_without_rebuilding(tmp_path, harness):
         harness.verify_payload(tmp_path)
 
 
-@pytest.mark.parametrize("relative", ["../outside.py", "/outside.py"])
+@pytest.mark.parametrize(
+    "relative",
+    ["../outside.py", "/outside.py", r"C:\outside.py", "C:outside.py", r"app\..\outside.py"],
+)
 def test_manifest_escape_rejected(tmp_path, harness, relative):
     (tmp_path / "install_manifest.json").write_text(json.dumps({"files": [{"path": relative}]}))
     with pytest.raises(ValueError, match="unsafe"):
