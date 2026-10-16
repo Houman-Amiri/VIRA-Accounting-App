@@ -20,6 +20,7 @@ import sys
 import tempfile
 import threading
 import time
+from contextlib import closing
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -214,9 +215,10 @@ uvicorn.run("app.main:app", host="127.0.0.1", port=int(os.environ["VIRA_PORT"]))
         "from scripts.update_native_smoke import seed_business; seed_business()",
         env={**env, "VIRA_E2E_DISPOSABLE_DATABASE": "1"},
     )
-    with sqlite3.connect(database) as db:
+    with closing(sqlite3.connect(database)) as db:
         db.execute("CREATE TABLE phase8_sentinel(value TEXT NOT NULL)")
         db.execute("INSERT INTO phase8_sentinel VALUES ('exact business data 123.4567')")
+        db.commit()
     receipt = data / "receipt_storage/sentinel.bin"
     receipt.parent.mkdir(exist_ok=True)
     receipt.write_bytes(secrets.token_bytes(2048))
@@ -231,7 +233,7 @@ uvicorn.run("app.main:app", host="127.0.0.1", port=int(os.environ["VIRA_PORT"]))
         def do_POST(self):
             nonlocal checkpoint_hash
             assert self.path == "/checkpoint"
-            with sqlite3.connect(database) as db:
+            with closing(sqlite3.connect(database)) as db:
                 db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             checkpoint_hash = sha(database)
             self.send_response(200)
@@ -270,7 +272,7 @@ uvicorn.run("app.main:app", host="127.0.0.1", port=int(os.environ["VIRA_PORT"]))
                 body = json.dumps(counts).encode()
             elif self.path == "/verify-data":
                 try:
-                    with sqlite3.connect(database) as db:
+                    with closing(sqlite3.connect(database)) as db:
                         assert db.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
                         assert db.execute("PRAGMA foreign_key_check").fetchall() == []
                         assert (
@@ -377,13 +379,14 @@ uvicorn.run("app.main:app", host="127.0.0.1", port=int(os.environ["VIRA_PORT"]))
         raise
     finally:
         # Stop only this fixture's listener; never touch another VIRA installation.
-        command = f"Get-NetTCPConnection -LocalPort {app_port} -State Listen -ErrorAction SilentlyContinue | ForEach-Object {{ Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }}"
+        command = f"Get-NetTCPConnection -LocalPort {app_port} -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object {{ $p = Get-Process -Id $_ -ErrorAction SilentlyContinue; if ($p) {{ Stop-Process -Id $p.Id -Force; if (-not $p.WaitForExit(10000)) {{ throw 'fixture process still alive' }} }} }}"
         subprocess.run(
-            ["powershell.exe", "-NoProfile", "-Command", command], check=False, timeout=30
+            ["powershell.exe", "-NoProfile", "-Command", command], check=True, timeout=30
         )
         server.wait(timeout=20)
         log.close()
         feed.shutdown()
+        feed.server_close()
 
 
 if __name__ == "__main__":
