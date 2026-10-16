@@ -1,5 +1,16 @@
 /** Isolated Windows fixture only: actual browser, API, HTTP ZIP and helper. */
 const { chromium, expect } = require("../frontend/node_modules/@playwright/test");
+async function stepUp(page) {
+  // Historical 1.0.9 has no sudo test IDs. Use its real native dialog/form,
+  // and observe the UI's authenticated request (sudo token is JS memory, not
+  // a cookie that APIRequestContext can attach on our behalf).
+  const dialog = page.locator('dialog[open]');
+  const status = page.waitForResponse((r) => r.url().endsWith("/api/v1/system/status") && r.status() === 200);
+  await dialog.locator('input[type="password"]').fill(process.env.VIRA_NATIVE_PASSWORD);
+  await dialog.locator('button[type="submit"]').click();
+  await expect(dialog).not.toBeVisible();
+  return (await status).json();
+}
 (async () => {
   const browser = await chromium.launch();
   try {
@@ -13,11 +24,8 @@ const { chromium, expect } = require("../frontend/node_modules/@playwright/test"
     const legacy = process.env.VIRA_NATIVE_LEGACY === "1";
     if (!legacy) await expect(page.getByTestId("update-badge")).toBeVisible();
     await page.goto(base + "/system");
-    await page.getByTestId("sudo-password").fill(process.env.VIRA_NATIVE_PASSWORD);
-    await page.getByTestId("sudo-confirm").click();
-    await expect(page.getByTestId("sudo-dialog")).not.toBeVisible();
+    const initial = await stepUp(page);
     if (legacy) {
-      const initial = await (await page.request.get(base + "/api/v1/system/status")).json();
       expect(initial.version).toBe("1.0.9");
       expect(initial.commit).toMatch(/^7d78720/);
       await expect(page.getByTestId("system-build-ids").locator("span.num")).toHaveText(["7d78720", "7d78720", "7d78720"]);
@@ -59,12 +67,11 @@ const { chromium, expect } = require("../frontend/node_modules/@playwright/test"
       // is a documented first-hop limitation, not an injected client fix.
       if (legacy) await page.reload();
     } else { await expect(page.getByTestId("update-failed")).toBeVisible(); await page.reload(); }
-    await page.getByTestId("sudo-password").fill(process.env.VIRA_NATIVE_PASSWORD);
-    await page.getByTestId("sudo-confirm").click();
+    const resumed = await stepUp(page);
     if (!(legacy && process.env.VIRA_NATIVE_EXPECTED === "rolled_back"))
       await expect(page.getByTestId("system-last-update")).toBeVisible();
     if (legacy) {
-      const status = await (await page.request.get(base + "/api/v1/system/status")).json();
+      const status = resumed;
       expect(status.version).toBe(process.env.VIRA_NATIVE_EXPECTED === "committed" ? "1.0.10" : "1.0.9");
       const ids = page.getByTestId("system-build-ids").locator("span.num");
       await expect(ids).toHaveCount(3);
