@@ -77,4 +77,9 @@ const { chromium, expect } = require("../frontend/node_modules/@playwright/test"
     expect(counters).toEqual({ delta: 1, full: 0 });
     console.log("Native in-app update:", process.env.VIRA_NATIVE_EXPECTED, "— consent, delta-only, SQLite and receipt hashes verified");
   } finally { await browser.close(); }
-})().catch((error) => { console.error(error); process.exitCode = 1; });
+})().catch((error) => {
+  const raw = String(error.stack || error).split(process.env.VIRA_NATIVE_PASSWORD || "__no_password__").join("[fixture password]");
+  const text = raw.length > 2300 ? raw.slice(0, 1100) + "\n...\n" + raw.slice(-1100) : raw;
+  console.error("::error title=native browser::" + text.replaceAll("%", "%25").replaceAll("\r", "%0D").replaceAll("\n", "%0A"));
+  process.exitCode = 1;
+});

@@ -424,11 +424,32 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
     if published:
         # The released launcher uses LOCALAPPDATA as well as DATA_DIR. Both are
         # disposable; never reuse the runner's ordinary VIRA profile.
+        # Playwright's installation stays in the runner's real cache, even
+        # though the product and its default Edge opener use an isolated profile.
+        env.setdefault(
+            "PLAYWRIGHT_BROWSERS_PATH", str(Path(os.environ["LOCALAPPDATA"]) / "ms-playwright")
+        )
         env["LOCALAPPDATA"] = str(root / "local profile")
         Path(env["LOCALAPPDATA"]).mkdir()
     # Ensure the repo's external environment cannot stamp our private fixture.
     for name in ("VIRA_VERSION", "VIRA_GIT_COMMIT", "VIRA_SPA_BUILD"):
         env.pop(name, None)
+    browser_pids = ""
+    if published:
+        browser_pids = (
+            subprocess.check_output(
+                [
+                    "powershell.exe",
+                    "-NoProfile",
+                    "-Command",
+                    "Get-Process -Name msedge -ErrorAction SilentlyContinue | ForEach-Object { $_.Id }",
+                ],
+                text=True,
+            )
+            .strip()
+            .replace("\n", ",")
+            .replace("\r", "")
+        )
     log = (root / "initial-server.log").open("w")
     argv = (
         ["cmd.exe", "/d", "/c", "start_vira.cmd"] if published else [sys.executable, str(bootstrap)]
@@ -491,7 +512,17 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
         subprocess.run(
             ["powershell.exe", "-NoProfile", "-Command", command], check=True, timeout=30
         )
+        if server.poll() is None:
+            server.terminate()  # our initial cmd can remain at its old :fail pause
         server.wait(timeout=20)
+        if published:
+            # The genuine launcher opens the default Edge, separately from our
+            # Playwright browser. Close ONLY new fixture-era Edge processes so
+            # they cannot retain this disposable LOCALAPPDATA after teardown.
+            command = f"$before = @({browser_pids}); Get-Process -Name msedge -ErrorAction SilentlyContinue | Where-Object {{ $_.Id -notin $before }} | ForEach-Object {{ $p = $_; if (-not $p.HasExited) {{ $null = $p.Handle; Stop-Process -InputObject $p -Force -ErrorAction SilentlyContinue; if (-not $p.WaitForExit(10000)) {{ throw 'fixture browser still alive' }} }} }}"
+            subprocess.run(
+                ["powershell.exe", "-NoProfile", "-Command", command], check=True, timeout=30
+            )
         log.close()
         feed.shutdown()
         feed.server_close()
