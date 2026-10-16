@@ -364,18 +364,16 @@ uvicorn.run("app.main:app", host="127.0.0.1", port=int(os.environ["VIRA_PORT"]))
         assert result["state"] == ("rolled_back" if rollback else "committed")
         assert list((data / "backups").glob("pre-update-*.sqlite3")), "pre-update backup missing"
     except Exception:
-        for diagnostic in root.rglob("update.log"):
-            print(
-                "HELPER DIAGNOSTIC:",
-                diagnostic.read_text(encoding="utf-8-sig", errors="replace")[-4500:],
-                flush=True,
-            )
-        for diagnostic in root.glob("*server.log"):
-            print(
-                "SERVER DIAGNOSTIC:",
-                diagnostic.read_text(encoding="utf-8", errors="replace")[-1500:],
-                flush=True,
-            )
+        for diagnostic in [
+            *root.rglob("update.log"),
+            *root.rglob("last-result.json"),
+            *root.glob("*server.log"),
+        ]:
+            text = diagnostic.read_text(encoding="utf-8-sig", errors="replace")[-2300:]
+            # Actions annotations are bounded; emit each diagnostic separately
+            # so an earlier startup transcript cannot hide the rollback reason.
+            escaped = text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+            print(f"::error title=phase8 {diagnostic.name}::{escaped}", flush=True)
         raise
     finally:
         # Stop only this fixture's listener; never touch another VIRA installation.
