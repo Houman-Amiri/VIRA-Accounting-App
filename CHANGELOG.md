@@ -7,11 +7,15 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
-Draft Persian notes for proposed v1.0.10: `docs/releases/v1.0.10-fa.md`.
-Project metadata is now 1.0.10 for candidate-only packaging; this is not release
-approval or publication. The user's screenshot
-confirms installed v1.0.9 / `7d78720`; its actual client-to-candidate path has now passed the isolated pre-release
-browser/compiled-helper success and rollback gate (candidate `f6fc50b`).
+No additional changes queued for publication. Phase 4-B remains planned separately.
+
+## [1.0.10] - 2026-10-16
+
+Reviewed Persian notes: `docs/releases/v1.0.10-fa.md`. The user approved tagging
+and public release after the green candidate report. Publication is gated by
+CI and the Windows/historical-client checks on the immutable release tag.
+The confirmed installed baseline is v1.0.9 / `7d78720`; its browser-to-candidate
+success and rollback gate passed on `f6fc50b` before approval.
 
 ### Fixed
 - Add a pinned-public-payload 1.0.9 -> candidate 1.0.10 browser/compiled-updater
