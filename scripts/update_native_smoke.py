@@ -154,6 +154,7 @@ uvicorn.run("app.main:app", host="127.0.0.1", port=int(os.environ["VIRA_PORT"]))
                 body = json.dumps(
                     dict(
                         schema_version=1,
+                        pub_date="2026-10-16T00:00:00Z",
                         version="99.0.1",
                         min_app_version="99.0.0",
                         full_installer=dict(

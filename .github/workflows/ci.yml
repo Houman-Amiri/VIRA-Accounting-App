@@ -288,5 +288,11 @@ jobs:
           pnpm exec playwright install chromium
           if ($LASTEXITCODE -ne 0) { throw "Chromium install failed" }
           Pop-Location
-          uv run python scripts/update_native_smoke.py
-          if ($LASTEXITCODE -ne 0) { throw "native in-app delta journey failed" }
+          $out = (uv run python scripts/update_native_smoke.py 2>&1 | Out-String)
+          Write-Host $out
+          if ($LASTEXITCODE -ne 0) {
+            ($out -split "`n") | Select-Object -Last 40 | ForEach-Object {
+              if ($_.Trim()) { Write-Host "::error title=native in-app update::$(($_ -replace '%','%25') -replace "`r",'')" }
+            }
+            throw "native in-app delta journey failed"
+          }
