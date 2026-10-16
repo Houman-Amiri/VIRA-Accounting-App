@@ -161,7 +161,7 @@ export function PriceCalcPage(): React.JSX.Element {
               aria-label="جدول قیمت‌گذاری؛ قابل پیمایش افقی"
               tabIndex={0}
             >
-              <table className="w-full min-w-[28rem] text-sm" aria-label="گزارش قیمت‌گذاری">
+              <table className="w-full text-xs sm:text-sm" aria-label="گزارش قیمت‌گذاری">
                 <thead>
                   <tr className="border-b text-muted-foreground">
                     <th scope="col" className="py-2 text-start font-medium">

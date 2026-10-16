@@ -123,6 +123,10 @@ test("pricing reproduces the original Excel cells for single and multiple quanti
       await scroller.focus();
       await expect(scroller).toBeFocused();
       if (width === 390) {
+        // Ordinary amounts fit all three columns; unusually long amounts must
+        // scroll inside the report rather than overflow the application shell.
+        expect(await scroller.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+        await page.getByTestId("input-weight").fill("1000000000000000");
         expect(await scroller.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
         // RTL horizontal scrolling must expose the last column without page overflow.
         await scroller.evaluate((el) => {
@@ -134,6 +138,7 @@ test("pricing reproduces the original Excel cells for single and multiple quanti
         expect(viewport).not.toBeNull();
         expect(cell!.x).toBeGreaterThanOrEqual(viewport!.x - 1);
         expect(cell!.x + cell!.width).toBeLessThanOrEqual(viewport!.x + viewport!.width + 1);
+        await page.getByTestId("input-weight").fill("240");
       }
     }
   }
