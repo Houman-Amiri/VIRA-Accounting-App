@@ -3,6 +3,7 @@
  * The e2e job seeds an owner user (VIRA_ADMIN_PASSWORD) before Playwright runs.
  */
 import { expect, test, type Page } from "@playwright/test";
+import { auditDashboard } from "./dashboard-audit";
 import { auditMenuThemes } from "./theme-audit";
 
 const USER = process.env.VIRA_E2E_USER || "owner";
@@ -42,6 +43,7 @@ test("app shell and all menu themes render in Persian RTL", async ({ page }) => 
   await expect(page.locator("html")).toHaveAttribute("lang", "fa");
   await expect(page.getByRole("navigation", { name: "ناوبری اصلی" })).toBeVisible();
   await expect(page.getByText("حسابداری ویرا")).toBeVisible();
+  await auditDashboard(page);
   await auditMenuThemes(page);
 });
 

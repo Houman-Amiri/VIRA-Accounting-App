@@ -208,6 +208,7 @@ jobs:
         working-directory: frontend
         env:
           SQLITE_DATABASE_PATH: ${{ runner.temp }}/vira-e2e.sqlite3
+          VIRA_E2E_DISPOSABLE_DATABASE: "1"
           VIRA_E2E_USER: owner
           VIRA_E2E_PASSWORD: e2e-owner-password
         run: |

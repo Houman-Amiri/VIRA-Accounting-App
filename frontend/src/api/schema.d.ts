@@ -1163,6 +1163,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/orders/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Order Summary */
+        get: operations["order_summary_api_v1_orders_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/orders/reports/sales": {
         parameters: {
             query?: never;
@@ -1910,6 +1927,28 @@ export interface components {
             total_cost: string;
             /** Profit */
             profit: string;
+        };
+        /**
+         * OrderSummary
+         * @description Counts across all orders, independent of the recent-orders page limit.
+         */
+        OrderSummary: {
+            /** Total */
+            total: number;
+            /** New */
+            new: number;
+            /** Confirmed */
+            confirmed: number;
+            /** In Production */
+            in_production: number;
+            /** Ready */
+            ready: number;
+            /** Delivered */
+            delivered: number;
+            /** Shipped */
+            shipped: number;
+            /** Cancelled */
+            cancelled: number;
         };
         /** OrderUpdate */
         OrderUpdate: {
@@ -5355,6 +5394,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OrderRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    order_summary_api_v1_orders_summary_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderSummary"];
                 };
             };
             /** @description Validation Error */

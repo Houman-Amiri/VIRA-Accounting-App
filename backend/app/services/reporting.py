@@ -15,7 +15,7 @@ import polars as pl
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from ..money import from_scaled, safe_sum_scaled
+from ..money import from_scaled, safe_sum_scaled, to_scaled
 from ..schemas.ledger import (
     BalanceSheetReport,
     CashFlowReport,
@@ -46,6 +46,16 @@ SELECT t.root_id,
 FROM tree t
 LEFT JOIN totals tot ON tot.account_id = t.leaf_id
 GROUP BY t.root_id
+"""
+
+# Trial-balance rows are direct postings, NOT inclusive hierarchy rollups.
+# Summing inclusive parents and children double-counts and can invent an imbalance.
+_SQL_TRIAL_TOTALS = """
+SELECT s.account_id, SUM(s.functional_debit), SUM(s.functional_credit)
+FROM transaction_splits s
+JOIN journal_entries e ON e.id = s.journal_entry_id
+WHERE e.status = 'POSTED' AND e.transaction_date <= :as_of
+GROUP BY s.account_id
 """
 
 _SQL_PERIOD_TOTALS = """
@@ -146,19 +156,13 @@ class ReportingService:
         return attach(None)
 
     def _sum_tree(self, nodes: list[ReportNode]) -> int:
-        total = 0
-        for node in nodes:
-            if node.children:
-                # rollups: parent amount already includes children (CTE is inclusive)
-                total += int(round(float(node.amount) * 10_000)) if node.children else 0
-        # sum top-level inclusive amounts only (children are subsets)
-        total = sum(int(round(float(n.amount) * 10_000)) for n in nodes)
-        return total
+        # Only roots: each root already includes its descendants.
+        return sum(to_scaled(node.amount) for node in nodes)
 
     # ---------------- reports ----------------
 
     def trial_balance(self, as_of: str) -> list[TrialBalanceRow]:
-        totals = self._totals({"as_of": as_of}, _SQL_ACCOUNT_TOTALS)
+        totals = self._totals({"as_of": as_of}, _SQL_TRIAL_TOTALS)
         rows: list[TrialBalanceRow] = []
         td = tc = 0
         for acc in self._accounts_meta():
@@ -191,7 +195,7 @@ class ReportingService:
         assets = self._build_tree(accounts, totals, include_types={"ASSET"})
         liabilities = self._build_tree(accounts, totals, include_types={"LIABILITY"})
         equity = self._build_tree(accounts, totals, include_types={"EQUITY"})
-        income = self._totals({"as_of": as_of}, _SQL_ACCOUNT_TOTALS)
+        income = self._totals({"as_of": as_of}, _SQL_TRIAL_TOTALS)
 
         # Retained earnings = period-to-date net income (income − expenses).
         net = 0
@@ -200,7 +204,7 @@ class ReportingService:
             if acc["account_type"] == "INCOME":
                 net += c - d
             elif acc["account_type"] == "EXPENSE":
-                net -= c - d
+                net -= d - c
         total_assets = self._fmt(sum(self._tree_amounts(assets)))
         total_liab = self._fmt(sum(self._tree_amounts(liabilities)))
         total_eq = self._fmt(sum(self._tree_amounts(equity)))
@@ -216,7 +220,7 @@ class ReportingService:
         )
 
     def _tree_amounts(self, nodes: list[ReportNode]) -> list[int]:
-        return [int(round(float(n.amount) * 10_000)) for n in nodes]
+        return [to_scaled(n.amount) for n in nodes]
 
     def income_statement(self, start: str, end: str) -> IncomeStatementReport:
         totals = self._totals({"start": start, "end": end}, _SQL_PERIOD_TOTALS)

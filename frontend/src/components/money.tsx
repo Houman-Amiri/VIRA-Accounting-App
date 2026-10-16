@@ -68,10 +68,11 @@ export function Money({
   }
 
   const negative = amount.isNegative();
-  // Keep exactly 4 decimals trimmed of trailing zeros: "12.5000" → "12.5"
+  // A 4-decimal Rial can require 5 Toman decimals after ÷10; never round
+  // away the smallest stored amount (e.g. a trial-balance difference).
   const fixed = amount
     .abs()
-    .toFixed(4)
+    .toFixed(currency === "IRR" && display === "toman" ? 5 : 4)
     .replace(/(\.\d*?)0+$/, "$1")
     .replace(/\.$/, "");
   const shown = faNumber(fixed);

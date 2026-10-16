@@ -4,6 +4,10 @@ import { render, screen } from "@testing-library/react";
 import { Money } from "@/components/money";
 
 describe("<Money />", () => {
+  it("preserves the smallest stored Rial fraction in Tomans", () => {
+    const { container } = render(<Money value="0.0001" />);
+    expect(container.textContent).toContain("۰.۰۰۰۰۱");
+  });
   it("renders stored Rials as Tomans (÷10 exactly once) with Persian digits", () => {
     render(<Money value="1250.5000" />);
     expect(screen.getByText("تومان")).toBeInTheDocument();

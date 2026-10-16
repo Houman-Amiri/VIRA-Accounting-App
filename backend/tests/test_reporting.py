@@ -159,3 +159,83 @@ def test_trial_balance_checks_out(session) -> None:
     total_d = sum(round(float(r.debit) * 10000) for r in rows)
     total_c = sum(round(float(r.credit) * 10000) for r in rows)
     assert total_d == total_c == 420_001
+
+
+def test_dashboard_reports_exact_hierarchy_sign_and_as_of(session) -> None:
+    """No float loss, double-counted parents, future/draft entries or inverted expenses."""
+    service = LedgerService(session)
+    cash_parent = service.create_account(
+        AccountCreate(
+            code="101",
+            name="نقد",
+            account_type="ASSET",
+            is_placeholder=True,
+        )
+    )
+    cash = service.create_account(
+        AccountCreate(
+            code="1010",
+            name="صندوق",
+            account_type="ASSET",
+            parent_id=cash_parent.id,
+        )
+    )
+    revenue_parent = service.create_account(
+        AccountCreate(
+            code="400",
+            name="درآمدها",
+            account_type="INCOME",
+            is_placeholder=True,
+        )
+    )
+    revenue = service.create_account(
+        AccountCreate(
+            code="4010",
+            name="فروش",
+            account_type="INCOME",
+            parent_id=revenue_parent.id,
+        )
+    )
+    expense = service.create_account(
+        AccountCreate(
+            code="5010",
+            name="هزینه",
+            account_type="EXPENSE",
+        )
+    )
+    for day, account, debit, credit, posted in [
+        ("2026-10-01", revenue, "10000000000000.0001", "0", True),
+        ("2026-10-02", expense, "0", "12.3401", True),
+        ("2026-10-17", revenue, "100", "0", True),
+        ("2026-10-03", revenue, "200", "0", False),
+    ]:
+        service.create_draft(
+            JournalEntryCreate(
+                transaction_date=day,
+                description="dashboard regression",
+                splits=[
+                    SplitCreate(account_id=cash.id, debit=debit, credit=credit),
+                    SplitCreate(account_id=account.id, debit=credit, credit=debit),
+                ],
+            ),
+            post=posted,
+        )
+    session.flush()
+    reports = ReportingService(session)
+    bs = reports.balance_sheet("2026-10-16")
+    assert bs.total_assets == "9999999999987.6600"
+    assert bs.retained_earnings == bs.total_assets
+    assert bs.total_equity == "0.0000"
+    pnl = reports.income_statement("2026-10-01", "2026-10-16")
+    assert pnl.total_income == "10000000000000.0001"
+    assert pnl.total_expenses == "12.3401"
+    assert pnl.net_income == bs.retained_earnings
+    trial = reports.trial_balance("2026-10-16")
+    assert {r.account_id for r in trial} == {cash.id, revenue.id, expense.id}
+    from decimal import Decimal
+
+    assert sum(Decimal(r.debit) - Decimal(r.credit) for r in trial) == 0
+    cf = reports.cash_flow("2026-10-01", "2026-10-16", "101")
+    assert cf.closing_balance == bs.total_assets
+    assert cf.inflows == pnl.total_income
+    assert cf.outflows == pnl.total_expenses

@@ -7386,6 +7386,103 @@
         }
       }
     },
+    "/api/v1/orders/summary": {
+      "get": {
+        "tags": [
+          "orders"
+        ],
+        "summary": "Order Summary",
+        "operationId": "order_summary_api_v1_orders_summary_get",
+        "parameters": [
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          },
+          {
+            "name": "vira_csrf",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Csrf"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/orders/reports/sales": {
       "get": {
         "tags": [
@@ -10402,6 +10499,55 @@
           "profit"
         ],
         "title": "OrderRead"
+      },
+      "OrderSummary": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "new": {
+            "type": "integer",
+            "title": "New"
+          },
+          "confirmed": {
+            "type": "integer",
+            "title": "Confirmed"
+          },
+          "in_production": {
+            "type": "integer",
+            "title": "In Production"
+          },
+          "ready": {
+            "type": "integer",
+            "title": "Ready"
+          },
+          "delivered": {
+            "type": "integer",
+            "title": "Delivered"
+          },
+          "shipped": {
+            "type": "integer",
+            "title": "Shipped"
+          },
+          "cancelled": {
+            "type": "integer",
+            "title": "Cancelled"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "new",
+          "confirmed",
+          "in_production",
+          "ready",
+          "delivered",
+          "shipped",
+          "cancelled"
+        ],
+        "title": "OrderSummary",
+        "description": "Counts across all orders, independent of the recent-orders page limit."
       },
       "OrderUpdate": {
         "properties": {

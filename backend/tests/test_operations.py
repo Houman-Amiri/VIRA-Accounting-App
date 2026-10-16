@@ -321,3 +321,105 @@ async def test_production_refuses_insufficient_filament(client) -> None:
     assert (await client.get(f"/api/v1/production/jobs/{job.json()['id']}")).json()[
         "status"
     ] != "DONE"
+
+
+async def test_dashboard_counts_and_sales_are_not_truncated(client, session) -> None:
+    """Recent-orders is a page; counts and revenue must include ALL matching orders."""
+    from sqlalchemy import insert
+
+    from app.models import Order, OrderItem
+
+    orders = [
+        dict(
+            id=f"dashboard-{i}",
+            order_number=i + 1,
+            order_date="2026-10-16",
+            customer_name="dashboard fixture",
+            status="NEW" if i < 10001 else "CANCELLED",
+            channel="direct",
+            created_at="2026-10-16T00:00:00Z",
+            updated_at="2026-10-16T00:00:00Z",
+        )
+        for i in range(10002)
+    ]
+    session.execute(insert(Order), orders)
+    session.execute(
+        insert(OrderItem),
+        [
+            dict(
+                id=f"dashboard-line-{i}",
+                order_id=o["id"],
+                position=0,
+                product_name="fixture",
+                variant="plain",
+                quantity=Decimal("2"),
+                unit_price=Decimal("12.3401"),
+                unit_cost=Decimal("3.0001"),
+                weight_g=Decimal("1"),
+                print_hours=Decimal("1"),
+            )
+            for i, o in enumerate(orders)
+        ],
+    )
+    session.commit()
+    recent = await client.get("/api/v1/orders")
+    assert recent.status_code == 200
+    assert len(recent.json()) == 200
+    summary = await client.get("/api/v1/orders/summary")
+    assert summary.status_code == 200
+    assert summary.json() == dict(
+        total=10002,
+        new=10001,
+        confirmed=0,
+        in_production=0,
+        ready=0,
+        delivered=0,
+        shipped=0,
+        cancelled=1,
+    )
+    response = await client.get(
+        "/api/v1/orders/reports/sales",
+        params={
+            "period": "daily",
+            "date_from": "2026-10-16",
+            "date_to": "2026-10-16",
+        },
+    )
+    assert response.status_code == 200
+    report = response.json()
+    assert report["orders"] == 10001
+    assert Decimal(report["revenue"]) == Decimal("246826.6802")
+    assert Decimal(report["profit"]) == Decimal("186818.6800")
+
+
+async def test_dashboard_production_counts_and_active_sample_are_not_truncated(
+    client, session
+) -> None:
+    from sqlalchemy import insert
+
+    from app.models import ProductionJob
+
+    session.execute(
+        insert(ProductionJob),
+        [
+            dict(
+                id=f"dashboard-job-{i}",
+                job_number=i + 1,
+                product_name="fixture",
+                status="PLANNED" if i == 0 else "IN_PROGRESS" if i == 1 else "DONE",
+                quantity=Decimal("2.5"),
+                filament_grams=Decimal("10.1"),
+                created_at="2026-01-01" if i < 2 else "2026-10-16",
+                updated_at="2026-10-16",
+            )
+            for i in range(10002)
+        ],
+    )
+    session.commit()
+    response = await client.get("/api/v1/production/summary")
+    assert response.status_code == 200
+    summary = response.json()
+    assert (summary["planned"], summary["in_progress"], summary["done"]) == (1, 1, 10000)
+    assert Decimal(summary["filament_grams_planned"]) == Decimal("50.5")
+    assert len(summary["jobs"]) == 200
+    assert [j["status"] for j in summary["jobs"][:2]] == ["PLANNED", "IN_PROGRESS"]

@@ -303,7 +303,7 @@ class OperationsService:
         search: str | None = None,
         date_from: str | None = None,
         date_to: str | None = None,
-        limit: int = 200,
+        limit: int | None = 200,
     ) -> list[Order]:
         stmt = select(Order).options(selectinload(Order.items))
         if status:
@@ -325,6 +325,21 @@ class OperationsService:
             stmt = stmt.where(Order.order_date <= date_to)
         stmt = stmt.order_by(Order.order_date.desc(), Order.order_number.desc()).limit(limit)
         return list(self.session.scalars(stmt))
+
+    def order_summary(self) -> dict[str, int]:
+        counts = dict(
+            self.session.execute(select(Order.status, func.count()).group_by(Order.status)).all()
+        )
+        return {
+            "total": sum(counts.values()),
+            "new": counts.get("NEW", 0),
+            "confirmed": counts.get("CONFIRMED", 0),
+            "in_production": counts.get("IN_PRODUCTION", 0),
+            "ready": counts.get("READY", 0),
+            "delivered": counts.get("DELIVERED", 0),
+            "shipped": counts.get("SHIPPED", 0),
+            "cancelled": counts.get("CANCELLED", 0),
+        }
 
     def get_order(self, order_id: str) -> Order:
         order = self.session.scalar(
@@ -430,7 +445,7 @@ class OperationsService:
         """Aggregate orders into buckets — day/week/month/year (§3.2)."""
         if period not in ("daily", "weekly", "monthly", "annual"):
             raise DomainError(f"unknown report period {period}")
-        orders = self.list_orders(date_from=start, date_to=end, limit=10_000)
+        orders = self.list_orders(date_from=start, date_to=end, limit=None)
         buckets: dict[str, dict[str, Any]] = {}
 
         def key_for(order_date: str) -> str:
@@ -473,7 +488,9 @@ class OperationsService:
         return {"period": period, "start": start, "end": end, **totals, "rows": rows}
 
     # ------------------------------------------------------------ production ---
-    def list_jobs(self, *, status: str | None = None, limit: int = 200) -> list[ProductionJob]:
+    def list_jobs(
+        self, *, status: str | None = None, limit: int | None = 200
+    ) -> list[ProductionJob]:
         stmt = select(ProductionJob)
         if status:
             stmt = stmt.where(ProductionJob.status == status)
@@ -626,7 +643,7 @@ class OperationsService:
         order.updated_at = utc_now_iso()
 
     def production_summary(self) -> dict[str, Any]:
-        jobs = self.list_jobs(limit=10_000)
+        jobs = self.list_jobs(limit=None)
         planned = [j for j in jobs if j.status == "PLANNED"]
         in_progress = [j for j in jobs if j.status == "IN_PROGRESS"]
         done = [j for j in jobs if j.status == "DONE"]
@@ -639,5 +656,5 @@ class OperationsService:
             "in_progress": len(in_progress),
             "done": len(done),
             "filament_grams_planned": grams,
-            "jobs": jobs[:200],
+            "jobs": (planned + in_progress + done)[:200],
         }

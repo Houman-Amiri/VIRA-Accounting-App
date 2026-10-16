@@ -8,6 +8,20 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 ## [Unreleased]
 
 ### Fixed
+- Repair phase 6: real-data dashboard with six KPIs, four Toman-unit plots and
+  exact accessible source tables, actionable inventory/supplier, accounting,
+  production and pending-order alerts. Use Tehran's civil day, explicit as-of/YTD
+  windows and a continuous 30-day sales axis. Loading/errors never look like
+  healthy zeroes; failed refreshes hide stale figures and offer retry.
+- Remove floating-point report aggregation, double-counted trial-balance parents
+  and the inverted retained-earnings expense sign. Preserve the fifth Toman
+  decimal when displaying four-decimal Rials. Cash uses 101/102 account prefixes,
+  not inventory/receivables; operational money is already Toman and not divided.
+- Add read-only, role-protected order counts independent of the recent page;
+  remove the hidden 10,000-record sales/production-summary cap and prioritize
+  active production jobs in the sample. Charts follow container size and theme.
+  No new migration, stored-price rewrite, version/tag or public release.
+  See `docs/reports/phase6-dashboard-fa.md`; phase 4-B remains queued.
 - Repair phase 5: explicitly theme selected/disabled native options, disabled
   groups and keyboard focus; respect OS forced-colors. Palette items no longer
   inherit muted group-heading text, and Escape works while its input is focused.

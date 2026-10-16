@@ -24,6 +24,7 @@ from ..schemas.operations import (
     OrderCreate,
     OrderItemRead,
     OrderRead,
+    OrderSummary,
     OrderUpdate,
     ProductionJobCreate,
     ProductionJobRead,
@@ -367,6 +368,14 @@ def list_orders(
             date_to=date_to,
         )
     ]
+
+
+@orders.get("/summary", response_model=OrderSummary)
+def order_summary(
+    session: Annotated[Session, Depends(get_db)],
+    _user: Annotated[object, Depends(require_roles(*READ_ROLES))],
+) -> OrderSummary:
+    return OrderSummary(**OperationsService(session).order_summary())
 
 
 @orders.post("", response_model=OrderRead, status_code=201)

@@ -300,3 +300,16 @@ class ProductionSummary(BaseModel):
     done: int
     filament_grams_planned: Amount
     jobs: list[ProductionJobRead]
+
+
+class OrderSummary(BaseModel):
+    """Counts across all orders, independent of the recent-orders page limit."""
+
+    total: int
+    new: int
+    confirmed: int
+    in_production: int
+    ready: int
+    delivered: int
+    shipped: int
+    cancelled: int
