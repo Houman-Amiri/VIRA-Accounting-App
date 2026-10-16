@@ -157,8 +157,33 @@ jobs:
               raise ValueError("v1.0.8 requires direct deltas from both installed baselines 1.0.6 and 1.0.7")
           if version == "1.0.9" and bases != {"1.0.6", "1.0.7", "1.0.8"}:
               raise ValueError("v1.0.9 requires direct deltas from installed baselines 1.0.6, 1.0.7 and 1.0.8")
+          if version == "1.0.10" and bases != {"1.0.7", "1.0.8", "1.0.9"}:
+              raise ValueError("v1.0.10 requires direct deltas from 1.0.7, 1.0.8 and the confirmed 1.0.9 client")
           '@ | uv run python -
           if ($LASTEXITCODE -ne 0) { throw "real delta staging validation failed" }
+
+      - name: Published 1.0.9 browser to compiled 1.0.10 updater (isolated, no client injection)
+        if: env.VIRA_VERSION == '1.0.10' || env.VIRA_VERSION == 'v1.0.10'
+        shell: pwsh
+        run: |
+          pnpm --dir frontend exec playwright install chromium
+          if ($LASTEXITCODE -ne 0) { throw "browser install failed" }
+          $baseDir = Join-Path ([IO.Path]::GetTempPath()) "vira-delta-base/base-1.0.9"
+          $baseManifest = Get-ChildItem $baseDir -Recurse -Filter install_manifest.json | Select-Object -First 1
+          if (-not $baseManifest) { throw "required published 1.0.9 base missing" }
+          $code = 1
+          $out = ""
+          try {
+            $out = (& uv run python scripts/update_native_smoke.py --published-base $baseManifest.Directory.FullName --packages dist-release *>&1 | Out-String)
+            $code = $LASTEXITCODE
+          } catch { $out += "`n" + ($_ | Out-String) }
+          Write-Host $out
+          if ($code -ne 0) {
+            $tail = $out.Substring([Math]::Max(0, $out.Length - 3000))
+            $tail = $tail.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+            Write-Host "::error title=published client upgrade::$tail"
+            throw "published 1.0.9 browser upgrade/rollback failed"
+          }
 
       - name: Windows install/upgrade/rollback smoke test (Phase 8 §9)
         shell: pwsh

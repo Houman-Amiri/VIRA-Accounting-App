@@ -7,6 +7,7 @@ compiled-helper compatibility remains a separate release dry-run requirement.
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import os
@@ -21,6 +22,7 @@ import tempfile
 import threading
 import time
 from contextlib import closing
+from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -40,7 +42,8 @@ def port() -> int:
 
 
 def sha(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    with path.open("rb") as stream:
+        return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
 def seed_business() -> None:
@@ -125,10 +128,81 @@ def seed_business() -> None:
         database.dispose()
 
 
-def scenario(root: Path, rollback: bool) -> None:
-    install, target, data = root / "install with spaces", root / "target", root / "user-data"
+# Pinned public asset digest from GitHub release v1.0.9; not a rebuilt baseline.
+LEGACY_SHA256 = "5b5ddba7656a35c7ab14d2f92d0d0263f442f1d1890d4ba74e1d27e632928e16"
+
+
+def verify_payload(root: Path, *, runtime: bool = False) -> None:
+    """Check shipped file bytes, excluding mutable Python caches only after boot."""
+    manifest = json.loads((root / "install_manifest.json").read_text(encoding="utf-8-sig"))
+    for entry in manifest["files"]:
+        relative = Path(entry["path"])
+        if relative.is_absolute() or ".." in relative.parts:
+            raise ValueError("unsafe payload manifest path")
+        if runtime and ("__pycache__" in relative.parts or relative.suffix == ".pyc"):
+            continue
+        file = root / relative
+        if not file.is_file() or sha(file) != entry["sha256"]:
+            raise ValueError(f"payload file hash mismatch: {relative}")
+
+
+@dataclass(frozen=True)
+class PublishedUpgrade:
+    base: Path
+    packages: Path
+
+    def validate(self) -> None:
+        archive = self.base.parent / "base-1.0.9.zip"
+        if sha(archive) != LEGACY_SHA256:
+            raise ValueError("public v1.0.9 ZIP digest mismatch")
+        stamp = json.loads((self.base / "version.json").read_text(encoding="utf-8-sig"))
+        if stamp["version"] != "1.0.9" or not stamp["commit"].startswith("7d78720"):
+            raise ValueError("not the immutable published 1.0.9 client")
+        verify_payload(self.base)
+        target = json.loads((self.packages / "app/version.json").read_text(encoding="utf-8-sig"))
+        if target["version"] != "1.0.10":
+            raise ValueError("installed-client gate expects candidate 1.0.10")
+        if not (self.packages / "VIRA-v1.0.10-delta-from-v1.0.9.zip").is_file():
+            raise ValueError("mandatory direct 1.0.9 delta missing")
+
+
+def published_fixture(
+    root: Path, rollback: bool, published: PublishedUpgrade
+) -> tuple[Path, Path, Path]:
+    install = root / "install with spaces"
+    # No source replacement, bootstrap injection or patched launcher in the base.
+    shutil.copytree(published.base, install)
+    archive = published.packages / "VIRA-v1.0.10-delta-from-v1.0.9.zip"
+    if rollback:
+        # Separate private broken target; never replace the candidate ZIP.
+        target = root / "intentionally broken target"
+        shutil.copytree(published.packages / "app", target)
+        (target / "app/main.py").write_text(
+            'raise RuntimeError("intentional legacy readiness failure")\n'
+        )
+        run(
+            sys.executable,
+            str(ROOT / "scripts/gen_delta.py"),
+            "--base-manifest",
+            str(install / "install_manifest.json"),
+            "--base-dir",
+            str(install),
+            "--target-dir",
+            str(target),
+            "--base-version",
+            "1.0.9",
+            "--target-version",
+            "1.0.10",
+            "--out",
+            str(root),
+        )
+        archive = root / archive.name
+    return install, install / "start_vira.cmd", archive
+
+
+def source_fixture(root: Path, rollback: bool) -> tuple[Path, Path, Path]:
+    install, target = root / "install with spaces", root / "target"
     install.mkdir(parents=True)
-    data.mkdir()
     shutil.copytree(
         ROOT / "backend/app", install / "app", ignore=shutil.ignore_patterns("__pycache__")
     )
@@ -196,7 +270,19 @@ uvicorn.run("app.main:app", host="127.0.0.1", port=int(os.environ["VIRA_PORT"]))
         "--out",
         str(root),
     )
-    archive = next(root.glob("*.zip"))
+    return install, bootstrap, next(root.glob("*.zip"))
+
+
+def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = None) -> None:
+    root.mkdir(parents=True)
+    data = root / "user-data"
+    data.mkdir()
+    if published:
+        install, bootstrap, archive = published_fixture(root, rollback, published)
+        old_version, new_version = "1.0.9", "1.0.10"
+    else:
+        install, bootstrap, archive = source_fixture(root, rollback)
+        old_version, new_version = "99.0.0", "99.0.1"
     database = data / "vira.sqlite3"
     env = {
         **os.environ,
@@ -245,14 +331,14 @@ uvicorn.run("app.main:app", host="127.0.0.1", port=int(os.environ["VIRA_PORT"]))
                     dict(
                         schema_version=1,
                         pub_date="2026-10-16T00:00:00Z",
-                        version="99.0.1",
-                        min_app_version="99.0.0",
+                        version=new_version,
+                        min_app_version=old_version,
                         full_installer=dict(
                             url=feed_url + "/setup.exe", sha256="00" * 32, size=100_000_000
                         ),
                         deltas=[
                             dict(
-                                from_version="99.0.0",
+                                from_version=old_version,
                                 url=feed_url + "/delta.zip",
                                 sha256=sha(archive),
                                 size=archive.stat().st_size,
@@ -268,6 +354,9 @@ uvicorn.run("app.main:app", host="127.0.0.1", port=int(os.environ["VIRA_PORT"]))
             elif self.path == "/setup.exe":
                 counts["full"] += 1
                 body = b"FORBIDDEN FULL INSTALLER"
+            elif self.path == "/attempt-result":
+                result = data / "updates/last-result.json"
+                body = result.read_bytes() if result.is_file() else b'{"state":"pending"}'
             elif self.path == "/counts":
                 body = json.dumps(counts).encode()
             elif self.path == "/verify-data":
@@ -327,12 +416,20 @@ uvicorn.run("app.main:app", host="127.0.0.1", port=int(os.environ["VIRA_PORT"]))
         APP_UPDATE_URL=feed_url + "/latest.json",
         PYTHONPATH=str(install),
     )
+    if published:
+        # The released launcher uses LOCALAPPDATA as well as DATA_DIR. Both are
+        # disposable; never reuse the runner's ordinary VIRA profile.
+        env["LOCALAPPDATA"] = str(root / "local profile")
+        Path(env["LOCALAPPDATA"]).mkdir()
     # Ensure the repo's external environment cannot stamp our private fixture.
     for name in ("VIRA_VERSION", "VIRA_GIT_COMMIT", "VIRA_SPA_BUILD"):
         env.pop(name, None)
     log = (root / "initial-server.log").open("w")
+    argv = (
+        ["cmd.exe", "/d", "/c", "start_vira.cmd"] if published else [sys.executable, str(bootstrap)]
+    )
     server = subprocess.Popen(
-        [sys.executable, str(bootstrap)], cwd=install, env=env, stdout=log, stderr=subprocess.STDOUT
+        argv, cwd=install, env=env, stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT
     )
     try:
         for _ in range(120):
@@ -352,9 +449,15 @@ uvicorn.run("app.main:app", host="127.0.0.1", port=int(os.environ["VIRA_PORT"]))
                 "VIRA_NATIVE_FEED": feed_url,
                 "VIRA_NATIVE_PASSWORD": password,
                 "VIRA_NATIVE_EXPECTED": "rolled_back" if rollback else "committed",
+                "VIRA_NATIVE_TARGET": new_version,
+                "VIRA_NATIVE_LEGACY": "1" if published else "0",
             },
         )
-        if rollback:
+        if published:
+            verify_payload(install, runtime=True)
+            stamp = json.loads((install / "version.json").read_text(encoding="utf-8-sig"))
+            assert stamp["version"] == (old_version if rollback else new_version)
+        elif rollback:
             assert (install / "static/delete-me.txt").read_text() == "restore this deleted file"
             assert not (install / "static/added.txt").exists()
             assert (install / "static/replaced.txt").read_text() == "old bytes"
@@ -392,9 +495,21 @@ uvicorn.run("app.main:app", host="127.0.0.1", port=int(os.environ["VIRA_PORT"]))
 if __name__ == "__main__":
     if sys.platform != "win32" or os.environ.get("GITHUB_ACTIONS") != "true":
         raise SystemExit("Refusing: isolated Windows GitHub Actions runner required")
-    with tempfile.TemporaryDirectory(prefix="vira-in-app-") as tmp:
-        scenario(Path(tmp) / "success", False)
-        scenario(Path(tmp) / "rollback", True)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--published-base", type=Path)
+    parser.add_argument("--packages", type=Path)
+    args = parser.parse_args()
+    published = None
+    if args.published_base or args.packages:
+        if not args.published_base or not args.packages:
+            parser.error("both --published-base and --packages are required")
+        published = PublishedUpgrade(args.published_base.resolve(), args.packages.resolve())
+        published.validate()
+    with tempfile.TemporaryDirectory(prefix="vira-in-app-", dir=os.environ["RUNNER_TEMP"]) as tmp:
+        scenario(Path(tmp) / "success", False, published)
+        scenario(Path(tmp) / "rollback", True, published)
     print(
-        "Native in-app consent/download/apply/restart and real rollback PASS; private current-code fixtures only"
+        "Published 1.0.9 client -> candidate 1.0.10 PASS"
+        if published
+        else "Native in-app consent/download/apply/restart and real rollback PASS; private current-code fixtures only"
     )

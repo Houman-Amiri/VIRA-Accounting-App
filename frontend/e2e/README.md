@@ -59,3 +59,15 @@ and receipt SHA-256 checks. No user database or public release is updated.
 The private current-code fixture is **not** a historical 1.0.6-client proof.
 Compiled helper/public delta compatibility belongs to the release dry-run;
 installed-user acceptance remains separate from both CI fixtures.
+
+The candidate 1.0.10 release dry-run adds `--published-base <dir> --packages
+<dist-release>` to the same Windows harness. It pins the actual public 1.0.9
+app ZIP digest, verifies its shipped files, launches its unmodified cmd/Python,
+backend and compiled SPA, then downloads a real direct delta through its UI and
+runs the staged compiled helper. A separate intentionally broken target tests
+rollback without changing the candidate archive. The historical client may
+briefly show a connection error and requires an explicit page reload after its
+old finish button; its rollback API cannot read durable results. The test checks
+the real helper result separately in that case, not a faked API success. Data,
+receipts, loaded build identities and managed payload bytes are checked. This
+is still an isolated CI profile/feed, NOT the installed user's upgrade.

@@ -60,6 +60,21 @@ $script:launcherPid = 0
 $script:targetVersion = ""
 if (-not $Port) { $Port = if ($env:VIRA_PORT) { [int]$env:VIRA_PORT } else { 8787 } }
 
+# Published 1.0.9 launches the staged helper without -ResultPath. Recover only
+# its known updates/<semver>/<uuid>/payload layout, not an arbitrary ancestor.
+# The new backend can then observe the terminal result after this first hop.
+if (-not $ResultPath) {
+    $payloadDir = New-Object IO.DirectoryInfo -ArgumentList ([IO.Path]::GetFullPath($Stage))
+    $attemptDir = $payloadDir.Parent
+    $versionDir = if ($attemptDir) { $attemptDir.Parent } else { $null }
+    $updatesDir = if ($versionDir) { $versionDir.Parent } else { $null }
+    if ($payloadDir.Name -eq "payload" -and $attemptDir.Name -match '^[0-9a-f]{32}$' -and
+        $versionDir.Name -match '^\d+\.\d+\.\d+$' -and $updatesDir.Name -eq "updates") {
+        $ResultPath = Join-Path $updatesDir.FullName "last-result.json"
+    }
+}
+
+
 function Write-Result([string]$State, [string]$Reason = "") {
     if (-not $ResultPath) { return }
     $result = @{ state = $State; target_version = $script:targetVersion; log_path = $logPath;

@@ -98,6 +98,13 @@ if ($v -eq "1.0.9") {
         }
     }
 }
+if ($v -eq "1.0.10") {
+    foreach ($base in @("1.0.7", "1.0.8", "1.0.9")) {
+        if (-not ($deltaZips | Where-Object { $_.Name -eq "VIRA-v$v-delta-from-v$base.zip" })) {
+            throw "required $base -> $v delta missing"
+        }
+    }
+}
 $exercisedBases = @()
 foreach ($delta in $deltaZips) {
     if ($delta.Name -notmatch "delta-from-v([\d.]+)\.zip") { continue }
@@ -166,10 +173,10 @@ foreach ($delta in $deltaZips) {
     Write-Output "[smoke] legacy $tag -> v$v OK — version + manifest rewritten, files verified"
     $upgraded = $true
     $exercisedBases += $fromV
-    if ($v -ne "1.0.9") { break }
+    if ($v -notin @("1.0.9", "1.0.10")) { break }
 }
-if ($v -eq "1.0.9" -and $exercisedBases.Count -ne 3) {
-    throw "v1.0.9 must exercise all three direct deltas; exercised: $($exercisedBases -join ', ')"
+if ($v -in @("1.0.9", "1.0.10") -and $exercisedBases.Count -ne 3) {
+    throw "v$v must exercise all three direct deltas; exercised: $($exercisedBases -join ', ')"
 }
 if (-not $upgraded) {
     if ($deltaZips) { throw "deltas were published but none could be exercised against a previous portable base — delta updates are broken" }

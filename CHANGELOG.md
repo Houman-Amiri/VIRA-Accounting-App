@@ -7,7 +7,30 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+Draft Persian notes for proposed v1.0.10: `docs/releases/v1.0.10-fa.md`.
+Project metadata is now 1.0.10 for candidate-only packaging; this is not release
+approval or publication. The user's screenshot
+confirms installed v1.0.9 / `7d78720`; its actual client-to-next-version update path
+still needs a dedicated pre-release test.
+
 ### Fixed
+- Add a pinned-public-payload 1.0.9 -> candidate 1.0.10 browser/compiled-updater
+  pre-release gate (no injected bootstrap or modified historical client). Recover
+  the durable result path from the historical staging layout when the old client
+  omits the new helper argument. Gate results are pending, not installed acceptance.
+- Repair phase 8: bind download consent to the exact version/hash, reject automatic
+  full-setup fallback, retain sudo/owner protection for mutations, verify restart
+  health/build identity and file rollback, persist the terminal update result and
+  reload the UI only after verified success. Real current-source Windows browser
+  journeys cover success/rollback and unchanged SQLite/receipt hashes; these do
+  not by themselves prove the historical v1.0.9 client's first update or installed-user acceptance.
+- Repair phase 7: select actual order lines in production, preserve stored prices,
+  validate remaining quantities and inventory links, and atomically consume
+  filament/add finished stock without duplicate completion. Add complete list
+  pagination, precise Persian numeric input and actionable domain errors.
+  Proforma may fall back to printable HTML; native Windows PDF and Word export
+  are not claimed. No new migration or historical-price rewrite.
+
 - Repair phase 6: real-data dashboard with six KPIs, four Toman-unit plots and
   exact accessible source tables, actionable inventory/supplier, accounting,
   production and pending-order alerts. Use Tehran's civil day, explicit as-of/YTD
