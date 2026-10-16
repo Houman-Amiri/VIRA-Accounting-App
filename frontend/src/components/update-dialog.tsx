@@ -10,6 +10,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 
+import { useOptionalRequestSudo } from "@/components/sudo-dialog";
 import { Button } from "@/components/ui/button";
 import { fmtBytes } from "@/lib/money";
 import { useUpdateFlow, type UpdateCheck } from "@/lib/update";
@@ -28,25 +29,25 @@ export function UpdateDialog({
   onClose,
 }: UpdateDialogProps): React.JSX.Element | null {
   const { t } = useTranslation();
-  const { download, apply, status } = useUpdateFlow(open);
+  const { download, apply, status, reconnecting } = useUpdateFlow(open, useOptionalRequestSudo());
   const [phase, setPhase] = React.useState<Phase>("confirm");
   const [showDetails, setShowDetails] = React.useState(false);
 
   React.useEffect(() => {
     const s = status.data;
     if (!open) return;
-    if (download.error || apply.error || status.error) {
+    if (download.error || apply.error || (status.error && !reconnecting)) {
       setPhase("failed");
       return;
     }
-    if (!s) return;
+    if (!s || (s.target_version && s.target_version !== check.latest)) return;
     if (s.state === "downloading") setPhase("downloading");
     else if (s.state === "verifying") setPhase("verifying");
     else if (s.state === "staged") setPhase("staged");
     else if (s.state === "applying") setPhase("applying");
-    else if (s.state === "failed") setPhase("failed");
+    else if (s.state === "failed" || s.state === "rolled_back") setPhase("failed");
     else if (s.state === "committed") setPhase("done");
-  }, [open, status.data, status.error, download.error, apply.error]);
+  }, [open, status.data, status.error, download.error, apply.error, reconnecting, check.latest]);
 
   if (!open) return null;
 
@@ -54,7 +55,7 @@ export function UpdateDialog({
   const isDelta = (check.choice?.kind ?? "full") !== "full";
   const done = status.data?.downloaded_bytes ?? 0;
   const pct = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
-  const flowError = download.error ?? apply.error ?? status.error;
+  const flowError = download.error ?? apply.error ?? (reconnecting ? null : status.error);
   const errorFa = flowError
     ? flowError instanceof Error && flowError.name === "ApiError"
       ? flowError.message
@@ -62,11 +63,17 @@ export function UpdateDialog({
     : (status.data?.error_fa ?? null);
   const logPath = status.data?.log_path ?? "";
 
+  const supported =
+    !check.manual_required && check.choice?.kind === "delta" && check.choice.packages.length === 1;
   const start = (): void => {
+    if (!supported) return;
     setPhase("downloading");
-    download.mutate(undefined, {
-      onError: () => setPhase("failed"),
-    });
+    download.mutate(
+      { expected_version: check.latest!, expected_sha256: check.choice!.packages[0].sha256 },
+      {
+        onError: () => setPhase("failed"),
+      },
+    );
   };
 
   return (
@@ -108,7 +115,11 @@ export function UpdateDialog({
               </div>
             )}
             <div className="flex flex-wrap gap-2">
-              <Button onClick={start} data-testid="update-accept">
+              <Button
+                onClick={start}
+                disabled={!supported || download.isPending}
+                data-testid="update-accept"
+              >
                 {t("update.downloadInstall")}
               </Button>
               <Button variant="outline" onClick={onClose} data-testid="update-decline">
@@ -149,6 +160,7 @@ export function UpdateDialog({
             {phase === "staged" && (
               <Button
                 data-testid="update-apply"
+                disabled={apply.isPending}
                 onClick={() =>
                   apply.mutate(undefined, {
                     onError: () => setPhase("failed"),

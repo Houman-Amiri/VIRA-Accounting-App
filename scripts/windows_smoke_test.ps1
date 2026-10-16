@@ -196,11 +196,12 @@ Write-Output "[smoke] user data checksum identical: $dbHashAfter"
 Write-Output "[smoke] 4/5 forced-failure rollback"
 $stage = Join-Path $env:LOCALAPPDATA "VIRA\updates\smoke"
 New-Item -ItemType Directory -Force -Path $stage | Out-Null
-# self-contained stage: a minimal valid update.json even when no delta exists
-if (-not (Test-Path (Join-Path $stage "update.json"))) {
-    @{ base_version = "smoke"; target_version = "forced-fail"; operations = @() } |
-        ConvertTo-Json | Set-Content -Encoding utf8 (Join-Path $stage "update.json")
-}
+# A valid same-version no-op plan reaches the forced failure AFTER operations.
+# Do not reuse a previous base's delta against this already-current installation.
+@{ base_version = $v; target_version = $v; operations = @() } |
+    ConvertTo-Json | Set-Content -Encoding utf8 (Join-Path $stage "update.json")
+Copy-Item (Join-Path $install "version.json") (Join-Path $stage "version.json") -Force
+Copy-Item (Join-Path $install "install_manifest.json") (Join-Path $stage "install_manifest.json") -Force
 $failed = $false
 $previousRollbackPort = $env:VIRA_PORT
 $env:VIRA_PORT = "8798"

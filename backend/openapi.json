@@ -4878,22 +4878,6 @@
         "operationId": "check_updates_api_v1_system_check_updates_get",
         "parameters": [
           {
-            "name": "X-Sudo-Token",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Sudo-Token"
-            }
-          },
-          {
             "name": "vira_session",
             "in": "cookie",
             "required": false,
@@ -4976,6 +4960,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateApproval"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -5008,22 +5002,6 @@
         "summary": "Update Status",
         "operationId": "update_status_api_v1_system_update_status_get",
         "parameters": [
-          {
-            "name": "X-Sudo-Token",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Sudo-Token"
-            }
-          },
           {
             "name": "vira_session",
             "in": "cookie",
@@ -12774,6 +12752,26 @@
         ],
         "title": "TrialBalanceRow"
       },
+      "UpdateApproval": {
+        "properties": {
+          "expected_version": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$",
+            "title": "Expected Version"
+          },
+          "expected_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{64}$",
+            "title": "Expected Sha256"
+          }
+        },
+        "type": "object",
+        "required": [
+          "expected_version",
+          "expected_sha256"
+        ],
+        "title": "UpdateApproval"
+      },
       "UpdateCheck": {
         "properties": {
           "current": {
@@ -12925,6 +12923,11 @@
       },
       "UpdateStatusOut": {
         "properties": {
+          "target_version": {
+            "type": "string",
+            "title": "Target Version",
+            "default": ""
+          },
           "state": {
             "type": "string",
             "title": "State"

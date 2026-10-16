@@ -21,6 +21,10 @@ param(
     [Parameter(Mandatory = $true)][string]$Stage,   # staging dir: %LOCALAPPDATA%\VIRA\updates\<version>\
     [Parameter(Mandatory = $true)][string]$Log,     # update.log path
     [Alias("install-dir")][string]$InstallDir = "",                       # recorded InstallDir (registry fallback)
+    [int]$ParentPid = 0,
+    [int]$Port = 0,
+    [string]$ResultPath = "",
+    [int]$HealthTimeoutSeconds = 90,
     [switch]$ForceFailure                           # CI forced-failure rollback test
 )
 
@@ -46,33 +50,76 @@ function Get-Sha256([string]$Path) {
     }
 }
 
-function Invoke-Rollback {
-    try {
-        $rollback = Join-Path $InstallDir "rollback\prev"
-        if (Test-Path $rollback) {
-            Get-ChildItem $rollback -Recurse -File | ForEach-Object {
-                $rel = $_.FullName.Substring($rollback.Length + 1)
-                $dst = Join-Path $InstallDir $rel
-                New-Item -ItemType Directory -Force -Path (Split-Path $dst) | Out-Null
-                Copy-Item $_.FullName $dst -Force
-            }
-            Write-Log "restored snapshot from $rollback"
-        }
-        $launcher = Join-Path $InstallDir "start_vira.cmd"
-        if (Test-Path $launcher) { Start-Process -FilePath $launcher -WorkingDirectory $InstallDir }
+# A journal for THIS attempt only: deleted files need snapshots too, and new
+# files must be removed on rollback. Never infer success from a process spawn.
+$script:snapshotComplete = $false
+$script:appStopped = $false
+$script:saved = @{}
+$script:added = @()
+$script:launcherPid = 0
+$script:targetVersion = ""
+if (-not $Port) { $Port = if ($env:VIRA_PORT) { [int]$env:VIRA_PORT } else { 8787 } }
+
+function Write-Result([string]$State, [string]$Reason = "") {
+    if (-not $ResultPath) { return }
+    $result = @{ state = $State; target_version = $script:targetVersion; log_path = $logPath;
+        error_fa = $Reason; verified = ($State -eq "committed"); machine_state = $State }
+    New-Item -ItemType Directory -Force -Path (Split-Path $ResultPath) | Out-Null
+    [IO.File]::WriteAllText(($ResultPath + ".tmp"), ($result | ConvertTo-Json), (New-Object Text.UTF8Encoding($false)))
+    Move-Item -LiteralPath ($ResultPath + ".tmp") -Destination $ResultPath -Force
+}
+
+function Safe-Target([string]$Relative) {
+    if ($Relative -notmatch '^(app|backend|python|scripts|site-packages|static|tools)/|^(version.json|install_manifest.json|start_vira.cmd|vira-updater.exe)$') {
+        throw "non-application target: $Relative"
     }
-    catch {
-        Write-Log "rollback error: $($_.Exception.Message)"
+    if ($Relative.Contains("\") -or $Relative.Contains(":") -or ($Relative.Split("/") -contains "..")) { throw "unsafe path: $Relative" }
+    $full = [IO.Path]::GetFullPath((Join-Path $InstallDir $Relative))
+    if (-not $full.StartsWith(($InstallDir.TrimEnd('\') + '\'), [StringComparison]::OrdinalIgnoreCase)) { throw "path escape: $Relative" }
+    return $full
+}
+
+function Stop-App {
+    if ($script:launcherPid) {
+        & taskkill.exe /PID $script:launcherPid /T /F 2>&1 | Out-Null
+        $script:launcherPid = 0
+    }
+    $prefix = $InstallDir.TrimEnd('\') + '\'
+    $processes = @(Get-Process -Name python,pythonw,uvicorn -ErrorAction SilentlyContinue | Where-Object {
+        ($_.Path -and $_.Path.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) -or $_.Id -eq $ParentPid
+    })
+    foreach ($process in $processes) {
+        $process.CloseMainWindow() | Out-Null
+        if (-not $process.WaitForExit(2000)) { Stop-Process -Id $process.Id -Force; $process.WaitForExit() }
     }
 }
 
-function Fail([string]$reason) {
-    Write-Log "FAILED: $reason"
-    Invoke-Rollback
-    Write-Log "ROLLED BACK — previous version restored"
-    Write-Output "خطا در به‌روزرسانی. نسخهٔ قبلی بازگردانی شد."
-    Write-Output "جزئیات: $logPath"
-    throw "vira-updater failed: $reason (previous version restored)"
+function Start-App {
+    # Old launchers export their running version. Do NOT pass that stale stamp
+    # to the new backend: the new version.json is authoritative after restart.
+    Remove-Item Env:VIRA_VERSION,Env:VIRA_GIT_COMMIT,Env:VIRA_SPA_BUILD -ErrorAction SilentlyContinue
+    $env:VIRA_UPDATE_RESTART = "1"
+    $launcher = Join-Path $InstallDir "start_vira.cmd"
+    if (-not (Test-Path -LiteralPath $launcher)) { throw "launcher missing" }
+    $started = Start-Process -FilePath "cmd.exe" -ArgumentList "/c", "`"`"$launcher`"`"" -WorkingDirectory $InstallDir -PassThru
+    $script:launcherPid = $started.Id
+}
+
+function Wait-Healthy($Stamp) {
+    $deadline = (Get-Date).AddSeconds($HealthTimeoutSeconds)
+    do {
+        try {
+            $health = Invoke-RestMethod "http://127.0.0.1:$Port/api/v1/health/ready" -TimeoutSec 2
+            $spa = Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:$Port/" -TimeoutSec 2
+            $expected = [string]$Stamp.spa_build
+            if (-not $expected -and $Stamp.commit) { $expected = ([string]$Stamp.commit).Substring(0, [Math]::Min(7, ([string]$Stamp.commit).Length)) }
+            if ($health.status -eq "ready" -and $health.invariants.integrity_check -eq "ok" -and
+                $health.invariants.foreign_key_violations -eq 0 -and $health.invariants.balanced -eq $true -and
+                (-not $expected -or ([string]$spa.Headers['X-VIRA-SPA-Build']) -eq $expected)) { return }
+        } catch { }
+        Start-Sleep -Milliseconds 500
+    } while ((Get-Date) -lt $deadline)
+    throw "restarted application did not pass readiness/build validation"
 }
 
 # ---------------------------------------------------------------- mutex ----
@@ -81,7 +128,7 @@ if (-not $mutex.WaitOne(0)) {
     Write-Output "به‌روزرسانی دیگری در حال اجرا است."
     throw "another update is already running"
 }
-$lockFile = Join-Path $env:LOCALAPPDATA "VIRA\updates\.update.lock"
+$lockFile = if ($ResultPath) { Join-Path (Split-Path $ResultPath) ".update.lock" } else { Join-Path $env:LOCALAPPDATA "VIRA\updates\.update.lock" }
 New-Item -ItemType Directory -Force -Path (Split-Path $lockFile) | Out-Null
 Set-Content -Path $lockFile -Value $PID -Encoding ascii
 
@@ -92,38 +139,41 @@ try {
         if (-not $reg) { $reg = Get-ItemProperty -Path "HKCU:\SOFTWARE\VIRA" -Name InstallDir -ErrorAction SilentlyContinue }
         if ($reg) { $InstallDir = $reg.InstallDir }
     }
-    if (-not $InstallDir -or -not (Test-Path $InstallDir)) { Fail "InstallDir یافت نشد" }
+    if (-not $InstallDir -or -not (Test-Path $InstallDir)) { throw "InstallDir یافت نشد" }
+    $InstallDir = [IO.Path]::GetFullPath($InstallDir).TrimEnd('\')
     Write-Log "InstallDir=$InstallDir Stage=$Stage"
 
     $updateJson = Get-Content (Join-Path $Stage "update.json") -Raw -Encoding utf8 | ConvertFrom-Json
-    if (-not $updateJson) { Fail "update.json نامعتبر است" }
+    if (-not $updateJson) { throw "update.json نامعتبر است" }
 
-    # --------------------------------------- stop app + scheduler (stop_vira) ----
-    Get-Process -Name "python","uvicorn","node" -ErrorAction SilentlyContinue |
-        Where-Object { $_.Path -like "$InstallDir*" } | ForEach-Object {
-            Write-Log "stopping $($_.ProcessName) pid=$($_.Id)"
-            $_.CloseMainWindow() | Out-Null
-        }
-    Start-Sleep -Seconds 2
-    schtasks /End /TN "VIRA\Backup" 2>$null | Out-Null
-
-    # ------------------------------------------------ snapshot → rollback/prev ----
-    $rollback = Join-Path $InstallDir "rollback\prev"
-    New-Item -ItemType Directory -Force -Path $rollback | Out-Null
-    Copy-Item (Join-Path $InstallDir "install_manifest.json") $rollback -Force -ErrorAction SilentlyContinue
-    Copy-Item (Join-Path $InstallDir "version.json") $rollback -Force -ErrorAction SilentlyContinue
+    $oldStamp = Get-Content (Join-Path $InstallDir "version.json") -Raw -Encoding utf8 | ConvertFrom-Json
+    $newStamp = Get-Content (Join-Path $Stage "version.json") -Raw -Encoding utf8 | ConvertFrom-Json
+    $script:targetVersion = [string]$newStamp.version
+    if ($oldStamp.version -ne $updateJson.base_version -or $newStamp.version -ne $updateJson.target_version) { throw "base/target version mismatch" }
     foreach ($op in $updateJson.operations) {
-        if ($op.op -eq "delete") { continue }
-        $src = Join-Path $InstallDir ($op.path -replace "/", "\")
-        if (Test-Path $src) {
-            $dst = Join-Path $rollback ($op.path -replace "/", "\")
-            New-Item -ItemType Directory -Force -Path (Split-Path $dst) | Out-Null
-            Copy-Item $src $dst -Force
-        }
+        $null = Safe-Target $op.path
+        if ($op.op -notin @("add", "replace", "patch", "delete")) { throw "unknown file operation" }
     }
-    Write-Log "snapshot complete -> $rollback"
+    # Let the apply HTTP response finish before shutting down its process.
+    Start-Sleep -Seconds 2
+    Stop-App
+    $script:appStopped = $true
 
-    if ($ForceFailure) { Fail "forced failure (CI rollback test)" }
+    $rollback = Join-Path $InstallDir "rollback\prev"
+    if (Test-Path $rollback) { Move-Item $rollback ($rollback + "-" + [guid]::NewGuid().ToString('N')) }
+    New-Item -ItemType Directory -Force -Path $rollback | Out-Null
+    $paths = @("version.json", "install_manifest.json") + @($updateJson.operations | ForEach-Object { $_.path })
+    foreach ($relative in ($paths | Select-Object -Unique)) {
+        $src = Safe-Target $relative
+        if (Test-Path -LiteralPath $src) {
+            $dst = Join-Path $rollback $relative
+            New-Item -ItemType Directory -Force -Path (Split-Path $dst) | Out-Null
+            Copy-Item -LiteralPath $src -Destination $dst -Force
+            $script:saved[$relative] = Get-Sha256 $src
+        } else { $script:added += $relative }
+    }
+    $script:snapshotComplete = $true
+    Write-Log "snapshot complete -> $rollback"
 
     # --------------------------------------------------------- apply ops ----
     $bspatch = Join-Path $InstallDir "tools\bspatch.exe"
@@ -137,9 +187,9 @@ try {
             }
             { $_ -in @("add", "replace") } {
                 $member = Join-Path $Stage ("files\" + ($op.path -replace "/", "\"))
-                if (-not (Test-Path $member)) { Fail "missing staged file $member" }
+                if (-not (Test-Path $member)) { throw "missing staged file $member" }
                 $hash = (Get-Sha256 $member)
-                if ($op.sha256 -and $hash -ne $op.sha256.ToLower()) { Fail "SHA-256 mismatch: $rel" }
+                if ($op.sha256 -and $hash -ne $op.sha256.ToLower()) { throw "SHA-256 mismatch: $rel" }
                 New-Item -ItemType Directory -Force -Path (Split-Path $target) | Out-Null
                 Copy-Item $member $target -Force
                 Write-Log "$($op.op) $rel"
@@ -160,7 +210,7 @@ try {
                     $py = Join-Path $InstallDir "python\python.exe"
                     if (-not (Test-Path $py)) { $py = "python" }
                     $bspatchPy = Join-Path $InstallDir "scripts\bspatch.py"
-                    if (-not (Test-Path $bspatchPy)) { Fail "no patch applier available (tools\bspatch.exe / scripts\bspatch.py)" }
+                    if (-not (Test-Path $bspatchPy)) { throw "no patch applier available (tools\bspatch.exe / scripts\bspatch.py)" }
                     # the applier imports the engine (pydantic) — the bundled
                     # interpreter needs the payload's site-packages, which is
                     # NOT on the default path when the updater runs standalone
@@ -174,32 +224,61 @@ try {
                 $ErrorActionPreference = $prevEap
                 if ($code -ne 0) {
                     Write-Log "applier said: $($applierOutput.Trim())"
-                    Fail "bspatch failed: $rel (exit $code)"
+                    throw "bspatch failed: $rel (exit $code)"
                 }
-                if (-not (Test-Path $tmp)) { Fail "bspatch produced no output: $rel" }
+                if (-not (Test-Path $tmp)) { throw "bspatch produced no output: $rel" }
                 $hash = (Get-Sha256 $tmp)
-                if ($op.sha256 -and $hash -ne $op.sha256.ToLower()) { Fail "patched SHA-256 mismatch: $rel" }
+                if ($op.sha256 -and $hash -ne $op.sha256.ToLower()) { throw "patched SHA-256 mismatch: $rel" }
                 Move-Item $tmp $target -Force
                 Write-Log "patched $rel"
             }
         }
     }
 
+    if ($ForceFailure) { throw "forced failure AFTER file operations (CI rollback test)" }
+
     # ------------------------------------ rewrite manifests (§6 step 3) ----
-    Copy-Item (Join-Path $Stage "install_manifest.json") (Join-Path $InstallDir "install_manifest.json") -Force -ErrorAction SilentlyContinue
-    Copy-Item (Join-Path $Stage "version.json") (Join-Path $InstallDir "version.json") -Force -ErrorAction SilentlyContinue
+    Copy-Item (Join-Path $Stage "install_manifest.json") (Join-Path $InstallDir "install_manifest.json") -Force
+    Copy-Item (Join-Path $Stage "version.json") (Join-Path $InstallDir "version.json") -Force
     Write-Log "manifests rewritten"
 
-    # -------------------------------------------------- relaunch the app ----
-    $launcher = Join-Path $InstallDir "start_vira.cmd"
-    if (Test-Path $launcher) { Start-Process -FilePath $launcher -WorkingDirectory $InstallDir }
-    Write-Log "relaunched — awaiting health check (rollback kept at $rollback)"
-    Remove-Item $lockFile -Force -ErrorAction SilentlyContinue
-    exit 0
+    Start-App
+    Wait-Healthy $newStamp
+    Write-Result "committed"
+    Write-Log "COMMITTED — readiness, accounting invariants and build validated"
+    # Only a proven healthy version permits removing this attempt's rollback.
+    Remove-Item -LiteralPath $rollback -Recurse -Force
 }
 catch {
-    Fail $_.Exception.Message
+    $failure = $_.Exception.Message
+    Write-Log "FAILED: $failure"
+    try {
+        if ($script:appStopped) { Stop-App }
+        if ($script:snapshotComplete) {
+            foreach ($relative in $script:added) {
+                $target = Safe-Target $relative
+                if (Test-Path -LiteralPath $target) { Remove-Item -LiteralPath $target -Force }
+            }
+            foreach ($relative in $script:saved.Keys) {
+                $target = Safe-Target $relative
+                Copy-Item -LiteralPath (Join-Path $rollback $relative) -Destination $target -Force
+                if ((Get-Sha256 $target) -ne $script:saved[$relative]) { throw "rollback verification failed: $relative" }
+            }
+            Start-App
+            Wait-Healthy $oldStamp
+            Write-Result "rolled_back" "به‌روزرسانی ناموفق بود؛ فایل‌های قبلی بازگردانده و سلامت نسخهٔ قبلی تأیید شد."
+            Write-Log "ROLLED BACK — previous files and health verified"
+        } else {
+            if ($script:appStopped) { Start-App; Wait-Healthy $oldStamp }
+            Write-Result "failed" "به‌روزرسانی پیش از تکمیل پشتیبان فایل‌ها متوقف شد؛ گزارش را بررسی کنید."
+        }
+    } catch {
+        Write-Log "ROLLBACK FAILED: $($_.Exception.Message)"
+        Write-Result "failed" "بازگردانی کامل تأیید نشد؛ از اجرای نصب دوباره خودداری و گزارش را بررسی کنید."
+    }
+    throw "vira-updater failed: $failure (see $logPath)"
 }
 finally {
+    Remove-Item -LiteralPath $lockFile -Force -ErrorAction SilentlyContinue
     $mutex.ReleaseMutex() | Out-Null
 }

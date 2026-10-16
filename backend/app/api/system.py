@@ -9,7 +9,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -17,12 +17,12 @@ from ..config import Settings
 from ..security.session import SessionUser
 from ..security.sudo import require_sudo
 from ..version import version_info
-from .deps import get_db, get_settings
+from .deps import get_db, get_settings, require_roles, require_user
 
 router = APIRouter(
     prefix="/api/v1/system",
     tags=["system"],
-    dependencies=[Depends(require_sudo)],  # the whole area is sudo-protected
+    dependencies=[Depends(require_user)],  # discovery/progress are authenticated reads
 )
 
 
@@ -96,7 +96,13 @@ class UpdateCheck(BaseModel):
     choice: UpdateChoiceOut | None = None
 
 
+class UpdateApproval(BaseModel):
+    expected_version: str = Field(pattern=r"^\d+\.\d+\.\d+$")
+    expected_sha256: str = Field(pattern=r"^[0-9a-fA-F]{64}$")
+
+
 class UpdateStatusOut(BaseModel):
+    target_version: str = ""
     state: str
     total_bytes: int
     downloaded_bytes: int
@@ -148,7 +154,7 @@ def _scheduler_state(request: Request) -> tuple[bool, bool, int]:
     return (True, True, jobs)
 
 
-@router.get("/status", response_model=SystemStatus)
+@router.get("/status", response_model=SystemStatus, dependencies=[Depends(require_sudo)])
 def system_status(
     request: Request,
     session: Annotated[Session, Depends(get_db)],
@@ -327,8 +333,9 @@ def check_updates(
     )
 
 
-@router.post("/update/download", response_model=UpdateStatusOut)
+@router.post("/update/download", response_model=UpdateStatusOut, dependencies=[Depends(require_roles("OWNER"))])
 def update_download(
+    approval: UpdateApproval,
     background_tasks: BackgroundTasks,
     settings: Annotated[Settings, Depends(get_settings)],
     user: Annotated[SessionUser, Depends(require_sudo)],
@@ -344,19 +351,23 @@ def update_download(
         # No delta base for this install (e.g. an unstamped «0.0.0-unknown»
         # build): the full installer must be run by hand, never staged.
         raise DomainError(result.reason_fa or "این به‌روزرسانی نیاز به نصب دستی دارد.")
+    if (result.latest != approval.expected_version or result.choice.kind != "delta"
+            or len(result.choice.packages) != 1
+            or result.choice.packages[0]["sha256"].lower() != approval.expected_sha256.lower()):
+        raise DomainError("نسخه یا بسته از زمان تأیید شما تغییر کرده است؛ دوباره بررسی و تأیید کنید.")
     initial = manager.prepare_download(result, settings)
     background_tasks.add_task(manager.finish_download, result)
     return UpdateStatusOut(**initial)
 
 
 @router.get("/update/status", response_model=UpdateStatusOut)
-def update_status() -> UpdateStatusOut:
-    from ..services.update import manager
+def update_status(settings: Annotated[Settings, Depends(get_settings)]) -> UpdateStatusOut:
+    from ..services.update import read_update_status
 
-    return UpdateStatusOut(**manager.status())
+    return UpdateStatusOut(**read_update_status(settings))
 
 
-@router.post("/update/apply", response_model=UpdateStatusOut)
+@router.post("/update/apply", response_model=UpdateStatusOut, dependencies=[Depends(require_roles("OWNER"))])
 def update_apply(
     settings: Annotated[Settings, Depends(get_settings)],
     user: Annotated[SessionUser, Depends(require_sudo)],

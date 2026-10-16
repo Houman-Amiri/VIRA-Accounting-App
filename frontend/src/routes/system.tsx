@@ -6,7 +6,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { fmtBytes } from "@/lib/money";
-import { fetchUpdateCheck, type UpdateCheck } from "@/lib/update";
+import { fetchUpdateCheck, fetchUpdateStatus, type UpdateCheck } from "@/lib/update";
 import { COMPILED_BUILD_ID, isStaleUi, UI_BUILD_ID } from "@/lib/build";
 import { UpdateDialog } from "@/components/update-dialog";
 import { useQuery } from "@tanstack/react-query";
@@ -67,6 +67,12 @@ export function SystemPage(): React.JSX.Element {
       if (res.error) throw await parseError(res.response);
       return res.data as unknown as SystemStatus;
     },
+  });
+
+  const updateStatusQuery = useQuery({
+    queryKey: ["update-status"],
+    queryFn: fetchUpdateStatus,
+    enabled: sudoReady,
   });
 
   async function runBackup() {
@@ -253,6 +259,19 @@ export function SystemPage(): React.JSX.Element {
                   <span className="num">Ctrl+F5</span> تازه‌سازی کنید.
                 </div>
               )}
+              {updateStatusQuery.data &&
+                ["committed", "rolled_back", "failed"].includes(updateStatusQuery.data.state) && (
+                  <p
+                    role="status"
+                    data-testid="system-last-update"
+                    className="rounded-md border p-3 text-sm"
+                  >
+                    {updateStatusQuery.data.state === "committed"
+                      ? "به‌روزرسانی با موفقیت انجام و سلامت برنامه تأیید شد."
+                      : updateStatusQuery.data.error_fa ||
+                        "به‌روزرسانی ناموفق بود؛ گزارش را بررسی کنید."}
+                  </p>
+                )}
               {update?.manual_required && (
                 <div
                   className="space-y-1 rounded-md border border-amber-500/60 bg-amber-500/10 px-3 py-2 text-xs"

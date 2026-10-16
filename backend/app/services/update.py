@@ -44,7 +44,7 @@ GITHUB_API = "https://api.github.com"
 RATE_LIMIT_FA = "تعداد درخواست‌ها بیش از حد مجاز است؛ لطفاً کمی بعد دوباره تلاش کنید."
 UNREACHABLE_FA = "دسترسی به منبع به‌روزرسانی ممکن نشد."
 SCHEMA_REFUSE_FA = "ساختار پیام به‌روزرسانی شناخته نشد؛ لطفاً نصب دستی را انجام دهید."
-NO_DELTA_FA = "بستهٔ تفاضلی موجود نیست؛ نصب کامل دانلود می‌شود."
+NO_DELTA_FA = "بستهٔ تفاضلی مستقیم موجود نیست؛ دانلود خودکار متوقف است. نصب کامل فقط با اقدام دستی شما ممکن است."
 UPDATER_MISSING_FA = (
     "برنامهٔ به‌روزرسان روی این نصب پیدا نشد؛ لطفاً فایل نصب کامل VIRA-Setup را "
     "دانلود و دستی اجرا کنید."
@@ -148,7 +148,11 @@ def fetch_channel(settings: Settings) -> ChannelResult:
         raise UpdateChannelError(SCHEMA_REFUSE_FA) from exc
     # Ed25519 verification when a public key is baked in (§8 recommended)
     pub = _public_key_pem(settings)
-    if pub is not None and signature is not None:
+    if pub is not None:
+        if override:
+            _, signature = _conditional_get(override + ".sig")
+        if signature is None:
+            raise UpdateChannelError(SCHEMA_REFUSE_FA)
         try:
             verify_latest_signature(raw, signature, pub)
         except VerificationError as exc:
@@ -163,7 +167,9 @@ def _public_key_pem(settings: Settings) -> bytes | None:
     if src.startswith("-----BEGIN"):
         return src.encode("utf-8")
     p = Path(src)
-    return p.read_bytes() if p.is_file() else None
+    if not p.is_file():
+        raise UpdateChannelError(SCHEMA_REFUSE_FA)
+    return p.read_bytes()
 
 
 # ------------------------------------------------------------- check result ---
@@ -285,6 +291,10 @@ def check_for_update(current: str, settings: Settings) -> UpdateCheckResult:
             manual_required=True,
             choice=_full_package_choice(m, cur),
         )
+    if choice.kind is not SelectionKind.DELTA:
+        return UpdateCheckResult(cur, m.version, True, True, reason_fa=NO_DELTA_FA,
+            notes_fa=m.notes_fa, notes_en=m.notes_en, manual_required=True,
+            min_app_version=m.min_app_version, choice=_full_package_choice(m, cur))
     return UpdateCheckResult(
         cur,
         m.version,
@@ -324,6 +334,7 @@ def _package_choice(choice: Any, m: LatestManifest, cur: str) -> PackageChoice:
 
 @dataclass
 class UpdateJob:
+    target_version: str = ""
     state: str = "idle"  # idle|downloading|verifying|staged|applying|committed|rolled_back|failed
     total_bytes: int = 0
     downloaded_bytes: int = 0
@@ -345,6 +356,7 @@ class UpdateManager:
         with self._lock:
             j = self._job
             return {
+                "target_version": j.target_version,
                 "state": j.state,
                 "total_bytes": j.total_bytes,
                 "downloaded_bytes": j.downloaded_bytes,
@@ -378,7 +390,7 @@ class UpdateManager:
             log_path = staging / "update.log"
             log_path.write_text("download started\n", encoding="utf-8")
             self._job = UpdateJob(
-                state="downloading", total_bytes=size, log_path=str(log_path),
+                target_version=check.latest, state="downloading", total_bytes=size, log_path=str(log_path),
             )
             self._job.run.fire(UpdateEvent.START)
         return self.status()
@@ -544,9 +556,29 @@ def launch_updater(settings: Settings, staged_path: str) -> dict[str, Any]:
     with manager._lock:  # noqa: SLF001 - module-private manager
         manager._job.state = "applying"
         manager._job.log_path = str(log_path)
+    if settings.data_dir is None:
+        raise DomainError("data_dir is not configured")
+    argv += ["-ParentPid", str(os.getpid()), "-Port", str(os.environ.get("VIRA_PORT") or settings.bind_port),
+             "-ResultPath", str(Path(settings.data_dir) / "updates" / "last-result.json")]
     subprocess.Popen(argv, close_fds=True)  # noqa: S603 - fixed argv, no shell
     _ = log_path
     return manager.status()
+
+
+def read_update_status(settings: Settings) -> dict[str, Any]:
+    """The helper's terminal result survives the backend it intentionally restarts."""
+    status = manager.status()
+    if settings.data_dir is None or status["state"] not in {"idle", "applying"}:
+        return status
+    try:
+        result = json.loads((Path(settings.data_dir) / "updates" / "last-result.json").read_text(encoding="utf-8-sig"))
+        if result.get("state") not in {"committed", "rolled_back", "failed"}:
+            return status
+        if status["state"] == "applying" and result.get("log_path") != status["log_path"]:
+            return status  # a previous attempt must not finish the current job
+        return {**status, **{k: v for k, v in result.items() if k in status}}
+    except (OSError, ValueError, TypeError):
+        return status
 
 
 def apply_update(settings: Settings) -> dict[str, Any]:

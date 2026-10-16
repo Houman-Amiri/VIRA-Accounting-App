@@ -6,10 +6,11 @@
  * and the «بررسی به‌روزرسانی» flow, and the download/apply calls that drive
  * the transactional updater helper.
  */
+import { useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 
-import { api, parseError } from "@/api/client";
+import { api, ApiError, parseError } from "@/api/client";
 
 export const UpdatePackageSchema = z.object({
   url: z.string().url().or(z.string().startsWith("/")),
@@ -38,6 +39,7 @@ export const UpdateCheckSchema = z.object({
 });
 
 export const UpdateStatusSchema = z.object({
+  target_version: z.string().optional(),
   state: z.enum([
     "idle",
     "downloading",
@@ -80,27 +82,56 @@ export function useUpdateCheck(enabled = true) {
   });
 }
 
-export function useUpdateFlow(enabled = true) {
+export async function fetchUpdateStatus(): Promise<UpdateStatus> {
+  const res = await api.GET("/api/v1/system/update/status");
+  if (res.error) throw await parseError(res.response);
+  return UpdateStatusSchema.parse(res.data);
+}
+
+export function useUpdateFlow(enabled = true, requestSudo?: (() => Promise<string>) | null) {
+  async function withSudo<T>(action: () => Promise<T>): Promise<T> {
+    try {
+      return await action();
+    } catch (error) {
+      if (!(error instanceof ApiError) || !error.needsSudo || !requestSudo) throw error;
+      await requestSudo();
+      return action(); // once, after explicit step-up; never an automatic permission bypass
+    }
+  }
   const qc = useQueryClient();
+  const applyingSince = useRef<number | null>(null);
+  const awaitingRestart = () =>
+    applyingSince.current !== null && Date.now() - applyingSince.current < 240_000;
   const storeStatus = async (data: UpdateStatus): Promise<void> => {
     // A status GET started before the mutation must not overwrite its result.
     await qc.cancelQueries({ queryKey: ["update-status"] });
     qc.setQueryData(["update-status"], data);
   };
   const download = useMutation({
-    mutationFn: async (): Promise<UpdateStatus> => {
-      const res = await api.POST("/api/v1/system/update/download", {});
-      if (res.error) throw await parseError(res.response);
-      return UpdateStatusSchema.parse(res.data);
-    },
+    mutationFn: (approval: {
+      expected_version: string;
+      expected_sha256: string;
+    }): Promise<UpdateStatus> =>
+      withSudo(async () => {
+        const res = await api.POST("/api/v1/system/update/download", { body: approval });
+        if (res.error) throw await parseError(res.response);
+        return UpdateStatusSchema.parse(res.data);
+      }),
     onSuccess: storeStatus,
   });
   const apply = useMutation({
-    mutationFn: async (): Promise<UpdateStatus> => {
-      const res = await api.POST("/api/v1/system/update/apply", {});
-      if (res.error) throw await parseError(res.response);
-      return UpdateStatusSchema.parse(res.data);
+    onMutate: () => {
+      applyingSince.current = Date.now();
     },
+    onError: () => {
+      applyingSince.current = null;
+    },
+    mutationFn: (): Promise<UpdateStatus> =>
+      withSudo(async () => {
+        const res = await api.POST("/api/v1/system/update/apply", {});
+        if (res.error) throw await parseError(res.response);
+        return UpdateStatusSchema.parse(res.data);
+      }),
     onSuccess: async (data) => {
       await storeStatus(data);
       void qc.invalidateQueries({ queryKey: ["update-check"] });
@@ -111,19 +142,20 @@ export function useUpdateFlow(enabled = true) {
     enabled,
     retry: false,
     refetchIntervalInBackground: true,
-    queryFn: async (): Promise<UpdateStatus> => {
-      const res = await api.GET("/api/v1/system/update/status");
-      if (res.error) throw await parseError(res.response);
-      return UpdateStatusSchema.parse(res.data);
+    queryFn: async () => {
+      const data = await fetchUpdateStatus();
+      if (["committed", "rolled_back", "failed"].includes(data.state)) applyingSince.current = null;
+      return data;
     },
     refetchInterval: (query) => {
       const s = query.state.data;
       const busy =
+        awaitingRestart() ||
         download.isPending ||
         apply.isPending ||
         (s && ["downloading", "verifying", "applying"].includes(s.state));
       return enabled && busy ? 700 : false;
     },
   });
-  return { download, apply, status };
+  return { download, apply, status, reconnecting: awaitingRestart() };
 }

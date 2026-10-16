@@ -174,7 +174,7 @@ async def test_api_returns_initial_state_and_allows_progress_polling(client, app
     stub_stream(monkeypatch, payload, hook=pause)
     sudo = await client.post("/api/v1/auth/sudo", json={"password": "test-password-1"})
     headers = {"X-Sudo-Token": sudo.json()["sudo_token"]}
-    request = asyncio.create_task(client.post("/api/v1/system/update/download", headers=headers))
+    request = asyncio.create_task(client.post("/api/v1/system/update/download", headers=headers, json={"expected_version": "2.0.0", "expected_sha256": sha256_bytes(payload)}))
     try:
         assert await asyncio.to_thread(entered.wait, 5)
         progress = await client.get("/api/v1/system/update/status", headers=headers)

@@ -11,6 +11,10 @@ type SudoFn = () => Promise<string>;
 
 const SudoContext = createContext<SudoFn | null>(null);
 
+export function useOptionalRequestSudo(): SudoFn | null {
+  return useContext(SudoContext);
+}
+
 export function useRequestSudo(): SudoFn {
   const fn = useContext(SudoContext);
   if (!fn) throw new Error("SudoProvider missing");
@@ -78,6 +82,7 @@ export function SudoProvider({ children }: { children: React.ReactNode }) {
     <SudoContext.Provider value={requestSudo}>
       {children}
       <dialog
+        data-testid="sudo-dialog"
         ref={dialogRef}
         dir="rtl"
         className="m-auto w-full max-w-sm rounded-xl border bg-card p-0 shadow-lg backdrop:bg-black/40"
@@ -90,6 +95,7 @@ export function SudoProvider({ children }: { children: React.ReactNode }) {
           <h2 className="text-base font-bold">{t("sudo.title")}</h2>
           <p className="text-sm text-muted-foreground">{t("sudo.prompt")}</p>
           <input
+            data-testid="sudo-password"
             type="password"
             className="w-full rounded-md border bg-background px-3 py-2 text-sm"
             value={password}
@@ -111,6 +117,7 @@ export function SudoProvider({ children }: { children: React.ReactNode }) {
               انصراف
             </button>
             <button
+              data-testid="sudo-confirm"
               type="submit"
               disabled={busy}
               className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60"

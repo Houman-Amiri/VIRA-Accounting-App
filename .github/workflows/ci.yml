@@ -280,3 +280,13 @@ jobs:
         run: |
           pnpm install --frozen-lockfile
           pnpm build
+
+      - name: Real in-app delta apply and rollback (isolated Windows, current-code fixtures)
+        shell: pwsh
+        run: |
+          Push-Location frontend
+          pnpm exec playwright install chromium
+          if ($LASTEXITCODE -ne 0) { throw "Chromium install failed" }
+          Pop-Location
+          uv run python scripts/update_native_smoke.py
+          if ($LASTEXITCODE -ne 0) { throw "native in-app delta journey failed" }

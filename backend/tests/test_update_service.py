@@ -145,8 +145,9 @@ class TestChannel:
             app_update_url="https://mirror.example/latest.json",
             update_public_key=str(pem_path),
         )
-        channel = fetch_channel(s)  # no signature provided → accepted (sig optional)
-        assert channel.manifest.version == "2.0.0"
+        # Once a trusted key is configured, a missing/invalid signature is NOT optional.
+        with pytest.raises(UpdateChannelError):
+            fetch_channel(s)
 
 
 class TestCheck:

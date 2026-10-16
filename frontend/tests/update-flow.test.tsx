@@ -53,14 +53,14 @@ const failure = (message: string, status = 403) => ({
   response: new Response(JSON.stringify({ detail: message, code: "sudo_required" }), { status }),
 });
 
-function mount(open = true): QueryClient {
+function mount(open = true, info = check): QueryClient {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
   clients.push(client);
   render(
     <QueryClientProvider client={client}>
-      <UpdateDialog check={check} open={open} onClose={() => {}} />
+      <UpdateDialog check={info} open={open} onClose={() => {}} />
     </QueryClientProvider>,
   );
   return client;
@@ -180,4 +180,35 @@ describe("0-byte update regression", () => {
     mount(false);
     expect(api.GET).not.toHaveBeenCalled();
   });
+});
+
+it("sends exactly the version and hash the user approved, not a fresh implicit choice", async () => {
+  vi.mocked(api.POST).mockResolvedValue(success(staged) as never);
+  mount();
+  fireEvent.click(screen.getByTestId("update-accept"));
+  await waitFor(() =>
+    expect(api.POST).toHaveBeenCalledWith("/api/v1/system/update/download", {
+      body: { expected_version: "1.0.7", expected_sha256: "ab".repeat(32) },
+    }),
+  );
+});
+
+it("keeps polling through a real restart disconnect rather than claiming rollback", async () => {
+  vi.mocked(api.GET).mockResolvedValue(success(staged) as never);
+  vi.mocked(api.POST).mockResolvedValue(success({ ...staged, state: "applying" }) as never);
+  mount();
+  fireEvent.click(await screen.findByTestId("update-apply"));
+  await screen.findByTestId("update-progress");
+  vi.mocked(api.GET).mockRejectedValue(new TypeError("network disconnected"));
+  await waitFor(() => expect(api.GET).toHaveBeenCalledTimes(2), { timeout: 2500 });
+  expect(screen.queryByTestId("update-failed")).not.toBeInTheDocument();
+  vi.mocked(api.GET).mockResolvedValue(success({ ...staged, state: "committed" }) as never);
+  await screen.findByTestId("update-restart", {}, { timeout: 2500 });
+});
+
+it("never offers an automatic full setup even if malformed discovery marks it non-manual", async () => {
+  mount(true, { ...check, choice: { ...check.choice!, kind: "full" } });
+  expect(screen.getByTestId("update-accept")).toBeDisabled();
+  fireEvent.click(screen.getByTestId("update-accept"));
+  expect(api.POST).not.toHaveBeenCalled();
 });

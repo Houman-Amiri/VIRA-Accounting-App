@@ -2604,6 +2604,13 @@ export interface components {
             /** Balance */
             balance: string;
         };
+        /** UpdateApproval */
+        UpdateApproval: {
+            /** Expected Version */
+            expected_version: string;
+            /** Expected Sha256 */
+            expected_sha256: string;
+        };
         /** UpdateCheck */
         UpdateCheck: {
             /** Current */
@@ -2651,6 +2658,11 @@ export interface components {
         };
         /** UpdateStatusOut */
         UpdateStatusOut: {
+            /**
+             * Target Version
+             * @default
+             */
+            target_version: string;
             /** State */
             state: string;
             /** Total Bytes */
@@ -4526,9 +4538,7 @@ export interface operations {
     check_updates_api_v1_system_check_updates_get: {
         parameters: {
             query?: never;
-            header?: {
-                "X-Sudo-Token"?: string | null;
-            };
+            header?: never;
             path?: never;
             cookie?: {
                 vira_session?: string | null;
@@ -4567,7 +4577,11 @@ export interface operations {
                 vira_session?: string | null;
             };
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateApproval"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -4592,9 +4606,7 @@ export interface operations {
     update_status_api_v1_system_update_status_get: {
         parameters: {
             query?: never;
-            header?: {
-                "X-Sudo-Token"?: string | null;
-            };
+            header?: never;
             path?: never;
             cookie?: {
                 vira_session?: string | null;

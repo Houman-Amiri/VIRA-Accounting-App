@@ -15,6 +15,14 @@ setlocal EnableDelayedExpansion
 cd /d "%~dp0"
 title V.I.R.A
 
+REM A normal shortcut must not start another writer during a transaction.
+set "VIRA_UPDATE_LOCK=%LOCALAPPDATA%\VIRA\updates\.update.lock"
+if defined DATA_DIR set "VIRA_UPDATE_LOCK=%DATA_DIR%\updates\.update.lock"
+if exist "%VIRA_UPDATE_LOCK%" if not defined VIRA_UPDATE_RESTART (
+  echo [VIRA] Update in progress. Wait for completion before starting the app.
+  exit /b 1
+)
+
 REM ------------------------------------------------- interpreter ----
 set "VIRA_PY=%~dp0python\python.exe"
 if not exist "%VIRA_PY%" if exist "%~dp0.venv\Scripts\python.exe" set "VIRA_PY=%~dp0.venv\Scripts\python.exe"
