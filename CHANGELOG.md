@@ -17,7 +17,10 @@ still needs a dedicated pre-release test.
 - Add a pinned-public-payload 1.0.9 -> candidate 1.0.10 browser/compiled-updater
   pre-release gate (no injected bootstrap or modified historical client). Recover
   the durable result path from the historical staging layout when the old client
-  omits the new helper argument. Gate results are pending, not installed acceptance.
+  omits the new helper argument. Bridge a restarted idle manager with the active
+  helper lock until that exact attempt (nonce + PID) has a terminal result, so
+  the historical UI keeps polling during readiness checks. Gate results remain
+  pending, not installed acceptance.
 - Repair phase 8: bind download consent to the exact version/hash, reject automatic
   full-setup fallback, retain sudo/owner protection for mutations, verify restart
   health/build identity and file rollback, persist the terminal update result and

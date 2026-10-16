@@ -94,3 +94,57 @@ def test_no_direct_delta_requires_manual_action_never_auto_full(tmp_path, monkey
     with pytest.raises(Exception, match="متوقف"):
         update.UpdateManager().prepare_download(result, Settings(data_dir=tmp_path))
     assert not (tmp_path / "updates").exists()
+
+
+def test_restarted_backend_does_not_send_idle_during_helper_health_check(tmp_path, monkeypatch):
+    """The immutable 1.0.9 browser stops polling forever if it sees idle here."""
+    from app.config import Settings
+
+    updates = tmp_path / "updates"
+    updates.mkdir()
+    (updates / ".update.lock").write_text(json.dumps({"pid": 123, "attempt_id": "current"}))
+    monkeypatch.setattr(update, "manager", update.UpdateManager())
+    assert update.read_update_status(Settings(data_dir=tmp_path))["state"] == "applying"
+
+
+@pytest.mark.parametrize("result", [
+    {"state": "committed", "helper_pid": 999, "attempt_id": "current"},
+    {"state": "committed", "helper_pid": 123, "attempt_id": "previous"},
+    [],
+])
+def test_restart_bridge_never_accepts_other_attempt_or_corrupt_result(tmp_path, monkeypatch, result):
+    from app.config import Settings
+
+    updates = tmp_path / "updates"
+    updates.mkdir()
+    (updates / ".update.lock").write_text(json.dumps({"pid": 123, "attempt_id": "current"}))
+    (updates / "last-result.json").write_text(json.dumps(result))
+    monkeypatch.setattr(update, "manager", update.UpdateManager())
+    assert update.read_update_status(Settings(data_dir=tmp_path))["state"] == "applying"
+
+
+def test_restart_bridge_exits_only_for_matching_verified_attempt(tmp_path, monkeypatch):
+    from app.config import Settings
+
+    updates = tmp_path / "updates"
+    updates.mkdir()
+    lock = updates / ".update.lock"
+    lock.write_text(json.dumps({"pid": 123, "attempt_id": "current"}))
+    monkeypatch.setattr(update, "manager", update.UpdateManager())
+    result = {"state": "committed", "helper_pid": 123, "attempt_id": "current", "verified": True}
+    (updates / "last-result.json").write_text(json.dumps(result))
+    settings = Settings(data_dir=tmp_path)
+    assert update.read_update_status(settings)["state"] == "committed"
+    lock.unlink()
+    assert update.read_update_status(settings)["state"] == "committed"
+
+
+def test_malformed_transaction_lock_does_not_claim_old_success(tmp_path, monkeypatch):
+    from app.config import Settings
+
+    updates = tmp_path / "updates"
+    updates.mkdir()
+    (updates / ".update.lock").write_text("not valid JSON")
+    (updates / "last-result.json").write_text('{"state":"committed"}')
+    monkeypatch.setattr(update, "manager", update.UpdateManager())
+    assert update.read_update_status(Settings(data_dir=tmp_path))["state"] == "applying"

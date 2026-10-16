@@ -570,11 +570,31 @@ def read_update_status(settings: Settings) -> dict[str, Any]:
     status = manager.status()
     if settings.data_dir is None or status["state"] not in {"idle", "applying"}:
         return status
+    updates = Path(settings.data_dir) / "updates"
+    job_applying = status["state"] == "applying"
+    lock = updates / ".update.lock"
+    locked = lock.is_file()
+    lock_info: dict[str, Any] = {}
+    if locked:
+        try:
+            value = json.loads(lock.read_text(encoding="utf-8-sig"))
+            if isinstance(value, dict):
+                lock_info = value
+        except (OSError, ValueError):
+            pass  # unknown/stale lock is not evidence of success or idle
+        if not job_applying:
+            # A restarted manager starts idle BEFORE the helper has checked its
+            # readiness. The immutable 1.0.9 UI stops polling on idle forever.
+            status = {**status, "state": "applying", "machine_state": "applying"}
     try:
-        result = json.loads((Path(settings.data_dir) / "updates" / "last-result.json").read_text(encoding="utf-8-sig"))
-        if result.get("state") not in {"committed", "rolled_back", "failed"}:
+        result = json.loads((updates / "last-result.json").read_text(encoding="utf-8-sig"))
+        if not isinstance(result, dict) or result.get("state") not in {"committed", "rolled_back", "failed"}:
             return status
-        if status["state"] == "applying" and result.get("log_path") != status["log_path"]:
+        if locked and (not lock_info.get("attempt_id")
+                       or result.get("attempt_id") != lock_info.get("attempt_id")
+                       or result.get("helper_pid") != lock_info.get("pid")):
+            return status  # prior result/PID reuse must not finish this attempt
+        if job_applying and result.get("log_path") != status["log_path"]:
             return status  # a previous attempt must not finish the current job
         return {**status, **{k: v for k, v in result.items() if k in status}}
     except (OSError, ValueError, TypeError):

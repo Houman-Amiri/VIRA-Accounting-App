@@ -58,6 +58,7 @@ $script:saved = @{}
 $script:added = @()
 $script:launcherPid = 0
 $script:targetVersion = ""
+$script:attemptId = [guid]::NewGuid().ToString("N")
 if (-not $Port) { $Port = if ($env:VIRA_PORT) { [int]$env:VIRA_PORT } else { 8787 } }
 
 # Published 1.0.9 launches the staged helper without -ResultPath. Recover only
@@ -78,7 +79,8 @@ if (-not $ResultPath) {
 function Write-Result([string]$State, [string]$Reason = "") {
     if (-not $ResultPath) { return }
     $result = @{ state = $State; target_version = $script:targetVersion; log_path = $logPath;
-        error_fa = $Reason; verified = ($State -eq "committed"); machine_state = $State }
+        error_fa = $Reason; verified = ($State -eq "committed"); machine_state = $State;
+        helper_pid = $PID; attempt_id = $script:attemptId }
     New-Item -ItemType Directory -Force -Path (Split-Path $ResultPath) | Out-Null
     [IO.File]::WriteAllText(($ResultPath + ".tmp"), ($result | ConvertTo-Json), (New-Object Text.UTF8Encoding($false)))
     Move-Item -LiteralPath ($ResultPath + ".tmp") -Destination $ResultPath -Force
@@ -150,7 +152,8 @@ if (-not $mutex.WaitOne(0)) {
 }
 $lockFile = if ($ResultPath) { Join-Path (Split-Path $ResultPath) ".update.lock" } else { Join-Path $env:LOCALAPPDATA "VIRA\updates\.update.lock" }
 New-Item -ItemType Directory -Force -Path (Split-Path $lockFile) | Out-Null
-Set-Content -Path $lockFile -Value $PID -Encoding ascii
+@{ pid = $PID; attempt_id = $script:attemptId } | ConvertTo-Json -Compress |
+    Set-Content -Path $lockFile -Encoding ascii
 
 try {
     # ------------------------------------------------------ locate install ----
