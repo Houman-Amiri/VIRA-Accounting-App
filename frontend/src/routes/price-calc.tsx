@@ -186,13 +186,13 @@ export function PriceCalcPage(): React.JSX.Element {
                       )}
                       data-testid={`row-${row.key}`}
                     >
-                      <td className="py-2">
+                      <td className="py-2 ps-1">
                         {row.key === "batchFinalPrice" ? "قیمت نهایی کل" : row.label}
                       </td>
-                      <td className="py-2">
+                      <td className="py-2 ps-1">
                         <Money value={plain[row.key].toFixed(4)} currency="TOMAN" hideCurrency />
                       </td>
-                      <td className="py-2">
+                      <td className="py-2 ps-1">
                         {row.plainOnly ? (
                           "—"
                         ) : (
