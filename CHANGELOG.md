@@ -10,8 +10,8 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 Draft Persian notes for proposed v1.0.10: `docs/releases/v1.0.10-fa.md`.
 Project metadata is now 1.0.10 for candidate-only packaging; this is not release
 approval or publication. The user's screenshot
-confirms installed v1.0.9 / `7d78720`; its actual client-to-next-version update path
-still needs a dedicated pre-release test.
+confirms installed v1.0.9 / `7d78720`; its actual client-to-candidate path has now passed the isolated pre-release
+browser/compiled-helper success and rollback gate (candidate `f6fc50b`).
 
 ### Fixed
 - Add a pinned-public-payload 1.0.9 -> candidate 1.0.10 browser/compiled-updater
@@ -19,8 +19,10 @@ still needs a dedicated pre-release test.
   the durable result path from the historical staging layout when the old client
   omits the new helper argument. Bridge a restarted idle manager with the active
   helper lock until that exact attempt (nonce + PID) has a terminal result, so
-  the historical UI keeps polling during readiness checks. Gate results remain
-  pending, not installed acceptance.
+  the historical UI keeps polling during readiness checks. All six tagless-release
+  jobs passed on candidate `f6fc50b` (run 38956957333), including the unchanged
+  published browser, finish button, explicit reload and success/rollback data
+  checks. Publication was skipped; installed-user acceptance remains open.
 - Repair phase 8: bind download consent to the exact version/hash, reject automatic
   full-setup fallback, retain sudo/owner protection for mutations, verify restart
   health/build identity and file rollback, persist the terminal update result and
