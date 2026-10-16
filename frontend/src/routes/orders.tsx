@@ -304,8 +304,8 @@ export function OrdersPage(): React.JSX.Element {
         </p>
       )}
 
-      <div className="grid gap-4 xl:grid-cols-5">
-        <Card className="xl:col-span-3">
+      <div className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-5">
+        <Card className="min-w-0 xl:col-span-3">
           <CardHeader>
             <CardTitle className="text-base">فهرست سفارش‌ها</CardTitle>
           </CardHeader>
@@ -389,7 +389,7 @@ export function OrdersPage(): React.JSX.Element {
 
             <QueryNotice query={ordersQuery} />
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full min-w-[44rem] text-sm">
                 <thead>
                   <tr className="border-b text-muted-foreground">
                     <th className="py-2 text-start font-medium">#</th>
@@ -492,12 +492,12 @@ export function OrdersPage(): React.JSX.Element {
           </CardContent>
         </Card>
 
-        <Card className="xl:col-span-2">
+        <Card className="min-w-0 xl:col-span-2">
           <CardHeader>
             <CardTitle className="text-base">ثبت سفارش</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <div>
                 <CalendarInput
                   id="order-date"
@@ -530,7 +530,7 @@ export function OrdersPage(): React.JSX.Element {
                 onChange={(e) => setForm((f) => ({ ...f, customer_name: e.target.value }))}
               />
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <div>
                 <Label className="text-xs">تلفن</Label>
                 <Input

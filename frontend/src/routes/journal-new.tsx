@@ -145,7 +145,7 @@ export function JournalNewPage(): React.JSX.Element {
 
   return (
     <div className="mx-auto max-w-5xl space-y-4" dir="rtl">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-bold">{t("journalNew.title")}</h1>
         <Badge variant={totals.balanced ? "success" : "destructive"}>
           {totals.balanced ? t("journalNew.balanced") : t("journalNew.unbalanced")}
@@ -157,7 +157,7 @@ export function JournalNewPage(): React.JSX.Element {
           <CardHeader>
             <CardTitle>{t("journalNew.details")}</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-3 gap-4">
+          <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
               <Controller
                 name="date"
@@ -198,9 +198,9 @@ export function JournalNewPage(): React.JSX.Element {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
             <CardTitle>{t("journalNew.rows")}</CardTitle>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 type="button"
                 variant="outline"
@@ -249,10 +249,10 @@ export function JournalNewPage(): React.JSX.Element {
             {fields.map((field, index) => (
               <div
                 key={field.id}
-                className="grid grid-cols-12 items-end gap-2 rounded-md border p-3"
+                className="grid grid-cols-2 items-end sm:grid-cols-12 gap-2 rounded-md border p-3"
                 data-testid={`split-row-${index}`}
               >
-                <div className="col-span-5">
+                <div className="col-span-2 sm:col-span-5">
                   <Label>{t("journalNew.account")}</Label>
                   <select
                     className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
@@ -272,7 +272,7 @@ export function JournalNewPage(): React.JSX.Element {
                     </p>
                   )}
                 </div>
-                <div className="col-span-2">
+                <div className="col-span-1 sm:col-span-2">
                   <Label>{t("journalNew.debit")}</Label>
                   <Input
                     inputMode="decimal"
@@ -281,7 +281,7 @@ export function JournalNewPage(): React.JSX.Element {
                     {...register(`splits.${index}.debit`)}
                   />
                 </div>
-                <div className="col-span-2">
+                <div className="col-span-1 sm:col-span-2">
                   <Label>{t("journalNew.credit")}</Label>
                   <Input
                     inputMode="decimal"
@@ -290,7 +290,7 @@ export function JournalNewPage(): React.JSX.Element {
                     {...register(`splits.${index}.credit`)}
                   />
                 </div>
-                <div className="col-span-2">
+                <div className="col-span-1 sm:col-span-2">
                   <Label>{t("journalNew.description")}</Label>
                   <Input {...register(`splits.${index}.description`)} />
                 </div>
@@ -307,7 +307,7 @@ export function JournalNewPage(): React.JSX.Element {
                   </Button>
                 </div>
                 {accountById.size > 0 && watch(`splits.${index}.account_id`) && (
-                  <p className="col-span-12 text-xs text-muted-foreground">
+                  <p className="col-span-2 text-xs sm:col-span-12 text-muted-foreground">
                     {accountById.get(watch(`splits.${index}.account_id`))?.name}
                   </p>
                 )}
@@ -318,10 +318,10 @@ export function JournalNewPage(): React.JSX.Element {
 
         {/* Pinned balance footer */}
         <div
-          className="sticky bottom-0 flex items-center justify-between rounded-lg border bg-card/95 p-4 shadow-lg backdrop-blur"
+          className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card/95 p-4 shadow-lg backdrop-blur"
           data-testid="balance-footer"
         >
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-6">
             <div>
               <div className="text-xs text-muted-foreground">{t("journalNew.totalDebit")}</div>
               <Money value={totals.totalDebit.toFixed(4)} currency="TOMAN" />

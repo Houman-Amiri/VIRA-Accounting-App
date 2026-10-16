@@ -2,6 +2,20 @@
 import { expect, type Page } from "@playwright/test";
 export async function auditCalendar(page: Page): Promise<void> {
   expect(process.env.VIRA_E2E_DISPOSABLE_DATABASE).toBe("1");
+  async function mobileDate(id: string) {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const input = page.getByTestId(id);
+    await input.scrollIntoViewIfNeeded();
+    const box = await input.boundingBox();
+    expect(box!.width).toBeGreaterThanOrEqual(120);
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(390);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(
+      true,
+    );
+    await page.setViewportSize({ width: 1440, height: 900 });
+  }
+  await mobileDate("entry-date");
   const write = (path: string) =>
     page.waitForResponse(
       (r) => new URL(r.url()).pathname === `/api/v1/${path}` && r.request().method() === "POST",
@@ -17,6 +31,7 @@ export async function auditCalendar(page: Page): Promise<void> {
   const entry = await entryResponse.json();
   expect(entry.transaction_date).toBe("2026-10-17");
   await page.goto("/orders");
+  await mobileDate("order-date");
   await expect(page.getByTestId("order-date")).toHaveValue("1405/07/25");
   await page.getByTestId("order-date").fill("۱۴۰۴/۰۱/۰۱");
   await page.getByTestId("order-customer").fill("آزمون تقویم نوروز");
