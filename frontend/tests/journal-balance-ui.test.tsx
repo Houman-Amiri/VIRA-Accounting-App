@@ -1,3 +1,4 @@
+import { CalendarContext } from "@/lib/calendar-settings";
 /** Reproduction: journal balance rule surface in the form (Phase 8 e2e chase). */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -59,7 +60,9 @@ describe("journal form balance rule", () => {
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     render(
       <QueryClientProvider client={qc}>
-        <JournalNewPage />
+        <CalendarContext.Provider value={{ calendar: "jalali", ready: true, error: null }}>
+          <JournalNewPage />
+        </CalendarContext.Provider>
       </QueryClientProvider>,
     );
     // wait until the accounts query populated the options

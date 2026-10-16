@@ -1,3 +1,5 @@
+import { faDateTime } from "@/lib/fa";
+import { useCalendar } from "@/lib/calendar-settings";
 /**
  * سیستم و عملیات — Sudo-protected System & Operations (Phase 6 §8).
  * Version/commit, schema revision, last backup, one-click encrypted snapshot,
@@ -39,6 +41,7 @@ type SystemStatus = {
 };
 
 export function SystemPage(): React.JSX.Element {
+  const { calendar } = useCalendar();
   const { t } = useTranslation();
   const requestSudo = useRequestSudo();
   const [sudoReady, setSudoReady] = React.useState(false);
@@ -197,7 +200,7 @@ export function SystemPage(): React.JSX.Element {
                 {t("system.lastBackup")}:{" "}
                 {s.last_backup.at ? (
                   <span className="num font-mono">
-                    {s.last_backup.at} ({fmtBytes(s.last_backup.size_bytes)})
+                    {faDateTime(s.last_backup.at, calendar)} ({fmtBytes(s.last_backup.size_bytes)})
                   </span>
                 ) : (
                   "—"

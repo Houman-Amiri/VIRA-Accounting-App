@@ -5,7 +5,7 @@
  */
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useForm, useFieldArray, type SubmitHandler } from "react-hook-form";
+import { useForm, useFieldArray, Controller, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   journalEntrySchema,
@@ -24,6 +24,9 @@ import { api, newIdempotencyKey, parseError, ApiError } from "@/api/client";
 import { clearDraft, loadDraft, registerDraft } from "@/lib/drafts";
 import { trackEvent } from "@/lib/analytics";
 import { faDate } from "@/lib/fa";
+import { tehranToday, validIso } from "@/lib/calendar";
+import { useCalendar } from "@/lib/calendar-settings";
+import { CalendarInput } from "@/components/calendar-input";
 import { toMoneyString, tomanToRial } from "@/lib/money";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Plus, Trash2, Wand2 } from "lucide-react";
@@ -37,6 +40,7 @@ interface AccountOption {
 
 export function JournalNewPage(): React.JSX.Element {
   const { t } = useTranslation("ledger");
+  const { calendar, ready: calendarReady } = useCalendar();
   const {
     register,
     control,
@@ -47,7 +51,7 @@ export function JournalNewPage(): React.JSX.Element {
   } = useForm<JournalEntryForm>({
     resolver: zodResolver(journalEntrySchema),
     defaultValues: {
-      date: new Date().toISOString().slice(0, 10),
+      date: tehranToday(),
       description: "",
       reference: "",
       currency_code: "IRR",
@@ -70,6 +74,7 @@ export function JournalNewPage(): React.JSX.Element {
   React.useEffect(() => {
     const saved = loadDraft<Partial<JournalEntryForm>>("journal-new");
     if (saved) {
+      if (saved.date && validIso(saved.date)) setValue("date", saved.date);
       if (saved.description) setValue("description", saved.description);
       if (saved.reference) setValue("reference", saved.reference);
       if (Array.isArray(saved.splits) && saved.splits.length >= 1) {
@@ -77,6 +82,7 @@ export function JournalNewPage(): React.JSX.Element {
       }
     }
     return registerDraft("journal-new", () => ({
+      date: watch("date"),
       description: watch("description"),
       reference: watch("reference"),
       splits: watch("splits"),
@@ -99,6 +105,7 @@ export function JournalNewPage(): React.JSX.Element {
 
   const onSubmit: SubmitHandler<JournalEntryForm> = async (data) => {
     try {
+      if (!calendarReady) throw new Error("پیش از ثبت سند، تنظیم تقویم باید دریافت شود.");
       const payload = {
         transaction_date: data.date,
         description: data.description,
@@ -152,9 +159,22 @@ export function JournalNewPage(): React.JSX.Element {
           </CardHeader>
           <CardContent className="grid grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="date">{t("journalNew.date")}</Label>
-              <Input id="date" data-testid="entry-date" {...register("date")} />
-              <p className="mt-1 text-xs text-muted-foreground">{faDate(watch("date"))}</p>
+              <Controller
+                name="date"
+                control={control}
+                render={({ field }) => (
+                  <CalendarInput
+                    id="entry-date"
+                    label={t("journalNew.date")}
+                    required
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                )}
+              />
+              <p className="mt-1 text-xs text-muted-foreground" data-testid="entry-date-preview">
+                {faDate(watch("date"), calendar)}
+              </p>
               {errors.date && (
                 <p className="mt-1 text-xs text-destructive">{errors.date.message}</p>
               )}
@@ -327,7 +347,9 @@ export function JournalNewPage(): React.JSX.Element {
           </div>
           <Button
             type="submit"
-            disabled={isSubmitting || !totals.balanced}
+            disabled={
+              isSubmitting || !totals.balanced || !calendarReady || !validIso(watch("date"))
+            }
             data-testid="submit-entry"
           >
             {t("journalNew.submit")}

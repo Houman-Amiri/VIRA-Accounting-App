@@ -703,6 +703,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/settings/calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Calendar */
+        get: operations["read_calendar_api_v1_settings_calendar_get"];
+        /** Update Calendar */
+        put: operations["update_calendar_api_v1_settings_calendar_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/settings/pricing": {
         parameters: {
             query?: never;
@@ -1519,6 +1537,38 @@ export interface components {
             file: string;
             /** Journal Entry Id */
             journal_entry_id?: string | null;
+        };
+        /** CalendarRead */
+        CalendarRead: {
+            /**
+             * Calendar
+             * @enum {string}
+             */
+            calendar: "jalali" | "gregorian";
+            /** Version Id */
+            version_id: number;
+            /**
+             * Timezone
+             * @default Asia/Tehran
+             * @constant
+             */
+            timezone: "Asia/Tehran";
+            /**
+             * Scope
+             * @default installation
+             * @constant
+             */
+            scope: "installation";
+        };
+        /** CalendarUpdate */
+        CalendarUpdate: {
+            /**
+             * Calendar
+             * @enum {string}
+             */
+            calendar: "jalali" | "gregorian";
+            /** Version Id */
+            version_id: number;
         };
         /** CashFlowReport */
         CashFlowReport: {
@@ -4312,6 +4362,80 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiKeyRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_calendar_api_v1_settings_calendar_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_calendar_api_v1_settings_calendar_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalendarUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarRead"];
                 };
             };
             /** @description Validation Error */

@@ -4387,6 +4387,208 @@
         }
       }
     },
+    "/api/v1/settings/calendar": {
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Read Calendar",
+        "operationId": "read_calendar_api_v1_settings_calendar_get",
+        "parameters": [
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          },
+          {
+            "name": "vira_csrf",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Csrf"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Update Calendar",
+        "operationId": "update_calendar_api_v1_settings_calendar_put",
+        "parameters": [
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          },
+          {
+            "name": "vira_csrf",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Csrf"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/settings/pricing": {
       "get": {
         "tags": [
@@ -9374,6 +9576,66 @@
           "file"
         ],
         "title": "Body_upload_receipt_api_v1_documents_receipts_post"
+      },
+      "CalendarRead": {
+        "properties": {
+          "calendar": {
+            "type": "string",
+            "enum": [
+              "jalali",
+              "gregorian"
+            ],
+            "title": "Calendar"
+          },
+          "version_id": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Version Id"
+          },
+          "timezone": {
+            "type": "string",
+            "const": "Asia/Tehran",
+            "title": "Timezone",
+            "default": "Asia/Tehran"
+          },
+          "scope": {
+            "type": "string",
+            "const": "installation",
+            "title": "Scope",
+            "default": "installation"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "calendar",
+          "version_id"
+        ],
+        "title": "CalendarRead"
+      },
+      "CalendarUpdate": {
+        "properties": {
+          "calendar": {
+            "type": "string",
+            "enum": [
+              "jalali",
+              "gregorian"
+            ],
+            "title": "Calendar"
+          },
+          "version_id": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Version Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "calendar",
+          "version_id"
+        ],
+        "title": "CalendarUpdate"
       },
       "CashFlowReport": {
         "properties": {

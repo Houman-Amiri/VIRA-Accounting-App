@@ -1,3 +1,5 @@
+import { faDateTime } from "@/lib/fa";
+import { useCalendar } from "@/lib/calendar-settings";
 /**
  * انبار — warehouse of filaments and produced models (MASTER_PROMPT §3.1).
  *
@@ -95,6 +97,7 @@ function errText(error: unknown): string {
 }
 
 export function WarehousePage(): React.JSX.Element {
+  const { calendar } = useCalendar();
   const queryClient = useQueryClient();
   const [search, setSearch] = React.useState("");
   const [kindFilter, setKindFilter] = React.useState<"" | "FILAMENT" | "PRODUCT">("");
@@ -763,7 +766,7 @@ export function WarehousePage(): React.JSX.Element {
                     : []
                   ).map((m) => (
                     <tr key={m.id} className="border-b">
-                      <td className="num py-2">{m.occurred_at}</td>
+                      <td className="num py-2">{faDateTime(m.occurred_at, calendar)}</td>
                       <td className="py-2">{m.item_name}</td>
                       <td className="py-2">
                         <Badge variant={m.kind === "OUT" ? "warning" : "secondary"}>

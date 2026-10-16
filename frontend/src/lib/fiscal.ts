@@ -3,7 +3,7 @@
  *
  * The V.I.R.A fiscal year is the full Iranian calendar year: it starts on
  * 1 Farvardin and ends on 29/30 Esfand.  All report date ranges and PDF/print
- * headers use Jalali (Persian) dates via lib/fa — never Gregorian.
+ * headers follow the display calendar via lib/fa; fiscal boundaries stay Jalali.
  */
 import { toGregorian, toJalaali } from "jalaali-js";
 

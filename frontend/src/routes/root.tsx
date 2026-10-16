@@ -1,7 +1,8 @@
 /** Root route: RTL app shell — sidebar nav, command palette, theme toggle. */
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, Outlet, createRootRoute, useNavigate } from "@tanstack/react-router";
+import { Link, Outlet, createRootRoute, useNavigate, useRouterState } from "@tanstack/react-router";
+import { CalendarProvider } from "@/lib/calendar-settings";
 import { CommandPalette } from "@/components/command-palette";
 import { SudoProvider } from "@/components/sudo-dialog";
 import { api, getCsrfToken, onUnauthorized } from "@/api/client";
@@ -49,6 +50,7 @@ function RootComponent() {
   const updateAvailable = updateCheck.data?.update_available === true;
   const { theme, toggleTheme, setCommandPaletteOpen } = useUiStore();
   const navigate = useNavigate();
+  const isLogin = useRouterState({ select: (state) => state.location.pathname === "/login" });
   // Phase 5 §4: 401 → snapshot unsaved form drafts, redirect to /login.
   useEffect(() => {
     onUnauthorized(() => {
@@ -132,7 +134,9 @@ function RootComponent() {
           </div>
         </aside>
         <main className="min-w-0 flex-1 overflow-x-hidden p-3 sm:p-6">
-          <Outlet />
+          <CalendarProvider enabled={!isLogin}>
+            <Outlet />
+          </CalendarProvider>
         </main>
         <CommandPalette />
       </div>

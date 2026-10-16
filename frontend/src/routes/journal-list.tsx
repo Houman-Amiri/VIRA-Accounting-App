@@ -1,3 +1,4 @@
+import { useCalendar } from "@/lib/calendar-settings";
 /** دفتر اسناد — virtualized grid (50k rows) with pinned summary footer. */
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -21,6 +22,7 @@ interface EntryRow {
 }
 
 export function JournalListPage(): React.JSX.Element {
+  const { calendar } = useCalendar();
   const { t } = useTranslation("ledger");
   const entriesQuery = useQuery({
     queryKey: ["journal-entries"],
@@ -43,7 +45,7 @@ export function JournalListPage(): React.JSX.Element {
         accessorKey: "transaction_date",
         header: t("journalList.date"),
         size: 110,
-        cell: (info) => faDate(String(info.getValue())),
+        cell: (info) => faDate(String(info.getValue()), calendar),
       },
       { accessorKey: "description", header: t("journalList.description"), size: 280 },
       {
@@ -88,7 +90,7 @@ export function JournalListPage(): React.JSX.Element {
         },
       },
     ],
-    [t],
+    [t, calendar],
   );
 
   const rows = entriesQuery.data ?? [];

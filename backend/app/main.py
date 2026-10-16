@@ -34,6 +34,7 @@ from .api import (
     search,
 )
 from .api import api_keys as api_keys_api
+from .api import calendar as calendar_api
 from .api import (
     exports as exports_api,
 )
@@ -184,6 +185,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(fx.router, dependencies=[Depends(auditor_read_only)])
     app.include_router(documents.router, dependencies=[Depends(auditor_read_only)])
     app.include_router(api_keys_api.router, dependencies=[Depends(auditor_read_only)])
+    app.include_router(calendar_api.router, dependencies=[Depends(auditor_read_only)])
     app.include_router(pricing_api.router, dependencies=[Depends(auditor_read_only)])
     app.include_router(system_api.router, dependencies=[Depends(auditor_read_only)])
     app.include_router(fiscal.router, dependencies=[Depends(auditor_read_only)])

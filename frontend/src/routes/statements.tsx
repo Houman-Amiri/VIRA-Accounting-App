@@ -1,3 +1,5 @@
+import { tehranToday } from "@/lib/calendar";
+import { useCalendar } from "@/lib/calendar-settings";
 /**
  * صورت‌های مالی — tree tables (Balance Sheet / Income Statement / Cash Flow)
  * with drill-down and ECharts visualizations.
@@ -15,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function StatementsPage(): React.JSX.Element {
+  const { calendar } = useCalendar();
   const { t } = useTranslation("reports");
   const chartRef = React.useRef<HTMLDivElement>(null);
 
@@ -55,13 +58,11 @@ export function StatementsPage(): React.JSX.Element {
       <div className="print-only hidden rounded-md border p-3 text-sm">
         <div className="font-bold">
           {t("statements.title")} — {t("statements.fiscalYear")}{" "}
-          {currentFiscalYear(new Date().toISOString().slice(0, 10)).label}
+          {currentFiscalYear(tehranToday()).label}
         </div>
         <div>
-          {t("statements.from")}{" "}
-          {faDate(currentFiscalYear(new Date().toISOString().slice(0, 10)).startIso)} —{" "}
-          {t("statements.to")}{" "}
-          {faDate(currentFiscalYear(new Date().toISOString().slice(0, 10)).endIso)}
+          {t("statements.from")} {faDate(currentFiscalYear(tehranToday()).startIso, calendar)} —{" "}
+          {t("statements.to")} {faDate(currentFiscalYear(tehranToday()).endIso, calendar)}
         </div>
       </div>
       <div className="flex items-center justify-between">

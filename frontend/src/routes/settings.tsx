@@ -1,3 +1,4 @@
+import { CalendarSettingsCard } from "@/components/calendar-settings";
 import * as React from "react";
 import { Link } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -57,6 +58,9 @@ export function SettingsPage(): React.JSX.Element {
     <div className="mx-auto max-w-3xl space-y-4" dir="rtl">
       <h1 className="text-xl font-bold">تنظیمات</h1>
       <nav aria-label="بخش‌های تنظیمات" className="flex flex-wrap gap-3 text-sm">
+        <a href="#calendar-settings" className="text-primary">
+          تاریخ و تقویم
+        </a>
         <a href="#pricing-constants" className="font-semibold text-primary">
           ثابت‌های قیمت‌گذاری
         </a>
@@ -64,6 +68,7 @@ export function SettingsPage(): React.JSX.Element {
           سیستم و عملیات
         </Link>
       </nav>
+      <CalendarSettingsCard />
       <Card id="pricing-constants">
         <CardHeader>
           <CardTitle>ثابت‌های قیمت‌گذاری</CardTitle>

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { autoBalance, journalEntrySchema, splitTotals } from "@/lib/journal";
 
 const validEntry = {
-  date: "1404/07/22",
+  date: "2025-10-14",
   description: "خرید مواد اولیه",
   reference: "",
   currency_code: "TOMAN",

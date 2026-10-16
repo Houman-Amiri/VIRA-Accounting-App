@@ -1,3 +1,4 @@
+import { useCalendar } from "@/lib/calendar-settings";
 /**
  * تطبیق بانکی — dual-pane reconciliation with live difference header and
  * confidence badges (auto ≥85%, suggestion 60–84%, manual).
@@ -56,6 +57,7 @@ const openTx: MatchCandidate[] = [
 ];
 
 export function ReconcilePage(): React.JSX.Element {
+  const { calendar } = useCalendar();
   const [matched, setMatched] = React.useState<Record<number, number | null>>({});
 
   const scored = React.useMemo(
@@ -111,7 +113,7 @@ export function ReconcilePage(): React.JSX.Element {
                     <Money value={line.amount} hideCurrency />
                   </div>
                   <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className="num">{faDate(line.dateIso)}</span>
+                    <span className="num">{faDate(line.dateIso, calendar)}</span>
                     <Badge
                       variant={
                         conf === "auto" ? "success" : conf === "suggested" ? "warning" : "outline"
@@ -136,7 +138,9 @@ export function ReconcilePage(): React.JSX.Element {
               <div key={i} className="flex items-center justify-between rounded-lg border p-3">
                 <div>
                   <div className="text-sm">{tx.description}</div>
-                  <div className="num text-xs text-muted-foreground">{faDate(tx.dateIso)}</div>
+                  <div className="num text-xs text-muted-foreground">
+                    {faDate(tx.dateIso, calendar)}
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Money value={tx.amount} hideCurrency />

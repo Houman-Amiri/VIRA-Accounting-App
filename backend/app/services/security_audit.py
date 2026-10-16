@@ -17,6 +17,7 @@ from ..models import SecurityAuditLog
 EVENTS = frozenset(
     {
         "PRICING_CONSTANTS_UPDATED",
+        "CALENDAR_PREFERENCE_UPDATED",
         "LOGIN_SUCCESS",
         "LOGIN_FAILED",
         "LOGIN_LOCKED_OUT",

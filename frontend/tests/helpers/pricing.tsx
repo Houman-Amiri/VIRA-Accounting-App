@@ -33,6 +33,12 @@ export function renderWithPricing(
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity }, mutations: { retry: false } },
   });
+  client.setQueryData(["calendar-settings"], {
+    calendar: "jalali",
+    version_id: 0,
+    timezone: "Asia/Tehran",
+    scope: "installation",
+  });
   if (seed) client.setQueryData(["pricing-settings"], { ...SETTINGS, ...overrides });
   return { ...render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>), client };
 }

@@ -19,6 +19,9 @@ import { Label } from "@/components/ui/label";
 import { Money } from "@/components/money";
 import { computePrice, parseNum, type PriceInputs } from "@/lib/priceCalc";
 import { pricingConstants, usePricingSettings } from "@/lib/pricing-settings";
+import { CalendarInput } from "@/components/calendar-input";
+import { useCalendar } from "@/lib/calendar-settings";
+import { tehranToday, validIso } from "@/lib/calendar";
 import { faDate, faNumber } from "@/lib/fa";
 
 type OrderLine = {
@@ -112,6 +115,9 @@ function errText(error: unknown): string {
 }
 
 export function OrdersPage(): React.JSX.Element {
+  const { calendar, ready: calendarReady } = useCalendar();
+  const [fromInvalid, setFromInvalid] = React.useState(false);
+  const [toInvalid, setToInvalid] = React.useState(false);
   const pricingQuery = usePricingSettings();
   const queryClient = useQueryClient();
   const [page, setPage] = React.useState(0);
@@ -123,7 +129,7 @@ export function OrdersPage(): React.JSX.Element {
   const [period, setPeriod] = React.useState<"daily" | "weekly" | "monthly" | "annual">("monthly");
   const [message, setMessage] = React.useState<string | null>(null);
   const [form, setForm] = React.useState({
-    order_date: new Date().toISOString().slice(0, 10),
+    order_date: tehranToday(),
     customer_name: "",
     customer_phone: "",
     customer_address: "",
@@ -132,7 +138,10 @@ export function OrdersPage(): React.JSX.Element {
     items: [emptyLine()],
   });
 
+  const filtersReady =
+    calendarReady && !fromInvalid && !toInvalid && !(dateFrom && dateTo && dateFrom > dateTo);
   const ordersQuery = useQuery({
+    enabled: filtersReady,
     queryKey: ["orders", statusFilter, channelFilter, search, dateFrom, dateTo, page],
     queryFn: async () => {
       const res = await api.GET("/api/v1/orders", {
@@ -171,6 +180,8 @@ export function OrdersPage(): React.JSX.Element {
 
   const createOrder = useMutation({
     mutationFn: async () => {
+      if (!calendarReady || !validIso(form.order_date))
+        throw new Error("تاریخ معتبر و تنظیم تقویم باید دریافت شوند.");
       const res = await api.POST("/api/v1/orders", {
         body: {
           order_date: form.order_date,
@@ -346,30 +357,35 @@ export function OrdersPage(): React.JSX.Element {
                 </select>
               </div>
               <div className="w-36">
-                <Label className="text-xs">از تاریخ</Label>
-                <Input
-                  data-testid="orders-from"
+                <CalendarInput
+                  id="orders-from"
+                  label="از تاریخ"
                   value={dateFrom}
-                  onChange={(e) => {
-                    setDateFrom(e.target.value);
+                  onInvalidChange={setFromInvalid}
+                  onChange={(iso) => {
+                    setDateFrom(iso);
                     setPage(0);
                   }}
-                  placeholder="2026-01-01"
                 />
               </div>
               <div className="w-36">
-                <Label className="text-xs">تا تاریخ</Label>
-                <Input
-                  data-testid="orders-to"
+                <CalendarInput
+                  id="orders-to"
+                  label="تا تاریخ"
                   value={dateTo}
-                  onChange={(e) => {
-                    setDateTo(e.target.value);
+                  onInvalidChange={setToInvalid}
+                  onChange={(iso) => {
+                    setDateTo(iso);
                     setPage(0);
                   }}
-                  placeholder="2026-12-31"
                 />
               </div>
             </div>
+            {dateFrom && dateTo && dateFrom > dateTo && (
+              <p role="alert" className="text-destructive">
+                ابتدای بازه نباید پس از انتهای آن باشد.
+              </p>
+            )}
 
             <QueryNotice query={ordersQuery} />
             <div className="overflow-x-auto">
@@ -387,14 +403,14 @@ export function OrdersPage(): React.JSX.Element {
                   </tr>
                 </thead>
                 <tbody>
-                  {(ordersQuery.isSuccess
+                  {(filtersReady && ordersQuery.isSuccess
                     ? ordersQuery.data.slice(0, OPERATION_PAGE_SIZE)
                     : []
                   ).map((order) => (
                     <tr key={order.id} className="border-b" data-testid={`order-${order.id}`}>
                       <td className="num py-2">{faNumber(String(order.order_number))}</td>
                       <td className="py-2">
-                        {faDate(order.order_date)}
+                        {faDate(order.order_date, calendar)}
                         <div className="text-xs text-muted-foreground">
                           {order.channel === "marketplace" ? "بازارگاه" : "مستقیم"}
                         </div>
@@ -453,7 +469,7 @@ export function OrdersPage(): React.JSX.Element {
                       </td>
                     </tr>
                   ))}
-                  {ordersQuery.isSuccess && ordersQuery.data.length === 0 && (
+                  {filtersReady && ordersQuery.isSuccess && ordersQuery.data.length === 0 && (
                     <tr>
                       <td colSpan={8} className="py-6 text-center text-muted-foreground">
                         سفارشی یافت نشد.
@@ -465,7 +481,11 @@ export function OrdersPage(): React.JSX.Element {
             </div>
             <OperationPagination
               page={page}
-              next={ordersQuery.isSuccess && ordersQuery.data.length > OPERATION_PAGE_SIZE}
+              next={
+                filtersReady &&
+                ordersQuery.isSuccess &&
+                ordersQuery.data.length > OPERATION_PAGE_SIZE
+              }
               busy={ordersQuery.isFetching}
               onChange={setPage}
             />
@@ -479,14 +499,13 @@ export function OrdersPage(): React.JSX.Element {
           <CardContent className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <Label className="text-xs">تاریخ (میلادی ISO)</Label>
-                <Input
-                  className="num"
-                  data-testid="order-date"
+                <CalendarInput
+                  id="order-date"
+                  label="تاریخ سفارش"
+                  required
                   value={form.order_date}
-                  onChange={(e) => setForm((f) => ({ ...f, order_date: e.target.value }))}
+                  onChange={(iso) => setForm((f) => ({ ...f, order_date: iso }))}
                 />
-                <p className="num pt-1 text-xs text-muted-foreground">{faDate(form.order_date)}</p>
               </div>
               <div>
                 <Label className="text-xs">کانال فروش</Label>
@@ -616,7 +635,12 @@ export function OrdersPage(): React.JSX.Element {
             <Button
               className="w-full"
               data-testid="order-submit"
-              disabled={createOrder.isPending || !form.customer_name.trim()}
+              disabled={
+                createOrder.isPending ||
+                !form.customer_name.trim() ||
+                !calendarReady ||
+                !validIso(form.order_date)
+              }
               onClick={() => createOrder.mutate()}
             >
               ثبت سفارش

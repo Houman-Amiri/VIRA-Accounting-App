@@ -3,6 +3,7 @@
  * (zero-balance Σdebit=Σcredit, ≥2 splits) so the form never submits an
  * unbalanced entry. All amounts are decimal.js; the form keeps raw strings.
  */
+import { validIso } from "./calendar";
 import { z } from "zod";
 import i18n from "@/lib/i18n";
 import { Decimal, toDecimal } from "./money";
@@ -19,7 +20,7 @@ export type SplitForm = z.infer<typeof splitSchema>;
 
 export const journalEntrySchema = z
   .object({
-    date: z.string().min(1, i18n.t("validation:dateRequired")),
+    date: z.string().refine(validIso, "تاریخ معتبر را وارد کنید."),
     description: z.string().min(1, i18n.t("validation:descriptionRequired")),
     reference: z.string().optional().default(""),
     currency_code: z.string().default("IRR"),

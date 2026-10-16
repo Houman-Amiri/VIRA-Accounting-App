@@ -1,3 +1,4 @@
+import { auditCalendar } from "./calendar-audit";
 /**
  * E2E smoke — login, Persian RTL shell, command palette, journal form balance rules.
  * The e2e job seeds an owner user (VIRA_ADMIN_PASSWORD) before Playwright runs.
@@ -57,23 +58,28 @@ test("command palette opens with Ctrl+K and navigates", async ({ page }) => {
   await expect(page).toHaveURL(/\/journal\/new/);
 });
 
-test("journal form enforces zero-balance before submit", async ({ page }) => {
-  test.setTimeout(120_000);
-  await login(page);
-  await page.goto("/journal/new");
-  await page.getByTestId("entry-description").fill("سند آزمایشی");
-  // pick real accounts (seeded chart) — the balance rule runs only when the
-  // per-split schema (account required) passes
-  await page.getByTestId("split-account-0").selectOption({ index: 1 });
-  await page.getByTestId("split-account-1").selectOption({ index: 2 });
-  await page.getByTestId("split-debit-0").fill("100");
-  await page.getByTestId("split-credit-1").fill("75");
-  await expect(page.getByTestId("balance-error")).toBeVisible();
-  await expect(page.getByTestId("submit-entry")).toBeDisabled();
-  await page.getByTestId("auto-balance").click();
-  await expect(page.getByTestId("balanced-badge")).toBeVisible();
-  await expect(page.getByTestId("submit-entry")).toBeEnabled();
-  await auditOperations(page);
+test.describe("calendar in a non-Tehran browser", () => {
+  test.use({ timezoneId: "America/Los_Angeles" });
+  test("journal form enforces zero-balance before submit", async ({ page }) => {
+    test.setTimeout(120_000);
+    await login(page);
+    await page.clock.setFixedTime(new Date("2026-10-16T21:00:00Z"));
+    await page.goto("/journal/new");
+    await page.getByTestId("entry-description").fill("سند آزمایشی");
+    // pick real accounts (seeded chart) — the balance rule runs only when the
+    // per-split schema (account required) passes
+    await page.getByTestId("split-account-0").selectOption({ label: "1010 — صندوق" });
+    await page.getByTestId("split-account-1").selectOption({ label: "1020 — بانک" });
+    await page.getByTestId("split-debit-0").fill("100");
+    await page.getByTestId("split-credit-1").fill("75");
+    await expect(page.getByTestId("balance-error")).toBeVisible();
+    await expect(page.getByTestId("submit-entry")).toBeDisabled();
+    await page.getByTestId("auto-balance").click();
+    await expect(page.getByTestId("balanced-badge")).toBeVisible();
+    await expect(page.getByTestId("submit-entry")).toBeEnabled();
+    await auditCalendar(page);
+    await auditOperations(page);
+  });
 });
 
 test("pricing reproduces the original Excel cells for single and multiple quantities", async ({

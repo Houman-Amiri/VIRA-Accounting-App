@@ -143,7 +143,7 @@ export async function auditMenuThemes(page: Page): Promise<void> {
         ["/production", 6],
         ["/warehouse", 5],
         ["/bank-import", 5],
-        ["/settings", 0],
+        ["/settings", 1],
       ] as const) {
         await page.goto(path);
         if (path === "/warehouse") {

@@ -3,7 +3,7 @@
  * currency labels. Internal values stay machine-readable; Persian
  * formatting is applied ONLY at the presentation layer.
  */
-import { format as jalaliFormat } from "date-fns-jalali";
+import { civilDate, isoToInput, tehranParts, tehranToday, type Calendar } from "./calendar";
 
 const FA_DIGITS = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
 
@@ -20,26 +20,24 @@ export function faNumber(value: string | number): string {
   return faDigits(out);
 }
 
-/** Format an ISO date (YYYY-MM-DD or timestamp) as a Jalali date string. */
-export function faDate(iso: string | Date): string {
-  const date = typeof iso === "string" ? new Date(iso) : iso;
-  if (Number.isNaN(date.getTime())) return "—";
-  return faDigits(jalaliFormat(date, "yyyy/MM/dd"));
+/** Date-only stays the same civil day; timestamps are projected to Tehran. */
+export function faDate(value: string | Date, calendar: Calendar = "jalali"): string {
+  const civil = civilDate(value);
+  return civil ? faDigits(isoToInput(civil, calendar) || "—") : "—";
 }
-
-/** Jalali date + time (Persian). */
-export function faDateTime(iso: string | Date): string {
-  const date = typeof iso === "string" ? new Date(iso) : iso;
-  if (Number.isNaN(date.getTime())) return "—";
-  return `${faDigits(jalaliFormat(date, "yyyy/MM/dd"))} — ${faDigits(jalaliFormat(date, "HH:mm"))}`;
+export function faDateTime(value: string | Date, calendar: Calendar = "jalali"): string {
+  const civil = civilDate(value);
+  if (!civil) return "—";
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value))
+    return faDate(value, calendar);
+  const instant = typeof value === "string" ? new Date(value) : value;
+  const p = tehranParts(instant);
+  return `${faDate(civil, calendar)} — ${faDigits(`${p.hour}:${p.minute}`)}`;
 }
-
-/** Today's Jalali date (for defaults). */
-export function faToday(): string {
-  return faDigits(jalaliFormat(new Date(), "yyyy/MM/dd"));
+export function faToday(calendar: Calendar = "jalali"): string {
+  return faDate(tehranToday(), calendar);
 }
-
-/** Current Jalali year, e.g. ۱۴۰۴ (for fiscal labels). */
+/** Fiscal labels stay Jalali independently of display preference. */
 export function faJalaliYear(date: Date = new Date()): string {
-  return faDigits(jalaliFormat(date, "yyyy"));
+  return faDate(date).slice(0, 4);
 }
