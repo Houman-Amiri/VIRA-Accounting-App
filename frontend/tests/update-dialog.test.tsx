@@ -134,11 +134,11 @@ describe("UpdateDialog — mandated copy (§4)", () => {
     expect(screen.getByTestId("update-log-path").textContent).toContain("update.log");
   });
 
-  it("restart-to-finish step appears after apply completes", () => {
+  it("verified apply offers loading the new UI without a second backend restart", () => {
     state.statusData = { ...state.statusData, state: "committed" };
     render(wrap(<UpdateDialog check={CHECK as never} open onClose={() => {}} />));
     expect(screen.getByTestId("update-restart").textContent).toContain(
-      "برای تکمیل به‌روزرسانی، برنامه را دوباره راه‌اندازی کنید.",
+      "نصب و سلامت برنامه تأیید شد. برای نمایش نسخهٔ تازه، رابط کاربری را دوباره بارگذاری کنید.",
     );
     state.statusData = { ...state.statusData, state: "idle" }; // reset
   });

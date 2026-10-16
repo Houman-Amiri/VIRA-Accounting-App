@@ -40,7 +40,8 @@ const { chromium, expect } = require("../frontend/node_modules/@playwright/test"
     }).toPass({ timeout: 90000, intervals: [500, 1000] });
     const intact = await page.request.get(process.env.VIRA_NATIVE_FEED + "/verify-data");
     expect(intact.status(), await intact.text()).toBe(200);
-    await page.reload();
+    if (process.env.VIRA_NATIVE_EXPECTED === "committed") await page.getByTestId("update-finish").click();
+    else { await expect(page.getByTestId("update-failed")).toBeVisible(); await page.reload(); }
     await page.getByTestId("sudo-password").fill(process.env.VIRA_NATIVE_PASSWORD);
     await page.getByTestId("sudo-confirm").click();
     await expect(page.getByTestId("system-last-update")).toBeVisible();

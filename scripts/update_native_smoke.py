@@ -42,6 +42,88 @@ def sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def seed_business() -> None:
+    """Dedicated disposable fixture with a posted ledger and a completed order."""
+    if os.environ.get("VIRA_E2E_DISPOSABLE_DATABASE") != "1":
+        raise RuntimeError("refusing to seed without disposable database acknowledgement")
+    from app.config import load_settings
+    from app.db import Database
+    from app.schemas.ledger import AccountCreate, JournalEntryCreate, SplitCreate
+    from app.schemas.operations import (
+        InventoryItemCreate,
+        OrderCreate,
+        OrderItemIn,
+        ProductionJobCreate,
+    )
+    from app.services.ledger import LedgerService
+    from app.services.operations import OperationsService
+
+    database = Database(load_settings())
+    try:
+        with database.session() as session:
+            ledger = LedgerService(session)
+            cash = ledger.create_account(
+                AccountCreate(code="990101", name="native cash", account_type="ASSET")
+            )
+            equity = ledger.create_account(
+                AccountCreate(code="990301", name="native capital", account_type="EQUITY")
+            )
+            entry = ledger.create_draft(
+                JournalEntryCreate(
+                    transaction_date="2026-10-16",
+                    description="native posted exact amount",
+                    splits=[
+                        SplitCreate(account_id=cash.id, debit="123456789.1234"),
+                        SplitCreate(account_id=equity.id, credit="123456789.1234"),
+                    ],
+                )
+            )
+            ledger.post(entry.id)
+            ops = OperationsService(session)
+            filament = ops.create_item(
+                InventoryItemCreate(
+                    name="native filament",
+                    kind="FILAMENT",
+                    unit="G",
+                    quantity="1000",
+                    unit_price="100",
+                )
+            )
+            product = ops.create_item(
+                InventoryItemCreate(name="native model", kind="PRODUCT", unit="PCS")
+            )
+            order = ops.create_order(
+                OrderCreate(
+                    order_date="2026-10-16",
+                    customer_name="native customer",
+                    items=[
+                        OrderItemIn(
+                            product_name="native model",
+                            quantity="2",
+                            unit_price="123.4567",
+                            unit_cost="23.4567",
+                        )
+                    ],
+                )
+            )
+            job = ops.create_job(
+                ProductionJobCreate(
+                    product_name="native model",
+                    quantity="2",
+                    filament_grams="12.5",
+                    filament_item_id=filament.id,
+                    product_item_id=product.id,
+                    order_id=order.id,
+                    order_item_id=order.items[0].id,
+                    unit_price="123.4567",
+                    unit_cost="23.4567",
+                )
+            )
+            ops.finish_job(job.id)
+    finally:
+        database.dispose()
+
+
 def scenario(root: Path, rollback: bool) -> None:
     install, target, data = root / "install with spaces", root / "target", root / "user-data"
     install.mkdir(parents=True)
@@ -126,6 +208,12 @@ uvicorn.run("app.main:app", host="127.0.0.1", port=int(os.environ["VIRA_PORT"]))
     password = secrets.token_urlsafe(24)
     run(sys.executable, str(ROOT / "scripts/migrate_vira.py"), "--database", str(database), env=env)
     run(sys.executable, "-m", "app.seed", env={**env, "VIRA_ADMIN_PASSWORD": password})
+    run(
+        sys.executable,
+        "-c",
+        "from scripts.update_native_smoke import seed_business; seed_business()",
+        env={**env, "VIRA_E2E_DISPOSABLE_DATABASE": "1"},
+    )
     with sqlite3.connect(database) as db:
         db.execute("CREATE TABLE phase8_sentinel(value TEXT NOT NULL)")
         db.execute("INSERT INTO phase8_sentinel VALUES ('exact business data 123.4567')")
@@ -188,6 +276,24 @@ uvicorn.run("app.main:app", host="127.0.0.1", port=int(os.environ["VIRA_PORT"]))
                         assert (
                             db.execute("SELECT value FROM phase8_sentinel").fetchone()[0]
                             == "exact business data 123.4567"
+                        )
+                        assert (
+                            db.execute(
+                                "SELECT count(*) FROM journal_entries WHERE status='POSTED'"
+                            ).fetchone()[0]
+                            == 1
+                        )
+                        assert (
+                            db.execute(
+                                "SELECT count(*) FROM production_jobs WHERE status='DONE'"
+                            ).fetchone()[0]
+                            == 1
+                        )
+                        assert (
+                            db.execute(
+                                "SELECT count(*) FROM orders WHERE status='READY'"
+                            ).fetchone()[0]
+                            == 1
                         )
                         db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
                     assert checkpoint_hash is not None and sha(database) == checkpoint_hash, (

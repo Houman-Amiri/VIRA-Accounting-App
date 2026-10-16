@@ -178,8 +178,8 @@ export function UpdateDialog({
             <p className="text-sm" data-testid="update-restart">
               {t("update.restart")}
             </p>
-            <Button onClick={onClose} data-testid="update-finish">
-              {t("actions.close")}
+            <Button onClick={() => window.location.reload()} data-testid="update-finish">
+              {t("update.loadUI")}
             </Button>
           </div>
         )}

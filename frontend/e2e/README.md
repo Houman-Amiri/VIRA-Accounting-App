@@ -46,3 +46,16 @@ verify exact consumption/receipts and per-line readiness, reject duplicate
 completion, then request the actual proforma link. The PDF signature is checked
 when a native renderer is present; otherwise the printable HTML's customer and
 exact total are checked. HTML fallback is not claimed as a native PDF proof.
+
+Phase 8 adds a **separate Windows-only CI step**, not a replacement for the five
+SPA smoke journeys: `uv run python scripts/update_native_smoke.py`. It refuses
+to run outside an isolated Windows GitHub Actions runner. The harness uses the
+current backend/SPA in a temporary install path with spaces, a private 99.0.x
+HTTP feed, a real source PowerShell helper and a real browser. It verifies
+consent/decline, zero full-installer requests, success/restart and an actual
+post-apply readiness failure followed by rollback. A posted ledger, completed
+order/production, stock movements and a receipt are retained, with full SQLite
+and receipt SHA-256 checks. No user database or public release is updated.
+The private current-code fixture is **not** a historical 1.0.6-client proof.
+Compiled helper/public delta compatibility belongs to the release dry-run;
+installed-user acceptance remains separate from both CI fixtures.
