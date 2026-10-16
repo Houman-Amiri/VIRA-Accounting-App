@@ -74,12 +74,21 @@ jobs:
       - name: Compile vira-updater.exe (Phase 8 §6)
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path dist-release/app | Out-Null
-          Install-Module ps2exe -Force -Scope CurrentUser
-          Import-Module ps2exe
-          Invoke-ps2exe -inputFile scripts/vira_updater.ps1 -outputFile dist-release/app/vira-updater.exe -noConsole:$false
-          if (-not (Test-Path dist-release/app/vira-updater.exe)) { throw "ps2exe did not produce vira-updater.exe" }
-          Copy-Item dist-release/app/vira-updater.exe dist-release/vira-updater.exe
+          $out = ""
+          try {
+            New-Item -ItemType Directory -Force -Path dist-release/app | Out-Null
+            Install-Module ps2exe -Force -Scope CurrentUser -ErrorAction Stop
+            Import-Module ps2exe -ErrorAction Stop
+            $out = (Invoke-ps2exe -inputFile scripts/vira_updater.ps1 -outputFile dist-release/app/vira-updater.exe -noConsole:$false *>&1 | Out-String)
+            Write-Host $out
+            if (-not (Test-Path dist-release/app/vira-updater.exe)) { throw "ps2exe did not produce vira-updater.exe" }
+            Copy-Item dist-release/app/vira-updater.exe dist-release/vira-updater.exe
+          } catch {
+            $out += "`n" + ($_ | Out-String)
+            $tail = $out.Substring([Math]::Max(0, $out.Length - 3000))
+            Write-Host ("::error title=compiled updater::" + $tail.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A'))
+            throw
+          }
 
       - name: Package source/build artifacts + latest.json + SHA256SUMS + Persian notes
         shell: pwsh

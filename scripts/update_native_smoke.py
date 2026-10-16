@@ -516,6 +516,12 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
             server.terminate()  # our initial cmd can remain at its old :fail pause
         server.wait(timeout=20)
         if published:
+            # The production cmd's :fail pause can outlive its stopped Python.
+            # Only helper-started launchers containing THIS unique install path.
+            command = f"$ErrorActionPreference='Stop'; Get-CimInstance Win32_Process -Filter \"Name='cmd.exe'\" | Where-Object {{ $_.CommandLine -and $_.CommandLine.IndexOf('{install}', [StringComparison]::OrdinalIgnoreCase) -ge 0 }} | ForEach-Object {{ $p = Get-Process -Id $_.ProcessId -ErrorAction SilentlyContinue; if ($p -and -not $p.HasExited) {{ $null = $p.Handle; Stop-Process -InputObject $p -Force -ErrorAction SilentlyContinue; if (-not $p.WaitForExit(10000)) {{ throw 'fixture launcher still alive' }} }} }}; exit 0"
+            subprocess.run(
+                ["powershell.exe", "-NoProfile", "-Command", command], check=True, timeout=30
+            )
             # The genuine launcher opens the default Edge, separately from our
             # Playwright browser. Close ONLY new fixture-era Edge processes so
             # they cannot retain this disposable LOCALAPPDATA after teardown.
