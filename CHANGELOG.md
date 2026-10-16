@@ -21,6 +21,11 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
   and B35/E35 in red, with readable light/dark backgrounds. Workbook formulas,
   displayed amounts and the derived batch-price row are unchanged.
 
+### Fixed
+- Release smoke checks the exact SHA-256 of installed JavaScript against the
+  built payload, not a DOM test id composed only at runtime. Browser tests
+  continue to check the rendered pricing row ids and highlight colors.
+
 ## [1.0.8] — 2026-10-16
 
 ### Fixed

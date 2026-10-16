@@ -278,14 +278,23 @@ try {
     if ($cacheControl -notmatch "no-store") { throw "the SPA shell was served without Cache-Control: no-store (stale-UI risk)" }
     $assetName = [regex]::Match($spa.Content, 'src="/assets/([^"]+\.js)"').Groups[1].Value
     if (-not $assetName) { throw "the served shell references no hashed asset bundle" }
-    $asset = Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:8787/assets/$assetName" -TimeoutSec 10
-    # v1.0.7: prove the installed bundle also carries the literal-XLSX pricing correction.
-    foreach ($marker in @("chart-stock", "job-submit", "order-submit", "movement-submit", "dashboard-alerts", "pricing-constants", "row-unitFinalPrice")) {
-        if ($asset.Content -notmatch $marker) { throw "the served bundle lacks the new UI marker '$marker' — the installed SPA is not the one that was built" }
+    $servedAsset = Join-Path $tmp "served-main.js"
+    Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:8787/assets/$assetName" -OutFile $servedAsset -TimeoutSec 10
+    $builtAsset = Join-Path (Split-Path $payloadIndex) "assets\$assetName"
+    if (-not (Test-Path $builtAsset)) { throw "served asset is absent from the release payload: $assetName" }
+    if ((Get-FileHash -Algorithm SHA256 $servedAsset).Hash -ne (Get-FileHash -Algorithm SHA256 $builtAsset).Hash) {
+        throw "STALE UI: served JavaScript bytes differ from the built release payload"
+    }
+    $assetContent = Get-Content -LiteralPath $servedAsset -Raw -Encoding utf8
+    # Row test ids are composed at runtime (`row-${row.key}`), so the full DOM
+    # id is not a literal in the compiled JS. Browser e2e verifies rendered ids
+    # and colors; here verify stable keys AND exact served/payload SHA-256.
+    foreach ($marker in @("chart-stock", "job-submit", "order-submit", "movement-submit", "dashboard-alerts", "pricing-constants", "unitFinalPrice")) {
+        if ($assetContent -notmatch $marker) { throw "the served bundle lacks the new UI marker '$marker' — the installed SPA is not the one that was built" }
     }
     $warehouse = Invoke-WebRequest -UseBasicParsing -SkipHttpErrorCheck "http://127.0.0.1:8787/api/v1/warehouse/items" -TimeoutSec 10
     if ([int]$warehouse.StatusCode -eq 404) { throw "the operations API (/api/v1/warehouse/items) is missing from the installed backend" }
-    Write-Output "[smoke] content proof: build $servedId served, new-UI markers present, operations API reachable"
+    Write-Output "[smoke] content proof: build $servedId served, JavaScript SHA-256 matches payload, new-UI markers present, operations API reachable"
     Write-Output "[smoke] launch ok — healthy, SPA served, first-run credentials written"
 } finally {
     Get-Process -Name python -ErrorAction SilentlyContinue |
