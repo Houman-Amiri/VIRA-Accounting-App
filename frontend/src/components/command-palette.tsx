@@ -26,6 +26,11 @@ import {
   Wallet,
 } from "lucide-react";
 
+// Group headings are muted; interactive labels must not inherit that color,
+// especially over the selected background. cmdk supplies the ARIA states.
+const COMMAND_ITEM_CLASS =
+  "flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-sm text-card-foreground aria-selected:bg-accent aria-selected:text-accent-foreground aria-disabled:cursor-not-allowed aria-disabled:text-muted-foreground";
+
 interface CommandItem {
   id: string;
   label: string;
@@ -133,7 +138,10 @@ export function CommandPalette(): React.JSX.Element {
     { enableOnFormTags: true },
   );
 
-  useHotkeys("esc", () => setCommandPaletteOpen(false), { enabled: commandPaletteOpen });
+  useHotkeys("esc", () => setCommandPaletteOpen(false), {
+    enabled: commandPaletteOpen,
+    enableOnFormTags: true,
+  });
 
   // Phase 7 §1 — unified search (debounced by react-query).
   const trimmed = query.trim();
@@ -187,7 +195,7 @@ export function CommandPalette(): React.JSX.Element {
             value={query}
             onValueChange={setQuery}
             placeholder="جستجوی دستورات و اسناد… (Ctrl+K)"
-            className="w-full border-b bg-transparent px-4 py-3 text-sm outline-none placeholder:text-muted-foreground"
+            className="w-full border-b bg-transparent px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
           />
           <Command.List className="max-h-80 overflow-y-auto p-2">
             <Command.Empty className="p-6 text-center text-sm text-muted-foreground">
@@ -201,7 +209,7 @@ export function CommandPalette(): React.JSX.Element {
                     key={`${hit.entity}:${hit.ref_id}`}
                     value={`${hit.entity}:${hit.ref_id}`}
                     onSelect={() => hitAction(hit)}
-                    className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-sm aria-selected:bg-accent"
+                    className={COMMAND_ITEM_CLASS}
                     data-testid="palette-search-hit"
                   >
                     <span className="text-muted-foreground">
@@ -225,7 +233,7 @@ export function CommandPalette(): React.JSX.Element {
                     item.action();
                     setCommandPaletteOpen(false);
                   }}
-                  className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-sm aria-selected:bg-accent"
+                  className={COMMAND_ITEM_CLASS}
                 >
                   <span className="text-muted-foreground">{item.icon}</span>
                   {item.label}

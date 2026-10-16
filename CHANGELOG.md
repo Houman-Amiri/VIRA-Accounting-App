@@ -7,6 +7,16 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Fixed
+- Repair phase 5: explicitly theme selected/disabled native options, disabled
+  groups and keyboard focus; respect OS forced-colors. Palette items no longer
+  inherit muted group-heading text, and Escape works while its input is focused.
+- Keep the selected light/dark theme across reloads with a validated local
+  preference; blocked/full storage does not prevent in-session theme changes.
+  Browser tests audit 24 real native controls per theme plus palette navigation,
+  live search, disabled-state fixtures and high contrast. No pricing/date/catalog
+  changes, migrations or new public release in this phase.
+
 ### Planned (not implemented)
 - Repair subphase 4-B: remove visible pricing cell references; add persistent
   Jalali/Gregorian calendar selection with Tehran-based today and actual calendar

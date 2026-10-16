@@ -71,6 +71,49 @@
     background-color: hsl(var(--card));
     color: hsl(var(--card-foreground));
   }
+  select option:checked {
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+  }
+  select:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  select:disabled {
+    background-color: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+    cursor: not-allowed;
+    opacity: 1;
+  }
+  select option:disabled,
+  select optgroup:disabled,
+  select optgroup:disabled option {
+    background-color: hsl(var(--card));
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Keep OS high-contrast colors authoritative, including selected/disabled
+     options. Never force our light/dark palette over accessibility settings. */
+  @media (forced-colors: active) {
+    select,
+    select option,
+    select optgroup {
+      forced-color-adjust: auto;
+    }
+    select option:checked {
+      background-color: Highlight;
+      color: HighlightText;
+    }
+    select:disabled,
+    select option:disabled,
+    select optgroup:disabled,
+    select optgroup:disabled option {
+      color: GrayText;
+    }
+    select:focus-visible {
+      outline-color: Highlight;
+    }
+  }
 
   /* Financial figures: tabular monospace digits, isolated LTR inside RTL text */
   .num {
