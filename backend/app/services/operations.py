@@ -138,7 +138,7 @@ class OperationsService:
         search: str | None = None,
         low_only: bool = False,
         active_only: bool = True,
-        limit: int = 500,
+        limit: int | None = 500,
     ) -> list[InventoryItem]:
         stmt = select(InventoryItem).options(selectinload(InventoryItem.supplier))
         if active_only:
@@ -274,7 +274,7 @@ class OperationsService:
         return list(self.session.scalars(stmt))
 
     def inventory_summary(self) -> dict[str, Any]:
-        items = self.list_items()
+        items = self.list_items(limit=None)
         total_value = sum((Decimal(i.quantity) * Decimal(i.unit_price) for i in items), Decimal(0))
         return {
             "filament_count": sum(1 for i in items if i.kind == "FILAMENT"),

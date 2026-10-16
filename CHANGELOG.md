@@ -19,7 +19,8 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
   not inventory/receivables; operational money is already Toman and not divided.
 - Add read-only, role-protected order counts independent of the recent page;
   remove the hidden 10,000-record sales/production-summary cap and prioritize
-  active production jobs in the sample. Charts follow container size and theme.
+  active production jobs in the sample. Inventory totals include all active items,
+  not just the first 500. Charts follow container size and theme.
   No new migration, stored-price rewrite, version/tag or public release.
   See `docs/reports/phase6-dashboard-fa.md`; phase 4-B remains queued.
 - Repair phase 5: explicitly theme selected/disabled native options, disabled

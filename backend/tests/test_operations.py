@@ -423,3 +423,31 @@ async def test_dashboard_production_counts_and_active_sample_are_not_truncated(
     assert Decimal(summary["filament_grams_planned"]) == Decimal("50.5")
     assert len(summary["jobs"]) == 200
     assert [j["status"] for j in summary["jobs"][:2]] == ["PLANNED", "IN_PROGRESS"]
+
+
+async def test_dashboard_inventory_value_includes_items_beyond_recent_page(client, session) -> None:
+    from sqlalchemy import insert
+
+    from app.models import InventoryItem
+
+    session.execute(insert(InventoryItem), [dict(
+        id=f"dashboard-stock-{i}", name=f"fixture-{i:04d}",
+        kind="FILAMENT" if i != 500 else "PRODUCT", unit="G" if i != 500 else "PCS",
+        quantity=Decimal("1") if i != 500 else Decimal("3"),
+        unit_price=Decimal("0.0001") if i != 500 else Decimal("123.4567"),
+        min_quantity=Decimal("0") if i != 500 else Decimal("4"),
+        is_active=1 if i < 501 else 0,
+        created_at="2026-10-16", updated_at="2026-10-16",
+    ) for i in range(502)])
+    session.commit()
+    page = await client.get("/api/v1/warehouse/items")
+    assert page.status_code == 200
+    assert len(page.json()) == 500
+    response = await client.get("/api/v1/warehouse/summary")
+    assert response.status_code == 200
+    summary = response.json()
+    assert summary["filament_count"] == 500
+    assert summary["product_count"] == 1
+    assert summary["low_stock_count"] == 1
+    assert len(summary["items"]) == 501
+    assert Decimal(summary["total_value"]) == Decimal("370.4201")
