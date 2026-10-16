@@ -291,8 +291,7 @@ jobs:
           $out = (uv run python scripts/update_native_smoke.py 2>&1 | Out-String)
           Write-Host $out
           if ($LASTEXITCODE -ne 0) {
-            ($out -split "`n") | Select-Object -Last 40 | ForEach-Object {
-              if ($_.Trim()) { Write-Host "::error title=native in-app update::$(($_ -replace '%','%25') -replace "`r",'')" }
-            }
+            $tail = $out.Substring([Math]::Max(0, $out.Length - 6500))
+            Write-Host "::error title=native in-app update::$((($tail -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A')"
             throw "native in-app delta journey failed"
           }

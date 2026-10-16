@@ -81,7 +81,12 @@ function Safe-Target([string]$Relative) {
 
 function Stop-App {
     if ($script:launcherPid) {
+        # A failed new server may already have exited its cmd parent. Native
+        # stderr in Windows PowerShell must not abort rollback before restore.
+        $oldPreference = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
         & taskkill.exe /PID $script:launcherPid /T /F 2>&1 | Out-Null
+        $ErrorActionPreference = $oldPreference
         $script:launcherPid = 0
     }
     $prefix = $InstallDir.TrimEnd('\') + '\'
@@ -172,6 +177,8 @@ try {
             $script:saved[$relative] = Get-Sha256 $src
         } else { $script:added += $relative }
     }
+    @{ saved = $script:saved; added = $script:added; old_version = $oldStamp; new_version = $newStamp } |
+        ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $rollback "rollback-journal.json") -Encoding utf8
     $script:snapshotComplete = $true
     Write-Log "snapshot complete -> $rollback"
 
@@ -247,7 +254,7 @@ try {
     Write-Result "committed"
     Write-Log "COMMITTED — readiness, accounting invariants and build validated"
     # Only a proven healthy version permits removing this attempt's rollback.
-    Remove-Item -LiteralPath $rollback -Recurse -Force
+    Remove-Item -LiteralPath $rollback -Recurse -Force -ErrorAction SilentlyContinue
 }
 catch {
     $failure = $_.Exception.Message

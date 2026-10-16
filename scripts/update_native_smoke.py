@@ -257,6 +257,20 @@ uvicorn.run("app.main:app", host="127.0.0.1", port=int(os.environ["VIRA_PORT"]))
         result = json.loads((data / "updates/last-result.json").read_text(encoding="utf-8-sig"))
         assert result["state"] == ("rolled_back" if rollback else "committed")
         assert list((data / "backups").glob("pre-update-*.sqlite3")), "pre-update backup missing"
+    except Exception:
+        for diagnostic in root.rglob("update.log"):
+            print(
+                "HELPER DIAGNOSTIC:",
+                diagnostic.read_text(encoding="utf-8-sig", errors="replace")[-4500:],
+                flush=True,
+            )
+        for diagnostic in root.glob("*server.log"):
+            print(
+                "SERVER DIAGNOSTIC:",
+                diagnostic.read_text(encoding="utf-8", errors="replace")[-1500:],
+                flush=True,
+            )
+        raise
     finally:
         # Stop only this fixture's listener; never touch another VIRA installation.
         command = f"Get-NetTCPConnection -LocalPort {app_port} -State Listen -ErrorAction SilentlyContinue | ForEach-Object {{ Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }}"
