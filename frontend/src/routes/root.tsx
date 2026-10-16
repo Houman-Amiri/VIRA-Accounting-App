@@ -79,25 +79,23 @@ function RootComponent() {
               <Link
                 key={item.to}
                 to={item.to}
-                aria-label={t(item.labelKey)}
+                aria-label={`${t(item.labelKey)}${item.to === "/system" && updateAvailable ? `؛ ${t("update.startupBadge")}` : ""}`}
                 title={t(item.labelKey)}
                 activeOptions={{ exact: item.to === "/" }}
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                className="relative flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
                 activeProps={{ className: "bg-accent text-accent-foreground font-medium" }}
               >
                 <item.icon className="h-4 w-4" />
-                <span className="hidden flex-1 truncate sm:block">
-                  {t(item.labelKey)}
-                  {item.to === "/system" && updateAvailable && (
-                    <span
-                      className="ms-2 rounded-full bg-primary px-1.5 py-0.5 text-[10px] text-primary-foreground"
-                      data-testid="update-badge"
-                      title={t("update.startupBadge")}
-                    >
-                      !
-                    </span>
-                  )}
-                </span>
+                <span className="hidden flex-1 truncate sm:block">{t(item.labelKey)}</span>
+                {item.to === "/system" && updateAvailable && (
+                  <span
+                    className="absolute start-0 top-0 rounded-full bg-primary px-1.5 py-0.5 text-[10px] text-primary-foreground sm:static sm:ms-auto"
+                    data-testid="update-badge"
+                    title={t("update.startupBadge")}
+                  >
+                    !
+                  </span>
+                )}
               </Link>
             ))}
           </nav>

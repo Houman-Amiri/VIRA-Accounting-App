@@ -240,6 +240,13 @@ test("update dialog leaves idle/zero bytes and reaches the verified apply step",
   const sudo = page.locator("dialog:modal");
   await sudo.locator('input[type="password"]').fill(PASS);
   await sudo.locator('button[type="submit"]').click();
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect(page.getByTestId("update-badge")).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: /سیستم و عملیات.*به‌روزرسانی موجود است/ }),
+    ).toBeVisible();
+  }
   await page.getByTestId("system-check-updates").click();
   await page.getByTestId("update-accept").click();
   await expect(page.getByTestId("update-progress-text")).toContainText("10 B");
