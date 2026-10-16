@@ -7,6 +7,14 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Planned (not implemented)
+- Repair subphase 4-B: remove visible pricing cell references; add persistent
+  Jalali/Gregorian calendar selection with Tehran-based today and actual calendar
+  input in orders/journal entry; manage item types, units and suppliers in settings;
+  subtly tint the light theme. Scope and acceptance criteria live in
+  `docs/plans/pricing-dates-catalog-theme-follow-up-fa.md`. The newly requested
+  calendar switch supersedes the older Jalali-only restriction in both specs.
+
 ## [1.0.9] — 2026-10-16
 
 ### Changed

@@ -712,15 +712,15 @@ Implement the following enhancement modules on top of the Core Stack (FastAPI + 
 
 * **Persian Solar Hijri Fiscal Calendar (`date-fns-jalali`):**
 
-  * Use the Solar Hijri / Jalali calendar exclusively for all user-facing date operations. Implement date pickers, date-range filters, transaction forms, fiscal-period selectors, financial statements, dashboards, and accounting reports using the Persian calendar and Persian locale (`fa-IR`).
+  * Calendar policy revised by the user on 2026-10-16: use Solar Hijri / Jalali as the default calendar with Persian locale (`fa-IR`), and provide a persistent Settings → Date & calendar → Jalali / Gregorian selector. This replaces the earlier Jalali-only restriction; it does not introduce a language or numeral-system switch. Order and new-journal-entry forms must accept the selected calendar, with consistent related lists, date filters and shared formatters.
 
-  * Use `date-fns-jalali` for Jalali date handling and formatting in React. Do not expose Gregorian calendar selection or calendar-system switching in the user interface.
+  * Use `date-fns-jalali` for Jalali input/conversion/formatting in React. Derive today and display timestamp instants using the IANA zone `Asia/Tehran`, not the browser/server timezone or the UTC day from `toISOString().slice(0, 10)`. Switching calendars must preserve the actual selected day and existing records; test Tehran-midnight boundaries and Persian/Latin input digits.
 
-  * Store all database `transaction_date` values using a canonical, unambiguous date representation, preferably Gregorian ISO 8601 (`YYYY-MM-DD`) for date-only values or UTC timestamps for actual instants. Convert stored dates to Jalali dates for display and convert Jalali input back to the canonical storage format before persistence.
+  * Store all database `transaction_date` values using a canonical, unambiguous date representation: Gregorian ISO 8601 (`YYYY-MM-DD`) for date-only values, without converting their midnight through UTC, or UTC timestamps for actual instants. Convert at the input/display boundaries according to the selected calendar; do not rewrite historical dates or shift a date-only day because of timezone conversion.
 
-  * Use `jdatetime` and `Babel` where needed in FastAPI and `WeasyPrint` PDF generation to ensure consistent Jalali date formatting across the frontend, backend, printed documents, and exported financial statements.
+  * Use `jdatetime` and `Babel` where needed in FastAPI and `WeasyPrint` PDF generation to ensure consistent calendar-aware date formatting across the frontend, backend, printed documents, and exported financial statements (Jalali by default).
 
-  * Support Iranian fiscal years beginning on `1 Farvardin` and ensure accurate Jalali leap-year handling, date-range calculations, period comparisons, and year-end accounting operations.
+  * Support Iranian fiscal years beginning on `1 Farvardin` regardless of the display-calendar preference, and ensure accurate Jalali leap-year handling, date-range calculations, period comparisons, and year-end accounting operations.
 
 
 
@@ -823,3 +823,19 @@ Deliver V.I.R.A as a distributable Windows product: an **Inno Setup** installer 
 * **Frontend (Vitest/Playwright):** the «بررسی به‌روزرسانی» button and dialog copy (mocked GitHub API), progress UI, decline path, startup badge behavior, RTL/Persian rendering.
 * **Integration (Windows):** fresh install shows the "select where to install" step and honors the chosen directory; in-app delta update downloads only the delta; user data byte-identical after update; rollback restores the previous version; uninstall keeps data by default.
 * **Acceptance:** the full setup is downloadable from GitHub (Release asset + Actions artifact) with a visible "select where to install" step; every released version has a `vX.Y.Z` tag; in-app updates fetch from GitHub, announce with the required message, and **never re-download the whole setup when a delta exists**; zero data loss in every scenario.
+
+
+## User-requested next-update scope — repair subphase 4-B (2026-10-16)
+
+**Status: planned, not yet implemented or released.** The full scope, safe-deletion rules,
+timezone/date-only semantics and acceptance criteria are recorded in
+[`docs/plans/pricing-dates-catalog-theme-follow-up-fa.md`](docs/plans/pricing-dates-catalog-theme-follow-up-fa.md).
+
+1. Remove cell-reference columns/formula annotations from the pricing report; preserve formulas, numeric results and green/blue/red highlights.
+2. Apply the revised calendar policy above: default Jalali, persistent Gregorian/Jalali selection, real calendar input in orders and new accounting entries, and `Asia/Tehran` for today/timestamp presentation.
+3. Add item master-data settings for adding/removing types, units and suppliers, consumed by New item. Reuse the supplier registry. Preserve referenced options/history through deactivation, and implement dynamic types/units across schema, API and UI with explicit inventory/production compatibility and no implicit stock conversion.
+4. Slightly tint light-mode backgrounds cream or very pale green using shared tokens; preserve readable controls, accessible contrast, dark mode and pricing highlights.
+
+Do not treat this queue as completion of repair phase 4, commencement of phase 5,
+or approval for another release. Existing backup, immutable-tag, reviewed Persian notes,
+select-path fresh installer and delta-only routine-update requirements remain mandatory.
