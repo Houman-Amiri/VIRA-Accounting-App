@@ -2,8 +2,8 @@
  * ماشین‌حساب قیمت‌گذاری — صفحهٔ «قیمت گذاری».
  *
  * The table mirrors `قیمت نهایی.xlsx` row by row: the same labels, the same
- * order, and the same B/E columns (ساده / زنجیردار) — so every number can be
- * checked against the sheet cell printed next to it. All math in
+ * order and amounts (ساده / زنجیردار), without exposing worksheet addresses
+ * or formulas in the report. Internal references remain in the oracle. All math in
  * `@/lib/priceCalc` (decimal.js, sheet-exact).
  */
 import * as React from "react";
@@ -155,15 +155,24 @@ export function PriceCalcPage(): React.JSX.Element {
         </CardHeader>
         <CardContent>
           {plain && chain ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <div
+              className="overflow-x-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              role="region"
+              aria-label="جدول قیمت‌گذاری؛ قابل پیمایش افقی"
+              tabIndex={0}
+            >
+              <table className="w-full min-w-[28rem] text-sm" aria-label="گزارش قیمت‌گذاری">
                 <thead>
                   <tr className="border-b text-muted-foreground">
-                    <th className="py-2 text-start font-medium">ردیف</th>
-                    <th className="py-2 text-start font-medium">سلول ساده</th>
-                    <th className="py-2 text-start font-medium">ساده (تومان)</th>
-                    <th className="py-2 text-start font-medium">سلول زنجیردار</th>
-                    <th className="py-2 text-start font-medium">زنجیردار (تومان)</th>
+                    <th scope="col" className="py-2 text-start font-medium">
+                      شرح ردیف
+                    </th>
+                    <th scope="col" className="py-2 text-start font-medium">
+                      ساده (تومان)
+                    </th>
+                    <th scope="col" className="py-2 text-start font-medium">
+                      زنجیردار (تومان)
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -177,13 +186,11 @@ export function PriceCalcPage(): React.JSX.Element {
                       )}
                       data-testid={`row-${row.key}`}
                     >
-                      <td className="py-2">{row.label}</td>
-                      <td className="num py-2 text-xs text-muted-foreground">{row.cell}</td>
+                      <td className="py-2">
+                        {row.key === "batchFinalPrice" ? "قیمت نهایی کل" : row.label}
+                      </td>
                       <td className="py-2">
                         <Money value={plain[row.key].toFixed(4)} currency="TOMAN" hideCurrency />
-                      </td>
-                      <td className="num py-2 text-xs text-muted-foreground">
-                        {row.plainOnly ? "—" : (row.chainCell ?? row.cell)}
                       </td>
                       <td className="py-2">
                         {row.plainOnly ? (

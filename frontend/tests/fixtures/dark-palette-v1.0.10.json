@@ -1,0 +1,24 @@
+{
+  "source": "v1.0.10",
+  "tokens": {
+    "background": "224 71% 4%",
+    "foreground": "210 20% 98%",
+    "card": "224 47% 8%",
+    "card-foreground": "210 20% 98%",
+    "primary": "217 91% 60%",
+    "primary-foreground": "222 47% 11%",
+    "secondary": "222 47% 13%",
+    "secondary-foreground": "210 20% 98%",
+    "muted": "222 47% 13%",
+    "muted-foreground": "217 10% 65%",
+    "accent": "222 47% 17%",
+    "accent-foreground": "210 20% 98%",
+    "destructive": "0 72% 51%",
+    "destructive-foreground": "210 20% 98%",
+    "border": "222 47% 17%",
+    "input": "222 47% 17%",
+    "ring": "217 91% 60%",
+    "positive": "152 69% 45%",
+    "negative": "0 72% 60%"
+  }
+}

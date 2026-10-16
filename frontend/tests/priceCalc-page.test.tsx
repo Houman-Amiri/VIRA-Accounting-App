@@ -7,11 +7,17 @@ import { PriceCalcPage } from "@/routes/price-calc";
 afterEach(cleanup);
 
 describe("pricing page — literal Excel model", () => {
-  it("renders the actual cached B35/E35 with distinct cell addresses", () => {
+  it("renders the actual cached workbook amounts without cell addresses", () => {
     renderWithPricing(<PriceCalcPage />);
     const row = within(screen.getByTestId("row-unitFinalPrice"));
-    expect(row.getByText("B35")).toBeInTheDocument();
-    expect(row.getByText("E35")).toBeInTheDocument();
+    expect(screen.getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual([
+      "شرح ردیف",
+      "ساده (تومان)",
+      "زنجیردار (تومان)",
+    ]);
+    const table = screen.getByRole("table");
+    expect(table).not.toHaveTextContent(/(?:[BE]\d+|سلول|فرمول|×)/);
+    expect(table.querySelector("[title], [aria-description]")).toBeNull();
     expect(row.getByText("۲٬۷۶۰٬۷۴۸.۵")).toBeInTheDocument();
     expect(row.getByText("۲٬۷۸۰٬۷۴۸.۵")).toBeInTheDocument();
     expect(screen.queryByTestId("sheet-policy")).not.toBeInTheDocument();
@@ -19,15 +25,13 @@ describe("pricing page — literal Excel model", () => {
   });
 
   it.each([
-    ["productionTotal", "B25", "E25", "green"],
-    ["unitSalePrice", "B29", "E29", "blue"],
-    ["unitFinalPrice", "B35", "E35", "red"],
-  ])("highlights %s across both variants in %s/%s with %s", (key, plain, chain, color) => {
+    ["productionTotal", "green"],
+    ["unitSalePrice", "blue"],
+    ["unitFinalPrice", "red"],
+  ])("highlights the whole %s row in %s without helper columns", (key, color) => {
     renderWithPricing(<PriceCalcPage />);
     const row = screen.getByTestId(`row-${key}`);
-    expect(within(row).getByText(plain)).toBeInTheDocument();
-    expect(within(row).getByText(chain)).toBeInTheDocument();
-    expect(within(row).getAllByRole("cell")).toHaveLength(5);
+    expect(within(row).getAllByRole("cell")).toHaveLength(3);
     expect(row).toHaveClass(`bg-${color}-100`, `dark:bg-${color}-900/40`, "font-semibold");
     fireEvent.change(screen.getByTestId("input-qty"), { target: { value: "10" } });
     expect(row).toHaveClass(`bg-${color}-100`, `dark:bg-${color}-900/40`);
@@ -72,12 +76,14 @@ describe("pricing page — literal Excel model", () => {
     );
   });
 
-  it("does not invent E31 or E32 and does not render the moved constant editors", () => {
+  it("keeps shared commission, unavailable chain amount and moved constant editors", () => {
     renderWithPricing(<PriceCalcPage />);
     const commission = within(screen.getByTestId("row-unitCommission"));
-    expect(commission.getAllByText("B31")).toHaveLength(2);
+    const amounts = commission.getAllByRole("cell").slice(1);
+    expect(amounts[0].textContent).toBe(amounts[1].textContent);
+    expect(amounts[0].textContent).not.toBe("");
     const delivery = within(screen.getByTestId("row-saleWithDelivery"));
-    expect(delivery.getAllByText("—")).toHaveLength(2);
+    expect(delivery.getAllByText("—")).toHaveLength(1);
     for (const key of ["printerPowerKw", "commissionPercent", "nylonPerUnit"]) {
       expect(screen.queryByTestId(`const-${key}`)).not.toBeInTheDocument();
     }

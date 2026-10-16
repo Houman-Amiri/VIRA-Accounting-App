@@ -64,12 +64,12 @@ function RootComponent() {
   return (
     <SudoProvider>
       <div className="flex min-h-screen">
-        <aside className="flex w-56 shrink-0 flex-col gap-1 border-l bg-card/60 p-3">
-          <div className="mb-4 flex items-center gap-2 px-2">
+        <aside className="flex w-14 shrink-0 flex-col gap-1 border-l bg-card/60 p-1 sm:w-56 sm:p-3">
+          <div className="mb-4 flex items-center gap-2 sm:px-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
               و
             </div>
-            <div>
+            <div className="hidden sm:block">
               <div className="font-bold leading-tight">{t("app.title")}</div>
               <div className="text-[10px] text-muted-foreground">{t("app.subtitle")}</div>
             </div>
@@ -79,12 +79,14 @@ function RootComponent() {
               <Link
                 key={item.to}
                 to={item.to}
+                aria-label={t(item.labelKey)}
+                title={t(item.labelKey)}
                 activeOptions={{ exact: item.to === "/" }}
                 className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
                 activeProps={{ className: "bg-accent text-accent-foreground font-medium" }}
               >
                 <item.icon className="h-4 w-4" />
-                <span className="flex-1 truncate">
+                <span className="hidden flex-1 truncate sm:block">
                   {t(item.labelKey)}
                   {item.to === "/system" && updateAvailable && (
                     <span
@@ -103,17 +105,21 @@ function RootComponent() {
             <button
               type="button"
               onClick={() => setCommandPaletteOpen(true)}
+              aria-label={t("palette.open")}
+              title={t("palette.open")}
               className="flex items-center gap-2 rounded-md border px-3 py-2 text-xs text-muted-foreground hover:bg-accent"
             >
               <Command className="h-3.5 w-3.5" />
-              {t("palette.open")}
-              <kbd className="num ms-auto rounded bg-muted px-1.5 py-0.5 text-[10px]">
+              <span className="hidden sm:inline">{t("palette.open")}</span>
+              <kbd className="num ms-auto hidden sm:inline rounded bg-muted px-1.5 py-0.5 text-[10px]">
                 {t("palette.hint")}
               </kbd>
             </button>
             <button
               type="button"
               onClick={toggleTheme}
+              aria-label={t(theme === "light" ? "theme.dark" : "theme.light")}
+              title={t(theme === "light" ? "theme.dark" : "theme.light")}
               className="flex items-center gap-2 rounded-md px-3 py-2 text-xs text-muted-foreground hover:bg-accent"
             >
               {theme === "light" ? (
@@ -121,11 +127,13 @@ function RootComponent() {
               ) : (
                 <Sun className="h-3.5 w-3.5" />
               )}
-              {theme === "light" ? t("theme.dark") : t("theme.light")}
+              <span className="hidden sm:inline">
+                {theme === "light" ? t("theme.dark") : t("theme.light")}
+              </span>
             </button>
           </div>
         </aside>
-        <main className="flex-1 overflow-x-hidden p-6">
+        <main className="min-w-0 flex-1 overflow-x-hidden p-3 sm:p-6">
           <Outlet />
         </main>
         <CommandPalette />

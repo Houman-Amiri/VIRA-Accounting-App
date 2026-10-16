@@ -2,8 +2,12 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 
-async function contrast(locator: Locator, minimum = 4.5): Promise<void> {
-  const ratios = await locator.evaluateAll((elements) => {
+export async function contrast(
+  locator: Locator,
+  minimum = 4.5,
+  property: "color" | "borderTopColor" = "color",
+): Promise<void> {
+  const ratios = await locator.evaluateAll((elements, colorProperty) => {
     function rgb(value: string): number[] {
       const parts = value.match(/[\d.]+/g)?.map(Number) ?? [];
       if (parts.length < 3) throw new Error(`Unresolved color: ${value}`);
@@ -19,7 +23,7 @@ async function contrast(locator: Locator, minimum = 4.5): Promise<void> {
       }, 0);
     }
     return elements.map((element) => {
-      const foreground = rgb(getComputedStyle(element).color);
+      const foreground = rgb(getComputedStyle(element)[colorProperty]);
       let node: Element | null = element;
       const background = [0, 0, 0];
       let remaining = 1;
@@ -41,7 +45,7 @@ async function contrast(locator: Locator, minimum = 4.5): Promise<void> {
         ratio: (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05),
       };
     });
-  });
+  }, property);
   expect(ratios.length).toBeGreaterThan(0);
   for (const row of ratios) expect(row.ratio, row.text).toBeGreaterThanOrEqual(minimum);
 }
@@ -65,6 +69,22 @@ async function auditNative(page: Page, count: number, dark: boolean): Promise<vo
     // commands, but do not mistake CSS assertions for a Windows popup capture.
     await select.press("Alt+ArrowDown");
     await page.keyboard.press("Escape");
+  }
+}
+
+/** 4-B: real rendered text/control contrast on each themed form, not only tokens. */
+export async function auditSurfaces(page: Page, dark: boolean): Promise<void> {
+  const main = page.locator("main");
+  await contrast(main.locator("h1:visible, h2:visible, label:visible, th:visible"));
+  if (!dark) {
+    await expect(page.locator("body")).toHaveCSS("background-color", "rgb(249, 247, 240)");
+    await contrast(
+      main.locator("input:visible:not(:disabled), select:visible:not(:disabled)"),
+      3,
+      "borderTopColor",
+    );
+    const primary = main.locator("button.bg-primary:visible:not(:disabled)");
+    if (await primary.count()) await contrast(primary);
   }
 }
 
@@ -123,6 +143,7 @@ export async function auditMenuThemes(page: Page): Promise<void> {
         ["/production", 6],
         ["/warehouse", 5],
         ["/bank-import", 5],
+        ["/settings", 0],
       ] as const) {
         await page.goto(path);
         if (path === "/warehouse") {
@@ -138,7 +159,11 @@ export async function auditMenuThemes(page: Page): Promise<void> {
             ),
           });
         }
+        if (path === "/settings") {
+          await expect(page.getByTestId("const-filamentPerGram")).toBeVisible();
+        }
         await auditNative(page, count, dark);
+        await auditSurfaces(page, dark);
       }
       // Keyboard selection must still drive a real React-controlled field.
       await page.goto("/price-calc");

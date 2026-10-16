@@ -5,7 +5,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { auditOperations } from "./operations-audit";
 import { auditDashboard } from "./dashboard-audit";
-import { auditMenuThemes } from "./theme-audit";
+import { auditMenuThemes, contrast, auditSurfaces } from "./theme-audit";
 
 const USER = process.env.VIRA_E2E_USER || "owner";
 const PASS = process.env.VIRA_E2E_PASSWORD || "e2e-owner-password";
@@ -99,7 +99,44 @@ test("pricing reproduces the original Excel cells for single and multiple quanti
   const final = page.getByTestId("row-unitFinalPrice");
   await expect(final).toContainText("۲٬۷۶۰٬۷۴۸.۵");
   await expect(final).toContainText("۲٬۷۸۰٬۷۴۸.۵");
-  await expect(final).toContainText("E35");
+  await expect(final).not.toContainText(/(?:[BE]\d+|سلول|فرمول)/);
+  const report = page.getByRole("table", { name: "گزارش قیمت‌گذاری" });
+  await expect(report.getByRole("columnheader")).toHaveCount(3);
+  await expect(report).not.toContainText(/(?:[BE]\d+|سلول|فرمول|×)/);
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const dark of [true, false]) {
+      await page
+        .getByRole("button", { name: dark ? "حالت تاریک" : "حالت روشن", exact: true })
+        .click();
+      await expect(report.getByRole("columnheader")).toHaveCount(3);
+      for (const row of await report.getByRole("row").all()) {
+        await expect(row.locator("th, td")).toHaveCount(3);
+      }
+      await contrast(report.locator("th, td"));
+      await contrast(report.locator(".num"));
+      await auditSurfaces(page, dark);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+        true,
+      );
+      const scroller = page.getByRole("region", { name: "جدول قیمت‌گذاری؛ قابل پیمایش افقی" });
+      await scroller.focus();
+      await expect(scroller).toBeFocused();
+      if (width === 390) {
+        expect(await scroller.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
+        // RTL horizontal scrolling must expose the last column without page overflow.
+        await scroller.evaluate((el) => {
+          el.scrollLeft = -el.scrollWidth;
+        });
+        const cell = await final.getByRole("cell").last().boundingBox();
+        const viewport = await scroller.boundingBox();
+        expect(cell).not.toBeNull();
+        expect(viewport).not.toBeNull();
+        expect(cell!.x).toBeGreaterThanOrEqual(viewport!.x - 1);
+        expect(cell!.x + cell!.width).toBeLessThanOrEqual(viewport!.x + viewport!.width + 1);
+      }
+    }
+  }
   await page.getByTestId("input-qty").fill("۱۰");
   await expect(final).toContainText("۲۹۱٬۱۹۴.۸۵");
   await expect(final).toContainText("۳۱۱٬۱۹۴.۸۵");
