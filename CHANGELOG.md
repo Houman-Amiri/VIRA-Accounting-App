@@ -15,7 +15,7 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
   and stronger input borders; published dark tokens remain unchanged. Compact,
   accessible mobile navigation retains the startup update notification; normal
   three-column amounts fit, oversized amounts scroll inside the report.
-- 158 frontend tests and five CI jobs passed on `9bffa78` (run 38968254211).
+- 158 frontend tests and five CI jobs passed on `b45e18e` (run 38969506200).
   No backend/schema/migration or release/version change. Calendar and dynamic
   item master data remain pending; installed manual acceptance is deferred by
   the user's instruction until the phases finish.

@@ -40,7 +40,7 @@
   حداقل ۳:۱، و متن جدول/کنترل‌ها با رنگ محاسبه‌شدهٔ مرورگر بررسی می‌شوند؛ ادعای
   اندازه‌گیری همهٔ پیکسل‌ها/نمودارهای کل اپ یا popup بومی Windows نداریم.
 - [CI نخستین پیاده‌سازی، پنج job موفق](https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/38967159995).
-- [CI کد نهایی `9bffa78`](https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/38968254211):
+- [CI کد نهایی `b45e18e`](https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/38969506200):
   **هر پنج job موفق**؛ ۳۰۸ تست بک‌اند، ۱۵۸ تست فرانت‌اند، پنج سناریوی مرورگری،
   قرارداد API و Windows-native شامل ارتقا/بازگردانیِ fixture کد جاری.
   ساخت انتشار عمداً اجرا نشد؛ این شاهد انتشار جدید یا تغییر نصب کاربر نیست.
