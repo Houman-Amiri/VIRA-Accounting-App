@@ -1,3 +1,4 @@
+import { auditItemCatalog } from "./item-catalog-audit";
 import { auditCalendar } from "./calendar-audit";
 /**
  * E2E smoke — login, Persian RTL shell, command palette, journal form balance rules.
@@ -79,6 +80,7 @@ test.describe("calendar in a non-Tehran browser", () => {
     await expect(page.getByTestId("submit-entry")).toBeEnabled();
     await auditCalendar(page);
     await auditOperations(page);
+    await auditItemCatalog(page);
   });
 });
 

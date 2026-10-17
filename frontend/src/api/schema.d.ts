@@ -1050,11 +1050,48 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        /** Delete Supplier */
+        delete: operations["delete_supplier_api_v1_warehouse_suppliers__supplier_id__delete"];
         options?: never;
         head?: never;
         /** Update Supplier */
         patch: operations["update_supplier_api_v1_warehouse_suppliers__supplier_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/warehouse/catalog/{category}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Catalog */
+        get: operations["list_catalog_api_v1_warehouse_catalog__category__get"];
+        put?: never;
+        /** Create Catalog */
+        post: operations["create_catalog_api_v1_warehouse_catalog__category__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/warehouse/catalog/{category}/{ident}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Catalog */
+        delete: operations["delete_catalog_api_v1_warehouse_catalog__category___ident__delete"];
+        options?: never;
+        head?: never;
+        /** Activate Catalog */
+        patch: operations["activate_catalog_api_v1_warehouse_catalog__category___ident__patch"];
         trace?: never;
     };
     "/api/v1/warehouse/items": {
@@ -1587,6 +1624,48 @@ export interface components {
             /** Net Change */
             net_change: string;
         };
+        /** CatalogCreate */
+        CatalogCreate: {
+            /** Name */
+            name: string;
+        };
+        /** CatalogDeletion */
+        CatalogDeletion: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "deleted" | "deactivated";
+            /** Reason */
+            reason: string;
+            /** Version Id */
+            version_id?: number | null;
+        };
+        /** CatalogRead */
+        CatalogRead: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Is Active */
+            is_active: boolean;
+            /** Version Id */
+            version_id: number;
+            /** Required Unit */
+            required_unit?: string | null;
+            /**
+             * Production Role
+             * @default NONE
+             */
+            production_role: string;
+        };
+        /** CatalogState */
+        CatalogState: {
+            /** Version Id */
+            version_id: number;
+            /** Is Active */
+            is_active: boolean;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1611,24 +1690,28 @@ export interface components {
         };
         /** InventoryAlarm */
         InventoryAlarm: {
+            /**
+             * Kind Name
+             * @default
+             */
+            kind_name: string;
+            /**
+             * Unit Name
+             * @default
+             */
+            unit_name: string;
             /** Item Id */
             item_id: string;
             /** Name */
             name: string;
-            /**
-             * Kind
-             * @enum {string}
-             */
-            kind: "FILAMENT" | "PRODUCT";
+            /** Kind */
+            kind: string;
             /** Quantity */
             quantity: string;
             /** Min Quantity */
             min_quantity: string;
-            /**
-             * Unit
-             * @enum {string}
-             */
-            unit: "G" | "PCS";
+            /** Unit */
+            unit: string;
             /** Supplier Id */
             supplier_id: string | null;
             /** Suggested Supplier */
@@ -1641,17 +1724,15 @@ export interface components {
             /**
              * Kind
              * @default FILAMENT
-             * @enum {string}
              */
-            kind: "FILAMENT" | "PRODUCT";
+            kind: string;
             /** Color */
             color?: string | null;
             /**
              * Unit
              * @default G
-             * @enum {string}
              */
-            unit: "G" | "PCS";
+            unit: string;
             /**
              * Min Quantity
              * @default 0
@@ -1681,17 +1762,15 @@ export interface components {
             /**
              * Kind
              * @default FILAMENT
-             * @enum {string}
              */
-            kind: "FILAMENT" | "PRODUCT";
+            kind: string;
             /** Color */
             color?: string | null;
             /**
              * Unit
              * @default G
-             * @enum {string}
              */
-            unit: "G" | "PCS";
+            unit: string;
             /**
              * Min Quantity
              * @default 0
@@ -1720,6 +1799,16 @@ export interface components {
             created_at: string;
             /** Updated At */
             updated_at: string;
+            /**
+             * Kind Name
+             * @default
+             */
+            kind_name: string;
+            /**
+             * Unit Name
+             * @default
+             */
+            unit_name: string;
             /** Supplier Name */
             supplier_name?: string | null;
             /**
@@ -1742,7 +1831,7 @@ export interface components {
             /** Color */
             color?: string | null;
             /** Unit */
-            unit?: ("G" | "PCS") | null;
+            unit?: string | null;
             /** Min Quantity */
             min_quantity?: number | string | null;
             /** Unit Price */
@@ -1758,6 +1847,11 @@ export interface components {
         };
         /** InventorySummary */
         InventorySummary: {
+            /**
+             * Other Count
+             * @default 0
+             */
+            other_count: number;
             /** Filament Count */
             filament_count: number;
             /** Product Count */
@@ -5157,6 +5251,45 @@ export interface operations {
             };
         };
     };
+    delete_supplier_api_v1_warehouse_suppliers__supplier_id__delete: {
+        parameters: {
+            query: {
+                version_id: number;
+            };
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                supplier_id: string;
+            };
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogDeletion"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     update_supplier_api_v1_warehouse_suppliers__supplier_id__patch: {
         parameters: {
             query?: never;
@@ -5185,6 +5318,168 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SupplierRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_catalog_api_v1_warehouse_catalog__category__get: {
+        parameters: {
+            query?: {
+                active_only?: boolean;
+            };
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                category: "types" | "units";
+            };
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_catalog_api_v1_warehouse_catalog__category__post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                category: "types" | "units";
+            };
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CatalogCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_catalog_api_v1_warehouse_catalog__category___ident__delete: {
+        parameters: {
+            query: {
+                version_id: number;
+            };
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                category: "types" | "units";
+                ident: string;
+            };
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogDeletion"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    activate_catalog_api_v1_warehouse_catalog__category___ident__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                category: "types" | "units";
+                ident: string;
+            };
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CatalogState"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogRead"];
                 };
             };
             /** @description Validation Error */

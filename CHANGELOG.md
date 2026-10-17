@@ -7,6 +7,24 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Added — repair substep 4-B/3-B (unpublished)
+- Settings manages persisted item types, units and the existing shared supplier
+  registry. New item consumes active server options; inactive labels remain in
+  historical inventory, alarms and dashboards. Unused custom choices may be
+  deleted with confirmation; used/default choices deactivate and can reactivate.
+- `0006_item_catalog` preserves all inventory columns and inbound references via
+  a checked, atomic SQLite table rebuild; runtime foreign keys remain enabled.
+  Migration failures roll back DDL, data and revision together; lossy downgrades
+  refuse and require the verified pre-upgrade snapshot.
+- New types mean general stock, never implicit filament/products. Canonical
+  production units remain explicit; no quantity/unit/price/history conversion.
+  Catalog changes require write roles, CSRF and matching revisions and are audited.
+- Derived inventory values accept the full eight decimal places of two scaled-four
+  inputs instead of failing response validation or rounding away exact values.
+- Local: 355 backend / 196 frontend tests; five real-browser scenarios including
+  catalog lifecycle, mobile/desktop, both themes and unchanged workbook pricing.
+  The final public-1.0.10 compiled-helper migration/rollback CI gate must pass.
+
 ### Changed — shared numeric typography (unpublished)
 - User amendment: Vazirmatn now covers numbers as well as text, including shared
   numeric styles, native form controls, technical/version values, chart labels

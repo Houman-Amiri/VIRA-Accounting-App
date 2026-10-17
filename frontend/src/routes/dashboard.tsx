@@ -1,3 +1,4 @@
+import { itemUnitLabel } from "@/lib/item-catalog";
 /** Real-data management cockpit. Unknown/error is never presented as a healthy zero. */
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -359,7 +360,7 @@ export function DashboardPage(): React.JSX.Element {
     .slice(0, 8)
     .map((i) => ({
       key: i.id,
-      label: `${i.name} (${i.unit === "G" ? "گرم" : "عدد"})`,
+      label: `${i.name} (${itemUnitLabel(i)})`,
       value: inventoryValue(i),
     }));
   // Include zero-sales days for a continuous 30-day time axis.
@@ -500,7 +501,7 @@ export function DashboardPage(): React.JSX.Element {
                 {alarms.data?.slice(0, 3).map((a) => (
                   <li key={a.item_id}>
                     {a.name}: {faNumber(a.quantity)} / حداقل {faNumber(a.min_quantity)}{" "}
-                    {a.unit === "G" ? "گرم" : "عدد"}
+                    {itemUnitLabel(a)}
                     <br />
                     تأمین‌کنندهٔ پیشنهادی: {a.suggested_supplier ?? "ثبت نشده"}
                   </li>

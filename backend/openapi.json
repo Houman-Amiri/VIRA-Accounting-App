@@ -6482,6 +6482,618 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "warehouse"
+        ],
+        "summary": "Delete Supplier",
+        "operationId": "delete_supplier_api_v1_warehouse_suppliers__supplier_id__delete",
+        "parameters": [
+          {
+            "name": "supplier_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Supplier Id"
+            }
+          },
+          {
+            "name": "version_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "title": "Version Id"
+            }
+          },
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          },
+          {
+            "name": "vira_csrf",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Csrf"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogDeletion"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/warehouse/catalog/{category}": {
+      "get": {
+        "tags": [
+          "warehouse"
+        ],
+        "summary": "List Catalog",
+        "operationId": "list_catalog_api_v1_warehouse_catalog__category__get",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "types",
+                "units"
+              ],
+              "type": "string",
+              "title": "Category"
+            }
+          },
+          {
+            "name": "active_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Active Only"
+            }
+          },
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          },
+          {
+            "name": "vira_csrf",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Csrf"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CatalogRead"
+                  },
+                  "title": "Response List Catalog Api V1 Warehouse Catalog  Category  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "warehouse"
+        ],
+        "summary": "Create Catalog",
+        "operationId": "create_catalog_api_v1_warehouse_catalog__category__post",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "types",
+                "units"
+              ],
+              "type": "string",
+              "title": "Category"
+            }
+          },
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          },
+          {
+            "name": "vira_csrf",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Csrf"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CatalogCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/warehouse/catalog/{category}/{ident}": {
+      "patch": {
+        "tags": [
+          "warehouse"
+        ],
+        "summary": "Activate Catalog",
+        "operationId": "activate_catalog_api_v1_warehouse_catalog__category___ident__patch",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "types",
+                "units"
+              ],
+              "type": "string",
+              "title": "Category"
+            }
+          },
+          {
+            "name": "ident",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ident"
+            }
+          },
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          },
+          {
+            "name": "vira_csrf",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Csrf"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CatalogState"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "warehouse"
+        ],
+        "summary": "Delete Catalog",
+        "operationId": "delete_catalog_api_v1_warehouse_catalog__category___ident__delete",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "types",
+                "units"
+              ],
+              "type": "string",
+              "title": "Category"
+            }
+          },
+          {
+            "name": "ident",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ident"
+            }
+          },
+          {
+            "name": "version_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "title": "Version Id"
+            }
+          },
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          },
+          {
+            "name": "vira_csrf",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Csrf"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogDeletion"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/warehouse/items": {
@@ -9680,6 +10292,119 @@
         ],
         "title": "CashFlowReport"
       },
+      "CatalogCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "CatalogCreate"
+      },
+      "CatalogDeletion": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "deleted",
+              "deactivated"
+            ],
+            "title": "Action"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "version_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action",
+          "reason"
+        ],
+        "title": "CatalogDeletion"
+      },
+      "CatalogRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "version_id": {
+            "type": "integer",
+            "title": "Version Id"
+          },
+          "required_unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Required Unit"
+          },
+          "production_role": {
+            "type": "string",
+            "title": "Production Role",
+            "default": "NONE"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "is_active",
+          "version_id"
+        ],
+        "title": "CatalogRead"
+      },
+      "CatalogState": {
+        "properties": {
+          "version_id": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version Id"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "version_id",
+          "is_active"
+        ],
+        "title": "CatalogState"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -9744,6 +10469,16 @@
       },
       "InventoryAlarm": {
         "properties": {
+          "kind_name": {
+            "type": "string",
+            "title": "Kind Name",
+            "default": ""
+          },
+          "unit_name": {
+            "type": "string",
+            "title": "Unit Name",
+            "default": ""
+          },
           "item_id": {
             "type": "string",
             "title": "Item Id"
@@ -9754,10 +10489,8 @@
           },
           "kind": {
             "type": "string",
-            "enum": [
-              "FILAMENT",
-              "PRODUCT"
-            ],
+            "maxLength": 100,
+            "minLength": 1,
             "title": "Kind"
           },
           "quantity": {
@@ -9770,10 +10503,8 @@
           },
           "unit": {
             "type": "string",
-            "enum": [
-              "G",
-              "PCS"
-            ],
+            "maxLength": 100,
+            "minLength": 1,
             "title": "Unit"
           },
           "supplier_id": {
@@ -9822,10 +10553,8 @@
           },
           "kind": {
             "type": "string",
-            "enum": [
-              "FILAMENT",
-              "PRODUCT"
-            ],
+            "maxLength": 100,
+            "minLength": 1,
             "title": "Kind",
             "default": "FILAMENT"
           },
@@ -9843,10 +10572,8 @@
           },
           "unit": {
             "type": "string",
-            "enum": [
-              "G",
-              "PCS"
-            ],
+            "maxLength": 100,
+            "minLength": 1,
             "title": "Unit",
             "default": "G"
           },
@@ -9940,10 +10667,8 @@
           },
           "kind": {
             "type": "string",
-            "enum": [
-              "FILAMENT",
-              "PRODUCT"
-            ],
+            "maxLength": 100,
+            "minLength": 1,
             "title": "Kind",
             "default": "FILAMENT"
           },
@@ -9961,10 +10686,8 @@
           },
           "unit": {
             "type": "string",
-            "enum": [
-              "G",
-              "PCS"
-            ],
+            "maxLength": 100,
+            "minLength": 1,
             "title": "Unit",
             "default": "G"
           },
@@ -10036,6 +10759,16 @@
             "type": "string",
             "title": "Updated At"
           },
+          "kind_name": {
+            "type": "string",
+            "title": "Kind Name",
+            "default": ""
+          },
+          "unit_name": {
+            "type": "string",
+            "title": "Unit Name",
+            "default": ""
+          },
           "supplier_name": {
             "anyOf": [
               {
@@ -10104,10 +10837,8 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "G",
-                  "PCS"
-                ]
+                "maxLength": 100,
+                "minLength": 1
               },
               {
                 "type": "null"
@@ -10198,6 +10929,11 @@
       },
       "InventorySummary": {
         "properties": {
+          "other_count": {
+            "type": "integer",
+            "title": "Other Count",
+            "default": 0
+          },
           "filament_count": {
             "type": "integer",
             "title": "Filament Count"

@@ -18,6 +18,7 @@ EVENTS = frozenset(
     {
         "PRICING_CONSTANTS_UPDATED",
         "CALENDAR_PREFERENCE_UPDATED",
+        "CATALOG_CHANGED",
         "LOGIN_SUCCESS",
         "LOGIN_FAILED",
         "LOGIN_LOCKED_OUT",

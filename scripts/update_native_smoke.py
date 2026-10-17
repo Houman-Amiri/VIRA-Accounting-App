@@ -161,7 +161,7 @@ class PublishedUpgrade:
     target_version: str = "1.0.10"
     base_commit: str = "7d78720"
     archive_sha256: str = LEGACY_SHA256
-    schema_probe: bool = False
+    schema_rollback: bool = False
 
     @property
     def delta_name(self) -> str:
@@ -191,7 +191,7 @@ def published_fixture(
     # No source replacement, bootstrap injection or patched launcher in the base.
     shutil.copytree(published.base, install)
     archive = published.packages / published.delta_name
-    if rollback and not published.schema_probe:
+    if rollback and not published.schema_rollback:
         # Separate private broken target; never replace the candidate ZIP.
         target = root / "intentionally broken target"
         shutil.copytree(published.packages / "app", target)
@@ -313,14 +313,20 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
     }
     # Seed genuine schema/chart/owner + persisted operational data, not an empty DB.
     password = secrets.token_urlsafe(24)
-    run(sys.executable, str(ROOT / "scripts/migrate_vira.py"), "--database", str(database), env=env)
-    run(sys.executable, "-m", "app.seed", env={**env, "VIRA_ADMIN_PASSWORD": password})
-    run(
-        sys.executable,
-        "-c",
-        "from scripts.update_native_smoke import seed_business; seed_business()",
-        env={**env, "VIRA_E2E_DISPOSABLE_DATABASE": "1"},
-    )
+    if published and published.schema_rollback:
+        # The installed public client must start on ITS revision and use ITS ORM,
+        # never the newer source migrator/models before the upgrade under test.
+        baseline_env = {**env, "PYTHONPATH": str(install)}
+        run(sys.executable, str(install / "scripts/migrate_vira.py"), "--database", str(database), env=baseline_env, cwd=install)
+        run(sys.executable, "-m", "app.seed", env={**baseline_env, "VIRA_ADMIN_PASSWORD": password}, cwd=install)
+        run(sys.executable, "-c", f"import sys;sys.path.insert(0,{str(ROOT)!r});from scripts.update_native_smoke import seed_business;sys.path.insert(0,{str(install)!r});seed_business()", env={**baseline_env, "VIRA_E2E_DISPOSABLE_DATABASE":"1"}, cwd=install)
+        with closing(sqlite3.connect(database)) as old_db:
+            assert old_db.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "0005_pricing_settings"
+            assert old_db.execute("SELECT count(*) FROM sqlite_master WHERE name='item_types'").fetchone()[0] == 0
+    else:
+        run(sys.executable, str(ROOT / "scripts/migrate_vira.py"), "--database", str(database), env=env)
+        run(sys.executable, "-m", "app.seed", env={**env, "VIRA_ADMIN_PASSWORD": password})
+        run(sys.executable, "-c", "from scripts.update_native_smoke import seed_business; seed_business()", env={**env, "VIRA_E2E_DISPOSABLE_DATABASE": "1"})
     with closing(sqlite3.connect(database)) as db:
         db.execute("CREATE TABLE phase8_sentinel(value TEXT NOT NULL)")
         db.execute("INSERT INTO phase8_sentinel VALUES ('exact business data 123.4567')")
@@ -331,8 +337,8 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
     receipt_hash = sha(receipt)
     checkpoint_hash = None
     checkpoint_fingerprint = None
-    if published and published.schema_probe:
-        env["VIRA_SCHEMA_PROBE_REPORT"] = str(root / "migration-proof.json")
+    if published and published.schema_rollback:
+        env["VIRA_SCHEMA_PROOF_REPORT"] = str(root / "migration-proof.json")
     counts = dict(delta=0, full=0)
 
     class Feed(BaseHTTPRequestHandler):
@@ -412,9 +418,9 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
                             == 1
                         )
                         db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
-                    if published and published.schema_probe:
+                    if published and published.schema_rollback:
                         proof = json.loads((root / "migration-proof.json").read_text())
-                        assert proof["revision"] == "0006_catalog_rollback_probe", proof
+                        assert proof["revision"] == "0006_item_catalog", proof
                         assert proof["new_table"] is True, proof
                         assert fingerprint(database) == checkpoint_fingerprint, (
                             "restored schema/data mismatch"
@@ -428,7 +434,7 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
                             )
                             assert (
                                 old_db.execute(
-                                    "SELECT count(*) FROM sqlite_master WHERE name='catalog_rollback_probe'"
+                                    "SELECT count(*) FROM sqlite_master WHERE name='item_types'"
                                 ).fetchone()[0]
                                 == 0
                             )
@@ -441,7 +447,7 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
                                 failed_db.execute(
                                     "SELECT version_num FROM alembic_version"
                                 ).fetchone()[0]
-                                == "0006_catalog_rollback_probe"
+                                == "0006_item_catalog"
                             )
                     else:
                         assert checkpoint_hash is not None and sha(database) == checkpoint_hash, (

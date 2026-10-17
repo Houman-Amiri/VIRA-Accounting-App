@@ -50,20 +50,34 @@ def run_migrations_online() -> None:
         poolclass=pool.NullPool,
     )
     with connectable.connect() as connection:
-        connection.exec_driver_sql("PRAGMA foreign_keys=ON")
+        # SQLite table rebuilds must not cascade into referencing history. Only
+        # this cold migrator connection disables FK enforcement, never app DB
+        # sessions. Explicit BEGIN makes DDL, copied data AND revision atomic.
+        connection.exec_driver_sql("PRAGMA foreign_keys=OFF")
         connection.exec_driver_sql("PRAGMA journal_mode=WAL")
-        # Close the implicit transaction opened by pragma introspection so
-        # alembic's begin_transaction() owns (and commits) the migration txn.
-        # Otherwise the alembic_version stamp would be rolled back on exit.
+        connection.exec_driver_sql("PRAGMA busy_timeout=5000")
         connection.commit()
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata,
-            render_as_batch=True,
-        )
-        with context.begin_transaction():
-            context.run_migrations()
-        connection.commit()
+        try:
+            with connection.begin():
+                connection.exec_driver_sql("BEGIN IMMEDIATE")
+                if connection.exec_driver_sql("PRAGMA foreign_key_check").fetchall():
+                    raise RuntimeError("pre-migration foreign key violations; refusing changes")
+                context.configure(
+                    connection=connection,
+                    target_metadata=target_metadata,
+                    render_as_batch=True,
+                    transactional_ddl=True,
+                )
+                with context.begin_transaction():
+                    context.run_migrations()
+                if connection.exec_driver_sql("PRAGMA foreign_key_check").fetchall():
+                    raise RuntimeError("post-migration foreign key violations; rolling back")
+                if connection.exec_driver_sql("PRAGMA integrity_check").scalar() != "ok":
+                    raise RuntimeError("post-migration integrity check failed; rolling back")
+        finally:
+            connection.exec_driver_sql("PRAGMA foreign_keys=ON")
+            connection.commit()
+    connectable.dispose()
 
 
 if context.is_offline_mode():

@@ -1,3 +1,4 @@
+import { ItemCatalogSettings } from "@/components/item-catalog-settings";
 import { CalendarSettingsCard } from "@/components/calendar-settings";
 import * as React from "react";
 import { Link } from "@tanstack/react-router";
@@ -64,11 +65,15 @@ export function SettingsPage(): React.JSX.Element {
         <a href="#pricing-constants" className="font-semibold text-primary">
           ثابت‌های قیمت‌گذاری
         </a>
+        <a href="#item-catalog-settings" className="text-primary">
+          اطلاعات پایهٔ کالا
+        </a>
         <Link to="/system" className="text-muted-foreground hover:text-foreground">
           سیستم و عملیات
         </Link>
       </nav>
       <CalendarSettingsCard />
+      <ItemCatalogSettings />
       <Card id="pricing-constants">
         <CardHeader>
           <CardTitle>ثابت‌های قیمت‌گذاری</CardTitle>

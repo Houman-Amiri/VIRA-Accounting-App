@@ -312,7 +312,7 @@ presentation and an installation-wide calendar preference stored as versioned,
 append-only SQLite security events (no DDL/revision change; backups include it).
 Only OWNER/BOOKKEEPER can change it, with CSRF and revision compare-and-swap;
 authenticated AUDITOR can read it. No browser-only preference or data rewrite.
-Item master-data work remains pending, including its real migration/rollback gate.
+Item master-data implementation is now locally tested; its final Windows migration/rollback gate is tracked in the catalog report below.
 The user deferred installed-data/manual acceptance until the phases finish, not
 automated tests. This is not authorization to publish another version. Preserve
 immutable releases, migration backups and delta-only routine updates. The detailed
@@ -334,3 +334,23 @@ actual test status. The probe revision exists only in disposable CI payloads.
 It does not close the final catalog-migration gate: rerun with the actual reference
 models/DDL before shipping that migration. Types, units and supplier Settings UI
 are not delivered by this safety checkpoint. No new public release is authorized.
+
+
+### 4-B/3-B — persisted item catalog (2026-10-17, unpublished)
+
+Settings and New item now share persisted type/unit reference tables and the
+existing supplier registry. The preserving `0006_item_catalog` migration rebuilds
+only the physical inventory table inside an explicit SQLite IMMEDIATE transaction,
+checks the copied rows in both directions and verifies foreign keys/integrity
+before committing schema, data and revision together. The runtime DB still enforces
+foreign keys. No historical ledger, stock movement, price or quantity is rewritten.
+Used/default choices deactivate; unused custom choices can be physically deleted;
+reactivation and revision conflicts are supported. New types are general stock,
+not implicitly filament/produced goods; only canonical FILAMENT/G and PRODUCT/PCS
+participate in existing production, with no automatic unit conversion.
+
+See [`docs/reports/phase4b-3b-item-catalog-fa.md`](docs/reports/phase4b-3b-item-catalog-fa.md)
+for actual local and Windows gate evidence/status. The public-1.0.10 gate now seeds
+with the untouched public migrator/ORM and applies the actual final catalog DDL,
+not a synthetic probe. Installed-business/Windows visual acceptance remains deferred;
+no new tag, release, installer or authorization to publish is implied.

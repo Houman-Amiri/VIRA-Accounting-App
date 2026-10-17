@@ -8,6 +8,7 @@ from sqlalchemy import select, text
 
 from app.api.calendar import _read
 from app.models import User
+from tests.conftest import alembic_head
 
 PATH = "/api/v1/settings/calendar"
 
@@ -43,7 +44,7 @@ async def test_persist_restart_and_backup_without_revision_or_data_rewrite(
         assert s.execute(text("SELECT * FROM users")).all() == before
         assert (
             s.execute(text("SELECT version_num FROM alembic_version")).scalar()
-            == "0005_pricing_settings"
+            == alembic_head()
         )
     other.dispose()
     backup = tmp_path / "copy.sqlite3"

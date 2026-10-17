@@ -21,14 +21,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Money } from "@/components/money";
+import { useItemCatalog, itemUnitLabel } from "@/lib/item-catalog";
 import { faNumber } from "@/lib/fa";
 
 type Item = {
   id: string;
   name: string;
-  kind: "FILAMENT" | "PRODUCT";
+  kind: string;
+  kind_name?: string;
   color: string | null;
-  unit: "G" | "PCS";
+  unit: string;
+  unit_name?: string;
   quantity: string;
   min_quantity: string;
   unit_price: string;
@@ -57,10 +60,12 @@ type Supplier = {
 type Alarm = {
   item_id: string;
   name: string;
-  kind: "FILAMENT" | "PRODUCT";
+  kind: string;
+  kind_name?: string;
   quantity: string;
   min_quantity: string;
-  unit: "G" | "PCS";
+  unit: string;
+  unit_name?: string;
   suggested_supplier: string | null;
 };
 
@@ -78,13 +83,13 @@ type Movement = {
 type Summary = {
   filament_count: number;
   product_count: number;
+  other_count?: number;
   total_value: string;
   low_stock_count: number;
   items: Item[];
 };
 
 const KIND_LABEL: Record<string, string> = { FILAMENT: "فیلامنت", PRODUCT: "محصول" };
-const UNIT_LABEL: Record<string, string> = { G: "گرم", PCS: "عدد" };
 const MOVEMENT_LABEL: Record<string, string> = {
   IN: "ورود",
   OUT: "خروج",
@@ -99,17 +104,19 @@ function errText(error: unknown): string {
 export function WarehousePage(): React.JSX.Element {
   const { calendar } = useCalendar();
   const queryClient = useQueryClient();
+  const typesQuery = useItemCatalog("types");
+  const unitsQuery = useItemCatalog("units");
   const [search, setSearch] = React.useState("");
-  const [kindFilter, setKindFilter] = React.useState<"" | "FILAMENT" | "PRODUCT">("");
+  const [kindFilter, setKindFilter] = React.useState<string>("");
   const [lowOnly, setLowOnly] = React.useState(false);
   const [moveFor, setMoveFor] = React.useState<Item | null>(null);
   const [moveKind, setMoveKind] = React.useState<"IN" | "OUT" | "ADJUST">("IN");
   const [moveQty, setMoveQty] = React.useState("");
   const [newItem, setNewItem] = React.useState({
     name: "",
-    kind: "FILAMENT" as "FILAMENT" | "PRODUCT",
+    kind: "FILAMENT",
     color: "",
-    unit: "G" as "G" | "PCS",
+    unit: "G",
     quantity: "",
     min_quantity: "0",
     unit_price: "",
@@ -273,6 +280,14 @@ export function WarehousePage(): React.JSX.Element {
     [items, kindFilter, lowOnly, search],
   );
 
+  const selectedType = typesQuery.data?.find((type) => type.id === newItem.kind && type.is_active);
+  const validUnits = selectedType
+    ? (unitsQuery.data ?? []).filter(
+        (unit) =>
+          unit.is_active && (!selectedType.required_unit || selectedType.required_unit === unit.id),
+      )
+    : [];
+
   return (
     <div className="space-y-6" dir="rtl">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -287,6 +302,11 @@ export function WarehousePage(): React.JSX.Element {
               <Badge variant="secondary">
                 محصول: {faNumber(String(summaryQuery.data?.product_count ?? 0))}
               </Badge>
+              {!!summaryQuery.data?.other_count && (
+                <Badge variant="secondary">
+                  سایر کالاها: {faNumber(String(summaryQuery.data.other_count))}
+                </Badge>
+              )}
               <Badge
                 variant={
                   !alarmsQuery.isSuccess
@@ -353,8 +373,12 @@ export function WarehousePage(): React.JSX.Element {
                       onChange={(e) => setKindFilter(e.target.value as typeof kindFilter)}
                     >
                       <option value="">همه</option>
-                      <option value="FILAMENT">فیلامنت</option>
-                      <option value="PRODUCT">محصول</option>
+                      {(typesQuery.data ?? []).map((type) => (
+                        <option key={type.id} value={type.id}>
+                          {type.name}
+                          {type.is_active ? "" : " (غیرفعال)"}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <Label className="flex items-center gap-2 pb-2 text-xs">
@@ -390,12 +414,14 @@ export function WarehousePage(): React.JSX.Element {
                             {item.name}{" "}
                             {item.low_stock && <Badge variant="destructive">کمبود</Badge>}
                           </td>
-                          <td className="py-2">{KIND_LABEL[item.kind]}</td>
+                          <td className="py-2">
+                            {item.kind_name || KIND_LABEL[item.kind] || item.kind}
+                          </td>
                           <td className="py-2">{item.color ?? "—"}</td>
                           <td className="py-2">
                             <span className="num">{faNumber(item.quantity)}</span>{" "}
                             <span className="text-xs text-muted-foreground">
-                              {UNIT_LABEL[item.unit]}
+                              {itemUnitLabel(item)}
                             </span>
                           </td>
                           <td className="num py-2 text-muted-foreground">
@@ -440,7 +466,7 @@ export function WarehousePage(): React.JSX.Element {
                     <p className="pb-2 text-sm font-medium">
                       گردش انبار — {moveFor.name} (موجودی فعلی:{" "}
                       <span className="num">{faNumber(moveFor.quantity)}</span>{" "}
-                      {UNIT_LABEL[moveFor.unit]})
+                      {itemUnitLabel(moveFor)})
                     </p>
                     <div className="flex flex-wrap items-end gap-2">
                       <div className="w-32">
@@ -485,6 +511,11 @@ export function WarehousePage(): React.JSX.Element {
                 <CardTitle className="text-base">ثبت کالای جدید</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
+                <QueryNotice query={typesQuery} />
+                <QueryNotice query={unitsQuery} />
+                <a href="/settings#item-catalog-settings" className="text-sm text-primary">
+                  مدیریت نوع، واحد و تأمین‌کننده در تنظیمات
+                </a>
                 <div>
                   <Label className="text-xs">نام</Label>
                   <Input
@@ -498,31 +529,44 @@ export function WarehousePage(): React.JSX.Element {
                     <Label className="text-xs">نوع</Label>
                     <select
                       className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
-                      value={newItem.kind}
+                      value={selectedType ? newItem.kind : ""}
                       data-testid="new-item-kind"
                       onChange={(e) =>
                         setNewItem((v) => ({
                           ...v,
-                          kind: e.target.value as "FILAMENT" | "PRODUCT",
-                          unit: e.target.value === "FILAMENT" ? "G" : "PCS",
+                          kind: e.target.value,
+                          unit:
+                            typesQuery.data?.find((type) => type.id === e.target.value)
+                              ?.required_unit ?? "",
                         }))
                       }
                     >
-                      <option value="FILAMENT">فیلامنت</option>
-                      <option value="PRODUCT">محصول</option>
+                      <option value="">نوع را انتخاب کنید</option>
+                      {(typesQuery.data ?? [])
+                        .filter((type) => type.is_active)
+                        .map((type) => (
+                          <option key={type.id} value={type.id}>
+                            {type.name}
+                          </option>
+                        ))}
                     </select>
                   </div>
                   <div>
                     <Label className="text-xs">واحد</Label>
                     <select
                       className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
-                      value={newItem.unit}
-                      onChange={(e) =>
-                        setNewItem((v) => ({ ...v, unit: e.target.value as "G" | "PCS" }))
+                      value={
+                        validUnits.some((unit) => unit.id === newItem.unit) ? newItem.unit : ""
                       }
+                      data-testid="new-item-unit"
+                      onChange={(e) => setNewItem((v) => ({ ...v, unit: e.target.value }))}
                     >
-                      <option value="G">گرم</option>
-                      <option value="PCS">عدد</option>
+                      <option value="">واحد را انتخاب کنید</option>
+                      {validUnits.map((unit) => (
+                        <option key={unit.id} value={unit.id}>
+                          {unit.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -539,14 +583,17 @@ export function WarehousePage(): React.JSX.Element {
                     <select
                       className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
                       value={newItem.supplier_id}
+                      data-testid="new-item-supplier"
                       onChange={(e) => setNewItem((v) => ({ ...v, supplier_id: e.target.value }))}
                     >
                       <option value="">—</option>
-                      {(suppliersQuery.isSuccess ? suppliersQuery.data : []).map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                        </option>
-                      ))}
+                      {(suppliersQuery.isSuccess ? suppliersQuery.data : [])
+                        .filter((s) => s.is_active)
+                        .map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.name}
+                          </option>
+                        ))}
                     </select>
                   </div>
                 </div>
@@ -583,7 +630,17 @@ export function WarehousePage(): React.JSX.Element {
                   className="w-full"
                   data-testid="new-item-submit"
                   onClick={() => createItem.mutate()}
-                  disabled={createItem.isPending || !newItem.name.trim()}
+                  disabled={
+                    createItem.isPending ||
+                    !typesQuery.isSuccess ||
+                    !unitsQuery.isSuccess ||
+                    !newItem.name.trim() ||
+                    !selectedType ||
+                    !validUnits.some((unit) => unit.id === newItem.unit) ||
+                    !suppliersQuery.isSuccess ||
+                    (!!newItem.supplier_id &&
+                      !suppliersQuery.data.some((s) => s.id === newItem.supplier_id && s.is_active))
+                  }
                 >
                   ثبت کالا
                 </Button>
@@ -618,7 +675,10 @@ export function WarehousePage(): React.JSX.Element {
                     {(alarmsQuery.isSuccess ? alarmsQuery.data : []).map((a) => (
                       <tr key={a.item_id} className="border-b" data-testid={`alarm-${a.item_id}`}>
                         <td className="py-2">
-                          {a.name} <Badge variant="secondary">{KIND_LABEL[a.kind]}</Badge>
+                          {a.name}{" "}
+                          <Badge variant="secondary">
+                            {a.kind_name || KIND_LABEL[a.kind] || a.kind}
+                          </Badge>
                         </td>
                         <td className="num py-2 text-destructive">{faNumber(a.quantity)}</td>
                         <td className="num py-2">{faNumber(a.min_quantity)}</td>

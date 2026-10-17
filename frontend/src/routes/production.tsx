@@ -50,8 +50,8 @@ type Job = {
 type Item = {
   id: string;
   name: string;
-  kind: "FILAMENT" | "PRODUCT";
-  unit: "G" | "PCS";
+  kind: string;
+  unit: string;
   quantity: string;
 };
 

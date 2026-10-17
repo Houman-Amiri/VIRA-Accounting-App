@@ -45,9 +45,9 @@ from ..schemas.operations import (
     SupplierCreate,
     SupplierUpdate,
 )
+from .catalog import CatalogService
 from .errors import (
     DomainError,
-    DuplicateEntityError,
     InsufficientStockError,
     InvalidOperationsStateError,
     NotFoundError,
@@ -80,9 +80,7 @@ class OperationsService:
         return supplier
 
     def create_supplier(self, data: SupplierCreate) -> Supplier:
-        existing = self.session.scalar(select(Supplier).where(Supplier.name == data.name))
-        if existing is not None:
-            raise DuplicateEntityError(f"تأمین‌کنندهٔ «{data.name}» از قبل ثبت شده است")
+        CatalogService(self.session).ensure_name(Supplier, data.name)
         now = utc_now_iso()
         supplier = Supplier(
             id=uuid7(),
@@ -110,6 +108,8 @@ class OperationsService:
                 f"(expected {data.version_id}, found {supplier.version_id})"
             )
         payload = data.model_dump(exclude={"version_id"}, exclude_unset=True)
+        if "name" in payload:
+            CatalogService(self.session).ensure_name(Supplier, payload["name"], exclude=supplier_id)
         if "is_active" in payload:
             supplier.is_active = 1 if payload.pop("is_active") else 0
         for field, value in payload.items():
@@ -167,10 +167,7 @@ class OperationsService:
         return item
 
     def create_item(self, data: InventoryItemCreate) -> InventoryItem:
-        if data.supplier_id:
-            self.get_supplier(data.supplier_id)
-        if (data.kind, data.unit) not in {("FILAMENT", "G"), ("PRODUCT", "PCS")}:
-            raise DomainError("واحد فیلامنت باید گرم و واحد محصول باید عدد باشد")
+        CatalogService(self.session).validate_item(data.kind, data.unit, data.supplier_id)
         now = utc_now_iso()
         item = InventoryItem(
             id=uuid7(),
@@ -213,8 +210,10 @@ class OperationsService:
         payload = data.model_dump(exclude={"version_id"}, exclude_unset=True)
         if payload.get("unit", item.unit) != item.unit:
             raise DomainError("واحد کالای ثبت‌شده قابل تغییر نیست؛ کالای جداگانه تعریف کنید")
-        if "supplier_id" in payload and payload["supplier_id"]:
-            self.get_supplier(payload["supplier_id"])
+        if "supplier_id" in payload and payload["supplier_id"] != item.supplier_id:
+            supplier = self.get_supplier(payload["supplier_id"]) if payload["supplier_id"] else None
+            if supplier is not None and not supplier.is_active:
+                raise DomainError("انتخاب تأمین‌کنندهٔ غیرفعال مجاز نیست")
         if "is_active" in payload:
             item.is_active = 1 if payload.pop("is_active") else 0
         for field, value in payload.items():
@@ -291,6 +290,7 @@ class OperationsService:
         items = self.list_items(limit=None)
         total_value = sum((Decimal(i.quantity) * Decimal(i.unit_price) for i in items), Decimal(0))
         return {
+            "other_count": sum(1 for i in items if i.kind not in {"FILAMENT", "PRODUCT"}),
             "filament_count": sum(1 for i in items if i.kind == "FILAMENT"),
             "product_count": sum(1 for i in items if i.kind == "PRODUCT"),
             "total_value": total_value,

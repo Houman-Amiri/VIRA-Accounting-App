@@ -39,6 +39,11 @@ export function renderWithPricing(
     timezone: "Asia/Tehran",
     scope: "installation",
   });
+  // Isolate pricing assertions from the unrelated settings panels' HTTP calls.
+  client.setQueryData(["session-user"], { role: "OWNER", username: "owner" });
+  client.setQueryData(["warehouse", "catalog", "types"], []);
+  client.setQueryData(["warehouse", "catalog", "units"], []);
+  client.setQueryData(["warehouse", "suppliers"], []);
   if (seed) client.setQueryData(["pricing-settings"], { ...SETTINGS, ...overrides });
   return { ...render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>), client };
 }

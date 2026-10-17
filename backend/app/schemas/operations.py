@@ -11,10 +11,14 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
-Amount = Annotated[Decimal, Field(max_digits=18, decimal_places=4)]
+from .catalog import clean_name
 
-ItemKind = Literal["FILAMENT", "PRODUCT"]
-ItemUnit = Literal["G", "PCS"]
+Amount = Annotated[Decimal, Field(max_digits=18, decimal_places=4)]
+# Derived inventory values multiply two scaled-four inputs; preserve all 8 places.
+InventoryValue = Annotated[Decimal, Field(max_digits=26, decimal_places=8)]
+
+ItemKind = Annotated[str, Field(min_length=1, max_length=100)]
+ItemUnit = Annotated[str, Field(min_length=1, max_length=100)]
 MovementKind = Literal["IN", "OUT", "ADJUST"]
 OrderStatus = Literal[
     "NEW", "CONFIRMED", "IN_PRODUCTION", "READY", "SHIPPED", "DELIVERED", "CANCELLED"
@@ -36,7 +40,7 @@ class SupplierBase(BaseModel):
 
 
 class SupplierCreate(SupplierBase):
-    pass
+    _clean_name = field_validator("name")(clean_name)
 
 
 class SupplierUpdate(BaseModel):
@@ -57,6 +61,12 @@ class SupplierUpdate(BaseModel):
         if value is None:
             raise ValueError("مقدار این فیلد نمی‌تواند null باشد")
         return value
+
+
+    @field_validator("name")
+    @classmethod
+    def normalize_name(cls, value: str | None) -> str | None:
+        return clean_name(value) if value is not None else value
 
 
 class SupplierRead(SupplierBase):
@@ -120,9 +130,11 @@ class InventoryItemRead(InventoryItemBase):
     version_id: int
     created_at: str
     updated_at: str
+    kind_name: str = ""
+    unit_name: str = ""
     supplier_name: str | None = None
     low_stock: bool = False
-    value: Amount = Decimal(0)
+    value: InventoryValue = Decimal(0)
 
 
 class StockMovementCreate(BaseModel):
@@ -152,6 +164,8 @@ class StockMovementRead(BaseModel):
 
 
 class InventoryAlarm(BaseModel):
+    kind_name: str = ""
+    unit_name: str = ""
     item_id: str
     name: str
     kind: ItemKind
@@ -163,9 +177,10 @@ class InventoryAlarm(BaseModel):
 
 
 class InventorySummary(BaseModel):
+    other_count: int = 0
     filament_count: int
     product_count: int
-    total_value: Amount
+    total_value: InventoryValue
     low_stock_count: int
     items: list[InventoryItemRead]
 

@@ -7,6 +7,8 @@ from .fx import ExchangeRate
 from .ledger import Account, JournalEntry, TransactionSplit
 from .operations import (
     InventoryItem,
+    ItemType,
+    ItemUnit,
     Order,
     OrderItem,
     ProductionJob,
@@ -35,6 +37,8 @@ __all__ = [
     "Currency",
     "Document",
     "InventoryItem",
+    "ItemType",
+    "ItemUnit",
     "Order",
     "OrderItem",
     "ProductionJob",

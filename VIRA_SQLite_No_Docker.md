@@ -834,8 +834,7 @@ substep 4-B/1 covers pricing presentation and the light theme; 4-B/2 adds real
 civil-date input and installation-wide calendar selection backed by versioned,
 append-only SQLite security events. OWNER/BOOKKEEPER writes require CSRF and
 compare-and-swap; authenticated AUDITOR reads are allowed. No new schema revision,
-localStorage preference or historical-date rewrite. Item master data remains
-pending, including the real migration/rollback prerequisite. Installed-data/manual acceptance was deferred
+localStorage preference or historical-date rewrite. Item master-data implementation is now locally tested; the final Windows migration/rollback gate remains pending until confirmed in the catalog report below. Installed-data/manual acceptance was deferred
 by the user until the phases finish; automated tests remain mandatory.
 The full scope, safe-deletion rules,
 timezone/date-only semantics and acceptance criteria are recorded in
@@ -866,3 +865,23 @@ actual test status. The probe revision exists only in disposable CI payloads.
 It does not close the final catalog-migration gate: rerun with the actual reference
 models/DDL before shipping that migration. Types, units and supplier Settings UI
 are not delivered by this safety checkpoint. No new public release is authorized.
+
+
+### 4-B/3-B — persisted item catalog (2026-10-17, unpublished)
+
+Settings and New item now share persisted type/unit reference tables and the
+existing supplier registry. The preserving `0006_item_catalog` migration rebuilds
+only the physical inventory table inside an explicit SQLite IMMEDIATE transaction,
+checks the copied rows in both directions and verifies foreign keys/integrity
+before committing schema, data and revision together. The runtime DB still enforces
+foreign keys. No historical ledger, stock movement, price or quantity is rewritten.
+Used/default choices deactivate; unused custom choices can be physically deleted;
+reactivation and revision conflicts are supported. New types are general stock,
+not implicitly filament/produced goods; only canonical FILAMENT/G and PRODUCT/PCS
+participate in existing production, with no automatic unit conversion.
+
+See [`docs/reports/phase4b-3b-item-catalog-fa.md`](docs/reports/phase4b-3b-item-catalog-fa.md)
+for actual local and Windows gate evidence/status. The public-1.0.10 gate now seeds
+with the untouched public migrator/ORM and applies the actual final catalog DDL,
+not a synthetic probe. Installed-business/Windows visual acceptance remains deferred;
+no new tag, release, installer or authorization to publish is implied.

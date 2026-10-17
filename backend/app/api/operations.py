@@ -8,13 +8,20 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 from decimal import Decimal
-from typing import Annotated, Any, Literal, cast
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from ..ids import today_iso
+from ..schemas.catalog import (
+    CatalogCategory,
+    CatalogCreate,
+    CatalogDeletion,
+    CatalogRead,
+    CatalogState,
+)
 from ..schemas.operations import (
     InventoryAlarm,
     InventoryItemCreate,
@@ -37,6 +44,8 @@ from ..schemas.operations import (
     SupplierRead,
     SupplierUpdate,
 )
+from ..security.session import SessionUser
+from ..services.catalog import CatalogService
 from ..services.operations import OperationsService
 from .deps import enforce_csrf, get_db, require_roles
 
@@ -83,6 +92,8 @@ def _item_read(item: Any) -> InventoryItemRead:
         id=item.id,
         name=item.name,
         kind=item.kind,
+        kind_name=item.item_type.name,
+        unit_name=item.item_unit.name,
         color=item.color,
         unit=item.unit,
         quantity=quantity,
@@ -229,9 +240,11 @@ def supplier_suggestions(
 def create_supplier(
     payload: SupplierCreate,
     session: Annotated[Session, Depends(get_db)],
-    _user: Annotated[object, Depends(require_roles(*WRITE_ROLES))],
+    _user: Annotated[SessionUser, Depends(require_roles(*WRITE_ROLES))],
 ) -> SupplierRead:
-    return _supplier_read(OperationsService(session).create_supplier(payload))
+    row = OperationsService(session).create_supplier(payload)
+    CatalogService(session).event("suppliers", row, "created", _user.user_id)
+    return _supplier_read(row)
 
 
 @warehouse.patch("/suppliers/{supplier_id}", response_model=SupplierRead)
@@ -239,9 +252,65 @@ def update_supplier(
     supplier_id: str,
     payload: SupplierUpdate,
     session: Annotated[Session, Depends(get_db)],
-    _user: Annotated[object, Depends(require_roles(*WRITE_ROLES))],
+    _user: Annotated[SessionUser, Depends(require_roles(*WRITE_ROLES))],
 ) -> SupplierRead:
-    return _supplier_read(OperationsService(session).update_supplier(supplier_id, payload))
+    row = OperationsService(session).update_supplier(supplier_id, payload)
+    CatalogService(session).event("suppliers", row, "updated", _user.user_id)
+    return _supplier_read(row)
+
+
+
+@warehouse.delete("/suppliers/{supplier_id}", response_model=CatalogDeletion)
+def delete_supplier(
+    supplier_id: str,
+    version_id: Annotated[int, Query(ge=1)],
+    session: Annotated[Session, Depends(get_db)],
+    user: Annotated[SessionUser, Depends(require_roles(*WRITE_ROLES))],
+) -> CatalogDeletion:
+    return CatalogService(session).delete("suppliers", supplier_id, version_id, user.user_id)
+
+
+def _catalog_read(row: Any) -> CatalogRead:
+    return CatalogRead(id=row.id, name=row.name, is_active=bool(row.is_active), version_id=row.version_id,
+        required_unit=getattr(row,"required_unit",None), production_role=getattr(row,"production_role","NONE"))
+
+
+@warehouse.get("/catalog/{category}", response_model=list[CatalogRead])
+def list_catalog(
+    category: CatalogCategory,
+    session: Annotated[Session, Depends(get_db)],
+    user: Annotated[SessionUser, Depends(require_roles(*READ_ROLES))],
+    active_only: Annotated[bool, Query()] = False,
+) -> list[CatalogRead]:
+    return [_catalog_read(row) for row in CatalogService(session).list(category, active_only=active_only)]
+
+
+@warehouse.post("/catalog/{category}", response_model=CatalogRead, status_code=201)
+def create_catalog(
+    category: CatalogCategory,
+    payload: CatalogCreate,
+    session: Annotated[Session, Depends(get_db)],
+    user: Annotated[SessionUser, Depends(require_roles(*WRITE_ROLES))],
+) -> CatalogRead:
+    return _catalog_read(CatalogService(session).create(category, payload.name, user.user_id))
+
+
+@warehouse.patch("/catalog/{category}/{ident}", response_model=CatalogRead)
+def activate_catalog(
+    category: CatalogCategory, ident: str, payload: CatalogState,
+    session: Annotated[Session, Depends(get_db)],
+    user: Annotated[SessionUser, Depends(require_roles(*WRITE_ROLES))],
+) -> CatalogRead:
+    return _catalog_read(CatalogService(session).activate(category, ident, payload.version_id, payload.is_active, user.user_id))
+
+
+@warehouse.delete("/catalog/{category}/{ident}", response_model=CatalogDeletion)
+def delete_catalog(
+    category: CatalogCategory, ident: str, version_id: Annotated[int, Query(ge=1)],
+    session: Annotated[Session, Depends(get_db)],
+    user: Annotated[SessionUser, Depends(require_roles(*WRITE_ROLES))],
+) -> CatalogDeletion:
+    return CatalogService(session).delete(category, ident, version_id, user.user_id)
 
 
 # ----------------------------------------------------------------- inventory ---
@@ -322,10 +391,12 @@ def stock_alarms(
             InventoryAlarm(
                 item_id=item.id,
                 name=item.name,
-                kind=cast('Literal["FILAMENT", "PRODUCT"]', item.kind),
+                kind=item.kind,
+                kind_name=item.item_type.name,
+                unit_name=item.item_unit.name,
                 quantity=Decimal(item.quantity),
                 min_quantity=Decimal(item.min_quantity),
-                unit=cast('Literal["G", "PCS"]', item.unit),
+                unit=item.unit,
                 supplier_id=item.supplier_id,
                 suggested_supplier=suggestions[0].name if suggestions else None,
             )
@@ -340,6 +411,7 @@ def inventory_summary(
 ) -> InventorySummary:
     data = OperationsService(session).inventory_summary()
     return InventorySummary(
+        other_count=data["other_count"],
         filament_count=data["filament_count"],
         product_count=data["product_count"],
         total_value=data["total_value"],

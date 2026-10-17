@@ -37,6 +37,29 @@ PRODUCTION_STATUSES = ("PLANNED", "IN_PROGRESS", "DONE", "CANCELLED")
 VARIANTS = ("plain", "chain")
 
 
+class ItemUnit(Base, TimestampMixin):
+    __tablename__ = "item_units"
+    __table_args__ = (CheckConstraint("is_active IN (0,1)", name="is_active"),)
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    name: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    is_active: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    version_id: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+
+
+class ItemType(Base, TimestampMixin):
+    __tablename__ = "item_types"
+    __table_args__ = (
+        CheckConstraint("is_active IN (0,1)", name="is_active"),
+        CheckConstraint("production_role IN ('NONE','FILAMENT','PRODUCT')", name="production_role"),
+    )
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    name: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    required_unit: Mapped[str | None] = mapped_column(Text, ForeignKey("item_units.id", ondelete="RESTRICT"), nullable=True)
+    production_role: Mapped[str] = mapped_column(Text, nullable=False, default="NONE")
+    is_active: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    version_id: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+
+
 class Supplier(Base, TimestampMixin):
     """Supplier with the user-given price/quality/delivery scores (§3.1)."""
 
@@ -68,8 +91,6 @@ class InventoryItem(Base, TimestampMixin):
 
     __tablename__ = "inventory_items"
     __table_args__ = (
-        CheckConstraint("kind IN ('FILAMENT','PRODUCT')", name="kind"),
-        CheckConstraint("unit IN ('G','PCS')", name="unit"),
         CheckConstraint("is_active IN (0,1)", name="is_active"),
         CheckConstraint("quantity >= 0", name="quantity_non_negative"),
         CheckConstraint("min_quantity >= 0", name="min_quantity_non_negative"),
@@ -80,9 +101,9 @@ class InventoryItem(Base, TimestampMixin):
 
     id: Mapped[str] = mapped_column(Text, primary_key=True)
     name: Mapped[str] = mapped_column(Text, nullable=False)
-    kind: Mapped[str] = mapped_column(Text, nullable=False, default="FILAMENT")
+    kind: Mapped[str] = mapped_column(Text, ForeignKey("item_types.id", ondelete="RESTRICT"), nullable=False, default="FILAMENT")
     color: Mapped[str | None] = mapped_column(Text, nullable=True)
-    unit: Mapped[str] = mapped_column(Text, nullable=False, default="G")
+    unit: Mapped[str] = mapped_column(Text, ForeignKey("item_units.id", ondelete="RESTRICT"), nullable=False, default="G")
     quantity: Mapped[Decimal] = mapped_column(ScaledMoneyType, nullable=False, default=Decimal(0))
     min_quantity: Mapped[Decimal] = mapped_column(
         ScaledMoneyType, nullable=False, default=Decimal(0)
@@ -91,13 +112,15 @@ class InventoryItem(Base, TimestampMixin):
         ScaledMoneyType, nullable=False, default=Decimal(0)
     )
     supplier_id: Mapped[str | None] = mapped_column(
-        Text, ForeignKey("suppliers.id", ondelete="SET NULL"), nullable=True
+        Text, ForeignKey("suppliers.id", ondelete="RESTRICT"), nullable=True
     )
     purchased_at: Mapped[str | None] = mapped_column(Text, nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_active: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     version_id: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 
+    item_type: Mapped[ItemType] = relationship(lazy="selectin")
+    item_unit: Mapped[ItemUnit] = relationship(lazy="selectin")
     supplier: Mapped[Supplier | None] = relationship(back_populates="items")
     movements: Mapped[list[StockMovement]] = relationship(back_populates="item")
 
