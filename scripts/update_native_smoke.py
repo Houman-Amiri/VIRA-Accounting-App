@@ -29,6 +29,8 @@ from pathlib import Path
 import httpx
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from scripts.update_database import fingerprint  # noqa: E402
 
 
 def run(*args: str, **kwargs) -> None:
@@ -343,7 +345,6 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
             with closing(sqlite3.connect(database)) as db:
                 db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             checkpoint_hash = sha(database)
-            from scripts.update_database import fingerprint
 
             checkpoint_fingerprint = fingerprint(database)
             self.send_response(200)
@@ -412,8 +413,6 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
                         )
                         db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
                     if published and published.schema_probe:
-                        from scripts.update_database import fingerprint
-
                         proof = json.loads((root / "migration-proof.json").read_text())
                         assert proof["revision"] == "0006_catalog_rollback_probe", proof
                         assert proof["new_table"] is True, proof

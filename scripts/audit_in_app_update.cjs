@@ -85,7 +85,8 @@ async function stepUp(page) {
     console.log("Native in-app update:", process.env.VIRA_NATIVE_EXPECTED, "— consent, delta-only, SQLite schema/data and receipt integrity verified");
   } finally { await browser.close(); }
 })().catch((error) => {
-  const raw = String(error.stack || error).split(process.env.VIRA_NATIVE_PASSWORD || "__no_password__").join("[fixture password]");
+  const raw = String(error.stack || error).split(process.env.VIRA_NATIVE_PASSWORD || "__no_password__").join("[fixture password]")
+    .replace(/(cookie|authorization|x-csrf-token|x-sudo-token)\s*:\s*[^\r\n]*/gi, "$1: [REDACTED]");
   const text = raw.length > 2300 ? raw.slice(0, 1100) + "\n...\n" + raw.slice(-1100) : raw;
   console.error("::error title=native browser::" + text.replaceAll("%", "%25").replaceAll("\r", "%0D").replaceAll("\n", "%0A"));
   process.exitCode = 1;

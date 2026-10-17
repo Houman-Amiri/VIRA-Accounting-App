@@ -146,3 +146,22 @@ def test_recurring_jobs_wait_for_update_commit(database, monkeypatch):
     blocked[0] = False
     scheduler._tick()
     assert called == [1]
+
+
+def test_native_gate_imports_when_script_directory_is_not_repo_root(tmp_path):
+    import os
+    import subprocess
+    import sys
+
+    code = f"import runpy; ns=runpy.run_path({str(ROOT / 'scripts/update_native_smoke.py')!r},run_name='import_test'); assert callable(ns['fingerprint'])"
+    env = dict(os.environ)
+    env.pop("PYTHONPATH", None)
+    result = subprocess.run(
+        [sys.executable, "-c", code],
+        cwd=tmp_path,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
