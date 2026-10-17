@@ -10,7 +10,8 @@ import { useTranslation } from "react-i18next";
 import { trackEvent } from "@/lib/analytics";
 import { faDate } from "@/lib/fa";
 import { currentFiscalYear } from "@/lib/fiscal";
-import * as echarts from "echarts";
+import type { EChartsOption } from "echarts";
+import { EChart } from "@/components/echart";
 import { api, parseError } from "@/api/client";
 import { Money } from "@/components/money";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +20,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export function StatementsPage(): React.JSX.Element {
   const { calendar } = useCalendar();
   const { t } = useTranslation("reports");
-  const chartRef = React.useRef<HTMLDivElement>(null);
 
   const trial = useQuery({
     queryKey: ["reports", "trial-balance"],
@@ -27,28 +27,18 @@ export function StatementsPage(): React.JSX.Element {
       const res = await api.GET("/api/v1/reports/trial-balance");
       trackEvent("report_viewed", { route: "/statements", entity: "trial-balance" });
       if (res.error) throw await parseError(res.response);
-      return res.data as unknown as {
-        rows: Array<{ code: string; name: string; debit: string; credit: string; balance: string }>;
-      };
+      return res.data!;
     },
   });
 
-  React.useEffect(() => {
-    if (!chartRef.current || !trial.data) return;
-    const chart = echarts.init(chartRef.current);
-    const rows = (trial.data.rows ?? []).slice(0, 8);
-    chart.setOption({
+  const buildTrialOption = React.useCallback((): EChartsOption => {
+    const rows = (trial.data ?? []).slice(0, 8);
+    return {
       tooltip: { trigger: "axis" },
       grid: { left: 80, right: 20, top: 30, bottom: 40 },
       xAxis: { type: "category", data: rows.map((r) => r.name), axisLabel: { rotate: 30 } },
       yAxis: { type: "value" },
       series: [{ type: "bar", data: rows.map((r) => r.balance), itemStyle: { color: "#3b82f6" } }],
-    });
-    const onResize = () => chart.resize();
-    window.addEventListener("resize", onResize);
-    return () => {
-      window.removeEventListener("resize", onResize);
-      chart.dispose();
     };
   }, [trial.data]);
 
@@ -90,7 +80,7 @@ export function StatementsPage(): React.JSX.Element {
             </CardHeader>
             <CardContent>
               <div className="divide-y">
-                {(trial.data?.rows ?? []).map((r, i) => (
+                {(trial.data ?? []).map((r, i) => (
                   <div key={i} className="flex items-center justify-between py-2 text-sm">
                     <span>
                       <span className="num text-muted-foreground">{r.code}</span> {r.name}
@@ -103,7 +93,12 @@ export function StatementsPage(): React.JSX.Element {
                   </div>
                 ))}
               </div>
-              <div ref={chartRef} className="mt-4 h-72" data-testid="trial-chart" />
+              <EChart
+                buildOption={buildTrialOption}
+                height={288}
+                className="mt-4"
+                data-testid="trial-chart"
+              />
             </CardContent>
           </Card>
         </TabsContent>

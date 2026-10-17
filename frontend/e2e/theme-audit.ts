@@ -72,17 +72,51 @@ async function auditNative(page: Page, count: number, dark: boolean): Promise<vo
   }
 }
 
+/** Real loaded fonts and computed numeric styles; not only a declared CSS stack. */
+export async function auditNumberFonts(page: Page): Promise<void> {
+  const loaded = await page.evaluate(async () => {
+    const glyphs = "0123456789۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩";
+    const faces = await document.fonts.load('16px "Vazirmatn Variable"', glyphs);
+    await document.fonts.ready;
+    return (
+      faces.length >= 2 &&
+      faces.every((face) => face.status === "loaded" && face.family.includes("Vazirmatn")) &&
+      document.fonts.check('16px "Vazirmatn Variable"', glyphs)
+    );
+  });
+  expect(loaded).toBe(true);
+  const numbers = page.locator("main .num:visible");
+  // Empty import screens have no numeric results yet: check their controls too.
+  await expect(
+    page
+      .locator("main .num:visible, main input:visible, main select:visible, main textarea:visible")
+      .first(),
+  ).toBeVisible();
+  for (const number of await numbers.all()) {
+    await expect(number).toHaveCSS("font-family", /Vazirmatn/);
+    await expect(number).toHaveCSS("font-variant-numeric", "tabular-nums");
+    await expect(number).toHaveCSS("direction", "ltr");
+    await expect(number).toHaveCSS("unicode-bidi", "isolate");
+  }
+  for (const control of await page
+    .locator("main input:visible, main select:visible, main textarea:visible")
+    .all())
+    await expect(control).toHaveCSS("font-family", /Vazirmatn/);
+  const chartText = page.locator("main svg text:visible");
+  for (const text of await chartText.all())
+    await expect(text).toHaveCSS("font-family", /Vazirmatn/);
+}
+
 /** 4-B: real rendered text/control contrast on each themed form, not only tokens. */
 export async function auditSurfaces(page: Page, dark: boolean): Promise<void> {
+  await auditNumberFonts(page);
   const main = page.locator("main");
   await contrast(main.locator("h1:visible, h2:visible, label:visible, th:visible"));
   if (!dark) {
     await expect(page.locator("body")).toHaveCSS("background-color", "rgb(249, 247, 240)");
-    await contrast(
-      main.locator("input:visible:not(:disabled), select:visible:not(:disabled)"),
-      3,
-      "borderTopColor",
-    );
+    const controls = main.locator("input:visible:not(:disabled), select:visible:not(:disabled)");
+    // Read-only reports contain no form borders to measure.
+    if (await controls.count()) await contrast(controls, 3, "borderTopColor");
     const primary = main.locator("button.bg-primary:visible:not(:disabled)");
     if (await primary.count()) await contrast(primary);
   }
@@ -144,8 +178,23 @@ export async function auditMenuThemes(page: Page): Promise<void> {
         ["/warehouse", 5],
         ["/bank-import", 5],
         ["/settings", 1],
+        ["/statements", 0],
+        ["/system", 0],
       ] as const) {
         await page.goto(path);
+        if (path === "/system") {
+          // Exercise the real step-up; never bypass protection for a font audit.
+          await expect(page.getByTestId("sudo-dialog")).toBeVisible();
+          await page
+            .getByTestId("sudo-password")
+            .fill(process.env.VIRA_E2E_PASSWORD || "e2e-owner-password");
+          await page.getByTestId("sudo-confirm").click();
+          await expect(page.getByTestId("sudo-dialog")).not.toBeVisible();
+        }
+        if (path === "/statements") {
+          await page.getByRole("tab", { name: "ترازنامه آزمایشی", exact: true }).click();
+          await expect(page.getByTestId("trial-chart").locator("svg")).toBeVisible();
+        }
         if (path === "/warehouse") {
           await page.getByTestId(`move-${filament}`).click();
           await expect(page.getByTestId("movement-form")).toBeVisible();

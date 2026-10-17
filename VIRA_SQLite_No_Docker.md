@@ -244,7 +244,7 @@ Use the following Python development stack and architectural specifications to b
 
 23.    * Build a high-density, keyboard-accessible component library (Dialogs, Popovers, Command Palettes, Date Range Pickers, Comboboxes) with full Dark/Light theme support.
 
-24.  * **Tabular Financial Typography (`JetBrains Mono` + `Intl.NumberFormat`):**
+24.  * **Tabular Financial Typography (`Vazirmatn` + `Intl.NumberFormat`):**
 
 25.    * Apply `tabular-nums` to all numeric cells, badges, and financial statements for strict vertical decimal alignment.
 
@@ -698,7 +698,9 @@ Implement the following enhancement modules on top of the Core Stack (FastAPI + 
 
 
 
-* **Persian Typography & Strict Accounting Directionality (`Vazirmatn` + `JetBrains Mono`):**
+* **Persian Typography & Strict Accounting Directionality (`Vazirmatn` for text and all numbers):**
+
+  * User amendment (2026-10-17): use `Vazirmatn` for **all displayed numbers** as well as text, including inputs, tables, dates, charts/tooltips, technical values and print/PDF. Keep values/calculations/numeral semantics unchanged; retain tabular numbers and isolated LTR.
 
   * Use `Vazirmatn` as the primary application font, with proper Persian glyph rendering, readable typography, and support for Persian characters and numerals. Use `tabular-nums` where appropriate for aligned financial figures.
 

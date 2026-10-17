@@ -4,6 +4,7 @@
 import { expect, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import Decimal from "decimal.js";
+import { auditNumberFonts } from "./theme-audit";
 import { faNumber } from "../src/lib/fa";
 
 export async function auditDashboard(page: Page): Promise<void> {
@@ -162,6 +163,13 @@ export async function auditDashboard(page: Page): Promise<void> {
       await expect(svg).toBeVisible();
       expect(await svg.locator("path").count()).toBeGreaterThan(0);
     }
+    await auditNumberFonts(page);
+    const plot = page.getByTestId("chart-pnl").locator("svg");
+    const bounds = await plot.boundingBox();
+    await plot.hover({ position: { x: bounds!.width / 2, y: bounds!.height / 2 } });
+    const tooltip = page.locator(".vira-chart-tooltip:visible");
+    await expect(tooltip).toBeVisible();
+    await expect(tooltip).toHaveCSS("font-family", /Vazirmatn/);
     if (dark) await page.screenshot({ path: "test-results/dashboard-dark.png", fullPage: true });
   }
   await page.screenshot({ path: "test-results/dashboard-light.png", fullPage: true });

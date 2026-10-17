@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree";
 import "@fontsource-variable/vazirmatn";
-import "@fontsource/jetbrains-mono";
 import "./index.css";
 import { initAnalytics } from "@/lib/analytics";
 import "@/lib/i18n";

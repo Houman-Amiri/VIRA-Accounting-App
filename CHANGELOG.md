@@ -7,6 +7,19 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Changed — shared numeric typography (unpublished)
+- User amendment: Vazirmatn now covers numbers as well as text, including shared
+  numeric styles, native form controls, technical/version values, chart labels
+  and tooltips. Removed the separate JetBrains font dependency; legacy monospace
+  utilities resolve to the shared Vazirmatn stack.
+- Trial-balance chart uses the shared font-aware renderer and the actual typed
+  list API response, fixing its previously empty rows/chart without changing
+  stored or calculated amounts.
+- Proforma numeric styles use bundled OFL Vazirmatn Regular/Bold (v33.003), covering
+  Latin, Persian and Arabic digits offline. Native PDF rendering/installed Windows
+  visual acceptance remains separate from HTML/font-asset verification.
+- No schema, stored number, arithmetic, numeral system or release/version change.
+
 ### Changed — repair substep 4-B/1 (unpublished)
 - Pricing report now exposes only description/plain/chain amounts, without cell
   references or formula annotations. Literal workbook math and all three colored

@@ -45,3 +45,7 @@ Thumbs.db
 
 # Inno Setup output
 installer/Output/
+
+# Browser test artifacts
+/frontend/test-results/
+/frontend/playwright-report/

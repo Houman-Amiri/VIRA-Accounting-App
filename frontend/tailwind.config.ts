@@ -8,7 +8,8 @@ export default {
     extend: {
       fontFamily: {
         sans: ["Vazirmatn Variable", "Vazirmatn", "Tahoma", "sans-serif"],
-        mono: ["JetBrains Mono", "monospace"],
+        // Legacy utilities must not reintroduce a different numeric font.
+        mono: ["Vazirmatn Variable", "Vazirmatn", "Tahoma", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

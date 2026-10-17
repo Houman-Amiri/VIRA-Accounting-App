@@ -157,26 +157,25 @@ export function SystemPage(): React.JSX.Element {
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-2 text-sm md:grid-cols-3">
               <div>
-                {t("system.version")}: <span className="num font-mono">{s.version}</span>
+                {t("system.version")}: <span className="num">{s.version}</span>
               </div>
               <div>
-                {t("system.commit")}: <span className="num font-mono">{s.commit}</span>
+                {t("system.commit")}: <span className="num">{s.commit}</span>
               </div>
               <div>
                 {t("system.environment")}: {s.environment}
               </div>
               <div>
-                {t("system.python")}: <span className="num font-mono">{s.python_version}</span>
+                {t("system.python")}: <span className="num">{s.python_version}</span>
               </div>
               <div>
-                {t("system.sqlite")}: <span className="num font-mono">{s.sqlite_version}</span>
+                {t("system.sqlite")}: <span className="num">{s.sqlite_version}</span>
               </div>
               <div>
-                {t("system.migration")}:{" "}
-                <span className="num font-mono">{s.alembic_revision ?? "—"}</span>
+                {t("system.migration")}: <span className="num">{s.alembic_revision ?? "—"}</span>
               </div>
               <div className="col-span-2 truncate">
-                {t("system.database")}: <span className="font-mono text-xs">{s.database_path}</span>
+                {t("system.database")}: <span className="text-xs">{s.database_path}</span>
               </div>
               <div>
                 {t("system.scheduler")}:{" "}
@@ -199,7 +198,7 @@ export function SystemPage(): React.JSX.Element {
               <div>
                 {t("system.lastBackup")}:{" "}
                 {s.last_backup.at ? (
-                  <span className="num font-mono">
+                  <span className="num">
                     {faDateTime(s.last_backup.at, calendar)} ({fmtBytes(s.last_backup.size_bytes)})
                   </span>
                 ) : (

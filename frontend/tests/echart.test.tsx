@@ -33,6 +33,8 @@ it("keeps themed tooltip defaults separate from caller options, and observes con
   expect(container.firstElementChild).toHaveAttribute("dir", "ltr");
   expect(mock.setOption).toHaveBeenCalledTimes(2);
   expect(mock.setOption.mock.calls[0][0].tooltip).toHaveProperty("backgroundColor");
+  expect(mock.setOption.mock.calls[0][0].tooltip.textStyle.fontFamily).toContain("Vazirmatn");
+  expect(mock.setOption.mock.calls[0][0].textStyle.fontFamily).toContain("Vazirmatn");
   expect(mock.setOption.mock.calls[1][0].tooltip).toEqual({ trigger: "axis" });
   expect(mock.observe).toHaveBeenCalledTimes(1);
   window.dispatchEvent(new Event("resize"));
