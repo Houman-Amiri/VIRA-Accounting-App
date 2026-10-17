@@ -399,3 +399,48 @@ No automatic native runtime was added to normal staging/startup, no native binar
 is committed/uploaded, no public version/tag/release or installed-user acceptance.
 Next: establish a source-verifiable licensed runtime (build pinned sources if
 upstream provenance cannot be established), then normal startup/delta/rollback proof.
+
+
+### Source-verifiable native runtime proof (unpublished, 2026-10-17)
+
+[Persian report](docs/reports/pdf-runtime-source-build-fa.md),
+[full source inventory and copyright texts](docs/dependencies/pdf-runtime-win64-source-inventory.json),
+and [verified source/PDF evidence](docs/dependencies/pdf-runtime-win64-source-proof.json).
+The NEW source-built candidate has **21 DLLs / 14,417,408 bytes**, all actually
+loaded from its private relocated staged-CPython payload. The old 27 SDK DLLs
+remain UNREVIEWED; this is not a relabeling or approval of them.
+
+Native run **39048889428 / 2ec79b8** passed: 35 target/host packages compiled with
+native binary caches disabled at vcpkg **a5f736224e85b32e25a8ffc52562333180396642**.
+Complete patched target source materials cover **20 packages / 25,505 entries /
+21 safe internal symlinks**, with receipts, exact owners, SPDX, original copyright
+bytes, full recipes/patches and actual build wrappers. Target DLLs use a static
+CRT; build-only host tools use a separate dynamic-CRT/release triplet after a real
+gettext host-tool crash exposed the invalid unified static-CRT configuration.
+
+Independent artifact audit **39052300861 / b6c5475** verified the source ZIP hash,
+all target source trees/notices/SPDX/owners and original PDFs without recompiling.
+GitHub truncates notices at ten per step: all 47 inventory chunks were recovered
+across six steps, not mistaken for complete evidence when only three were visible.
+Source ZIP: **188,615,875 bytes**, SHA256
+`259532d2cd8c5d3b176402acdcfb9daadb2cb897d5710010cc198eeabe5401de`.
+Large sources remain temporary CI artifacts (14 days), not committed or a durable
+corresponding-source delivery arrangement for a future public binary release.
+
+Actual **CPython 3.11.17**, `-I`, production-only dependencies, int/double callbacks,
+one/four-page A4 PDFs and embedded Vazirmatn 400/700 with all 30 digits pass. The
+two PDF hashes match the previous private proof exactly; this does NOT claim
+bit-for-bit reproducibility of native libraries or all future documents.
+Regression: **413 backend / 196 frontend / six CI browser scenarios**, Ruff/Mypy/
+Bandit. All five ordinary CI jobs on `b6c5475` (39052300805) passed.
+
+Still **BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW** /
+DO_NOT_DISTRIBUTE. Explicit license choices, notices, recipe/compiler/CRT rights,
+durable source delivery, general Unicode Fontconfig/bootstrap, normal native
+manifest/delta/rollback, minimum-OS validation and installed-user acceptance remain
+open. libiconv's port has no declared license field; its source and full copyright
+are preserved, NOT silently approved. The private proof still uses an ASCII
+external temporary Fontconfig config. No native runtime was connected to normal
+startup/staging; no native binary upload, release/tag/version bump or user-data/
+pricing change. Continue with license choices and production bootstrap only after
+this technical source-materials checkpoint; publication still needs approval.

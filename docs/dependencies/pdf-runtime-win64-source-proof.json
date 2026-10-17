@@ -1,0 +1,92 @@
+{
+  "producer": {
+    "run_id": 39048889428,
+    "head_sha": "2ec79b82ccebc89d754dbe25c10aeef4c31d8738",
+    "workflow_path": ".github/workflows/pdf-source-proof.yml",
+    "artifact_name": "private-pdf-source-evidence"
+  },
+  "verified_source_materials": {
+    "packages": 20,
+    "source_files": 25505,
+    "source_symlinks": 21
+  },
+  "dll_count": 21,
+  "total_bytes": 14417408,
+  "source_archive": {
+    "name": "corresponding-source.zip",
+    "sha256": "259532d2cd8c5d3b176402acdcfb9daadb2cb897d5710010cc198eeabe5401de",
+    "size": 188615875
+  },
+  "proof": {
+    "worker": {
+      "python": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\python\\python.exe",
+      "base_prefix": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\python",
+      "version": "3.11.17 (main, Oct 14 2026, 01:04:22) [MSC v.1944 64 bit (AMD64)]",
+      "isolated": 1,
+      "development_dependencies_absent": true,
+      "ctypes_callbacks_verified": true,
+      "fontconfig_file": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\fonts.conf",
+      "loaded_dlls": {
+        "brotlicommon.dll": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\native\\pdf\\bin\\brotlicommon.dll",
+        "brotlidec.dll": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\native\\pdf\\bin\\brotlidec.dll",
+        "bz2.dll": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\native\\pdf\\bin\\bz2.dll",
+        "ffi-8.dll": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\native\\pdf\\bin\\ffi-8.dll",
+        "fontconfig-1.dll": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\native\\pdf\\bin\\fontconfig-1.dll",
+        "freetype.dll": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\native\\pdf\\bin\\freetype.dll",
+        "fribidi-0.dll": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\native\\pdf\\bin\\fribidi-0.dll",
+        "gio-2.0-0.dll": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\native\\pdf\\bin\\gio-2.0-0.dll",
+        "glib-2.0-0.dll": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\native\\pdf\\bin\\glib-2.0-0.dll",
+        "gmodule-2.0-0.dll": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\native\\pdf\\bin\\gmodule-2.0-0.dll",
+        "gobject-2.0-0.dll": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\native\\pdf\\bin\\gobject-2.0-0.dll",
+        "harfbuzz-subset.dll": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\native\\pdf\\bin\\harfbuzz-subset.dll",
+        "harfbuzz.dll": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\native\\pdf\\bin\\harfbuzz.dll",
+        "iconv-2.dll": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\native\\pdf\\bin\\iconv-2.dll",
+        "intl-8.dll": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\native\\pdf\\bin\\intl-8.dll",
+        "libexpat.dll": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\native\\pdf\\bin\\libexpat.dll",
+        "libpng16.dll": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\native\\pdf\\bin\\libpng16.dll",
+        "pango-1.0-0.dll": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\native\\pdf\\bin\\pango-1.0-0.dll",
+        "pangoft2-1.0-0.dll": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\native\\pdf\\bin\\pangoft2-1.0-0.dll",
+        "pcre2-8.dll": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\native\\pdf\\bin\\pcre2-8.dll",
+        "z.dll": "D:\\a\\_temp\\vira-bundled-pdf-1763dfe0ad3740c893edaf8594cc64d2\\VIRA چاپ بومی\\native\\pdf\\bin\\z.dll"
+      },
+      "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW"
+    },
+    "dll_count": 21,
+    "documents": {
+      "single-page": {
+        "pages": 1,
+        "sha256": "ae92659254d59fed845c8ce4880d7bfa2846d64850085e5facfc657579ee4ebd",
+        "bytes": 21463,
+        "fonts": [
+          {
+            "name": "/GMIUCZ+Vazirmatn-Bold",
+            "weight": 700,
+            "digits": "0123456789۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩"
+          },
+          {
+            "name": "/RFZBDK+Vazirmatn",
+            "weight": 400,
+            "digits": "0123456789۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩"
+          }
+        ]
+      },
+      "multi-page": {
+        "pages": 4,
+        "sha256": "8273a9acad1e600661ec44a7ff4d2d1ae6e8fba69914a5b1c2aa0344871c5650",
+        "bytes": 32973,
+        "fonts": [
+          {
+            "name": "/GMIUCZ+Vazirmatn-Bold",
+            "weight": 700,
+            "digits": "0123456789۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩"
+          },
+          {
+            "name": "/RFZBDK+Vazirmatn",
+            "weight": 400,
+            "digits": "0123456789۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩"
+          }
+        ]
+      }
+    }
+  }
+}

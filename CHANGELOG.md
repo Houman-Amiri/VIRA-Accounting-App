@@ -7,6 +7,29 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Verified pinned-source PDF runtime proof (not distribution approval)
+- Build 35 native/host packages from an immutable vcpkg source baseline, with
+  native binary caches disabled. NEW private candidate: 21 DLLs / 14,417,408 bytes;
+  all load from the relocated staged production CPython 3.11.17 payload. The old
+  27 SDK DLLs remain UNREVIEWED, not approved by this different source build.
+- Capture 20 target packages / 25,505 source entries / 21 bounded symlinks, complete
+  recipes/patches/build wrappers, installed ownership, SPDX, copyright texts and
+  hashes. Independently verify the actual source ZIP and PDF evidence, recovering
+  all 47 metadata chunks despite GitHub's per-step notice cap; no native rebuild.
+- Real source-build tests exposed/fixed a static-CRT gettext host-tool crash and
+  source-symlink capture failure. Host tools now use a separate dynamic-CRT release
+  triplet and never enter the candidate. Target source symlinks are retained safely;
+  absolute/escaping links and missing native sources/notices remain failures.
+- 413 backend / 196 frontend / six browser scenarios pass; all five ordinary CI
+  jobs on `b6c5475` (39052300805), native source run 39048889428 (`2ec79b8`) and
+  independent evidence audit 39052300861 pass. Same one/four-page PDF hashes,
+  actual Vazirmatn 400/700 embedding and all 30 used digits in both weights.
+- Candidate remains DO_NOT_DISTRIBUTE. License choices (including libiconv's missing
+  port license declaration), compiler/CRT/recipe rights, durable source delivery,
+  Unicode bootstrap, normal native update/rollback and installed-user acceptance
+  remain open. No native binary upload, public release/version or data/math changes.
+  See `docs/reports/pdf-runtime-source-build-fa.md` and the full source inventories.
+
 ### Private bundled-Python PDF audit (not a distributable runtime)
 - Audit the hash-pinned upstream runtime's x64 PE import/delay-import closure:
   27 DLLs / 15,534,142 bytes, excluding 51 unrelated upstream DLLs. Preserve hashes,
