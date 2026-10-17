@@ -16,7 +16,9 @@ New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 # bundled CPython 3.11 (python-build-standalone via uv) — the installed app
 # must run on machines without a system Python (v1.0.3 fix)
 uv python install 3.11 | Out-Null
-$pyExe = (uv python find 3.11).Trim()
+if ($LASTEXITCODE -ne 0) { throw "managed CPython install failed" }
+$pyExe = (uv python find --system --managed-python 3.11).Trim()
+if ($LASTEXITCODE -ne 0) { throw "managed CPython discovery failed" }
 if (-not (Test-Path $pyExe)) { throw "uv python find 3.11 returned nothing" }
 $pyDir = Split-Path -Parent $pyExe
 Copy-Item -Recurse $pyDir "$OutDir/python"
@@ -25,7 +27,9 @@ Write-Host "[stage_app_payload] bundled CPython from $pyDir"
 # backend + locked site-packages FOR the bundled interpreter (cp311) —
 # without --python, uv targets the runner default and .pyd ABI tags mismatch
 uv export --frozen --no-dev --no-emit-project --output-file "$OutDir/requirements.lock.txt" | Out-Null
+if ($LASTEXITCODE -ne 0) { throw "production lock export failed" }
 uv pip install --python "$pyExe" --target "$OutDir/site-packages" -r "$OutDir/requirements.lock.txt"
+if ($LASTEXITCODE -ne 0) { throw "production dependency staging failed" }
 Remove-Item "$OutDir/requirements.lock.txt"
 Copy-Item -Recurse backend/app "$OutDir/app"
 
@@ -74,4 +78,5 @@ Write-Host "[stage_app_payload] version.json: version=$v commit=$commit spa_buil
 
 # per-file manifest — the delta baseline (Phase 8 §1/§5)
 uv run python scripts/build_manifest.py $OutDir
+if ($LASTEXITCODE -ne 0) { throw "payload manifest generation failed" }
 Write-Host "[stage_app_payload] staged $OutDir"

@@ -315,6 +315,27 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm build
 
+      - name: Private bundled CPython PDF and minimal native closure proof
+        shell: pwsh
+        run: |
+          $out = (pwsh -NoProfile -File ./scripts/pdf_payload_smoke.ps1 2>&1 | Out-String)
+          $code = $LASTEXITCODE
+          Write-Host $out
+          if ($code -ne 0) {
+            $tail = $out.Substring([Math]::Max(0, $out.Length - 7000))
+            Write-Host "::error title=private bundled PDF proof::$((($tail -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A')"
+            throw "private bundled PDF proof failed"
+          }
+
+      - name: Upload private bundled PDF audit (no app, interpreter or native binaries)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundled-pdf-audit
+          path: reports/bundled-pdf/
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Real in-app delta apply and rollback (isolated Windows, current-code fixtures)
         shell: pwsh
         run: |

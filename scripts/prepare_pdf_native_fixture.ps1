@@ -38,6 +38,7 @@ $escapedCache = [System.Security.SecurityElement]::Escape($cache.Replace('\', '/
     "FONTCONFIG_FILE=$fontConfig"
     "FONTCONFIG_PATH=$root"
     "VIRA_PDF_PROOF_APP_ROOT=$appRoot"
+    "VIRA_PDF_UPSTREAM_ARCHIVE=$archive"
 ) | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 Write-Host "Native fixture: upstream WeasyPrint v70.0, verified SHA256 $expected"
 Write-Host "DLLs: $dllDir; app: $appRoot; system fonts excluded"
