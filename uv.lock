@@ -4761,7 +4761,7 @@ requires-dist = [
     { name = "types-itsdangerous", marker = "extra == 'dev'" },
     { name = "types-python-dateutil", marker = "extra == 'dev'" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.30" },
-    { name = "weasyprint", specifier = ">=62" },
+    { name = "weasyprint", specifier = ">=70" },
 ]
 provides-extras = ["dev", "ocr", "llm", "beancount", "s3"]
 

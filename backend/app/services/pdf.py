@@ -45,26 +45,42 @@ def render_html(
 def render_pdf(template_name: str, context: dict[str, Any]) -> bytes:
     html = render_html(template_name, context, inline_fonts=False)
     try:
-        from weasyprint import HTML, default_url_fetcher  # type: ignore[import-untyped]
+        from weasyprint import HTML, URLFetcher  # type: ignore[import-untyped]
         from weasyprint.text.fonts import FontConfiguration  # type: ignore[import-untyped]
+        from weasyprint.urls import (  # type: ignore[import-untyped]
+            FatalURLFetchingError,
+            URLFetcherResponse,
+        )
     except Exception as exc:  # pragma: no cover - depends on host libs
         raise RuntimeError(
             "WeasyPrint is not available on this host (Pango/Cairo missing); "
             "install native prerequisites to enable PDF output"
         ) from exc
     allowed_urls = {
-        (FONTS_DIR / f"Vazirmatn-{weight}.ttf").as_uri() for weight in ("Regular", "Bold")
+        (FONTS_DIR / f"Vazirmatn-{weight}.ttf").as_uri(): FONTS_DIR / f"Vazirmatn-{weight}.ttf"
+        for weight in ("Regular", "Bold")
     }
 
-    def fetch_font(url: str) -> dict[str, Any]:
-        # Printable documents must never fetch remote resources or arbitrary files.
-        if url not in allowed_urls:
-            raise ValueError("Only the bundled Vazirmatn font files may be fetched")
-        return default_url_fetcher(url)
+    class BundledFontFetcher(URLFetcher):
+        def fetch(self, url: str, headers: dict[str, str] | None = None) -> Any:
+            # No network/openers: read only the two exact bundled font paths.
+            if url not in allowed_urls:
+                raise ValueError("Only the bundled Vazirmatn font files may be fetched")
+            return URLFetcherResponse(
+                url, allowed_urls[url].read_bytes(), {"Content-Type": "font/ttf"}
+            )
 
-    return HTML(string=html, base_url=str(TEMPLATES_DIR), url_fetcher=fetch_font).write_pdf(
-        font_config=FontConfiguration()
+    fetcher = BundledFontFetcher(
+        allowed_protocols={"file"}, allow_redirects=False, fail_on_errors=True
     )
+    try:
+        return HTML(string=html, base_url=str(TEMPLATES_DIR), url_fetcher=fetcher).write_pdf(
+            font_config=FontConfiguration()
+        )
+    except FatalURLFetchingError as exc:
+        # WeasyPrint's fatal resource errors inherit BaseException. Normalize
+        # this specific case so the existing printable fallback still applies.
+        raise RuntimeError("Bundled PDF fonts could not be loaded") from exc
 
 
 def proforma_context(order: dict[str, Any]) -> dict[str, Any]:

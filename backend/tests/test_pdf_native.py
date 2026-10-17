@@ -96,11 +96,24 @@ def test_inspector_rejects_html_and_insufficient_pages(pdf_inspector):
 
 def test_native_fetcher_allows_only_exact_bundled_fonts(monkeypatch):
     captured = {}
-    fetched = []
     weasy = ModuleType("weasyprint")
     fonts = ModuleType("weasyprint.text.fonts")
+    urls = ModuleType("weasyprint.urls")
     fonts.FontConfiguration = object
-    weasy.default_url_fetcher = lambda url: fetched.append(url) or {"string": b"font"}
+    class URLFetcher:
+        def __init__(self, **kwargs):
+            assert kwargs == {"allowed_protocols": {"file"}, "allow_redirects": False, "fail_on_errors": True}
+
+    class Response:
+        def __init__(self, url, body, headers):
+            self.url, self.body, self.headers = url, body, headers
+
+    class FatalError(BaseException):
+        pass
+
+    weasy.URLFetcher = URLFetcher
+    urls.URLFetcherResponse = Response
+    urls.FatalURLFetchingError = FatalError
 
     class HTML:
         def __init__(self, **kwargs):
@@ -112,21 +125,22 @@ def test_native_fetcher_allows_only_exact_bundled_fonts(monkeypatch):
 
     weasy.HTML = HTML
     monkeypatch.setitem(sys.modules, "weasyprint", weasy)
+    monkeypatch.setitem(sys.modules, "weasyprint.urls", urls)
     monkeypatch.setitem(sys.modules, "weasyprint.text.fonts", fonts)
     context = {"company": {"name": "VIRA", "tagline": ""}, "order": {
         "order_number": "1", "customer": {}, "lines": [],
     }}
     assert pdf.render_pdf("proforma.html", context) == b"mock renderer bytes, never native proof"
-    fetch = captured["url_fetcher"]
+    fetch = captured["url_fetcher"].fetch
     for weight in ("Regular", "Bold"):
         uri = (pdf.FONTS_DIR / f"Vazirmatn-{weight}.ttf").as_uri()
-        fetch(uri)
+        response = fetch(uri)
+        assert response.body == (pdf.FONTS_DIR / f"Vazirmatn-{weight}.ttf").read_bytes()
+        assert response.headers == {"Content-Type": "font/ttf"}
         assert uri in captured["string"]
-    assert len(fetched) == 2
     for forbidden in ("https://example.invalid/a.ttf", "http://127.0.0.1/", (pdf.FONTS_DIR.parent / "not-a-font.txt").as_uri(), "data:text/plain,not-a-font"):
         with pytest.raises(ValueError, match="Only the bundled"):
             fetch(forbidden)
-    assert len(fetched) == 2  # denied URLs never reach the real fetcher
 
 
 async def test_fallback_is_explicit_html_with_self_contained_fonts(client, monkeypatch):
