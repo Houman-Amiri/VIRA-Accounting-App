@@ -898,9 +898,13 @@ visual acceptance, a release/version bump or authorization to publish.
 ### Native PDF proof follow-up (unpublished, 2026-10-17)
 
 See [`docs/reports/native-pdf-font-proof-fa.md`](docs/reports/native-pdf-font-proof-fa.md).
-A strict native Windows PDF/font gate is being added; its result is pending.
-Self-contained browser fallback fonts and a local-only PDF font fetcher are
-implemented. The pinned upstream native fixture is CI-only, NOT included in
-installer/delta payloads. Runtime closure, third-party license/source compliance,
+Strict native Windows PDF/API/font verification **passed**, with all five CI jobs
+successful on `e5e3364` (run **38996175479**): one/four A4 pages, actual embedded
+Vazirmatn Regular/Bold, all 30 used Latin/Persian/Arabic digits in both weights.
+Local regression: **368 backend / 196 frontend / six real-browser tests passed**.
+Self-contained browser fallback fonts work under document-only restrictive CSP;
+the PDF fetcher reads only the two bundled TTFs using the locked WeasyPrint 70 API.
+The pinned upstream native fixture is CI-only, NOT included in installer/delta
+payloads. Runtime closure, third-party license/source compliance,
 installed-bundled-Python proof and human RTL/print/business acceptance remain open.
-Do not infer publication authorization or installed-PDF acceptance from this gate.
+No release, new version, publication authorization or installed-PDF acceptance.

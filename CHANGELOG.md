@@ -7,7 +7,7 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
-### Native PDF verification (unpublished; Windows result pending)
+### Verified native PDF/font proof (unpublished; runtime packaging still open)
 - Printable HTML fallback now embeds both self-hosted Vazirmatn fonts instead
   of broken API-relative font paths. PDF resource fetching is restricted to the
   two bundled TTFs; business values and fallback content types are unchanged.
@@ -15,7 +15,14 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
   bytes/weights and used Unicode digits, including multipage A4 documents.
   A SHA-pinned official WeasyPrint runtime is a CI-only fixture, NOT yet a
   distributable install/delta runtime. Legal/source and installed-payload gates
-  remain open. See `docs/reports/native-pdf-font-proof-fa.md`.
+  remain open. Fallback-only CSP permits embedded fonts while keeping scripts
+  and external resources blocked. The fetcher uses the already-locked WeasyPrint
+  70 API (no engine upgrade) and normalizes fatal font-resource errors to fallback.
+- 368 backend / 196 frontend tests and six real-browser scenarios pass. All five
+  CI jobs pass on `e5e3364` (38996175479), including strict native Windows PDF/API
+  proof, real delta rollback and public-1.0.10 schema/data rollback. Native PDFs:
+  one and four A4 pages; embedded Regular/Bold with all 30 used digits in each.
+  See `docs/reports/native-pdf-font-proof-fa.md`.
 
 ### Added — repair substep 4-B/3-B (unpublished)
 - Settings manages persisted item types, units and the existing shared supplier
