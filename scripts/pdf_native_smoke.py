@@ -179,10 +179,11 @@ def main() -> None:
         if html.count("data:font/ttf;base64,") != 2:
             raise ValueError("Browser fallback must have both fonts inline")
         data = render_pdf("proforma.html", context)
+        # Retain synthetic raw output for diagnosis even if strict inspection fails.
+        (args.out_dir / f"{name}.pdf").write_bytes(data)
         result = inspect_pdf(data, expected_digits=DIGITS, min_pages=minimum)
         if lines == 1 and result["pages"] != 1:
             raise ValueError("Single-page fixture overflowed")
-        (args.out_dir / f"{name}.pdf").write_bytes(data)
         results[name] = result
     results["native_dll_paths"] = loaded_native_paths()
     results["scope"] = "Synthetic native rendering only; NOT installed payload or business/visual acceptance"

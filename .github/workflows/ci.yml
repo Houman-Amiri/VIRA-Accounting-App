@@ -281,11 +281,23 @@ jobs:
       - name: Strict real PDF and embedded Vazirmatn (native Windows)
         shell: pwsh
         run: |
-          uv run python scripts/pdf_native_smoke.py --app-root "$env:VIRA_PDF_PROOF_APP_ROOT" --out-dir reports/native-pdf
-          if ($LASTEXITCODE -ne 0) { throw "native PDF/font proof failed; HTML is not accepted" }
+          $out = (uv run python scripts/pdf_native_smoke.py --app-root "$env:VIRA_PDF_PROOF_APP_ROOT" --out-dir reports/native-pdf 2>&1 | Out-String)
+          $code = $LASTEXITCODE
+          Write-Host $out
+          if ($code -ne 0) {
+            $tail = $out.Substring([Math]::Max(0, $out.Length - 5000))
+            Write-Host "::error title=native PDF proof::$((($tail -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A')"
+            throw "native PDF/font proof failed; HTML is not accepted"
+          }
           $env:VIRA_REQUIRE_NATIVE_PDF = "1"
-          uv run pytest backend/tests/test_operations.py::test_proforma_document_renders -q
-          if ($LASTEXITCODE -ne 0) { throw "actual authenticated proforma API must return embedded-font PDF" }
+          $out = (uv run pytest backend/tests/test_operations.py::test_proforma_document_renders -q 2>&1 | Out-String)
+          $code = $LASTEXITCODE
+          Write-Host $out
+          if ($code -ne 0) {
+            $tail = $out.Substring([Math]::Max(0, $out.Length - 5000))
+            Write-Host "::error title=native PDF API::$((($tail -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A')"
+            throw "actual authenticated proforma API must return embedded-font PDF"
+          }
 
       - name: Upload synthetic native PDF evidence (no DLL binaries)
         if: always()
