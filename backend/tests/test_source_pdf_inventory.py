@@ -134,6 +134,10 @@ def test_profile_keeps_replaceable_libraries_and_immutable_baseline(tool):
     assert '--binarysource=clear' in script
     assert '$env:VCPKG_BINARY_SOURCES = "clear"' in script
     assert 'git -C $vcpkg rev-parse HEAD' in script
+    assert "--host-triplet x64-vira-pdf-host" in script
+    host = (profile / "triplets/x64-vira-pdf-host.cmake").read_text()
+    assert "set(VCPKG_CRT_LINKAGE dynamic)" in host
+    assert "set(VCPKG_BUILD_TYPE release)" in host
 
 
 def test_empty_alias_can_delegate_only_metadata_to_real_installed_dependency(tool, workspace, tmp_path):

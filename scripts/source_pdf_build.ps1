@@ -24,7 +24,7 @@ New-Item -ItemType Directory -Force -Path $reports | Out-Null
 & git -C $vcpkg status --porcelain | Set-Content (Join-Path $reports "vcpkg-status-before.txt")
 # Clear every binary-cache source: target AND host ports must build here.
 # Downloaded, hash-verified compiler/build tools are not claimed to be source-built.
-& (Join-Path $vcpkg "vcpkg.exe") install --triplet x64-vira-pdf --host-triplet x64-vira-pdf "--x-manifest-root=$profile" "--x-install-root=$installed" "--overlay-triplets=$profile/triplets" --binarysource=clear --no-print-usage 2>&1 | Tee-Object (Join-Path $reports "build.log")
+& (Join-Path $vcpkg "vcpkg.exe") install --triplet x64-vira-pdf --host-triplet x64-vira-pdf-host "--x-manifest-root=$profile" "--x-install-root=$installed" "--overlay-triplets=$profile/triplets" --binarysource=clear --no-print-usage 2>&1 | Tee-Object (Join-Path $reports "build.log")
 if ($LASTEXITCODE -ne 0) { throw "controlled native source build failed; see build.log" }
 $candidate = Join-Path $work "candidate"
 uv run python scripts/source_pdf_inventory.py --vcpkg-root $vcpkg --installed $installed --out-dir $candidate --reports $reports

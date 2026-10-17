@@ -12,7 +12,7 @@ tools / Windows SDK, Git, PowerShell, uv, Node 22 and pnpm 9, use the checked-in
 vcpkg revision, and invokes:
 
 ```powershell
-vcpkg install --triplet x64-vira-pdf --host-triplet x64-vira-pdf `
+vcpkg install --triplet x64-vira-pdf --host-triplet x64-vira-pdf-host `
   --x-manifest-root=<this-directory> --x-install-root=<temporary-installed> `
   --overlay-triplets=<this-directory>/triplets --binarysource=clear --no-print-usage
 ```
@@ -28,7 +28,8 @@ The experimental triplet uses dynamically linked libraries (LGPL libraries remai
 replaceable) with a static MSVC CRT and release-only target builds. This setting
 is a hypothesis to verify in the build and PE closure, not a promise about port
 support, license compatibility, OS support or redistribution rights. Host tools
-use the same native-x64 release triplet to avoid duplicate debug/CRT builds, and
+use a separate x64 release-only dynamic-CRT triplet (gettext tools failed with
+a static CRT during the actual experiment), and
 are **not** copied into the native candidate. Build-tool acquisition may download
 pinned executables; disabling the package cache does not disable that mechanism.
 
