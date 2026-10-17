@@ -52,13 +52,25 @@ jobs:
         shell: pwsh
         run: |
           # Keep failure traces accessible in check annotations as well as artifacts.
-          $out = (pwsh -NoProfile -File ./scripts/source_pdf_build.ps1 2>&1 | Out-String)
+          $tail = [System.Collections.Generic.Queue[string]]::new()
+          & pwsh -NoProfile -File ./scripts/source_pdf_build.ps1 2>&1 | ForEach-Object {
+            $line = $_.ToString()
+            Write-Host $line
+            $tail.Enqueue($line)
+            if ($tail.Count -gt 150) { $null = $tail.Dequeue() }
+            if ($line -match '^Installing [0-9]+/[0-9]+ ') {
+              Write-Host ("::notice title=Native source progress::" + $line.Replace('%', '%25'))
+            }
+          }
           $code = $LASTEXITCODE
-          Write-Host $out
           if ($code -ne 0) {
-            $tail = $out.Substring([Math]::Max(0, $out.Length - 11000))
-            $tail = $tail.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
-            Write-Host "::error title=Pinned source build failed::$tail"
+            $last = $tail -join "`n"
+            $last = $last.Substring([Math]::Max(0, $last.Length - 9000))
+            for ($i = 0; $i -lt $last.Length; $i += 2800) {
+              $part = $last.Substring($i, [Math]::Min(2800, $last.Length - $i))
+              $part = $part.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+              Write-Host "::error title=Pinned source failure part ${i}::$part"
+            }
             exit $code
           }
       - name: Upload source, notices, toolchain records and synthetic PDFs only

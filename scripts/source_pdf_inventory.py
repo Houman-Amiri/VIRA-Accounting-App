@@ -87,13 +87,28 @@ def capture_sources(vcpkg: Path, installed: Path, packages: dict, archive: Path,
         for name, package in packages.items():
             share = installed / TRIPLET / "share" / name
             copyright_file, spdx_file = share / "copyright", share / "vcpkg.spdx.json"
-            if not copyright_file.is_file() or not copyright_file.stat().st_size or not spdx_file.is_file():
+            port = vcpkg / "ports" / name
+            manifest_file = port / "vcpkg.json"
+            port_manifest = json.loads(manifest_file.read_text(encoding="utf-8")) if manifest_file.is_file() else {}
+            allowed_metadata = {f"{TRIPLET}/share/{name}/{file}" for file in ("vcpkg.spdx.json", "vcpkg_abi_info.txt")}
+            actual_files = {p for p in package["files"] if not p.endswith("/")}
+            portfile = port / "portfile.cmake"
+            empty_alias = (
+                bool(actual_files) and actual_files <= allowed_metadata
+                and bool(port_manifest.get("dependencies"))
+                and all(isinstance(dep, str) and dep in packages for dep in port_manifest["dependencies"])
+                and portfile.is_file()
+                and "".join(portfile.read_text().split()) == "set(VCPKG_POLICY_EMPTY_PACKAGEenabled)"
+            )
+            if not spdx_file.is_file() or (not empty_alias and (not copyright_file.is_file() or not copyright_file.stat().st_size)):
                 raise ValueError(f"Missing copyright/SPDX evidence: {name}")
             spdx = json.loads(spdx_file.read_text(encoding="utf-8"))
             entries = spdx.get("packages", [])
+            if not entries:
+                raise ValueError(f"Missing SPDX package records: {name}")
             source = vcpkg / "buildtrees" / name / "src"
             source_files = list(tree_entries(source)) if source.is_dir() else []
-            has_native_code = any(p.lower().endswith((".dll", ".lib", ".a")) for p in package["files"])
+            has_native_code = any(p.lower().endswith((".dll", ".lib", ".a", ".h", ".hpp", ".hxx", ".inl", ".ipp")) for p in package["files"])
             if has_native_code and not source_files:
                 raise ValueError(f"Native library has no captured source tree: {name}")
             tree_hash = hashlib.sha256()
@@ -107,10 +122,13 @@ def capture_sources(vcpkg: Path, installed: Path, packages: dict, archive: Path,
             evidence[name] = {
                 "receipt": package["receipt"], "native_code": has_native_code,
                 "patched_source_files": len(source_files), "patched_source_tree_sha256": tree_hash.hexdigest(),
-                "copyright_sha256": digest(copyright_file.read_bytes()),
+                "copyright_sha256": digest(copyright_file.read_bytes()) if copyright_file.is_file() else None,
+                "declared_port_license": port_manifest.get("license"),
+                "delegated_license_packages": port_manifest["dependencies"] if empty_alias else [],
                 "spdx_sha256": digest(spdx_file.read_bytes()),
                 "spdx_packages": entries,
-                "source_status": "PATCHED_TREE_CAPTURED" if source_files else "RECIPE_ONLY_NO_NATIVE_CODE",
+                "source_status": ("EMPTY_DEPENDENCY_ALIAS_NO_RUNTIME_FILES" if empty_alias else
+                                  "PATCHED_TREE_CAPTURED" if source_files else "RECIPE_ONLY_NO_NATIVE_CODE"),
             }
         bundle.writestr("README.txt", (
             "VIRA private native source evidence. NOT a distribution approval.\n"
@@ -160,14 +178,14 @@ def build(vcpkg: Path, installed: Path, out: Path, reports: Path, profile: Path)
     (out / "bin").mkdir(parents=True, exist_ok=True)
     for name in closure:
         (out / "bin" / name).write_bytes(files[name])
-    text = json.dumps(inventory, ensure_ascii=False, indent=2) + "\n"
+    text = json.dumps(inventory, ensure_ascii=True, indent=2) + "\n"
     (out / "runtime-inventory.json").write_text(text, encoding="utf-8")
     (out / "DO_NOT_DISTRIBUTE.txt").write_text(BLOCKED + "\n", encoding="utf-8")
     (reports / "source-inventory.json").write_text(text, encoding="utf-8")
     # Capture the actual generated toolchain configuration and installed receipts.
     for source, destination in ((vcpkg / "buildtrees", reports / "toolchains"), (installed / "vcpkg/info", reports / "receipts")):
         for path in source.rglob("*"):
-            if path.is_file() and (source.name == "info" or path.name.startswith(("vcpkg_abi_info", "vcpkg_cmake", "vcpkg_meson", "config-")) and path.suffix in (".txt", ".log", ".ini", ".cmake")):
+            if path.is_file() and (source.name == "info" or "src" not in path.relative_to(source).parts and path.suffix in (".txt", ".log", ".ini", ".cmake", ".json")):
                 dest = destination / path.relative_to(source)
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(path, dest)

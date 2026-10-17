@@ -12,13 +12,13 @@ tools / Windows SDK, Git, PowerShell, uv, Node 22 and pnpm 9, use the checked-in
 vcpkg revision, and invokes:
 
 ```powershell
-vcpkg install --triplet x64-vira-pdf --host-triplet x64-windows `
+vcpkg install --triplet x64-vira-pdf --host-triplet x64-vira-pdf `
   --x-manifest-root=<this-directory> --x-install-root=<temporary-installed> `
   --overlay-triplets=<this-directory>/triplets --binarysource=clear --no-print-usage
 ```
 
-`VCPKG_BINARY_SOURCES=clear` also disables binary package restoration. Target
-libraries and required host ports are built on that runner. Bootstrap executables,
+`VCPKG_BINARY_SOURCES=clear` also disables binary package restoration. Native runtime
+libraries compile on that runner. Bootstrap executables,
 compiler, SDK and downloaded build tools are prerequisites, **not claimed to be
 source-built**. This is traceability, not bit-for-bit reproducibility or an offline
 compiler SDK. Upstream source archive hashes and patches are in the pinned port
@@ -28,13 +28,17 @@ The experimental triplet uses dynamically linked libraries (LGPL libraries remai
 replaceable) with a static MSVC CRT and release-only target builds. This setting
 is a hypothesis to verify in the build and PE closure, not a promise about port
 support, license compatibility, OS support or redistribution rights. Host tools
-use the ordinary x64-windows triplet and are **not** copied into the native candidate.
+use the same native-x64 release triplet to avoid duplicate debug/CRT builds, and
+are **not** copied into the native candidate. Build-tool acquisition may download
+pinned executables; disabling the package cache does not disable that mechanism.
 
 ## Evidence, and what it does not prove
 
 The collector fails if a selected DLL has no installed package owner, a non-inbox
 DLL import is unresolved, a native target package has no captured patched source,
-or target copyright / SPDX receipts are absent. It captures all target package
+or target copyright / SPDX receipts are absent. An explicitly empty dependency
+alias may delegate notices to its installed dependency, but only when its pinned
+portfile contains just the empty-package policy and its receipt has metadata only. It captures all target package
 sources, including static dependencies, rather than just the owners of selected
 DLLs. Full vcpkg recipes, patches, bootstrap scripts, license and version database
 are captured alongside complete patched `buildtrees/<port>/src` trees and installed

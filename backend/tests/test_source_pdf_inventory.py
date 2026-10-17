@@ -134,3 +134,44 @@ def test_profile_keeps_replaceable_libraries_and_immutable_baseline(tool):
     assert '--binarysource=clear' in script
     assert '$env:VCPKG_BINARY_SOURCES = "clear"' in script
     assert 'git -C $vcpkg rev-parse HEAD' in script
+
+
+def test_empty_alias_can_delegate_only_metadata_to_real_installed_dependency(tool, workspace, tmp_path):
+    package(tool, workspace, "real")
+    package(tool, workspace, "alias", native=False, sources=False, copyright=False)
+    vcpkg, installed, profile = workspace
+    port = vcpkg / "ports/alias"
+    port.mkdir(parents=True)
+    (port / "vcpkg.json").write_text(json.dumps({"dependencies": ["real"]}))
+    (port / "portfile.cmake").write_text("set(VCPKG_POLICY_EMPTY_PACKAGE enabled)\n")
+    receipt = installed / "vcpkg/info" / f"alias_1.0_{tool.TRIPLET}.list"
+    receipt.write_text(f"{tool.TRIPLET}/share/alias/vcpkg.spdx.json\n")
+    packages, _ = tool.package_records(installed)
+    result = tool.capture_sources(vcpkg, installed, packages, tmp_path / "source.zip", profile)
+    assert result["alias"]["source_status"] == "EMPTY_DEPENDENCY_ALIAS_NO_RUNTIME_FILES"
+    assert result["alias"]["copyright_sha256"] is None
+    assert result["alias"]["delegated_license_packages"] == ["real"]
+    assert result["real"]["copyright_sha256"]
+    # A fake alias cannot hide an installed library or other runtime content.
+    receipt.write_text(receipt.read_text() + f"{tool.TRIPLET}/bin/hidden.dll\n")
+    packages, _ = tool.package_records(installed)
+    with pytest.raises(ValueError, match="Missing copyright/SPDX"):
+        tool.capture_sources(vcpkg, installed, packages, tmp_path / "invalid.zip", profile)
+
+
+def test_header_only_native_code_still_requires_preferred_source(tool, workspace, tmp_path):
+    package(tool, workspace, "headers", native=False, sources=False)
+    vcpkg, installed, profile = workspace
+    (installed / "vcpkg/info" / f"headers_1.0_{tool.TRIPLET}.list").write_text(f"{tool.TRIPLET}/include/headers.hpp\n")
+    packages, _ = tool.package_records(installed)
+    with pytest.raises(ValueError, match="no captured source"):
+        tool.capture_sources(vcpkg, installed, packages, tmp_path / "source.zip", profile)
+
+
+def test_empty_spdx_document_not_accepted_as_license_evidence(tool, workspace, tmp_path):
+    package(tool, workspace, "real")
+    vcpkg, installed, profile = workspace
+    (installed / tool.TRIPLET / "share/real/vcpkg.spdx.json").write_text("{}")
+    packages, _ = tool.package_records(installed)
+    with pytest.raises(ValueError, match="Missing SPDX package records"):
+        tool.capture_sources(vcpkg, installed, packages, tmp_path / "source.zip", profile)
