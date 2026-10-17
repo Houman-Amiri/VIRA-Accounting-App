@@ -1281,7 +1281,7 @@ export interface paths {
          * Proforma Pdf
          * @description پیش‌فاکتور فروش — printable RTL PDF of one order (Jinja2 + WeasyPrint).
          *
-         *     WeasyPrint needs native Pango/Cairo; when it is missing (e.g. a dev box) the
+         *     WeasyPrint needs native Pango/Fontconfig/HarfBuzz; when it is missing (e.g. a dev box) the
          *     same HTML is returned so the browser's «چاپ → ذخیره به‌عنوان PDF» still works.
          */
         get: operations["proforma_pdf_api_v1_orders__order_id__proforma_pdf_get"];

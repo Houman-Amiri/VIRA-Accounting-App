@@ -8687,7 +8687,7 @@
           "orders"
         ],
         "summary": "Proforma Pdf",
-        "description": "پیش‌فاکتور فروش — printable RTL PDF of one order (Jinja2 + WeasyPrint).\n\nWeasyPrint needs native Pango/Cairo; when it is missing (e.g. a dev box) the\nsame HTML is returned so the browser's «چاپ → ذخیره به‌عنوان PDF» still works.",
+        "description": "پیش‌فاکتور فروش — printable RTL PDF of one order (Jinja2 + WeasyPrint).\n\nWeasyPrint needs native Pango/Fontconfig/HarfBuzz; when it is missing (e.g. a dev box) the\nsame HTML is returned so the browser's «چاپ → ذخیره به‌عنوان PDF» still works.",
         "operationId": "proforma_pdf_api_v1_orders__order_id__proforma_pdf_get",
         "parameters": [
           {
