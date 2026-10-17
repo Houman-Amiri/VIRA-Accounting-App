@@ -312,14 +312,14 @@ presentation and an installation-wide calendar preference stored as versioned,
 append-only SQLite security events (no DDL/revision change; backups include it).
 Only OWNER/BOOKKEEPER can change it, with CSRF and revision compare-and-swap;
 authenticated AUDITOR can read it. No browser-only preference or data rewrite.
-Item master-data implementation is now locally tested; its final Windows migration/rollback gate is tracked in the catalog report below.
+Item master-data implementation is now locally tested; its final Windows migration/rollback gate passed as recorded in the catalog report below.
 The user deferred installed-data/manual acceptance until the phases finish, not
 automated tests. This is not authorization to publish another version. Preserve
 immutable releases, migration backups and delta-only routine updates. The detailed
 plan defines acceptance tests and per-step reporting.
 
 
-### 4-B/3 safety checkpoint — catalog implementation remains pending
+### 4-B/3-A safety checkpoint — preceding catalog implementation
 
 Before dynamic type/unit DDL, the updater must restore the exact attempt's verified
 SQLite snapshot after a failed schema migration, not just old app files. The new
@@ -333,7 +333,7 @@ for the public-1.0.10 / compiled-helper / real probe-revision rollback gate and 
 actual test status. The probe revision exists only in disposable CI payloads.
 It does not close the final catalog-migration gate: rerun with the actual reference
 models/DDL before shipping that migration. Types, units and supplier Settings UI
-are not delivered by this safety checkpoint. No new public release is authorized.
+were not delivered by this earlier safety checkpoint. No new public release is authorized.
 
 
 ### 4-B/3-B — persisted item catalog (2026-10-17, unpublished)
@@ -354,3 +354,11 @@ for actual local and Windows gate evidence/status. The public-1.0.10 gate now se
 with the untouched public migrator/ORM and applies the actual final catalog DDL,
 not a synthetic probe. Installed-business/Windows visual acceptance remains deferred;
 no new tag, release, installer or authorization to publish is implied.
+
+
+Final 4-B/3-B evidence: **357 backend / 196 frontend tests**, five real-browser
+scenarios, and **all five CI jobs successful** on `fb82b2c` (run **38992081789**),
+including actual catalog DDL from immutable public 1.0.10 and compiled-helper
+schema/data rollback. Inventory indexes/triggers are preserved alongside rows.
+This completes the automated implementation gate, not installed-business/native
+visual acceptance, a release/version bump or authorization to publish.

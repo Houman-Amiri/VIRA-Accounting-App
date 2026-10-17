@@ -21,9 +21,12 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
   Catalog changes require write roles, CSRF and matching revisions and are audited.
 - Derived inventory values accept the full eight decimal places of two scaled-four
   inputs instead of failing response validation or rounding away exact values.
-- Local: 355 backend / 196 frontend tests; five real-browser scenarios including
+- Inventory indexes/triggers, including local additions, survive the rebuild;
+  empty/missing supplier references are rejected before SQL constraint failures.
+- Local: 357 backend / 196 frontend tests; five real-browser scenarios including
   catalog lifecycle, mobile/desktop, both themes and unchanged workbook pricing.
-  The final public-1.0.10 compiled-helper migration/rollback CI gate must pass.
+  All five CI jobs passed on `fb82b2c` (run 38992081789), including final catalog
+  DDL from public 1.0.10 and compiled-helper database rollback. No release/tag.
 
 ### Changed — shared numeric typography (unpublished)
 - User amendment: Vazirmatn now covers numbers as well as text, including shared
