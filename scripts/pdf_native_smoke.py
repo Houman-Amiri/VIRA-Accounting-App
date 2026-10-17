@@ -26,7 +26,10 @@ NATIVE_DLLS = (
 )
 
 
-def inspect_pdf(data: bytes, *, expected_digits: str = "", min_pages: int = 1) -> dict:
+def inspect_pdf(
+    data: bytes, *, expected_digits: str = "", min_pages: int = 1,
+    expected_by_weight: dict[int, str] | None = None,
+) -> dict:
     """Reject HTML, unembedded/substitute fonts, wrong paper, and missing digits.
 
     Inspect actual page text operators and embedded TTFs, not CSS family names or
@@ -104,7 +107,8 @@ def inspect_pdf(data: bytes, *, expected_digits: str = "", min_pages: int = 1) -
         raise ValueError("Both Regular and Bold must be embedded and used")
     for weight in (400, 700):
         available = set().union(*(f["characters"] for f in fonts.values() if f["weight"] == weight))
-        missing = set(expected_digits) - available
+        required = (expected_by_weight or {}).get(weight, expected_digits)
+        missing = set(required) - available
         if missing:
             raise ValueError(f"Digits missing from weight {weight}: {sorted(missing)}")
     return {

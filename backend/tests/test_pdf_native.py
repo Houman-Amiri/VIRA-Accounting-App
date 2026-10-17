@@ -73,6 +73,9 @@ def test_inspector_reads_embedded_font_bytes_and_used_weights(pdf_inspector):
     assert result["pages"] == 1
     assert {font["weight"] for font in result["fonts"]} == {400, 700}
     assert all(font["digits"] == DIGITS for font in result["fonts"])
+    assert pdf_inspector(sample_pdf(), expected_by_weight={400: "۰۱۲", 700: "۷۸۹"})
+    with pytest.raises(ValueError, match="weight 700"):
+        pdf_inspector(sample_pdf(fault="unused-mapped-digits"), expected_by_weight={700: "۹"})
 
 
 @pytest.mark.parametrize("fault,match", [
@@ -121,6 +124,8 @@ def test_native_fetcher_allows_only_exact_bundled_fonts(monkeypatch):
 
         def write_pdf(self, **kwargs):
             assert "font_config" in kwargs
+            if captured.get("fail_font_load"):
+                raise FatalError("missing bundled font")
             return b"mock renderer bytes, never native proof"
 
     weasy.HTML = HTML
@@ -141,6 +146,10 @@ def test_native_fetcher_allows_only_exact_bundled_fonts(monkeypatch):
     for forbidden in ("https://example.invalid/a.ttf", "http://127.0.0.1/", (pdf.FONTS_DIR.parent / "not-a-font.txt").as_uri(), "data:text/plain,not-a-font"):
         with pytest.raises(ValueError, match="Only the bundled"):
             fetch(forbidden)
+
+    captured["fail_font_load"] = True
+    with pytest.raises(RuntimeError, match="Bundled PDF fonts"):
+        pdf.render_pdf("proforma.html", context)
 
 
 async def test_fallback_is_explicit_html_with_self_contained_fonts(client, monkeypatch):

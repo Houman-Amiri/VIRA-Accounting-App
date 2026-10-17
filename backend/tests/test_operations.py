@@ -231,7 +231,10 @@ async def test_proforma_document_renders(client, pdf_inspector) -> None:
     if os.environ.get("VIRA_REQUIRE_NATIVE_PDF") == "1":
         assert resp.headers["content-type"] == "application/pdf", "HTML fallback is NOT native PDF evidence"
     if resp.headers["content-type"].startswith("application/pdf"):
-        proof = pdf_inspector(resp.content, expected_digits="۲۷۶۰۴۸۵")
+        assert Decimal(order["total"]) == Decimal("5521497")  # 2 × 2760748.5, unchanged
+        proof = pdf_inspector(
+            resp.content, expected_by_weight={400: "۲۷۶۰۴۸۵", 700: "۵۲۱۴۹۷"}
+        )
         assert proof["pages"] == 1
     else:  # WeasyPrint unavailable on this host → printable HTML fallback
         html = resp.text

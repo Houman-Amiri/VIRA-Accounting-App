@@ -518,7 +518,7 @@ def proforma_pdf(
 ) -> Response:
     """پیش‌فاکتور فروش — printable RTL PDF of one order (Jinja2 + WeasyPrint).
 
-    WeasyPrint needs native Pango/Cairo; when it is missing (e.g. a dev box) the
+    WeasyPrint needs native Pango/Fontconfig/HarfBuzz; when it is missing (e.g. a dev box) the
     same HTML is returned so the browser's «چاپ → ذخیره به‌عنوان PDF» still works.
     """
     from ..services.pdf import PRINTABLE_HTML_CSP, render_html, render_pdf

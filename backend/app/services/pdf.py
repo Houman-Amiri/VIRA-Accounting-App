@@ -2,7 +2,7 @@
 
 Jinja2 is used exclusively for server-rendered printable documents (invoices,
 statements, price calculations).  WeasyPrint is imported lazily so the rest of
-the backend works on hosts without native Pango/Cairo libraries.
+the backend works on hosts without native Pango/Fontconfig/HarfBuzz libraries.
 """
 
 from __future__ import annotations
@@ -53,8 +53,8 @@ def render_pdf(template_name: str, context: dict[str, Any]) -> bytes:
         )
     except Exception as exc:  # pragma: no cover - depends on host libs
         raise RuntimeError(
-            "WeasyPrint is not available on this host (Pango/Cairo missing); "
-            "install native prerequisites to enable PDF output"
+            "Native PDF engine could not be imported; check the WeasyPrint version "
+            "and Pango/Fontconfig/HarfBuzz runtime (see chained cause)"
         ) from exc
     allowed_urls = {
         (FONTS_DIR / f"Vazirmatn-{weight}.ttf").as_uri(): FONTS_DIR / f"Vazirmatn-{weight}.ttf"
