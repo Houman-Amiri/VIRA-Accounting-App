@@ -1,0 +1,84 @@
+name: Private PDF pinned-source proof
+
+on:
+  push:
+    paths:
+      - '.github/workflows/pdf-source-proof.yml'
+      - 'native/pdf-source/**'
+      - 'scripts/source_pdf_*'
+      - 'backend/tests/test_source_pdf_inventory.py'
+  pull_request:
+    paths:
+      - '.github/workflows/pdf-source-proof.yml'
+      - 'native/pdf-source/**'
+      - 'scripts/source_pdf_*'
+      - 'backend/tests/test_source_pdf_inventory.py'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: source-pdf-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-build:
+    name: Source build, corresponding source, staged Python PDF
+    runs-on: windows-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Locked application dependencies and production SPA
+        shell: pwsh
+        run: |
+          uv sync --frozen --all-extras
+          if ($LASTEXITCODE -ne 0) { throw "locked dependencies failed" }
+          pnpm --dir frontend install --frozen-lockfile
+          if ($LASTEXITCODE -ne 0) { throw "frontend dependencies failed" }
+          pnpm --dir frontend build
+          if ($LASTEXITCODE -ne 0) { throw "frontend build failed" }
+      - name: Build native ports from immutable source; no binary cache
+        shell: pwsh
+        run: |
+          # Keep failure traces accessible in check annotations as well as artifacts.
+          $out = (pwsh -NoProfile -File ./scripts/source_pdf_build.ps1 2>&1 | Out-String)
+          $code = $LASTEXITCODE
+          Write-Host $out
+          if ($code -ne 0) {
+            $tail = $out.Substring([Math]::Max(0, $out.Length - 11000))
+            $tail = $tail.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+            Write-Host "::error title=Pinned source build failed::$tail"
+            exit $code
+          }
+      - name: Upload source, notices, toolchain records and synthetic PDFs only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: private-pdf-source-evidence
+          path: |
+            reports/source-pdf/
+            reports/bundled-pdf/*.json
+            reports/bundled-pdf/*.pdf
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Build failure diagnostic logs (no runtime binaries)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: private-pdf-source-build-logs
+          path: |
+            ${{ runner.temp }}/vira-native-source/vcpkg/buildtrees/**/*.log
+            ${{ runner.temp }}/vira-native-source/vcpkg/buildtrees/**/*.txt
+          retention-days: 14
+          if-no-files-found: warn

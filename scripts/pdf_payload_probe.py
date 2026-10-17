@@ -33,7 +33,9 @@ def main() -> None:
     for name in ("pypdf", "pefile"):
         if importlib.util.find_spec(name) is not None:
             raise ValueError(f"Development-only dependency leaked into production: {name}")
+    inventory = json.loads((native.parent / "runtime-inventory.json").read_text())
     os.environ["WEASYPRINT_DLL_DIRECTORIES"] = str(native)
+    os.environ["PATH"] = str(native) + os.pathsep + os.environ.get("PATH", "")
     # Fontconfig's CRT getenv is not Unicode-safe on this upstream Windows
     # build. Use the private ASCII config directory, not a lossy '?' path.
     config = args.fontconfig_file.resolve()
@@ -49,7 +51,10 @@ def main() -> None:
         from cffi import FFI
 
         ffi = FFI()
-        pinned_libffi = ffi.dlopen("libffi-8.dll", flags=0x1000)
+        preloads = inventory.get("preload_dlls", ["libffi-8.dll"])
+        if not preloads or any(name not in inventory["dlls"] for name in preloads):
+            raise ValueError("Preload must belong to the audited dependency closure")
+        pinned_libffi = [ffi.dlopen(name, flags=0x1000) for name in preloads]
         import ctypes
 
         integer_callback = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_int)(lambda n: n + 1)
@@ -76,7 +81,6 @@ def main() -> None:
         kernel.GetModuleHandleW.restype = wintypes.HMODULE
         kernel.GetModuleFileNameW.argtypes = [wintypes.HMODULE, wintypes.LPWSTR, wintypes.DWORD]
         kernel.GetModuleFileNameW.restype = wintypes.DWORD
-        inventory = json.loads((native.parent / "runtime-inventory.json").read_text())
         loaded = {}
         for name in inventory["dlls"]:
             module = kernel.GetModuleHandleW(name)

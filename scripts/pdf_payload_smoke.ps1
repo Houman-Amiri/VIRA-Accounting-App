@@ -10,8 +10,15 @@ $staged = Join-Path $root "initial-stage"
 $app = Join-Path $root "VIRA چاپ بومی"
 Move-Item $staged $app
 $native = Join-Path $app "native/pdf"
-uv run python scripts/pdf_runtime_inventory.py --archive "$env:VIRA_PDF_UPSTREAM_ARCHIVE" --out-dir $native
-if ($LASTEXITCODE -ne 0) { throw "native closure inventory failed" }
+if ($env:VIRA_PDF_SOURCE_CANDIDATE) {
+    $sourceInventory = Get-Content (Join-Path $env:VIRA_PDF_SOURCE_CANDIDATE "runtime-inventory.json") -Raw | ConvertFrom-Json
+    if ($sourceInventory.origin -ne "LOCAL_PINNED_VCPKG_SOURCE_BUILD" -or $sourceInventory.distribution_status -ne "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW") { throw "invalid private source candidate" }
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $native) | Out-Null
+    Copy-Item -Recurse $env:VIRA_PDF_SOURCE_CANDIDATE $native
+} else {
+    uv run python scripts/pdf_runtime_inventory.py --archive "$env:VIRA_PDF_UPSTREAM_ARCHIVE" --out-dir $native
+    if ($LASTEXITCODE -ne 0) { throw "native closure inventory failed" }
+}
 
 $contexts = Join-Path $root "contexts.json"
 $code = @'
