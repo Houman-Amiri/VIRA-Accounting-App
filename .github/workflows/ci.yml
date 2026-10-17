@@ -322,7 +322,7 @@ jobs:
           $code = $LASTEXITCODE
           Write-Host $out
           if ($code -ne 0) {
-            $tail = $out.Substring([Math]::Max(0, $out.Length - 7000))
+            $tail = $out.Substring([Math]::Max(0, $out.Length - 3000))
             Write-Host "::error title=private bundled PDF proof::$((($tail -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A')"
             throw "private bundled PDF proof failed"
           }

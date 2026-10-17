@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import zipfile
 from collections.abc import Callable
@@ -161,7 +162,13 @@ def main() -> None:
     parser.add_argument("--out-dir", type=Path, required=True)
     args = parser.parse_args()
     result = build_candidate(args.archive, args.out_dir)
-    print(json.dumps(result, ensure_ascii=True))
+    print(json.dumps({"dll_count": len(result["dlls"]), "excluded": result["excluded_upstream_dll_count"],
+                      "distribution_status": BLOCKED}))
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        for name, entry in result["dlls"].items():
+            summary = {"name": name, **{key: entry[key] for key in ("sha256", "bytes", "imports", "version_resource")}}
+            encoded = json.dumps(summary, ensure_ascii=True).replace("%", "%25")
+            print(f"::notice title=PDF native DLL audit::{encoded}")
 
 
 if __name__ == "__main__":
