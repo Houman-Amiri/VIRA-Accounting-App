@@ -9,10 +9,12 @@ import argparse
 import base64
 import hashlib
 import json
+import os
 import shutil
+import stat
 import zipfile
 import zlib
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 from pdf_runtime_inventory import BLOCKED, dependency_closure
 
@@ -59,12 +61,39 @@ def package_records(installed: Path, triplet: str = TRIPLET) -> tuple[dict, dict
     return packages, owners
 
 
+def link_target(path: Path, root: Path) -> str:
+    target = os.readlink(path).replace("\\", "/")
+    # Do not dereference links: legitimate dangling/cyclic test fixtures can be
+    # retained, but no absolute or package-escaping target may enter the ZIP.
+    if Path(target).is_absolute() or PureWindowsPath(target).drive:
+        raise ValueError(f"Escaping source symlink: {path}")
+    lexical = Path(os.path.abspath(path.parent / target))
+    if not lexical.is_relative_to(root.absolute()):
+        raise ValueError(f"Escaping source symlink: {path}")
+    return target
+
+
 def tree_entries(root: Path):
-    for path in sorted(root.rglob("*")):
+    for path in sorted(root.rglob("*"), key=lambda p: p.relative_to(root).as_posix()):
         if path.is_symlink():
-            raise ValueError(f"Uncaptured symlink in corresponding source: {path}")
-        if path.is_file():
+            link_target(path, root)
             yield path, path.relative_to(root).as_posix()
+        elif path.is_file():
+            yield path, path.relative_to(root).as_posix()
+
+
+def archive_entry(bundle: zipfile.ZipFile, path: Path, name: str, root: Path) -> bytes:
+    if path.is_symlink():
+        target = link_target(path, root).encode("utf-8")
+        info = zipfile.ZipInfo(name)
+        info.create_system = 3
+        info.external_attr = (stat.S_IFLNK | 0o777) << 16
+        bundle.writestr(info, target)
+        return target
+    data = path.read_bytes()
+    info = zipfile.ZipInfo.from_file(path, arcname=name)
+    bundle.writestr(info, data, compress_type=zipfile.ZIP_DEFLATED, compresslevel=6)
+    return data
 
 
 def capture_sources(vcpkg: Path, installed: Path, packages: dict, archive: Path, profile: Path) -> dict:
@@ -77,13 +106,16 @@ def capture_sources(vcpkg: Path, installed: Path, packages: dict, archive: Path,
     with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as bundle:
         for directory in ("ports", "scripts", "triplets", "versions"):
             for path, relative in tree_entries(vcpkg / directory):
-                bundle.write(path, f"vcpkg/{directory}/{relative}")
+                archive_entry(bundle, path, f"vcpkg/{directory}/{relative}", vcpkg / directory)
         for name in ("LICENSE.txt", "NOTICE.txt", ".vcpkg-root", "bootstrap-vcpkg.bat", "bootstrap-vcpkg.sh"):
             path = vcpkg / name
             if path.is_file():
-                bundle.write(path, f"vcpkg/{name}")
+                archive_entry(bundle, path, f"vcpkg/{name}", vcpkg)
         for path, relative in tree_entries(profile):
-            bundle.write(path, f"vira-recipe/{relative}")
+            archive_entry(bundle, path, f"vira-recipe/{relative}", profile)
+        repo = Path(__file__).resolve().parents[1]
+        for name in ("scripts/source_pdf_build.ps1", "scripts/source_pdf_inventory.py", ".github/workflows/pdf-source-proof.yml"):
+            archive_entry(bundle, repo / name, f"vira-build/{name}", repo)
         for name, package in packages.items():
             share = installed / TRIPLET / "share" / name
             copyright_file, spdx_file = share / "copyright", share / "vcpkg.spdx.json"
@@ -112,17 +144,25 @@ def capture_sources(vcpkg: Path, installed: Path, packages: dict, archive: Path,
             if has_native_code and not source_files:
                 raise ValueError(f"Native library has no captured source tree: {name}")
             tree_hash = hashlib.sha256()
+            source_links = {}
             for path, relative in source_files:
                 # Complete, patched upstream source, not a filtered extension list.
-                data = path.read_bytes()
-                tree_hash.update(relative.encode("utf-8") + b"\0" + digest(data).encode() + b"\n")
-                bundle.writestr(f"sources/{name}/{relative}", data)
+                data = archive_entry(bundle, path, f"sources/{name}/{relative}", source)
+                if path.is_symlink():
+                    source_links[relative] = link_target(path, source)
+                kind = b"symlink" if path.is_symlink() else b"file"
+                tree_hash.update(relative.encode("utf-8") + b"\0" + kind + b"\0" + digest(data).encode() + b"\n")
             for path, relative in tree_entries(share):
-                bundle.write(path, f"installed-notices/{name}/{relative}")
+                archive_entry(bundle, path, f"installed-notices/{name}/{relative}", share)
+            copyright_bytes = copyright_file.read_bytes() if copyright_file.is_file() else b""
+            copyright_text = copyright_bytes.decode("utf-8", errors="replace")
             evidence[name] = {
                 "receipt": package["receipt"], "native_code": has_native_code,
                 "patched_source_files": len(source_files), "patched_source_tree_sha256": tree_hash.hexdigest(),
-                "copyright_sha256": digest(copyright_file.read_bytes()) if copyright_file.is_file() else None,
+                "copyright_sha256": digest(copyright_bytes) if copyright_bytes else None,
+                "copyright_text": copyright_text,
+                "copyright_text_utf8_lossless": copyright_text.encode("utf-8") == copyright_bytes,
+                "patched_source_symlinks": source_links,
                 "declared_port_license": port_manifest.get("license"),
                 "delegated_license_packages": port_manifest["dependencies"] if empty_alias else [],
                 "spdx_sha256": digest(spdx_file.read_bytes()),
@@ -136,6 +176,9 @@ def capture_sources(vcpkg: Path, installed: Path, packages: dict, archive: Path,
             "vcpkg/ contains immutable recipes, patches and tool-download hashes.\n"
             "installed-notices/ contains upstream copyright and SPDX records.\n"
             "vira-recipe/ describes the target, baseline and rebuilding steps.\n"
+            "vira-build/ contains the actual build/audit wrapper and workflow.\n"
+            "Safe relative source links are stored as Unix symlink ZIP entries;\n"
+            "use an extractor that preserves links. source-inventory.json also maps them.\n"
             "This is NOT an offline compiler SDK or a bit-for-bit reproducibility claim.\n"
             "MSVC/Windows SDK, bootstrap executables and build tools are prerequisites.\n"
             "Source and build prerequisites can have different licenses. Review is still required.\n"
@@ -164,10 +207,13 @@ def build(vcpkg: Path, installed: Path, out: Path, reports: Path, profile: Path)
     reports.mkdir(parents=True, exist_ok=True)
     source_zip = reports / "corresponding-source.zip"
     evidence = capture_sources(vcpkg, installed, packages, source_zip, profile)
+    for name, package in evidence.items():
+        package["selected_dlls"] = [dll for dll, item in closure.items() if item["source_package"] == name]
     inventory = {
-        "schema": 1, "distribution_status": BLOCKED,
+        "schema": 1, "vira_commit": os.environ.get("GITHUB_SHA", "LOCAL_UNSTAMPED"), "distribution_status": BLOCKED,
         "origin": "LOCAL_PINNED_VCPKG_SOURCE_BUILD",
         "vcpkg_commit": pin, "triplet": TRIPLET, "binary_cache": "DISABLED",
+        "source_tree_hash_format": "UTF8_POSIX_PATH_NUL_KIND_NUL_SHA256_LF_CASE_SENSITIVE_V1",
         "roots": list(roots), "preload_dlls": [ffi], "dlls": closure,
         "excluded_dlls": sorted(files.keys() - closure.keys()),
         "total_bytes": sum(len(files[name]) for name in closure),

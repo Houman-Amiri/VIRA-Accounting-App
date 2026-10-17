@@ -43,7 +43,15 @@ portfile contains just the empty-package policy and its receipt has metadata onl
 sources, including static dependencies, rather than just the owners of selected
 DLLs. Full vcpkg recipes, patches, bootstrap scripts, license and version database
 are captured alongside complete patched `buildtrees/<port>/src` trees and installed
-notices. Source tree hashes cover sorted relative UTF-8 paths and SHA256 file hashes.
+notices. Source tree hashes use case-sensitive sorted relative POSIX paths and SHA256
+file hashes, with an explicit `file`/`symlink` kind: each tree-hash line is
+`path + NUL + kind + NUL + sha256(content) + LF` in UTF-8. Safe relative symlinks
+are preserved as Unix ZIP symlinks, separately listed in the inventory; their
+content is the UTF-8 normalized relative link target, not dereferenced bytes.
+Absolute and package-escaping links are rejected without reading their targets.
+The actual build/audit wrapper and workflow are included under `vira-build/`.
+Copyright text previews are recorded alongside original byte hashes; originals
+remain in the source archive (a lossless-UTF-8 flag guards previews).
 The source ZIP SHA256 is recorded in `source-inventory.json`. Installed receipts
 and generated toolchain/ABI records are separate evidence.
 

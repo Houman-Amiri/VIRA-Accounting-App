@@ -118,7 +118,7 @@ def test_capture_rejects_symlink_in_source(tool, tmp_path):
     source = tmp_path / "sources"
     source.mkdir()
     (source / "link").symlink_to(tmp_path / "outside")
-    with pytest.raises(ValueError, match="Uncaptured symlink"):
+    with pytest.raises(ValueError, match="Escaping source symlink"):
         list(tool.tree_entries(source))
 
 
@@ -179,3 +179,41 @@ def test_empty_spdx_document_not_accepted_as_license_evidence(tool, workspace, t
     packages, _ = tool.package_records(installed)
     with pytest.raises(ValueError, match="Missing SPDX package records"):
         tool.capture_sources(vcpkg, installed, packages, tmp_path / "source.zip", profile)
+
+
+def test_safe_relative_links_preserved_without_dereferencing_dangling_fixture(tool, workspace, tmp_path):
+    import stat
+
+    package(tool, workspace, "linked")
+    vcpkg, installed, profile = workspace
+    source = vcpkg / "buildtrees/linked/src/patched-123.clean"
+    (source / "README.md").symlink_to("main.c")
+    (source / "dangling").symlink_to("not-created-test-fixture")
+    (source / "cycle-a").symlink_to("cycle-b")
+    (source / "cycle-b").symlink_to("cycle-a")
+    packages, _ = tool.package_records(installed)
+    archive = tmp_path / "sources.zip"
+    result = tool.capture_sources(vcpkg, installed, packages, archive, profile)
+    assert result["linked"]["patched_source_symlinks"]["patched-123.clean/README.md"] == "main.c"
+    assert result["linked"]["copyright_text_utf8_lossless"]
+    assert result["linked"]["copyright_text"] == "Upstream license and notices"
+    with zipfile.ZipFile(archive) as bundle:
+        name = "sources/linked/patched-123.clean/README.md"
+        assert stat.S_ISLNK(bundle.getinfo(name).external_attr >> 16)
+        assert bundle.read(name) == b"main.c"
+        assert bundle.read("sources/linked/patched-123.clean/dangling") == b"not-created-test-fixture"
+        assert "vira-build/scripts/source_pdf_build.ps1" in bundle.namelist()
+
+
+def test_relative_escape_link_rejected_without_reading_target(tool, tmp_path):
+    source = tmp_path / "src"
+    source.mkdir()
+    (source / "escape").symlink_to("../../missing-outside")
+    with pytest.raises(ValueError, match="Escaping source symlink"):
+        list(tool.tree_entries(source))
+
+
+def test_source_tree_order_is_portable_case_sensitive_posix(tool, tmp_path):
+    (tmp_path / "a.c").write_text("lower")
+    (tmp_path / "Z.c").write_text("upper")
+    assert [relative for _, relative in tool.tree_entries(tmp_path)] == ["Z.c", "a.c"]

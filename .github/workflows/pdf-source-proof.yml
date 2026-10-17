@@ -58,7 +58,7 @@ jobs:
             Write-Host $line
             $tail.Enqueue($line)
             if ($tail.Count -gt 150) { $null = $tail.Dequeue() }
-            if ($line -match '^Installing [0-9]+/[0-9]+ ') {
+            if ($line -match '^Installing ([0-9]+)/([0-9]+) ' -and ([int]$Matches[1] % 5 -eq 0 -or $Matches[1] -eq $Matches[2])) {
               Write-Host ("::notice title=Native source progress::" + $line.Replace('%', '%25'))
             }
           }
