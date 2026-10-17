@@ -295,3 +295,24 @@ jobs:
             Write-Host "::error title=native in-app update::$((($tail -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A')"
             throw "native in-app delta journey failed"
           }
+
+      - name: Public 1.0.10 real schema migration and compiled-helper database rollback
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP "vira-schema-base-1.0.10.zip"
+          gh release download v1.0.10 --repo Houman-Amiri/VIRA-Accounting-App --pattern vira-v1.0.10-app.zip --output $archive
+          if ($LASTEXITCODE -ne 0) { throw "published 1.0.10 download failed" }
+          Install-Module ps2exe -Force -Scope CurrentUser -ErrorAction Stop
+          Import-Module ps2exe -ErrorAction Stop
+          $helper = Join-Path $env:RUNNER_TEMP "vira-schema-gate-updater.exe"
+          Invoke-ps2exe -inputFile scripts/vira_updater.ps1 -outputFile $helper -noConsole:$false
+          if (-not (Test-Path $helper)) { throw "compiled helper missing" }
+          $out = (uv run python scripts/schema_rollback_smoke.py --archive $archive --helper $helper 2>&1 | Out-String)
+          Write-Host $out
+          if ($LASTEXITCODE -ne 0) {
+            $tail = $out.Substring([Math]::Max(0, $out.Length - 3500))
+            Write-Host "::error title=schema rollback::$((($tail -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A')"
+            throw "published schema rollback gate failed"
+          }

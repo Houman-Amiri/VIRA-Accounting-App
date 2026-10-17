@@ -94,6 +94,13 @@ def main() -> int:
             data = helper.read_bytes()
             zf.writestr("vira-updater.exe", data)
             hashes["vira-updater.exe"] = sha256_bytes(data)
+        # Standalone stdlib tool stays outside files being replaced, including
+        # during rollback to immutable clients that do not contain this module.
+        db_tool = args.target_dir / "scripts/update_database.py"
+        if db_tool.is_file():
+            data = db_tool.read_bytes()
+            zf.writestr("update_database.py", data)
+            hashes["update_database.py"] = sha256_bytes(data)
         update_doc = plan.to_json()
         update_doc["hashes"] = hashes
         update_doc["delete_sha256"] = sha256_bytes(

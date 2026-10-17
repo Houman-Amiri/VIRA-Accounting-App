@@ -155,20 +155,31 @@ def verify_payload(root: Path, *, runtime: bool = False) -> None:
 class PublishedUpgrade:
     base: Path
     packages: Path
+    base_version: str = "1.0.9"
+    target_version: str = "1.0.10"
+    base_commit: str = "7d78720"
+    archive_sha256: str = LEGACY_SHA256
+    schema_probe: bool = False
+
+    @property
+    def delta_name(self) -> str:
+        return f"VIRA-v{self.target_version}-delta-from-v{self.base_version}.zip"
 
     def validate(self) -> None:
-        archive = self.base.parent / "base-1.0.9.zip"
-        if sha(archive) != LEGACY_SHA256:
-            raise ValueError("public v1.0.9 ZIP digest mismatch")
+        archive = self.base.parent / f"base-{self.base_version}.zip"
+        if sha(archive) != self.archive_sha256:
+            raise ValueError("published ZIP digest mismatch")
         stamp = json.loads((self.base / "version.json").read_text(encoding="utf-8-sig"))
-        if stamp["version"] != "1.0.9" or not stamp["commit"].startswith("7d78720"):
-            raise ValueError("not the immutable published 1.0.9 client")
+        if stamp["version"] != self.base_version or not stamp["commit"].startswith(
+            self.base_commit
+        ):
+            raise ValueError("not the pinned immutable published client")
         verify_payload(self.base)
         target = json.loads((self.packages / "app/version.json").read_text(encoding="utf-8-sig"))
-        if target["version"] != "1.0.10":
-            raise ValueError("installed-client gate expects candidate 1.0.10")
-        if not (self.packages / "VIRA-v1.0.10-delta-from-v1.0.9.zip").is_file():
-            raise ValueError("mandatory direct 1.0.9 delta missing")
+        if target["version"] != self.target_version:
+            raise ValueError("candidate version mismatch")
+        if not (self.packages / self.delta_name).is_file():
+            raise ValueError("mandatory direct delta missing")
 
 
 def published_fixture(
@@ -177,8 +188,8 @@ def published_fixture(
     install = root / "install with spaces"
     # No source replacement, bootstrap injection or patched launcher in the base.
     shutil.copytree(published.base, install)
-    archive = published.packages / "VIRA-v1.0.10-delta-from-v1.0.9.zip"
-    if rollback:
+    archive = published.packages / published.delta_name
+    if rollback and not published.schema_probe:
         # Separate private broken target; never replace the candidate ZIP.
         target = root / "intentionally broken target"
         shutil.copytree(published.packages / "app", target)
@@ -195,9 +206,9 @@ def published_fixture(
             "--target-dir",
             str(target),
             "--base-version",
-            "1.0.9",
+            published.base_version,
             "--target-version",
-            "1.0.10",
+            published.target_version,
             "--out",
             str(root),
         )
@@ -212,6 +223,8 @@ def source_fixture(root: Path, rollback: bool) -> tuple[Path, Path, Path]:
         ROOT / "backend/app", install / "app", ignore=shutil.ignore_patterns("__pycache__")
     )
     shutil.copytree(ROOT / "frontend/dist", install / "static")
+    (install / "scripts").mkdir()
+    shutil.copy2(ROOT / "scripts/update_database.py", install / "scripts/update_database.py")
     (install / "version.json").write_text(
         json.dumps(dict(version="99.0.0", commit="native-old", spa_build="native-old"))
     )
@@ -284,7 +297,7 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
     data.mkdir()
     if published:
         install, bootstrap, archive = published_fixture(root, rollback, published)
-        old_version, new_version = "1.0.9", "1.0.10"
+        old_version, new_version = published.base_version, published.target_version
     else:
         install, bootstrap, archive = source_fixture(root, rollback)
         old_version, new_version = "99.0.0", "99.0.1"
@@ -315,6 +328,9 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
     receipt.write_bytes(secrets.token_bytes(2048))
     receipt_hash = sha(receipt)
     checkpoint_hash = None
+    checkpoint_fingerprint = None
+    if published and published.schema_probe:
+        env["VIRA_SCHEMA_PROBE_REPORT"] = str(root / "migration-proof.json")
     counts = dict(delta=0, full=0)
 
     class Feed(BaseHTTPRequestHandler):
@@ -322,11 +338,14 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
             pass
 
         def do_POST(self):
-            nonlocal checkpoint_hash
+            nonlocal checkpoint_hash, checkpoint_fingerprint
             assert self.path == "/checkpoint"
             with closing(sqlite3.connect(database)) as db:
                 db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             checkpoint_hash = sha(database)
+            from scripts.update_database import fingerprint
+
+            checkpoint_fingerprint = fingerprint(database)
             self.send_response(200)
             self.end_headers()
 
@@ -392,11 +411,45 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
                             == 1
                         )
                         db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
-                    assert checkpoint_hash is not None and sha(database) == checkpoint_hash, (
-                        "SQLite hash changed"
-                    )
+                    if published and published.schema_probe:
+                        from scripts.update_database import fingerprint
+
+                        proof = json.loads((root / "migration-proof.json").read_text())
+                        assert proof["revision"] == "0006_catalog_rollback_probe", proof
+                        assert proof["new_table"] is True, proof
+                        assert fingerprint(database) == checkpoint_fingerprint, (
+                            "restored schema/data mismatch"
+                        )
+                        with closing(sqlite3.connect(database)) as old_db:
+                            assert (
+                                old_db.execute(
+                                    "SELECT version_num FROM alembic_version"
+                                ).fetchone()[0]
+                                == "0005_pricing_settings"
+                            )
+                            assert (
+                                old_db.execute(
+                                    "SELECT count(*) FROM sqlite_master WHERE name='catalog_rollback_probe'"
+                                ).fetchone()[0]
+                                == 0
+                            )
+                        failed = list(
+                            data.rglob("database-rollback/failed-database/database.sqlite3")
+                        )
+                        assert len(failed) == 1, "failed target DB not retained"
+                        with closing(sqlite3.connect(failed[0])) as failed_db:
+                            assert (
+                                failed_db.execute(
+                                    "SELECT version_num FROM alembic_version"
+                                ).fetchone()[0]
+                                == "0006_catalog_rollback_probe"
+                            )
+                    else:
+                        assert checkpoint_hash is not None and sha(database) == checkpoint_hash, (
+                            "SQLite hash changed"
+                        )
                     assert sha(receipt) == receipt_hash, "receipt hash changed"
-                    body = b"unchanged SQLite and receipt hashes"
+                    body = b"verified SQLite schema/data and receipt hash"
                 except Exception as exc:
                     self.send_error(500, str(exc))
                     return
@@ -477,6 +530,8 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
                 "VIRA_NATIVE_EXPECTED": "rolled_back" if rollback else "committed",
                 "VIRA_NATIVE_TARGET": new_version,
                 "VIRA_NATIVE_LEGACY": "1" if published else "0",
+                "VIRA_NATIVE_BASE_VERSION": old_version,
+                "VIRA_NATIVE_BASE_COMMIT": published.base_commit if published else "native-old",
             },
         )
         if published:

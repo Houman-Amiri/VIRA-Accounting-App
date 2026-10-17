@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -101,12 +102,21 @@ class RecurringEntryService:
 class SchedulerManager:
     """Thin APScheduler wrapper (in-process)."""
 
-    def __init__(self, session_factory: object, *, interval_seconds: int = 60) -> None:
+    def __init__(
+        self,
+        session_factory: object,
+        *,
+        interval_seconds: int = 60,
+        write_gate: Callable[[], bool] | None = None,
+    ) -> None:
         self.session_factory = session_factory
+        self.write_gate = write_gate
         self.scheduler = BackgroundScheduler(timezone="UTC")
         self.interval_seconds = interval_seconds
 
     def _tick(self) -> None:  # pragma: no cover - exercised via run_due_jobs
+        if self.write_gate is not None and self.write_gate():
+            return
         try:
             with self.session_factory() as session:  # type: ignore[operator]
                 service = RecurringEntryService(session)

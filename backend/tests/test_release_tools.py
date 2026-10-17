@@ -38,6 +38,9 @@ def test_delta_ships_hash_verified_standalone_helper(tmp_path: Path) -> None:
     target.mkdir()
     (base / "version.json").write_text('{"version":"1.0.5"}')
     (target / "version.json").write_text('{"version":"1.0.6"}')
+    (target / "scripts").mkdir()
+    db_tool = (ROOT / "scripts/update_database.py").read_bytes()
+    (target / "scripts/update_database.py").write_bytes(db_tool)
     helper = b"MZ-fixture-helper"
     (target / "vira-updater.exe").write_bytes(helper)
     (base / "install_manifest.json").write_text(json.dumps(manifest_to_json(build_manifest(base))))
@@ -50,7 +53,9 @@ def test_delta_ships_hash_verified_standalone_helper(tmp_path: Path) -> None:
     )
     assert result.returncode == 0, result.stderr
     with zipfile.ZipFile(out / "VIRA-v1.0.6-delta-from-v1.0.5.zip") as archive:
+        assert archive.read("update_database.py") == db_tool
         assert archive.read("vira-updater.exe") == helper
         assert archive.read("files/vira-updater.exe") == helper
         doc = json.loads(archive.read("update.json"))
         assert doc["hashes"]["vira-updater.exe"] == sha256_bytes(helper)
+        assert doc["hashes"]["update_database.py"] == sha256_bytes(db_tool)

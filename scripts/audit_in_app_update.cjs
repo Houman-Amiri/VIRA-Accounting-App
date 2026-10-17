@@ -26,9 +26,9 @@ async function stepUp(page) {
     await page.goto(base + "/system");
     const initial = await stepUp(page);
     if (legacy) {
-      expect(initial.version).toBe("1.0.9");
-      expect(initial.commit).toMatch(/^7d78720/);
-      await expect(page.getByTestId("system-build-ids").locator("span.num")).toHaveText(["7d78720", "7d78720", "7d78720"]);
+      expect(initial.version).toBe(process.env.VIRA_NATIVE_BASE_VERSION || "1.0.9");
+      expect(initial.commit).toBe(process.env.VIRA_NATIVE_BASE_COMMIT || "7d78720");
+      await expect(page.getByTestId("system-build-ids").locator("span.num")).toHaveText(Array(3).fill(process.env.VIRA_NATIVE_BASE_COMMIT || "7d78720"));
     }
     const check = page.getByTestId("system-check-updates");
     await check.click();
@@ -72,7 +72,7 @@ async function stepUp(page) {
       await expect(page.getByTestId("system-last-update")).toBeVisible();
     if (legacy) {
       const status = resumed;
-      expect(status.version).toBe(process.env.VIRA_NATIVE_EXPECTED === "committed" ? "1.0.10" : "1.0.9");
+      expect(status.version).toBe(process.env.VIRA_NATIVE_EXPECTED === "committed" ? (process.env.VIRA_NATIVE_TARGET || "1.0.10") : (process.env.VIRA_NATIVE_BASE_VERSION || "1.0.9"));
       const ids = page.getByTestId("system-build-ids").locator("span.num");
       await expect(ids).toHaveCount(3);
       await expect(ids.nth(0)).toHaveText(status.spa_build);
@@ -82,7 +82,7 @@ async function stepUp(page) {
     }
     counters = await (await page.request.get(process.env.VIRA_NATIVE_FEED + "/counts")).json();
     expect(counters).toEqual({ delta: 1, full: 0 });
-    console.log("Native in-app update:", process.env.VIRA_NATIVE_EXPECTED, "— consent, delta-only, SQLite and receipt hashes verified");
+    console.log("Native in-app update:", process.env.VIRA_NATIVE_EXPECTED, "— consent, delta-only, SQLite schema/data and receipt integrity verified");
   } finally { await browser.close(); }
 })().catch((error) => {
   const raw = String(error.stack || error).split(process.env.VIRA_NATIVE_PASSWORD || "__no_password__").join("[fixture password]");

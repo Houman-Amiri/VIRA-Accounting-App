@@ -560,7 +560,10 @@ def launch_updater(settings: Settings, staged_path: str) -> dict[str, Any]:
         raise DomainError("data_dir is not configured")
     argv += ["-ParentPid", str(os.getpid()), "-Port", str(os.environ.get("VIRA_PORT") or settings.bind_port),
              "-ResultPath", str(Path(settings.data_dir) / "updates" / "last-result.json")]
-    subprocess.Popen(argv, close_fds=True)  # noqa: S603 - fixed argv, no shell
+    if settings.sqlite_database_path is None:
+        raise DomainError("database path is not configured")
+    helper_env = {**os.environ, "VIRA_UPDATE_DATABASE_PATH": str(Path(settings.sqlite_database_path).resolve())}
+    subprocess.Popen(argv, close_fds=True, env=helper_env)  # noqa: S603 - fixed argv, no shell
     _ = log_path
     return manager.status()
 

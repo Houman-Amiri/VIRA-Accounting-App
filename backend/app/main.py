@@ -67,7 +67,7 @@ def spa_static_dir(module_file: Path | None = None) -> Path | None:
     here = (module_file or Path(__file__)).resolve()
     candidates = [
         Path(os.environ["VIRA_STATIC_DIR"]) if os.environ.get("VIRA_STATIC_DIR") else None,
-        here.parents[1] / "static",           # installed: {app}/static
+        here.parents[1] / "static",  # installed: {app}/static
         here.parents[2] / "frontend" / "dist",  # dev: <repo>/frontend/dist
     ]
     for c in candidates:
@@ -94,6 +94,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         secure=settings.environment == "production",
     )
     scheduler: SchedulerManager | None = None
+    update_lock = settings.data_dir / "updates" / ".update.lock"
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -101,7 +102,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         pragmas = database.verify()
         log.info("SQLite pragmas verified: %s", pragmas)
         if settings.scheduler_enabled:
-            scheduler = SchedulerManager(database.session_factory)
+            scheduler = SchedulerManager(database.session_factory, write_gate=update_lock.is_file)
             scheduler.start()
         app.state.scheduler = scheduler  # surfaced by /health/ready + /system/status
         try:
@@ -129,7 +130,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_origins=origins,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
-        allow_headers=["Content-Type", "X-CSRF-Token", "Idempotency-Key", "X-Sudo-Token", "X-API-Key"],
+        allow_headers=[
+            "Content-Type",
+            "X-CSRF-Token",
+            "Idempotency-Key",
+            "X-Sudo-Token",
+            "X-API-Key",
+        ],
     )
 
     # --- hardened security headers (Phase 5 §8) ---
@@ -165,6 +172,26 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                         )
                 await send(message)
 
+            # No user writes may be acknowledged in the target before the
+            # updater commits: a subsequent schema rollback would discard them.
+            # Health/status GETs remain available to the verified apply protocol.
+            if scope.get("method") not in {"GET", "HEAD", "OPTIONS"} and update_lock.is_file():
+                from starlette.responses import JSONResponse
+
+                response = JSONResponse(
+                    {
+                        "type": "urn:vira:error:update_in_progress",
+                        "title": "Update in progress",
+                        "status": 503,
+                        "detail": "به‌روزرسانی در حال بررسی است؛ ثبت اطلاعات تا پایان آن متوقف است.",
+                        "code": "update_in_progress",
+                        "instance": scope.get("path", ""),
+                    },
+                    status_code=503,
+                    headers={"Retry-After": "3"},
+                )
+                await response(scope, receive, send_with_headers)
+                return
             await self.app(scope, receive, send_with_headers)
 
     app.add_middleware(SecurityHeadersMiddleware)

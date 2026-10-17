@@ -53,6 +53,7 @@ function Get-Sha256([string]$Path) {
 # A journal for THIS attempt only: deleted files need snapshots too, and new
 # files must be removed on rollback. Never infer success from a process spawn.
 $script:snapshotComplete = $false
+$script:databaseSnapshotComplete = $false
 $script:appStopped = $false
 $script:saved = @{}
 $script:added = @()
@@ -94,6 +95,23 @@ function Safe-Target([string]$Relative) {
     $full = [IO.Path]::GetFullPath((Join-Path $InstallDir $Relative))
     if (-not $full.StartsWith(($InstallDir.TrimEnd('\') + '\'), [StringComparison]::OrdinalIgnoreCase)) { throw "path escape: $Relative" }
     return $full
+}
+
+# The new helper carries a hash-verified stdlib DB tool outside {app}.
+# Resolve Settings with the OLD runtime for legacy clients, never a guessed DB.
+function Invoke-DatabaseTool([string]$Action) {
+    $tool = Join-Path $Stage "update_database.py"
+    $expected = [string]$updateJson.hashes.'update_database.py'
+    if (-not $expected -or -not (Test-Path -LiteralPath $tool) -or (Get-Sha256 $tool) -ne $expected) { throw "database rollback tool missing or unverified" }
+    $py = Join-Path $InstallDir "python\python.exe"
+    if (-not (Test-Path -LiteralPath $py)) { $py = "python" } # native source fixture
+    $argsForTool = @($tool, $Action, "--bundle", (Join-Path $Stage "database-rollback"), "--install-dir", $InstallDir)
+    $oldPreference = $ErrorActionPreference; $ErrorActionPreference = "Continue"
+    $output = (& $py @argsForTool 2>&1 | Out-String)
+    $code = $LASTEXITCODE
+    $ErrorActionPreference = $oldPreference
+    if ($code -ne 0) { throw "database $Action failed: $output" }
+    Write-Log "database $Action verified: $($output.Trim())"
 }
 
 function Stop-App {
@@ -199,6 +217,8 @@ try {
         ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $rollback "rollback-journal.json") -Encoding utf8
     $script:snapshotComplete = $true
     Write-Log "snapshot complete -> $rollback"
+    Invoke-DatabaseTool "snapshot"
+    $script:databaseSnapshotComplete = $true
 
     # --------------------------------------------------------- apply ops ----
     $bspatch = Join-Path $InstallDir "tools\bspatch.exe"
@@ -289,10 +309,11 @@ catch {
                 Copy-Item -LiteralPath (Join-Path $rollback $relative) -Destination $target -Force
                 if ((Get-Sha256 $target) -ne $script:saved[$relative]) { throw "rollback verification failed: $relative" }
             }
+            if ($script:databaseSnapshotComplete) { Invoke-DatabaseTool "restore" }
             Start-App
             Wait-Healthy $oldStamp
-            Write-Result "rolled_back" "به‌روزرسانی ناموفق بود؛ فایل‌های قبلی بازگردانده و سلامت نسخهٔ قبلی تأیید شد."
-            Write-Log "ROLLED BACK — previous files and health verified"
+            Write-Result "rolled_back" "به‌روزرسانی ناموفق بود؛ فایل‌ها و پایگاه‌دادهٔ قبلی بازگردانده و سلامت نسخهٔ قبلی تأیید شد."
+            Write-Log "ROLLED BACK — previous files, database and health verified"
         } else {
             if ($script:appStopped) { Start-App; Wait-Healthy $oldStamp }
             Write-Result "failed" "به‌روزرسانی پیش از تکمیل پشتیبان فایل‌ها متوقف شد؛ گزارش را بررسی کنید."
