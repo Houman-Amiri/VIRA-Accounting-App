@@ -211,7 +211,7 @@ class OperationsService:
         if payload.get("unit", item.unit) != item.unit:
             raise DomainError("واحد کالای ثبت‌شده قابل تغییر نیست؛ کالای جداگانه تعریف کنید")
         if "supplier_id" in payload and payload["supplier_id"] != item.supplier_id:
-            supplier = self.get_supplier(payload["supplier_id"]) if payload["supplier_id"] else None
+            supplier = self.get_supplier(payload["supplier_id"]) if payload["supplier_id"] is not None else None
             if supplier is not None and not supplier.is_active:
                 raise DomainError("انتخاب تأمین‌کنندهٔ غیرفعال مجاز نیست")
         if "is_active" in payload:

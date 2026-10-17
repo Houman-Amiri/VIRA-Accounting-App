@@ -222,3 +222,12 @@ async def test_catalog_authentication_permissions_and_csrf(anon_client, app, cli
         ).status_code == 403
     finally:
         app.dependency_overrides.clear()
+
+
+@pytest.mark.parametrize("supplier_id", ["", "missing-supplier"])
+async def test_invalid_supplier_reference_is_rejected_before_sql(client, supplier_id):
+    response = await item(client, supplier=supplier_id)
+    assert response.status_code == 404
+    row = (await item(client)).json()
+    changed = await client.patch(f"{BASE}/items/{row['id']}", json={"version_id": row["version_id"], "supplier_id": supplier_id})
+    assert changed.status_code == 404

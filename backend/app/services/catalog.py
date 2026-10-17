@@ -148,7 +148,7 @@ class CatalogService:
             raise DomainError(
                 "واحد فیلامنت باید گرم و واحد محصول تولیدی باید عدد باشد؛ تبدیل واحد خودکار انجام نمی‌شود"
             )
-        if supplier_id:
+        if supplier_id is not None:
             supplier = self.session.get(Supplier, supplier_id)
             if supplier is None:
                 raise NotFoundError("تأمین‌کننده پیدا نشد")
