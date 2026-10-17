@@ -18,7 +18,10 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 - Proforma numeric styles use bundled OFL Vazirmatn Regular/Bold (v33.003), covering
   Latin, Persian and Arabic digits offline. Native PDF rendering/installed Windows
   visual acceptance remains separate from HTML/font-asset verification.
-- No schema, stored number, arithmetic, numeral system or release/version change.
+- 338 backend / 189 frontend tests and all five browser scenarios passed locally;
+  all five CI jobs passed for `9fda819` (run 38988854225), including Windows native
+  delta apply and real-schema rollback. No schema, stored number, arithmetic,
+  numeral system or release/version change.
 
 ### Changed — repair substep 4-B/1 (unpublished)
 - Pricing report now exposes only description/plain/chain amounts, without cell
