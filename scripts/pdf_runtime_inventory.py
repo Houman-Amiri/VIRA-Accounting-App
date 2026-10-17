@@ -6,11 +6,13 @@ No native binaries from this tool may enter a public installer/delta yet.
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import json
 import os
 import re
 import zipfile
+import zlib
 from collections.abc import Callable
 from pathlib import Path, PurePosixPath
 
@@ -165,10 +167,13 @@ def main() -> None:
     print(json.dumps({"dll_count": len(result["dlls"]), "excluded": result["excluded_upstream_dll_count"],
                       "distribution_status": BLOCKED}))
     if os.environ.get("GITHUB_ACTIONS") == "true":
-        for name, entry in result["dlls"].items():
-            summary = {"name": name, **{key: entry[key] for key in ("sha256", "bytes", "imports", "version_resource")}}
-            encoded = json.dumps(summary, ensure_ascii=True).replace("%", "%25")
-            print(f"::notice title=PDF native DLL audit::{encoded}")
+        # GitHub truncates annotations at 4096 characters and caps their count.
+        # Compressed ASCII chunks preserve the full audit without log redirects.
+        payload = base64.b64encode(zlib.compress(json.dumps(result, ensure_ascii=True).encode())).decode()
+        chunks = [payload[i:i + 3000] for i in range(0, len(payload), 3000)]
+        for index, chunk in enumerate(chunks):
+            record = json.dumps({"part": index, "total": len(chunks), "data": chunk})
+            print(f"::notice title=PDF native inventory chunk::{record}")
 
 
 if __name__ == "__main__":

@@ -12,7 +12,7 @@ from pdf_runtime_inventory import BLOCKED
 
 def verify(root: Path, reports: Path) -> dict:
     worker = json.loads((reports / "worker-proof.json").read_text())
-    if not worker["isolated"] or not worker["development_dependencies_absent"]:
+    if not worker["isolated"] or not worker["development_dependencies_absent"] or not worker["ctypes_callbacks_verified"]:
         raise ValueError("Bundled interpreter isolation proof failed")
     if worker["distribution_status"] != BLOCKED:
         raise ValueError("Private candidate must not silently acquire distribution approval")
@@ -50,7 +50,13 @@ def main() -> None:
     output = json.dumps(result, ensure_ascii=True)
     (args.reports / "bundled-proof.json").write_text(output, encoding="utf-8")
     print(output)
-    print(f"::notice title=Private bundled Python PDF proof::{output.replace('%', '%25')}")
+    summary = {"python": result["worker"]["python"], "version": result["worker"]["version"],
+               "isolated": result["worker"]["isolated"], "dll_count": result["dll_count"],
+               "loaded_dll_count": len(result["worker"]["loaded_dlls"]),
+               "ctypes_callbacks_verified": result["worker"]["ctypes_callbacks_verified"],
+               "distribution_status": BLOCKED, "documents": result["documents"]}
+    encoded = json.dumps(summary, ensure_ascii=True).replace("%", "%25")
+    print(f"::notice title=Private bundled Python PDF proof::{encoded}")
 
 
 if __name__ == "__main__":

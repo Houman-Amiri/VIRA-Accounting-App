@@ -22,16 +22,16 @@ print(json.dumps({'single-page': fixture(1), 'multi-page': fixture(100)}))
 $out = $code | uv run python -
 if ($LASTEXITCODE -ne 0) { throw "synthetic contexts failed" }
 $out | Set-Content -Encoding utf8 $contexts
-$empty = Join-Path $native "empty-fonts"
-$cache = Join-Path $native "font-cache"
+$empty = Join-Path $root "empty-fonts"
+$cache = Join-Path $root "font-cache"
 New-Item -ItemType Directory -Path $empty, $cache | Out-Null
 $escapedEmpty = [System.Security.SecurityElement]::Escape($empty.Replace('\', '/'))
 $escapedCache = [System.Security.SecurityElement]::Escape($cache.Replace('\', '/'))
-"<fontconfig><dir>$escapedEmpty</dir><cachedir>$escapedCache</cachedir></fontconfig>" | Set-Content -Encoding utf8 (Join-Path $native "fonts.conf")
+"<fontconfig><dir>$escapedEmpty</dir><cachedir>$escapedCache</cachedir></fontconfig>" | Set-Content -Encoding utf8 (Join-Path $root "fonts.conf")
 $reports = Join-Path (Get-Location) "reports/bundled-pdf"
 New-Item -ItemType Directory -Force -Path $reports | Out-Null
 Copy-Item (Join-Path $native "runtime-inventory.json") (Join-Path $reports "runtime-inventory.json")
-& (Join-Path $app "python/python.exe") -I (Join-Path $app "scripts/pdf_payload_probe.py") --app-root $app --contexts $contexts --out-dir $reports
+& (Join-Path $app "python/python.exe") -I (Join-Path $app "scripts/pdf_payload_probe.py") --app-root $app --contexts $contexts --fontconfig-file (Join-Path $root "fonts.conf") --out-dir $reports
 if ($LASTEXITCODE -ne 0) { throw "bundled production interpreter PDF render failed" }
 # PDF inspection lives in dev, not in the staged interpreter/site-packages.
 uv run python scripts/pdf_payload_verify.py --app-root $app --reports $reports
