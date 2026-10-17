@@ -16,6 +16,10 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 TEMPLATES_DIR = Path(__file__).resolve().parents[1] / "templates"
 FONTS_DIR = TEMPLATES_DIR.parent / "assets" / "fonts"
+PRINTABLE_HTML_CSP = (
+    "default-src 'none'; font-src data:; style-src 'unsafe-inline'; "
+    "base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'"
+)
 
 
 def render_html(

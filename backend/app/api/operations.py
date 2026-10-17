@@ -521,7 +521,7 @@ def proforma_pdf(
     WeasyPrint needs native Pango/Cairo; when it is missing (e.g. a dev box) the
     same HTML is returned so the browser's «چاپ → ذخیره به‌عنوان PDF» still works.
     """
-    from ..services.pdf import render_html, render_pdf
+    from ..services.pdf import PRINTABLE_HTML_CSP, render_html, render_pdf
 
     service = OperationsService(session)
     order = service.get_order(order_id)
@@ -557,8 +557,12 @@ def proforma_pdf(
                         headers=headers)
     except Exception:  # noqa: BLE001 - no WeasyPrint/native libs → printable HTML
         return Response(content=render_html("proforma.html", context), media_type="text/html",
-                        headers={"Content-Disposition":
-                                 f'inline; filename="proforma-{read.order_number}.html"'})
+                        headers={
+                            "Content-Disposition": f'inline; filename="proforma-{read.order_number}.html"',
+                            # Override the SPA's self-only default font policy for
+                            # this script-free, self-contained printable document.
+                            "Content-Security-Policy": PRINTABLE_HTML_CSP,
+                        })
 
 
 def _variant_label(product_name: str, variant: str) -> str:

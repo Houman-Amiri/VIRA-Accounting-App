@@ -161,6 +161,7 @@ def fixture_context(lines: int) -> dict:
 
 
 def main() -> None:
+    sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--app-root", required=True, type=Path, help="Directory containing app/")
     parser.add_argument("--out-dir", required=True, type=Path)
@@ -188,6 +189,9 @@ def main() -> None:
     report = json.dumps(results, ensure_ascii=False, indent=2)
     (args.out_dir / "proof.json").write_text(report, encoding="utf-8")
     print(report)
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        annotation = json.dumps(results, ensure_ascii=True).replace("%", "%25")
+        print(f"::notice title=Native PDF font proof::{annotation}")
     print("PASS: real A4 PDFs; used embedded Vazirmatn Regular/Bold; all 30 digits in both weights")
 
 

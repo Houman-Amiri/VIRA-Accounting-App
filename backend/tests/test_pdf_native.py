@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import io
 import sys
-from pathlib import Path
 from types import ModuleType
 
 import pytest
@@ -124,7 +123,7 @@ def test_native_fetcher_allows_only_exact_bundled_fonts(monkeypatch):
         fetch(uri)
         assert uri in captured["string"]
     assert len(fetched) == 2
-    for forbidden in ("https://example.invalid/a.ttf", "http://127.0.0.1/", Path("/etc/passwd").as_uri(), "data:text/plain,not-a-font"):
+    for forbidden in ("https://example.invalid/a.ttf", "http://127.0.0.1/", (pdf.FONTS_DIR.parent / "not-a-font.txt").as_uri(), "data:text/plain,not-a-font"):
         with pytest.raises(ValueError, match="Only the bundled"):
             fetch(forbidden)
     assert len(fetched) == 2  # denied URLs never reach the real fetcher
@@ -142,5 +141,9 @@ async def test_fallback_is_explicit_html_with_self_contained_fonts(client, monke
     assert response.status_code == 200
     assert response.headers["content-type"] == "text/html; charset=utf-8"
     assert response.headers["content-disposition"].endswith('.html"')
+    csp = response.headers["content-security-policy"]
+    assert "font-src data:" in csp and "default-src 'none'" in csp
+    assert "script-src" not in csp  # inherits none, never unsafe-inline scripts
+    assert "frame-ancestors 'none'" in csp and "base-uri 'none'" in csp
     assert response.text.count("data:font/ttf;base64,") == 2
     assert "۲٬۷۶۰٬۷۴۸٫۵" in response.text
