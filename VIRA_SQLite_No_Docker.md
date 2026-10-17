@@ -893,3 +893,14 @@ including actual catalog DDL from immutable public 1.0.10 and compiled-helper
 schema/data rollback. Inventory indexes/triggers are preserved alongside rows.
 This completes the automated implementation gate, not installed-business/native
 visual acceptance, a release/version bump or authorization to publish.
+
+
+### Native PDF proof follow-up (unpublished, 2026-10-17)
+
+See [`docs/reports/native-pdf-font-proof-fa.md`](docs/reports/native-pdf-font-proof-fa.md).
+A strict native Windows PDF/font gate is being added; its result is pending.
+Self-contained browser fallback fonts and a local-only PDF font fetcher are
+implemented. The pinned upstream native fixture is CI-only, NOT included in
+installer/delta payloads. Runtime closure, third-party license/source compliance,
+installed-bundled-Python proof and human RTL/print/business acceptance remain open.
+Do not infer publication authorization or installed-PDF acceptance from this gate.

@@ -274,6 +274,28 @@ jobs:
             throw "pytest failed on native Windows"
           }
 
+      - name: Prepare hash-pinned native PDF fixture (test-only, no system GTK)
+        shell: pwsh
+        run: ./scripts/prepare_pdf_native_fixture.ps1
+
+      - name: Strict real PDF and embedded Vazirmatn (native Windows)
+        shell: pwsh
+        run: |
+          uv run python scripts/pdf_native_smoke.py --app-root "$env:VIRA_PDF_PROOF_APP_ROOT" --out-dir reports/native-pdf
+          if ($LASTEXITCODE -ne 0) { throw "native PDF/font proof failed; HTML is not accepted" }
+          $env:VIRA_REQUIRE_NATIVE_PDF = "1"
+          uv run pytest backend/tests/test_operations.py::test_proforma_document_renders -q
+          if ($LASTEXITCODE -ne 0) { throw "actual authenticated proforma API must return embedded-font PDF" }
+
+      - name: Upload synthetic native PDF evidence (no DLL binaries)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-pdf-proof
+          path: reports/native-pdf/
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Frontend install + build (native Windows)
         working-directory: frontend
         shell: pwsh

@@ -7,6 +7,16 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Native PDF verification (unpublished; Windows result pending)
+- Printable HTML fallback now embeds both self-hosted Vazirmatn fonts instead
+  of broken API-relative font paths. PDF resource fetching is restricted to the
+  two bundled TTFs; business values and fallback content types are unchanged.
+- Strict Windows native proof inspects real PDF text operators, embedded font
+  bytes/weights and used Unicode digits, including multipage A4 documents.
+  A SHA-pinned official WeasyPrint runtime is a CI-only fixture, NOT yet a
+  distributable install/delta runtime. Legal/source and installed-payload gates
+  remain open. See `docs/reports/native-pdf-font-proof-fa.md`.
+
 ### Added — repair substep 4-B/3-B (unpublished)
 - Settings manages persisted item types, units and the existing shared supplier
   registry. New item consumes active server options; inactive labels remain in

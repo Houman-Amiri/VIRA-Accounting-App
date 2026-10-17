@@ -7,6 +7,7 @@ filament and yielding products, sales reports, and the proforma document.
 
 from __future__ import annotations
 
+import os
 from decimal import Decimal
 
 from sqlalchemy import text
@@ -222,15 +223,19 @@ async def test_order_lifecycle_totals_and_sales_report(client) -> None:
     assert empty.json() == []
 
 
-async def test_proforma_document_renders(client) -> None:
+async def test_proforma_document_renders(client, pdf_inspector) -> None:
     order = await _order(client)
     resp = await client.get(f"/api/v1/orders/{order['id']}/proforma.pdf")
     assert resp.status_code == 200, resp.text
     assert resp.headers["content-type"] in ("application/pdf", "text/html; charset=utf-8")
+    if os.environ.get("VIRA_REQUIRE_NATIVE_PDF") == "1":
+        assert resp.headers["content-type"] == "application/pdf", "HTML fallback is NOT native PDF evidence"
     if resp.headers["content-type"].startswith("application/pdf"):
-        assert resp.content[:4] == b"%PDF"
+        proof = pdf_inspector(resp.content, expected_digits="۲۷۶۰۴۸۵")
+        assert proof["pages"] == 1
     else:  # WeasyPrint unavailable on this host → printable HTML fallback
         html = resp.text
+        assert html.count("data:font/ttf;base64,") == 2
         assert "پیش‌فاکتور فروش" in html
         assert "مجسمهٔ روباه (حلقه و زنجیر)" in html
         assert "۲٬۷۶۰٬۷۴۸٫۵" in html  # Persian-grouped money

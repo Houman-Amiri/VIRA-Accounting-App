@@ -125,3 +125,16 @@ def sample_accounts(client):  # async fixture chain handled in tests
         "revenue": {"code": "4010", "name": "درآمد فروش"},
         "expense": {"code": "5040", "name": "اجاره"},
     }
+
+
+@pytest.fixture()
+def pdf_inspector():
+    """Development-only parser shared by real native API and parser unit tests."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "pdf_native_smoke", REPO_ROOT / "scripts/pdf_native_smoke.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.inspect_pdf

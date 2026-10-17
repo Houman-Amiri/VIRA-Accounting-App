@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import base64
 import hashlib
+import re
 from pathlib import Path
 
 import pytest
@@ -53,7 +55,9 @@ def test_proforma_numbers_use_local_vazirmatn_without_changing_values():
     assert "JetBrains" not in html
     assert "font-family: Vazirmatn" in html
     assert "@font-face" in html
-    assert "../assets/fonts/Vazirmatn-Regular.ttf" in html
-    assert "../assets/fonts/Vazirmatn-Bold.ttf" in html
+    embedded = re.findall(r'data:font/ttf;base64,([A-Za-z0-9+/=]+)', html)
+    assert len(embedded) == 2
+    for encoded, weight in zip(embedded, ("Regular", "Bold"), strict=True):
+        assert base64.b64decode(encoded) == (FONTS / f"Vazirmatn-{weight}.ttf").read_bytes()
     assert "direction: ltr; unicode-bidi: isolate" in html
     assert "123.4567" in html and "246.9134" in html
