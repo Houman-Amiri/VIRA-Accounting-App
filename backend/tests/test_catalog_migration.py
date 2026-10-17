@@ -34,7 +34,8 @@ def dump(path):
             )
         ]
         return {
-            name: sorted(db.execute(f'SELECT * FROM "{name}"').fetchall(), key=repr) for name in tables
+            name: sorted(db.execute(f'SELECT * FROM "{name}"').fetchall(), key=repr)
+            for name in tables
         }
 
 
@@ -96,6 +97,11 @@ def baseline(path):
 
 def test_catalog_migration_preserves_every_old_row_and_references(db_path):
     baseline(db_path)
+    with closing(sqlite3.connect(db_path)) as db, db:
+        db.execute("CREATE INDEX local_inventory_price ON inventory_items(unit_price)")
+        db.execute(
+            "CREATE TRIGGER local_inventory_guard BEFORE UPDATE OF name ON inventory_items WHEN NEW.name='blocked' BEGIN SELECT RAISE(ABORT,'local inventory rule'); END"
+        )
     before = dump(db_path)
     command.upgrade(cfg(), "head")
     after = dump(db_path)
@@ -115,6 +121,15 @@ def test_catalog_migration_preserves_every_old_row_and_references(db_path):
                 0
             ]
         )
+        assert (
+            db.execute(
+                "SELECT COUNT(*) FROM sqlite_master WHERE name IN ('local_inventory_price','local_inventory_guard')"
+            ).fetchone()[0]
+            == 2
+        )
+        with pytest.raises(sqlite3.IntegrityError, match="local inventory rule"):
+            db.execute("UPDATE inventory_items SET name='blocked' WHERE id='f'")
+        db.rollback()
         db.execute("PRAGMA foreign_keys=ON")
         with pytest.raises(sqlite3.IntegrityError):
             db.execute("UPDATE inventory_items SET kind='missing' WHERE id='f'")

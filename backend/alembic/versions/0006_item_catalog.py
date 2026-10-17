@@ -22,6 +22,14 @@ def rebuild(*, legacy: bool) -> None:
     conn = op.get_bind()
     if conn.exec_driver_sql("PRAGMA foreign_keys").scalar() != 0:
         raise RuntimeError("catalog migration requires the atomic FK-checked migration runner")
+    objects = (
+        conn.exec_driver_sql(
+            "SELECT sql FROM sqlite_master WHERE tbl_name='inventory_items' "
+            "AND type IN ('index','trigger') AND sql IS NOT NULL ORDER BY type,name"
+        )
+        .scalars()
+        .all()
+    )
     kind = (
         "TEXT NOT NULL DEFAULT 'FILAMENT' CHECK(kind IN ('FILAMENT','PRODUCT'))"
         if legacy
@@ -55,8 +63,10 @@ def rebuild(*, legacy: bool) -> None:
             raise RuntimeError("catalog migration copy did not preserve exact inventory rows")
     conn.exec_driver_sql("DROP TABLE inventory_items")
     conn.exec_driver_sql("ALTER TABLE inventory_items_rebuild RENAME TO inventory_items")
-    conn.exec_driver_sql("CREATE INDEX ix_inventory_items_kind ON inventory_items(kind,is_active)")
-    conn.exec_driver_sql("CREATE INDEX ix_inventory_items_supplier ON inventory_items(supplier_id)")
+    # Preserve app and locally-added indexes/triggers, not just their rows.
+    # Primary-key autoindexes are reconstructed by CREATE TABLE itself.
+    for statement in objects:
+        conn.exec_driver_sql(statement)
 
 
 def upgrade() -> None:
