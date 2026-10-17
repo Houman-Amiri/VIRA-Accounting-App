@@ -1,0 +1,62 @@
+name: Verify existing PDF source evidence
+
+on:
+  push:
+    paths:
+      - '.github/workflows/pdf-source-evidence.yml'
+      - 'scripts/pdf_source_evidence.py'
+      - 'backend/tests/test_pdf_source_evidence.py'
+      - 'docs/dependencies/pdf-source-proof-run.json'
+  pull_request:
+    paths:
+      - '.github/workflows/pdf-source-evidence.yml'
+      - 'scripts/pdf_source_evidence.py'
+      - 'backend/tests/test_pdf_source_evidence.py'
+      - 'docs/dependencies/pdf-source-proof-run.json'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  evidence:
+    name: Verify source archive, original PDF proofs and complete metadata
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Download only the pinned successful producer evidence
+        shell: bash
+        run: |
+          uv sync --frozen --all-extras
+          run_id=$(python -c 'import json; print(json.load(open("docs/dependencies/pdf-source-proof-run.json"))["run_id"])')
+          artifact=$(python -c 'import json; print(json.load(open("docs/dependencies/pdf-source-proof-run.json"))["artifact_name"])')
+          gh api "repos/$GH_REPO/actions/runs/$run_id" > "$RUNNER_TEMP/producer-run.json"
+          uv run python -c 'import json,sys; sys.path.insert(0,"scripts"); from pdf_source_evidence import validate_run; validate_run(json.load(open(sys.argv[1])),json.load(open("docs/dependencies/pdf-source-proof-run.json")))' "$RUNNER_TEMP/producer-run.json"
+          gh run download "$run_id" --name "$artifact" --dir "$RUNNER_TEMP/source-evidence"
+      - name: Verify source trees, license bytes, ownership and actual PDF fonts
+        run: uv run python scripts/pdf_source_evidence.py --artifact "$RUNNER_TEMP/source-evidence" --run "$RUNNER_TEMP/producer-run.json"
+      # GitHub caps notices at TEN PER STEP. 8 chunks per step, 48 maximum;
+      # no compiler rerun just to recover metadata that GitHub truncated.
+      - name: Preserve complete inventory (parts 0–7)
+        run: uv run python scripts/pdf_source_evidence.py --emit-group 0
+      - name: Preserve complete inventory (parts 8–15)
+        run: uv run python scripts/pdf_source_evidence.py --emit-group 1
+      - name: Preserve complete inventory (parts 16–23)
+        run: uv run python scripts/pdf_source_evidence.py --emit-group 2
+      - name: Preserve complete inventory (parts 24–31)
+        run: uv run python scripts/pdf_source_evidence.py --emit-group 3
+      - name: Preserve complete inventory (parts 32–39)
+        run: uv run python scripts/pdf_source_evidence.py --emit-group 4
+      - name: Preserve complete inventory (parts 40–47)
+        run: uv run python scripts/pdf_source_evidence.py --emit-group 5
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verified-source-metadata
+          path: reports/source-evidence/
+          retention-days: 14
+          if-no-files-found: error
