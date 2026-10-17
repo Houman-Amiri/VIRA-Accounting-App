@@ -908,3 +908,25 @@ The pinned upstream native fixture is CI-only, NOT included in installer/delta
 payloads. Runtime closure, third-party license/source compliance,
 installed-bundled-Python proof and human RTL/print/business acceptance remain open.
 No release, new version, publication authorization or installed-PDF acceptance.
+
+
+### Private staged-CPython PDF/runtime audit (unpublished, 2026-10-17)
+
+[Report](docs/reports/pdf-runtime-payload-audit-fa.md) and
+[deterministic native inventory](docs/dependencies/pdf-runtime-win64-inventory.json).
+All five CI jobs passed on `d848a08` (run **39038459962**); **387 backend / 196 frontend /
+six CI browser scenarios**. A private copy produced by the actual payload stager,
+relocated to a spaced/Persian path, renders the same one/four-page PDFs with
+bundled **CPython 3.11.17**, `-I`, production-only dependencies and **27 audited DLLs**.
+The audit excludes 51 unrelated SDK DLLs; all 27 selected libraries actually load
+from the private candidate. Original staged-file hashes remain intact except caches.
+
+Do NOT infer production/runtime distribution readiness. The private proof exposed
+and addressed libffi load-order collision and Fontconfig's lossy Unicode config
+path using an explicit ASCII temporary config. General bootstrap/path handling,
+per-library exact source/build provenance and notices/corresponding source remain
+open; all 27 libraries are UNREVIEWED and the candidate says DO_NOT_DISTRIBUTE.
+No automatic native runtime was added to normal staging/startup, no native binary
+is committed/uploaded, no public version/tag/release or installed-user acceptance.
+Next: establish a source-verifiable licensed runtime (build pinned sources if
+upstream provenance cannot be established), then normal startup/delta/rollback proof.

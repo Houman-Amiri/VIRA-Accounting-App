@@ -7,6 +7,23 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Private bundled-Python PDF audit (not a distributable runtime)
+- Audit the hash-pinned upstream runtime's x64 PE import/delay-import closure:
+  27 DLLs / 15,534,142 bytes, excluding 51 unrelated upstream DLLs. Preserve hashes,
+  imports and version-resource evidence in `docs/dependencies/` without binaries.
+- Actual production staging now explicitly selects managed, non-venv CPython and
+  checks native command failures. A relocated private staged CPython 3.11.17
+  payload renders the same one/four-page embedded-Vazirmatn PDFs under `-I`,
+  without dev inspection packages. All 27 audited DLLs load from the candidate.
+- The new gate caught a real libffi basename collision and Fontconfig Unicode
+  environment-path loss. Private early libffi preload + ctypes callback tests
+  and an ASCII temporary Fontconfig path pass; general startup/Unicode support
+  is NOT yet a production feature. All libraries remain license/source UNREVIEWED.
+- 387 backend / 196 frontend / six CI browser scenarios pass; all five CI jobs
+  succeed on `d848a08` (39038459962), including old migration/update rollback gates.
+  No native binaries added to release payloads or uploaded as artifacts; no release.
+  See `docs/reports/pdf-runtime-payload-audit-fa.md` for remaining gates.
+
 ### Verified native PDF/font proof (unpublished; runtime packaging still open)
 - Printable HTML fallback now embeds both self-hosted Vazirmatn fonts instead
   of broken API-relative font paths. PDF resource fetching is restricted to the

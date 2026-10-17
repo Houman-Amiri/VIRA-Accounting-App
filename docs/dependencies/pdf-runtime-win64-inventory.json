@@ -1,0 +1,1072 @@
+{
+  "format": 1,
+  "platform": "windows-x64",
+  "minimum_windows": "10",
+  "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+  "upstream": {
+    "url": "https://github.com/Kozea/WeasyPrint/releases/download/v70.0/weasyprint-windows-onedir.zip",
+    "sha256": "ab1151f210b4e6bb7aa7a79e91a67e8ddb760094c107bfda55241b6aaefe7d53"
+  },
+  "roots": [
+    "libgobject-2.0-0.dll",
+    "libpango-1.0-0.dll",
+    "libharfbuzz-0.dll",
+    "libfontconfig-1.dll",
+    "libpangoft2-1.0-0.dll",
+    "libharfbuzz-subset-0.dll"
+  ],
+  "dlls": {
+    "libbrotlicommon.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "version_resource": {},
+      "bytes": 144565,
+      "sha256": "c62c08223e450dfc2fff33c752cc228505ffd9d755201958ba800d5d30481a2c",
+      "system_imports": [
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libbrotlidec.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll",
+        "libbrotlicommon.dll"
+      ],
+      "version_resource": {},
+      "bytes": 62619,
+      "sha256": "e270b6e576594ee8ee6e33ccc54e34a54304616dd6225652e11e49d6f17ef896",
+      "system_imports": [
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [
+        "libbrotlicommon.dll"
+      ],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libbz2-1.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "version_resource": {},
+      "bytes": 107741,
+      "sha256": "1790bf6473c9d48db14c1f0ee8124142327556d281299ea2a72ee361118ee01a",
+      "system_imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libdatrie-1.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "version_resource": {},
+      "bytes": 35223,
+      "sha256": "40aee3ae9a62a77454dfe8419fe21b54c54d969e0471c9e817b65d4502a9949f",
+      "system_imports": [
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libexpat-1.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "version_resource": {
+        "FileVersion": "2.8.3.0",
+        "ProductVersion": "2.8.3.0"
+      },
+      "bytes": 236721,
+      "sha256": "fc7b969c07c4a5b7e0426bdee4ac247a8840eac34a217fbe3303a5b21f25280a",
+      "system_imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libffi-8.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "version_resource": {},
+      "bytes": 39826,
+      "sha256": "f96cf79b75f33a10023d001673b564538023395c94b3c58e1db53114976a7c25",
+      "system_imports": [
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libfontconfig-1.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-multibyte-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll",
+        "libexpat-1.dll",
+        "libfreetype-6.dll",
+        "libgcc_s_seh-1.dll",
+        "libintl-8.dll"
+      ],
+      "version_resource": {},
+      "bytes": 505833,
+      "sha256": "be30a200fa4000d0a7a1d3911391969627440148f01d0028a319bcb9fa112202",
+      "system_imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-multibyte-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [
+        "libexpat-1.dll",
+        "libfreetype-6.dll",
+        "libgcc_s_seh-1.dll",
+        "libintl-8.dll"
+      ],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libfreetype-6.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll",
+        "libbrotlidec.dll",
+        "libbz2-1.dll",
+        "libharfbuzz-0.dll",
+        "libpng16-16.dll",
+        "zlib1.dll"
+      ],
+      "version_resource": {
+        "FileVersion": "2.14.3",
+        "ProductVersion": "2.14.3",
+        "CompanyName": "The FreeType Project",
+        "ProductName": "FreeType",
+        "LegalCopyright": "\u00a9 2000-2026 The FreeType Project freetype.org. All rights reserved."
+      },
+      "bytes": 791593,
+      "sha256": "a3271784f8366b3c6412e0c35474884fa12899c392bacb08bc8eac00f4be7e64",
+      "system_imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [
+        "libbrotlidec.dll",
+        "libbz2-1.dll",
+        "libharfbuzz-0.dll",
+        "libpng16-16.dll",
+        "zlib1.dll"
+      ],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libfribidi-0.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "version_resource": {},
+      "bytes": 155504,
+      "sha256": "73a712fd51fa0085e8660084743a821ae7388de138069cd6cd8c171d4487da84",
+      "system_imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libgcc_s_seh-1.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "kernel32.dll",
+        "libwinpthread-1.dll"
+      ],
+      "version_resource": {},
+      "bytes": 151654,
+      "sha256": "80940372431cc76224dfda06e2d33f01e49af3b4e7c499c535be856ebcadd273",
+      "system_imports": [
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [
+        "libwinpthread-1.dll"
+      ],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libgio-2.0-0.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "advapi32.dll",
+        "api-ms-win-crt-conio-l1-1-0.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "dnsapi.dll",
+        "iphlpapi.dll",
+        "kernel32.dll",
+        "libglib-2.0-0.dll",
+        "libgmodule-2.0-0.dll",
+        "libgobject-2.0-0.dll",
+        "libintl-8.dll",
+        "ole32.dll",
+        "shell32.dll",
+        "shlwapi.dll",
+        "user32.dll",
+        "ws2_32.dll",
+        "zlib1.dll"
+      ],
+      "version_resource": {
+        "FileVersion": "2.88.3",
+        "ProductVersion": "2.88.3",
+        "CompanyName": "The GLib developer community",
+        "ProductName": "GLib",
+        "LegalCopyright": "\u00a9 2026 the GLib developer community. \u00a9 1995-2011 Peter Mattis, Spencer Kimball, Josh MacDonald and others."
+      },
+      "bytes": 1913315,
+      "sha256": "da8abbcbe4ea8ce650c6cb5953f775699a6cd2126d3291faa35b83cc0659cc12",
+      "system_imports": [
+        "advapi32.dll",
+        "api-ms-win-crt-conio-l1-1-0.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "dnsapi.dll",
+        "iphlpapi.dll",
+        "kernel32.dll",
+        "ole32.dll",
+        "shell32.dll",
+        "shlwapi.dll",
+        "user32.dll",
+        "ws2_32.dll"
+      ],
+      "bundled_imports": [
+        "libglib-2.0-0.dll",
+        "libgmodule-2.0-0.dll",
+        "libgobject-2.0-0.dll",
+        "libintl-8.dll",
+        "zlib1.dll"
+      ],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libglib-2.0-0.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "advapi32.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-process-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll",
+        "libintl-8.dll",
+        "libpcre2-8-0.dll",
+        "ole32.dll",
+        "shell32.dll",
+        "user32.dll",
+        "ws2_32.dll"
+      ],
+      "version_resource": {
+        "FileVersion": "2.88.3",
+        "ProductVersion": "2.88.3",
+        "CompanyName": "The GLib developer community",
+        "ProductName": "GLib",
+        "LegalCopyright": "\u00a9 2026 the GLib developer community. \u00a9 1995-2011 Peter Mattis, Spencer Kimball, Josh MacDonald and others."
+      },
+      "bytes": 1564508,
+      "sha256": "052e1d5e9cb072c7d2fb9db3ea6c29c1889b05110b1228e4fb846884eed387dd",
+      "system_imports": [
+        "advapi32.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-process-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll",
+        "ole32.dll",
+        "shell32.dll",
+        "user32.dll",
+        "ws2_32.dll"
+      ],
+      "bundled_imports": [
+        "libintl-8.dll",
+        "libpcre2-8-0.dll"
+      ],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libgmodule-2.0-0.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll",
+        "libglib-2.0-0.dll"
+      ],
+      "version_resource": {
+        "FileVersion": "2.88.3",
+        "ProductVersion": "2.88.3",
+        "CompanyName": "The GLib developer community",
+        "ProductName": "GLib",
+        "LegalCopyright": "\u00a9 2026 the GLib developer community. \u00a9 1995-2011 Peter Mattis, Spencer Kimball, Josh MacDonald and others."
+      },
+      "bytes": 27494,
+      "sha256": "702e4c3a331d116cf96ac4fb4f04dec64aea7f8236220a639e123ec033b7d4b7",
+      "system_imports": [
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [
+        "libglib-2.0-0.dll"
+      ],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libgobject-2.0-0.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll",
+        "libffi-8.dll",
+        "libglib-2.0-0.dll"
+      ],
+      "version_resource": {
+        "FileVersion": "2.88.3",
+        "ProductVersion": "2.88.3",
+        "CompanyName": "The GLib developer community",
+        "ProductName": "GLib",
+        "LegalCopyright": "\u00a9 2026 the GLib developer community. \u00a9 1995-2011 Peter Mattis, Spencer Kimball, Josh MacDonald and others."
+      },
+      "bytes": 360145,
+      "sha256": "469d2e3b60f5307d00809f1efc0ab494f7c230e58a93cd2cbf75fb64aa2aa786",
+      "system_imports": [
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [
+        "libffi-8.dll",
+        "libglib-2.0-0.dll"
+      ],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libgraphite2.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll",
+        "libgcc_s_seh-1.dll",
+        "libstdc++-6.dll"
+      ],
+      "version_resource": {},
+      "bytes": 167857,
+      "sha256": "93953e4744bcfce9a7bc439b956544bc213095cb1349c3602a58370f32b25c18",
+      "system_imports": [
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [
+        "libgcc_s_seh-1.dll",
+        "libstdc++-6.dll"
+      ],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libharfbuzz-0.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "dwrite.dll",
+        "gdi32.dll",
+        "kernel32.dll",
+        "libfreetype-6.dll",
+        "libgcc_s_seh-1.dll",
+        "libglib-2.0-0.dll",
+        "libgraphite2.dll",
+        "libstdc++-6.dll",
+        "rpcrt4.dll",
+        "user32.dll",
+        "usp10.dll"
+      ],
+      "version_resource": {},
+      "bytes": 1529189,
+      "sha256": "c46184dba5b5420206b8caa4176e284092b9e2580088a61455ba1ff9d3238a92",
+      "system_imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "dwrite.dll",
+        "gdi32.dll",
+        "kernel32.dll",
+        "rpcrt4.dll",
+        "user32.dll",
+        "usp10.dll"
+      ],
+      "bundled_imports": [
+        "libfreetype-6.dll",
+        "libgcc_s_seh-1.dll",
+        "libglib-2.0-0.dll",
+        "libgraphite2.dll",
+        "libstdc++-6.dll"
+      ],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libharfbuzz-subset-0.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll",
+        "libgcc_s_seh-1.dll",
+        "libharfbuzz-0.dll"
+      ],
+      "version_resource": {},
+      "bytes": 1852885,
+      "sha256": "9c231fc74a75351a2245369cc2da42075306cded6b92b657a5abc95494fc5c9b",
+      "system_imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [
+        "libgcc_s_seh-1.dll",
+        "libharfbuzz-0.dll"
+      ],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libiconv-2.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "version_resource": {
+        "FileVersion": "1.19",
+        "ProductVersion": "1.19",
+        "CompanyName": "Free Software Foundation",
+        "ProductName": "libiconv: character set conversion library",
+        "LegalCopyright": "Copyright (C) 1999-2026"
+      },
+      "bytes": 1141951,
+      "sha256": "94ec68fb8d342b6c91b6b48a8d95092819cdcd006a7166e0b68062f946afd08a",
+      "system_imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libintl-8.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "advapi32.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll",
+        "libiconv-2.dll"
+      ],
+      "version_resource": {
+        "FileVersion": "1.0",
+        "ProductVersion": "1.0",
+        "CompanyName": "Free Software Foundation",
+        "ProductName": "GNU libintl: accessing NLS message catalogs",
+        "LegalCopyright": "Copyright (C) 1995-2024"
+      },
+      "bytes": 298164,
+      "sha256": "0e5a178731e6be6d115442a6ade3df7f03265cd1fc4338f8b6f86a8001cbf582",
+      "system_imports": [
+        "advapi32.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [
+        "libiconv-2.dll"
+      ],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libpango-1.0-0.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll",
+        "libfribidi-0.dll",
+        "libgio-2.0-0.dll",
+        "libglib-2.0-0.dll",
+        "libgobject-2.0-0.dll",
+        "libharfbuzz-0.dll",
+        "libthai-0.dll"
+      ],
+      "version_resource": {
+        "FileVersion": "1.58.2.0",
+        "ProductVersion": "1.58.2",
+        "CompanyName": "Red Hat Software",
+        "ProductName": "Pango",
+        "LegalCopyright": "Copyright 1999 Red Hat Software."
+      },
+      "bytes": 435180,
+      "sha256": "fd92503a3fcab12fcf555cf8a47610f23b203cf888b48b5628629987d68215b8",
+      "system_imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [
+        "libfribidi-0.dll",
+        "libgio-2.0-0.dll",
+        "libglib-2.0-0.dll",
+        "libgobject-2.0-0.dll",
+        "libharfbuzz-0.dll",
+        "libthai-0.dll"
+      ],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libpangoft2-1.0-0.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll",
+        "libfontconfig-1.dll",
+        "libfreetype-6.dll",
+        "libgio-2.0-0.dll",
+        "libglib-2.0-0.dll",
+        "libgobject-2.0-0.dll",
+        "libharfbuzz-0.dll",
+        "libpango-1.0-0.dll"
+      ],
+      "version_resource": {
+        "FileVersion": "1.58.2.0",
+        "ProductVersion": "1.58.2",
+        "CompanyName": "Red Hat Software",
+        "ProductName": "PangoFT2",
+        "LegalCopyright": "Copyright 1999 Red Hat Software. Copyright 2000 Tor Lillqvist"
+      },
+      "bytes": 111100,
+      "sha256": "27620f9c842109690616393b3616c29d5dfda8f8a0a980c0a5e869d4f75be925",
+      "system_imports": [
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [
+        "libfontconfig-1.dll",
+        "libfreetype-6.dll",
+        "libgio-2.0-0.dll",
+        "libglib-2.0-0.dll",
+        "libgobject-2.0-0.dll",
+        "libharfbuzz-0.dll",
+        "libpango-1.0-0.dll"
+      ],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libpcre2-8-0.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "version_resource": {},
+      "bytes": 718625,
+      "sha256": "52ccc7e4ec5ad0aecf307c0328826340f5d504aa59f7c4143b9a1b9fff16ccda",
+      "system_imports": [
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libpng16-16.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll",
+        "zlib1.dll"
+      ],
+      "version_resource": {},
+      "bytes": 258972,
+      "sha256": "5c1dd5410af563f4a3c4aee10d1f749aa71e0d7fb3b4fac240eb9e96cadebd26",
+      "system_imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [
+        "zlib1.dll"
+      ],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libstdc++-6.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll",
+        "libgcc_s_seh-1.dll",
+        "libwinpthread-1.dll"
+      ],
+      "version_resource": {},
+      "bytes": 2661272,
+      "sha256": "69200d6d96b903dac4c873031813485a0455828be8101479efc56008862420cc",
+      "system_imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [
+        "libgcc_s_seh-1.dll",
+        "libwinpthread-1.dll"
+      ],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libthai-0.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll",
+        "libdatrie-1.dll",
+        "shlwapi.dll"
+      ],
+      "version_resource": {},
+      "bytes": 71780,
+      "sha256": "d8d8b87e9089a811e088f6a01da57c19ed54d2b6613bb85697f1958473f63666",
+      "system_imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll",
+        "shlwapi.dll"
+      ],
+      "bundled_imports": [
+        "libdatrie-1.dll"
+      ],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "libwinpthread-1.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "version_resource": {
+        "FileVersion": "1, 0, 0, 0",
+        "ProductVersion": "1, 0, 0, 0",
+        "CompanyName": "MinGW-W64 Project. All rights reserved.",
+        "LegalCopyright": "Copyright (C) MinGW-W64 Project Members 2010-2023"
+      },
+      "bytes": 63135,
+      "sha256": "e9627114952f819a97cdf72950e18d4d4f3a0a2739ad20bf32dd351e3c89a07e",
+      "system_imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [],
+      "license_and_source_status": "UNREVIEWED"
+    },
+    "zlib1.dll": {
+      "machine": "AMD64",
+      "imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "version_resource": {},
+      "bytes": 127291,
+      "sha256": "11cd91171765cd65f1c3362e3df67e5f5a618a6b88c8cdec899b802eaf1c7b0d",
+      "system_imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "kernel32.dll"
+      ],
+      "bundled_imports": [],
+      "license_and_source_status": "UNREVIEWED"
+    }
+  },
+  "excluded_upstream_dll_count": 51,
+  "review_notes": [
+    "PE version strings are not verified source/build provenance.",
+    "PE imports do not identify arbitrary LoadLibrary/plugin dependencies; rendering is tested separately.",
+    "Upstream WeasyPrint's own license does not license every native dependency.",
+    "Exact source versions, build patches, license texts and corresponding source remain required."
+  ]
+}
