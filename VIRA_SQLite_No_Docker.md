@@ -847,3 +847,20 @@ timezone/date-only semantics and acceptance criteria are recorded in
 Do not treat this queue as completion of repair phase 4, commencement of phase 5,
 or approval for another release. Existing backup, immutable-tag, reviewed Persian notes,
 select-path fresh installer and delta-only routine-update requirements remain mandatory.
+
+
+### 4-B/3 safety checkpoint — catalog implementation remains pending
+
+Before dynamic type/unit DDL, the updater must restore the exact attempt's verified
+SQLite snapshot after a failed schema migration, not just old app files. The new
+standalone stdlib DB tool is shipped/hash-verified in the delta, snapshots after
+writers stop, preserves failed DB/WAL state, avoids rewriting unchanged DBs and
+validates restored schema/data plus old-app readiness. Active-update writes and
+recurring jobs are blocked in current code until the helper commits.
+
+See [`docs/reports/phase4b-3a-schema-rollback-fa.md`](docs/reports/phase4b-3a-schema-rollback-fa.md)
+for the public-1.0.10 / compiled-helper / real probe-revision rollback gate and its
+actual test status. The probe revision exists only in disposable CI payloads.
+It does not close the final catalog-migration gate: rerun with the actual reference
+models/DDL before shipping that migration. Types, units and supplier Settings UI
+are not delivered by this safety checkpoint. No new public release is authorized.

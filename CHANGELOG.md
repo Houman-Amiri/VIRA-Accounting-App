@@ -39,6 +39,21 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 - No version/tag/publication or installed-user database changes. Dynamic item
   master data and its schema-rollback prerequisite remain pending.
 
+### Fixed — repair substep 4-B/3 safety prerequisite (unpublished)
+- Updater rollback now has a hash-verified standalone SQLite snapshot/restore tool
+  for the exact attempt, including schema and all data after a target migration.
+  Failed-target DB/WAL files are retained; unchanged DBs are not rewritten.
+- Block HTTP mutations and recurring jobs in current code during verified apply;
+  target writes must not be acknowledged before a potential rollback.
+- Add a Windows CI gate using the immutable public 1.0.10 client, compiled helper,
+  a real test-only Alembic revision, forced post-migration failure and original
+  schema/data/readiness checks. Evidence/status: `docs/reports/phase4b-3a-schema-rollback-fa.md`.
+- All five CI jobs passed on `1a3bdf5` (run 38985887353), including the public
+  1.0.10 compiled-helper schema rollback probe. Local 335 backend / 186 frontend
+  tests passed. No production schema revision,
+  catalog Settings UI, version/tag/publication or installed-data changes in this
+  checkpoint; the actual catalog migration and its exact rollback gate remain open.
+
 ## [1.0.10] - 2026-10-16
 
 Reviewed Persian notes: `docs/releases/v1.0.10-fa.md`. The user approved tagging
