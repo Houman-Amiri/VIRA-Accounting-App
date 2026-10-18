@@ -444,3 +444,44 @@ external temporary Fontconfig config. No native runtime was connected to normal
 startup/staging; no native binary upload, release/tag/version bump or user-data/
 pricing change. Continue with license choices and production bootstrap only after
 this technical source-materials checkpoint; publication still needs approval.
+
+
+### Native PDF license materials checkpoint (unpublished, 2026-10-18)
+
+[Persian report](docs/reports/pdf-runtime-license-materials-fa.md),
+[explicit proposed selections](docs/dependencies/pdf-runtime-license-policy.json),
+[generated notices](docs/dependencies/pdf-runtime-THIRD-PARTY-NOTICES.txt), and
+[source-delivery contract](docs/dependencies/pdf-runtime-source-delivery-plan-fa.md).
+All **20 packages / 21 DLLs** are covered. The original source ZIP was reverified
+without recompilation; **11 supplemental source files / all 19 metadata chunks**
+were recovered. PCRE2's 97-byte COPYING was only a forwarding stub: actual
+LICENCE.md (BSD-3-Clause WITH PCRE2-exception) and the separate BSD-2-Clause SLJIT
+license are now preserved. The SLJIT source is the vcpkg-pinned commit, NOT merely
+the PCRE2 tag's submodule. FTL is proposed for FreeType with attribution and nine
+contributed-driver/hash/zlib/HarfBuzz notices. libiconv's absent port declaration
+is not filled with an invented SPDX approval; the original LGPL-library/GPL-CLI
+scope is explicitly distinguished. Every other original AND/OR scope is retained.
+
+A real first Windows CI failure exposed legacy-locale corruption of UTF-8
+copyright bytes. Explicit UTF-8 JSON reads and LF writes fix it without relaxing
+hash verification; a regression enforces the contract. **438 backend tests / 33
+focused tests**, Ruff, Mypy (84 app files) and the configured Bandit gates pass.
+License-source audit **39102792100 / 40addf7** passes. All five ordinary CI jobs
+**39102792071 / 40addf7** pass, including native Windows, the real PDF/private
+worker and public 1.0.10 schema/compiled-helper rollback; **196 frontend / six
+browser scenarios**. The linked report preserves the initial failure too.
+
+The retained private source/review artifact now lasts **90 days**, expiring
+**2027-01-16 UTC**; this is STILL NOT durable recipient source delivery. No release
+or native-binary publication. The existing archive captures actual wrappers but
+not every transitive dependency for independently running the whole workflow;
+complete/permissioned recipe sidecar is an explicit prerequisite, not an SDK claim.
+
+Still **BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW**. Prepared choices
+are not legal sign-off. Six mandatory gates remain: component legal review;
+compiler/static-CRT terms; VIRA build-script rights/completeness; real recipient
+source delivery; compatible LGPL replacement/EULA proof; production bootstrap,
+native delta/rollback and deferred installed-user acceptance. MIT or any other
+license was NOT applied to VIRA-owned code without the owner's decision. No normal
+runtime integration, version/tag/release, user-data/pricing change or human
+acceptance is inferred from this checkpoint.

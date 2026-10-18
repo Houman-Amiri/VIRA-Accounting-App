@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "run_id": 39102792100,
+  "head_sha": "40addf779221e4e77087cb9d37d4f91f22c80bfe",
+  "workflow_path": ".github/workflows/pdf-license-proof.yml",
+  "job_id": 117602317380,
+  "conclusion": "success",
+  "source_build": {
+    "run_id": 39048889428,
+    "head_sha": "2ec79b82ccebc89d754dbe25c10aeef4c31d8738",
+    "workflow_path": ".github/workflows/pdf-source-proof.yml",
+    "artifact_name": "private-pdf-source-evidence"
+  },
+  "verified_source_materials": {
+    "packages": 20,
+    "source_files": 25505,
+    "source_symlinks": 21
+  },
+  "supplement_count": 11,
+  "recovered_metadata_chunks": 19,
+  "materials_sha256": "e3fab896c5bbe517dccef6b9413043ac06a9e605aa935be83d12a9fe01e4820c",
+  "notices_sha256": "2236949291e0f88c6625646cd85464258b8677d7b3fcb6ead9eae0cc21083ca7",
+  "retained_artifact": {
+    "id": 12126649884,
+    "name": "private-native-license-review-and-source",
+    "size_in_bytes": 177802573,
+    "digest": "sha256:e17b59a43ed3dd0473a7fc8e91494397ece39a14f78188edf2952ad6eed789c6",
+    "retention_days": 90,
+    "expires_at": "2027-01-16T06:05:13Z",
+    "recipient_source_delivery": false
+  },
+  "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW"
+}

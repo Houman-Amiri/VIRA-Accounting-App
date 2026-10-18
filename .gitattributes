@@ -11,3 +11,7 @@
 *.pdf binary
 *.ttf binary
 *.woff2 binary
+
+# Generated legal notices retain upstream CRLF bytes inside their combined text.
+# Never normalize this hash-pinned file on add/checkout (including Windows).
+docs/dependencies/pdf-runtime-THIRD-PARTY-NOTICES.txt -text

@@ -7,6 +7,27 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Prepared native PDF license/source-delivery materials (not legal approval)
+- Bind proposed license selections for all 20 source packages / 21 DLLs to the
+  immutable source inventory. Generate complete original notices plus 11 actual
+  source supplements, verified against the original patched source ZIP; recover
+  all 19 supplemental metadata chunks without recompiling native code.
+- Fix incomplete PCRE2 COPYING evidence: preserve the actual BSD-3-Clause WITH
+  PCRE2-exception license and separately pinned SLJIT BSD-2-Clause notice. Propose
+  FTL for FreeType with attribution and nine contributed-code notices; distinguish
+  LGPL libiconv libraries from GPL CLI/docs, without inventing missing port SPDX.
+- Real Windows CI caught legacy-codepage copyright corruption; explicit UTF-8
+  reads and LF JSON writes fix it without weakening hashes. 438 backend tests,
+  including 25 new license tests, and 33 focused checks pass; Ruff/Mypy/Bandit pass.
+  All five ordinary CI jobs (39102792071 / 40addf7) and the independent license
+  source audit (39102792100) pass; 196 frontend / six browser scenarios.
+- Preserve the source/review copy for 90 days, not a public source-delivery claim.
+  Specify same-release source/recipe/notices access and expose missing transitive
+  wrapper dependencies. Component legal/CRT/recipe rights, LGPL replacement and
+  real recipient delivery remain hard gates; no MIT grant for VIRA, native runtime
+  integration, public release/tag/version bump or user-data/math changes.
+  See `docs/reports/pdf-runtime-license-materials-fa.md`.
+
 ### Verified pinned-source PDF runtime proof (not distribution approval)
 - Build 35 native/host packages from an immutable vcpkg source baseline, with
   native binary caches disabled. NEW private candidate: 21 DLLs / 14,417,408 bytes;
