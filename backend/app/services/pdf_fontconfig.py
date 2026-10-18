@@ -7,6 +7,7 @@ It neither selects/ships DLLs nor establishes their redistribution permission.
 from __future__ import annotations
 
 import shutil
+import sys
 import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -31,6 +32,8 @@ def configuration_xml(cache_dir: Path) -> bytes:
 def _bindings() -> Any:
     if version("weasyprint") != "70.0":
         raise RuntimeError("Private Fontconfig adapter requires the reviewed WeasyPrint 70.0 contract")
+    if sys.platform == "win32" and not sys.flags.utf8_mode:
+        raise RuntimeError("Private Windows Fontconfig bootstrap requires CPython -X utf8")
     from weasyprint.text import fonts  # type: ignore[import-untyped]
 
     # Extend declarations, not native implementations or process environment.

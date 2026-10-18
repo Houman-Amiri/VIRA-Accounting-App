@@ -119,3 +119,10 @@ def test_unreviewed_weasyprint_version_fails_before_native_import(monkeypatch):
     monkeypatch.setattr(adapter, 'version', lambda _: '71.0')
     with pytest.raises(RuntimeError, match='reviewed WeasyPrint 70.0'):
         adapter._bindings()
+
+
+def test_windows_bootstrap_requires_explicit_utf8_before_native_import(monkeypatch):
+    monkeypatch.setattr(adapter, 'version', lambda _: '70.0')
+    monkeypatch.setattr(adapter, 'sys', SimpleNamespace(platform='win32', flags=SimpleNamespace(utf8_mode=0)))
+    with pytest.raises(RuntimeError, match='CPython -X utf8'):
+        adapter._bindings()

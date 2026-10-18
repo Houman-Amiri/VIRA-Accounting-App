@@ -8,6 +8,7 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import locale
 import os
 import sys
 import tempfile
@@ -25,6 +26,8 @@ def main() -> None:
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--expected-pango-version")
     args = parser.parse_args()
+    if sys.flags.utf8_mode != 1 or locale.getpreferredencoding(False).lower().replace('_', '-') != 'utf-8':
+        raise ValueError("Unicode native paths require explicit CPython -X utf8, not a locale-dependent codec")
     root = args.app_root.resolve()
     native = root / "native/pdf/bin"
     if sys.version_info[:2] != (3, 11) or Path(sys.executable).resolve().parent != root / "python":
@@ -105,6 +108,8 @@ def main() -> None:
                 if actual != expected:
                     raise ValueError("Temporary fonts must be exactly the two bundled Vazirmatn files")
                 from weasyprint.text import fonts
+                if fonts.PREFERRED_ENCODING.lower().replace('_','-') != 'utf-8':
+                    raise ValueError("WeasyPrint native font path encoding must be UTF-8")
                 if fonts.fontconfig.FcConfigGetFonts(font_config._config, fonts.fontconfig.FcSetSystem).nfont != 0:
                     raise ValueError("System fonts leaked into private configuration")
                 documents[name] = {"font_folder": str(folder), "font_sha256": sorted(actual), "system_fonts": 0}
@@ -147,6 +152,8 @@ def main() -> None:
         result = {
             "python": str(Path(sys.executable).resolve()), "base_prefix": sys.base_prefix,
             "version": sys.version, "isolated": sys.flags.isolated,
+            "utf8_mode": sys.flags.utf8_mode, "preferred_encoding": locale.getpreferredencoding(False),
+            "weasyprint_path_encoding": fonts.PREFERRED_ENCODING,
             "development_dependencies_absent": True, "ctypes_callbacks_verified": True,
             "fontconfig_file": None, "legacy_fontconfig_env_ignored": str(config),
             "fontconfig_mode": "EXPLICIT_UTF8_MEMORY_NO_SYSTEM_FONTS",

@@ -1,6 +1,6 @@
 # Private application QA only, outside the native-build MIT grant. No installer/release.
 [CmdletBinding()]
-param([Parameter(Mandatory = $true)][string]$Candidate)
+param([Parameter(Mandatory = $true)][string]$Candidate, [switch]$UpstreamPreflight)
 $ErrorActionPreference = "Stop"
 if (-not $IsWindows -or $env:GITHUB_ACTIONS -ne "true") { throw "Isolated Windows CI only" }
 $repo = (Get-Location).Path
@@ -12,7 +12,9 @@ $app = Join-Path $root "VIRA چاپ & مسیر با فاصله"
 Move-Item $staged $app
 $native = Join-Path $app "native/pdf"
 $inventory = Get-Content (Join-Path $Candidate "runtime-inventory.json") -Raw | ConvertFrom-Json
-if ($inventory.origin -ne "LOCAL_PINNED_VCPKG_SOURCE_BUILD" -or $inventory.private_consumption_only -ne $true -or $inventory.modified_build_is_distribution_candidate -ne $false) { throw "fresh private source candidate required" }
+if ($UpstreamPreflight) {
+    if ($inventory.upstream.sha256 -ne "ab1151f210b4e6bb7aa7a79e91a67e8ddb760094c107bfda55241b6aaefe7d53" -or $inventory.distribution_status -ne "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW") { throw "only the separately pinned stock SDK may be used for preflight" }
+} elseif ($inventory.origin -ne "LOCAL_PINNED_VCPKG_SOURCE_BUILD" -or $inventory.private_consumption_only -ne $true -or $inventory.modified_build_is_distribution_candidate -ne $false) { throw "fresh private source candidate required" }
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $native) | Out-Null
 Copy-Item -Recurse $Candidate $native
 $contexts = Join-Path $root "contexts.json"
@@ -36,10 +38,11 @@ try {
         New-Item -ItemType Directory -Force -Path $reports | Out-Null
         Copy-Item (Join-Path $native "runtime-inventory.json") (Join-Path $reports "runtime-inventory.json")
         $probeArgs = @()
+        if (-not $UpstreamPreflight) { $probeArgs += @("--expected-pango-version", "1.58.0-vira-local-source") }
         if ($case -eq "restarted-process") { $probeArgs += "--reuse-state" }
         Push-Location -LiteralPath $cwd
         try {
-            & (Join-Path $app "python/python.exe") -I -B (Join-Path $app "scripts/pdf_unicode_probe.py") --app-root $app --contexts $contexts --state-root $state --out-dir $reports --expected-pango-version "1.58.0-vira-local-source" @probeArgs
+            & (Join-Path $app "python/python.exe") -I -B -X utf8 (Join-Path $app "scripts/pdf_unicode_probe.py") --app-root $app --contexts $contexts --state-root $state --out-dir $reports @probeArgs
             if ($LASTEXITCODE -ne 0) { throw "Unicode worker failed: $case" }
         } finally { Pop-Location }
         uv run python scripts/pdf_payload_verify.py --app-root $app --reports $reports

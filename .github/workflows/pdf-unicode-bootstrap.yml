@@ -15,7 +15,60 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  unicode-preflight:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Locked app and separately pinned stock SDK (preflight only, NOT source provenance)
+        shell: pwsh
+        run: |
+          uv sync --frozen --all-extras
+          if ($LASTEXITCODE -ne 0) { throw "preflight app dependencies failed" }
+          pnpm --dir frontend install --frozen-lockfile
+          if ($LASTEXITCODE -ne 0) { throw "preflight SPA dependencies failed" }
+          pnpm --dir frontend build
+          if ($LASTEXITCODE -ne 0) { throw "preflight SPA failed" }
+          & ./scripts/prepare_pdf_native_fixture.ps1
+          if ($LASTEXITCODE -ne 0) { throw "pinned SDK fixture failed" }
+      - name: Fast Unicode and UTF-8 interpreter preflight (no native-source claim)
+        shell: pwsh
+        run: |
+          uv run python scripts/pdf_runtime_inventory.py --archive "$env:VIRA_PDF_UPSTREAM_ARCHIVE" --out-dir "$env:RUNNER_TEMP/unicode-preflight-candidate"
+          if ($LASTEXITCODE -ne 0) { throw "preflight SDK closure failed" }
+          $output = (& pwsh -NoProfile -File scripts/pdf_unicode_smoke.ps1 -Candidate "$env:RUNNER_TEMP/unicode-preflight-candidate" -UpstreamPreflight 2>&1 | Out-String)
+          $code = $LASTEXITCODE
+          Write-Host $output
+          New-Item -ItemType Directory -Force reports/unicode-pdf | Out-Null
+          $output | Set-Content -Encoding utf8 reports/unicode-pdf/preflight.log
+          if ($code -ne 0) {
+            $last = $output.Substring([Math]::Max(0, $output.Length - 8000))
+            for ($i = 0; $i -lt $last.Length; $i += 2600) {
+              $part = $last.Substring($i, [Math]::Min(2600, $last.Length - $i))
+              $part = (($part -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A'
+              Write-Output "::error title=Unicode preflight failure part ${i}::$part"
+            }
+            throw "UTF-8/Unicode preflight failed; do not start expensive source compile"
+          }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: private-unicode-stock-sdk-preflight-no-dlls-not-source-proof
+          path: reports/unicode-pdf/
+          retention-days: 90
+          if-no-files-found: error
+
   unicode-consumer:
+    needs: unicode-preflight
     runs-on: windows-latest
     timeout-minutes: 120
     env:
@@ -178,6 +231,7 @@ jobs:
               assert c['dll_count']==len(w['loaded_dlls'])==21 and set(w['loaded_dlls'])==expected
               assert set(inv['dlls'])==expected and all(d['sha256']==x['dlls'][n]['sha256'] for n,d in inv['dlls'].items())
               assert inv['native_audit_sha256']==hashlib.sha256(pathlib.Path('reports/local-source/verified-local-rebuild.json').read_bytes()).hexdigest()
+              assert w['utf8_mode']==1 and w['preferred_encoding'].lower()=='utf-8' and w['weasyprint_path_encoding'].lower()=='utf-8'
               assert w['fontconfig_mode']=='EXPLICIT_UTF8_MEMORY_NO_SYSTEM_FONTS' and w['fontconfig_file'] is None
               assert w['reused_state']==(name=='restarted-process')
               assert all(not v.isascii() and ' ' in v for v in [w['python'],w['unicode_temp'],w['unicode_state'],w['localappdata'],w['working_directory']])
