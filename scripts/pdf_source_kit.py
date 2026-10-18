@@ -51,6 +51,7 @@ are required. vcpkg can download its own build tools, including Python/Meson.
    This default command downloads upstream target sources; it is NOT local replay.
 5. For LOCAL preferred inputs, first authenticate/extract as above, then run:
    python -I -S licensed-build-files/scripts/prepare_pdf_local_sources.py --kit KIT_DIRECTORY --expected-manifest-sha256 HASH --sources NEW_DIRECTORY --out NEW_OVERLAY
+   Use NEW absolute paths OUTSIDE the input kit/preferred tree for all outputs.
    From licensed-build-files run the same native driver with -OverlayPorts NEW_OVERLAY
    and a NEW absolute WorkDir. After compilation, check external inputs with:
    python -I -S scripts/prepare_pdf_local_sources.py --check-inputs NEW_OVERLAY/local-source-preparation.json
@@ -286,6 +287,8 @@ def verify(kit: Path, expected_manifest_sha256: str | None = None) -> dict:
 
 
 def extract_sources(kit: Path, destination: Path, expected_manifest_sha256: str | None = None) -> None:
+    if destination.resolve().is_relative_to(kit.resolve()):
+        raise ValueError("Extraction output must be outside the source kit")
     verify(kit, expected_manifest_sha256)
     with zipfile.ZipFile(kit / "corresponding-source.zip") as bundle:
         entries, links = source_entries(bundle)

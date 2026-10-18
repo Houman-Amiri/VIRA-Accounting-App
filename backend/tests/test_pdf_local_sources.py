@@ -215,3 +215,13 @@ def test_port_pins_cover_all_original_packages_and_baseline():
     assert len(pins["packages"]) == 20
     assert pins["packages"]["pthread"]["roots"] == []
     assert all(len(p["roots"]) == 1 for n, p in pins["packages"].items() if n != "pthread")
+
+
+@pytest.mark.parametrize("parent", ["kit", "preferred"])
+def test_output_cannot_mutate_an_input_envelope_or_source_tree(tool, synthetic, parent):
+    kit, sources, _, _, seen = synthetic
+    dest = (kit if parent == "kit" else sources) / "new-output"
+    with pytest.raises(ValueError, match="outside the source kit and preferred inputs"):
+        tool.prepare(kit, sources, dest, "external-digest", allow_modified=True)
+    assert not dest.exists()
+    assert seen == []

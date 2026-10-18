@@ -144,7 +144,9 @@ python -I -S scripts/prepare_pdf_local_sources.py `
   --check-inputs C:/new-local-overlay/local-source-preparation.json
 ```
 
-All output/work paths must be **new**, not the installed app/data directory.
+All output/work paths must be **new and outside the input kit/preferred tree**,
+not the installed app/data directory. Extraction and overlay preparation reject
+nested output directories before creating them, including resolved aliases.
 Windows must permit real symlink creation; no flattened substitute is accepted.
 Use a short ASCII build path. Quotes, semicolons, dollar signs, square brackets
 and newlines in preferred-input paths are deliberately unsupported/rejected

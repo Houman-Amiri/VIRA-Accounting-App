@@ -184,6 +184,9 @@ def write_json(path: Path, value: dict) -> None:
 def prepare(kit: Path, sources: Path, destination: Path, expected_manifest_sha256: str, allow_modified: bool = False) -> dict:
     if destination.exists():
         raise FileExistsError("New overlay directory required; nothing will be overwritten")
+    resolved_out = destination.resolve()
+    if any(resolved_out.is_relative_to(p.resolve()) for p in (kit, sources)):
+        raise ValueError("Overlay output must be outside the source kit and preferred inputs")
     tool = own_kit_tool()
     kit_receipt = tool.verify(kit, expected_manifest_sha256)
     pins = json.loads((ROOT / PIN_FILE).read_text(encoding="utf-8"))

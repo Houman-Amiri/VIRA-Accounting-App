@@ -174,3 +174,12 @@ def test_windows_nested_symlink_targets_use_native_separators(tool, monkeypatch,
     monkeypatch.setattr(tool.os, "symlink", lambda target, path, **kw: seen.append((target, kw)))
     tool.extract_sources(kit, tmp_path / "new-sources")
     assert seen == [("sub\\file", {"target_is_directory": False})]
+
+
+def test_extraction_cannot_add_unmanifested_files_inside_input_kit(tool, tmp_path, monkeypatch):
+    def unexpected(*args):
+        pytest.fail("Nested output must fail before inspecting/extracting the kit")
+    monkeypatch.setattr(tool, "verify", unexpected)
+    with pytest.raises(ValueError, match="outside the source kit"):
+        tool.extract_sources(tmp_path, tmp_path / "new-extracted")
+    assert not (tmp_path / "new-extracted").exists()
