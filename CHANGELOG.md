@@ -18,7 +18,9 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
   substituted license, symlinks and overwriting existing sidecar data. Attach the
   grant and licensed sources to the private source-review artifact, not a release.
 - 24 new scope/sidecar tests, 57 focused checks and 462 backend tests pass locally;
-  Ruff/Mypy (84 app files) and configured Bandit checks pass. The recipe-rights
+  Ruff/Mypy (84 app files) and configured Bandit checks pass. All five ordinary CI
+  jobs (39104212641 / 0742355) and scoped-source/sidecar audit 39104212604 pass,
+  with 196 frontend / six browser scenarios and Windows rollback. The recipe-rights
   substep is recorded, but full workflow completeness, CRT/library obligations,
   recipient delivery and production runtime/update gates remain open. No native
   recompilation, version/tag/release, application/data/math change or installed

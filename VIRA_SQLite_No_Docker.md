@@ -1039,8 +1039,12 @@ workflow attaches the grant and these source files alongside the old source ZIP;
 this remains a temporary review copy, NOT recipient-ready durable source delivery
 or proof that the entire application-referencing workflow is standalone.
 24 new tests / 57 focused checks / 462 backend tests pass locally, plus Ruff,
-Mypy (84 app files) and the configured Bandit gates. See the
-[confirmation report](docs/reports/pdf-build-script-license-grant-fa.md) for CI evidence.
+Mypy (84 app files) and the configured Bandit gates. All five ordinary CI jobs
+**39104212641 / 0742355** and source/limited-sidecar audit **39104212604** pass;
+196 frontend / six browser scenarios, native Windows PDF/private Python and real
+public-version schema/compiled-helper rollback are green. See the
+[confirmation report](docs/reports/pdf-build-script-license-grant-fa.md) and
+[pinned proof](docs/dependencies/pdf-build-script-license-proof.json).
 The permissions substep is confirmed; recipe completeness and every other native
 runtime gate remain open. BLOCKED is project release-readiness, not an extra MIT
 restriction. No application-wide MIT grant, native-runtime integration, binary

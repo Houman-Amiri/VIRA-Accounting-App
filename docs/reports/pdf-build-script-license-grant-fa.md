@@ -66,8 +66,21 @@ python scripts/check_pdf_build_license.py --sidecar /path/to/new-licensed-build-
 - **۴۶۲ تست کامل بک‌اند** موفق، ۶۵٫۵۸ ثانیه؛ بدون skip جدید.
 - Ruff، Mypy روی ۸۴ فایل app و Bandit با threshold رسمی app و بدون کاهش threshold
   برای checker جدید موفق‌اند.
-- نتیجهٔ CI این تغییر پس از push به این گزارش متصل می‌شود؛ موفقیت اجرای قبلی
-  به جای اجرای تغییر جدید جا زده نمی‌شود.
+- ممیزی سورس و اتصال ضمیمهٔ MIT در
+  [39104212604](https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39104212604)
+  روی `0742355` موفق شد؛ گام verify/copy دامنه موفق و هر ۱۹ قطعهٔ مواد سورس بدون
+  تغییر بازیابی شد. کامپایل بومی تکرار نشد.
+- [artifact جدید همراه ضمیمه](https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39104212604/artifacts/12128045662)
+  با اندازهٔ ۱۷۷٬۸۲۲٬۷۷۰ بایت و انقضای `2027-01-16T06:29:31Z` ثبت شد؛
+  [proof ماشین‌خوان](../dependencies/pdf-build-script-license-proof.json) شامل id،
+  commit، digest artifact و هش فایل‌های مجوز/دامنه است. این شواهد اجرای workflow
+  است؛ ادعای دانلود/بازبینی مستقلِ مجددِ تمام bytes artifact جدید نیست.
+- **هر پنج job** اجرای عادی
+  [39104212641](https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39104212641)
+  روی همین `0742355` موفق شدند: بک‌اند، فرانت‌اند، قرارداد API، مرورگر و ویندوز.
+  ۱۹۶ تست فرانت‌اند، شش سناریوی مرورگر و گیت‌های PDF واقعی، Python همراه و
+  migration/rollback واقعی از نسخهٔ عمومی ۱٫۰٫۱۰ نیز موفق‌اند. این موفقیت برای
+  همین تغییر مجوز ثبت شده، نه با استناد به اجرای قدیمی.
 
 ## وضعیت باقی‌مانده
 

@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "run_id": 39104212604,
+  "head_sha": "0742355c6c2cd68629bba18893bc3022b887551a",
+  "workflow_path": ".github/workflows/pdf-license-proof.yml",
+  "job_id": 117606517416,
+  "conclusion": "success",
+  "scope_file": "docs/dependencies/pdf-build-script-license-scope.json",
+  "scope_file_sha256": "62871a57869432fdecdd17b956df36d26e507eb931d4af597290db5a88ba5829",
+  "license_file": "LICENSES/VIRA-PDF-BUILD-MIT.txt",
+  "license_file_sha256": "69e3f3cb775f68c5ef3e4191bbe78422f795e51ea777c71872703912f44110bd",
+  "check_result_file": "docs/dependencies/pdf-build-script-license-check.json",
+  "check_result_file_sha256": "ea0d0e8951fee148b96097421824a8ce11f64ebfb2b26f1ddf8eeead4fd93715",
+  "licensed_file_count": 9,
+  "licensed_sidecar_artifact_directory": "licensed-vira-build-files",
+  "sidecar_step_conclusion": "success",
+  "verified_source_materials": {
+    "packages": 20,
+    "source_files": 25505,
+    "source_symlinks": 21
+  },
+  "recovered_material_chunks": 19,
+  "original_source_archive_sha256": "259532d2cd8c5d3b176402acdcfb9daadb2cb897d5710010cc198eeabe5401de",
+  "source_build": {
+    "run_id": 39048889428,
+    "head_sha": "2ec79b82ccebc89d754dbe25c10aeef4c31d8738",
+    "workflow_path": ".github/workflows/pdf-source-proof.yml",
+    "artifact_name": "private-pdf-source-evidence"
+  },
+  "retained_artifact": {
+    "id": 12128045662,
+    "name": "private-native-license-review-and-source",
+    "size_in_bytes": 177822770,
+    "digest": "sha256:88b427962cd7576f190aec3f2659dc5c0589123c9f1a408a37f5983a91928a22",
+    "retention_days": 90,
+    "expires_at": "2027-01-16T06:29:31Z",
+    "recipient_source_delivery": false
+  },
+  "application_license_changed": false,
+  "release_authorized": false,
+  "runtime_distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+  "ordinary_regression": {
+    "run_id": 39104212641,
+    "head_sha": "0742355c6c2cd68629bba18893bc3022b887551a",
+    "conclusion": "success",
+    "jobs_passed": 5,
+    "backend_tests": 462,
+    "frontend_tests": 196,
+    "browser_scenarios": 6
+  }
+}
