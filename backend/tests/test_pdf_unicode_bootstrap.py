@@ -126,3 +126,11 @@ def test_windows_bootstrap_requires_explicit_utf8_before_native_import(monkeypat
     monkeypatch.setattr(adapter, 'sys', SimpleNamespace(platform='win32', flags=SimpleNamespace(utf8_mode=0)))
     with pytest.raises(RuntimeError, match='CPython -X utf8'):
         adapter._bindings()
+
+
+def test_windows_python_utf8_does_not_replace_native_process_acp(monkeypatch):
+    monkeypatch.setattr(adapter, 'version', lambda _: '70.0')
+    monkeypatch.setattr(adapter, 'sys', SimpleNamespace(platform='win32', flags=SimpleNamespace(utf8_mode=1)))
+    monkeypatch.setattr(adapter, '_windows_active_code_page', lambda: 1252)
+    with pytest.raises(RuntimeError, match=r'process GetACP\(\) == 65001'):
+        adapter._bindings()

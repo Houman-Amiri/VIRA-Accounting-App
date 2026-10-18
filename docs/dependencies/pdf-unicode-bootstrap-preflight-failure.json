@@ -102,5 +102,85 @@
     ],
     "finding": "Python UTF-8 mode 1 and preferred encoding UTF-8, but Windows GetACP 1252: direct native Unicode font additions both FALSE and app font count zero; identical ASCII control font additions both TRUE and count two. ASCII copies are preflight-only controls, removed before real rendering, never a render fallback.",
     "next_private_fix_not_yet_proven": "Preserve existing CPython PE manifest and embed Windows activeCodePage UTF-8 using Windows SDK mt.exe, record changed EXE hash and both manifests. Require independent GetACP()==65001 before all rendering. Normal staging/installer unchanged. Windows 10 1903+ requirement and modified executable must remain explicit open production/review gates."
+  },
+  "first_manifest_harness_failure": {
+    "run_id": 39174821766,
+    "head_sha": "4cf8bf7dc429dcbd75515e3f4b8a7a484cfd7003",
+    "conclusion": "failure",
+    "annotations": [
+      {
+        "path": ".github",
+        "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/4cf8bf7dc429dcbd75515e3f4b8a7a484cfd7003/.github",
+        "start_line": 2,
+        "start_column": null,
+        "end_line": 2,
+        "end_column": null,
+        "annotation_level": "warning",
+        "title": "",
+        "message": "Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4, astral-sh/setup-uv@v5, pnpm/action-setup@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/",
+        "raw_details": ""
+      },
+      {
+        "path": ".github",
+        "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/4cf8bf7dc429dcbd75515e3f4b8a7a484cfd7003/.github",
+        "start_line": 291,
+        "start_column": null,
+        "end_line": 291,
+        "end_column": null,
+        "annotation_level": "failure",
+        "title": "",
+        "message": "Process completed with exit code 1.",
+        "raw_details": ""
+      },
+      {
+        "path": ".github",
+        "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/4cf8bf7dc429dcbd75515e3f4b8a7a484cfd7003/.github",
+        "start_line": 251,
+        "start_column": null,
+        "end_line": 251,
+        "end_column": null,
+        "annotation_level": "failure",
+        "title": "Unicode preflight failure part 2600",
+        "message": "0\r\n + tenacity==9.2.1\r\n + threadpoolctl==3.7.0\r\n + tinycss2==1.5.1\r\n + tinyhtml5==2.1.0\r\n + typing-extensions==4.16.0\r\n + typing-inspection==0.4.4\r\n + tzdata==2026.5\r\n + tzlocal==5.4.4\r\n + urllib3==2.8.0\r\n + uvicorn==0.54.0\r\n + watchfiles==1.3.0\r\n + weasyprint==70.0\r\n + webencodings==0.6.1\r\n + websockets==17.2\r\n + zopfli==0.4.3\r\n[stage_app_payload] version.json: version=0.0.0-private-unicode-proof commit=4cf8bf7 spa_build=4cf8bf7\r\n[build_manifest] 15136 files -> D:\\a\\_temp\\vira-unicode-90f8c5d484df4f83af914062052d2d04\\initial-stage\\install_manifest.json\r\n[stage_app_payload] staged D:\\a\\_temp\\vira-unicode-90f8c5d484df4f83af914062052d2d04\\initial-stage\r\nTraceback (most recent call last):\r\n  File \"D:\\a\\VIRA-Accounting-App\\VIRA-Accounting-App\\scripts\\build_manifest.py\", line 46, in <module>\r\n    raise SystemExit(main())\r\n                     ^^^^^^\r\n  File \"D:\\a\\VIRA-Accounting-App\\VIRA-Accounting-App\\scripts\\build_manifest.py\", line 41, in main\r\n    print(f\"[build_manifest] {len(manifest)} files -> {out}\")\r\n  File \"C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\Lib\\encodings\\cp1252.py\", line 19, in encode\r\n    return codecs.charmap_encode(input,self.errors,encoding_table)[0]\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nUnicodeEncodeError: 'charmap' codec can't encode characters in position 94-96: character maps to <undefined>\r\nException: D:\\a\\VIRA-Accounting-App\\VIRA-Accounting-App\\scripts\\pdf_unicode_process_manifest.ps1:68\r\nLine |\r\n  68 |  \u2026 DE -ne 0) { throw \"Private modified-payload manifest generation faile \u2026\r\n     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n     | Private modified-payload manifest generation failed\r\n",
+        "raw_details": ""
+      },
+      {
+        "path": ".github",
+        "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/4cf8bf7dc429dcbd75515e3f4b8a7a484cfd7003/.github",
+        "start_line": 159,
+        "start_column": null,
+        "end_line": 159,
+        "end_column": null,
+        "annotation_level": "failure",
+        "title": "Unicode preflight failure part 0",
+        "message": "Downloading cpython-3.11.17-windows-x86_64-none (download) (24.1MiB)\r\n Downloaded cpython-3.11.17-windows-x86_64-none (download)\r\nInstalled Python 3.11.17 in 5.67s\r\n + cpython-3.11.17-windows-x86_64-none (python3.11.exe)\r\nwarning: `C:\\Users\\runneradmin\\.local\\bin` is not on your PATH. To use installed Python executables, run `$env:PATH = \"C:\\Users\\runneradmin\\.local\\bin;$env:PATH\"` or `uv python update-shell`.\r\n[stage_app_payload] bundled CPython from C:\\Users\\runneradmin\\AppData\\Roaming\\uv\\python\\cpython-3.11-windows-x86_64-none\r\nUsing CPython 3.11.17 interpreter at: C:\\Users\\runneradmin\\AppData\\Roaming\\uv\\python\\cpython-3.11-windows-x86_64-none\\python.exe\r\nResolved 81 packages in 360ms\r\nDownloading scikit-learn (7.9MiB)\r\nDownloading sqlalchemy (2.3MiB)\r\nDownloading pydantic-core (2.1MiB)\r\nDownloading fonttools (1.6MiB)\r\nDownloading rapidfuzz (1.7MiB)\r\nDownloading scipy (34.9MiB)\r\nDownloading pillow (6.9MiB)\r\nDownloading numpy (12.0MiB)\r\n Downloaded fonttools\r\n Downloaded rapidfuzz\r\n Downloaded pydantic-core\r\n Downloaded sqlalchemy\r\n Downloaded pillow\r\n Downloaded scikit-learn\r\n Downloaded numpy\r\n Downloaded scipy\r\nPrepared 14 packages in 1.40s\r\nInstalled 81 packages in 997ms\r\n + alembic==1.20.0\r\n + annotated-doc==0.0.5\r\n + annotated-types==0.8.0\r\n + anyio==4.15.1\r\n + apscheduler==3.11.3\r\n + argon2-cffi==25.1.0\r\n + argon2-cffi-bindings==26.1.0\r\n + babel==2.18.0\r\n + boto3==1.43.113\r\n + botocore==1.43.113\r\n + brotli==1.2.0\r\n + certifi==2026.7.22\r\n + cffi==2.1.1\r\n + click==8.5.0\r\n + cloudpickle==3.1.2\r\n + colorama==0.4.6\r\n + cryptography==50.0.2\r\n + cssselect2==0.10.1\r\n + defusedxml==0.7.1\r\n + et-xmlfile==2.0.0\r\n + fastapi==0.143.1\r\n + fonttools==4.67.0\r\n + h11==0.16.0\r\n + httpcore==1.0.9\r\n + httptools==0.9.0\r\n + httpx==0.28.1\r\n + idna==3.20\r\n + itsdangerous==2.2.0\r\n + jalali-core==1.0.0\r\n + jdatetime==6.1.1\r\n + jinja2==3.1.6\r\n + jmespath==1.1.0\r\n + joblib==1.6.0\r\n + mako==1.4.3\r\n + markupsafe==3.0.4\r\n + mt940==0.8.1\r\n + narwhals==2.27.1\r\n + numpy==2.4.6\r\n + ofxtools==1.1.1\r\n + openpyxl==3.1.5\r\n + opentelemetry-api==1.45.1\r\n + pillow==12.3.0\r\n + polars==2.0.0\r\n + polars-runtime-32==2.0.0\r\n + pwdlib==0.3.1\r\n + py-moneyed==3.0\r\n + pycparser==3.11\r\n + pydantic==2.14.1\r\n + pydantic-core==2.50.1\r\n + pydantic-settings==2.16.0\r\n + pydyf==0.13.0\r\n + pyotp==2.10.0\r\n + pyphen==0.18.1\r\n + python-dateutil==2.9.0.post0\r\n + python-dotenv==1.2.4\r\n + python-multipart==0.0.32\r\n + pyyaml==6.0.3\r\n + qrcode==8.2\r\n + rapidfuzz==3.14.6\r\n + s3transfer==0.19.2\r\n + scikit-learn==1.9.1\r\n + scipy==1.17.1\r\n + six==1.17.0\r\n + sqlalchemy==2.1.4\r\n + starlette==1.8.0\r\n + structlog==26.1.",
+        "raw_details": ""
+      },
+      {
+        "path": ".github",
+        "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/4cf8bf7dc429dcbd75515e3f4b8a7a484cfd7003/.github",
+        "start_line": 32,
+        "start_column": null,
+        "end_line": 32,
+        "end_column": null,
+        "annotation_level": "notice",
+        "title": "PDF native inventory chunk",
+        "message": "{\"part\": 1, \"total\": 2, \"data\": \"Fl7Lhky+x/3iWMjVk7lISJ+dXLypc3cKDRZf1QQa6A9sWhAFuZrkL4pIcIHYhy+I8IuLqevbKahIA83Z4ljJ+4viz8/+0gdC/HmS9HD9iCvu9XCDqFcYjcvBJamIVKLnwQTlwCWvyZBy3McUE2MGLDcGWTCOGZG9MpATc+vcIPp5A3A9eY43Flu2q/kbqHtuq4PVyWvJTvLLB4+nrq9f/lhcQu+LAmK/KkpdLV6+eFOM6X84wiJCB1V91K7IXX0QV6jh4ox33AxXZxhq4NZZydEENIlzrZQAAwllyjYzKYyOiSwqJaXLLpjsTH9EGI8ha/f4LKytTHxUMnHX2vOcoDyQTedPC3zyANnnO8m7Czbc7C5Ikb7LP1+SULdwn1B3DFfNrM6w2u2J5TTbP13AtK8xFf+A7j3ZLmDYVz0O7+PO3uYr5isbrmcp8iodG5BoTl5oJkHmCIGLHLPWOmYHyhrOspBBMEnXzpFVGLQRzgjvnU3GCa7DivH6rRR8+BW0pxKNx3Dq8PzUD7I4t5kA2L3raNrFAcwPgoF5zfiRcORXP4jH0WRxXaDfYFz8UDfFi7Kq/ntStt2cE805G3KosEaw7KNTgjNvPDPcSC+DpL9R+KT7nVJkgAID71hk0O839EllqwP69Z39spmQv4vzPko5eCghDtIht4kKD9jZazlZI8MYen82dLSoMGpIDDBmyWwkV9A5YaRiWSfNFID22UbFlQweePA5Z5LVmFaMZ23ukK8nDDXYZb89XPeJpnxdGeH37xkcRGq081YMhTLylLTiDLI2MiuQUQEiZ4lnqzyA5ciSzUEGlfuDCRkGj95ESBiSWDFpbguajwY0y3T279qtNlhLf/JQzBZIf9y2s8XLqqePOdlAGMPFHD0ZTzZ/Msmb4JlMEFV0VjLJHZfKaWBKaydcQMcZV9Zjjro/LoSMDyVYXPF7Jrbw+/Tg9+Cl/oWYfCDP3YivPDnLfb5rsru3D4vfHW4CX81DsXMB1+SSC86iZ86D42T4OJcNMJ5A28g9kqGURCCakiE4bbzN/XfbKCuzkcas0xbaomAVFMxP+RI+GCDlEVJ/izmeLs/nU5yolQOQuwW7+FkSghw8nwtDfldOvv559LNRV8cNLjlhcPf+Ve5bVRXf4TjQexSC8fMDDuUg7Ggkl8NIB/ZHxfYnSGuRHffgbUzZCq8ZcpdUUlkCA2GlhyRYyFKkJDVHGYl4mMU1EsnmQmoN4ZBrn2ebufcUQcLe3Pdz3w3EY/Kck3LuE0SMzjxKaUSfNmIs6qzBcAcmOBddTEgC44NjAoEK2sCWHpqwnbs/WLz6eca3sZolquTqCywPqfbDWFNvqfh5umODJyWeHk7qC0T8svPqoLjKqrzoTVv0aU5UoL9f5hJTcdHwfpiVVSqmTX2CE5hEPGd3+vzlKxepPv9YmciKKvMZ1RPKrs/TLF7UkF5c5GzuT6vZUTkpEk5xQiVjie3fSGHQ/33rRdkW9Gpd3ypOoaGprM7OG/rxsk/F9Rdu/qkt6tM+G/R8jKh9bM/f4OoGUg/Oigl05QleN3hR3cFbIE1z0bOrEWh3i8s+QhePkS6vaurwLXWw3xwb64bEa1pPUv+2l59vcAzUpwb/OyubXu39+r//AyPl4Tw=\"}",
+        "raw_details": ""
+      },
+      {
+        "path": ".github",
+        "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/4cf8bf7dc429dcbd75515e3f4b8a7a484cfd7003/.github",
+        "start_line": 31,
+        "start_column": null,
+        "end_line": 31,
+        "end_column": null,
+        "annotation_level": "notice",
+        "title": "PDF native inventory chunk",
+        "message": "{\"part\": 0, \"total\": 2, \"data\": \"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\"}",
+        "raw_details": ""
+      }
+    ],
+    "observed": "PE resource embedding completed, but DEVELOPMENT interpreter build_manifest.py printing the Unicode app path to its CP1252 console raised UnicodeEncodeError. Neither a manifest-tool error nor a successful render. Fix confined to this private harness call: uv run python -X utf8 scripts/build_manifest.py. Ordinary CI interpreter environment unchanged."
   }
 }

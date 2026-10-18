@@ -64,6 +64,6 @@ if ($before -eq $after) { throw "Private process manifest must change the execut
     release_or_redistribution_approval = $false
 } | ConvertTo-Json -Depth 10 | Set-Content -Encoding utf8 (Join-Path $app "private-utf8-process-manifest.json")
 # Restamp this PRIVATE baseline only, then require both workers to leave it intact.
-uv run python scripts/build_manifest.py $app
+uv run python -X utf8 scripts/build_manifest.py $app
 if ($LASTEXITCODE -ne 0) { throw "Private modified-payload manifest generation failed" }
 Write-Host "Private CPython process manifest embedded; no installer or normal staging changes."

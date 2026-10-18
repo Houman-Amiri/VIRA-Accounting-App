@@ -29,11 +29,23 @@ def configuration_xml(cache_dir: Path) -> bytes:
     return tostring(root, encoding="utf-8", xml_declaration=True)
 
 
+def _windows_active_code_page() -> int:
+    # Called only on Windows, after the private caller pins its audited libffi.
+    import ctypes
+
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)  # type: ignore[attr-defined]  # Windows-only API
+    kernel.GetACP.argtypes = []
+    kernel.GetACP.restype = ctypes.c_uint
+    return int(kernel.GetACP())
+
+
 def _bindings() -> Any:
     if version("weasyprint") != "70.0":
         raise RuntimeError("Private Fontconfig adapter requires the reviewed WeasyPrint 70.0 contract")
     if sys.platform == "win32" and not sys.flags.utf8_mode:
         raise RuntimeError("Private Windows Fontconfig bootstrap requires CPython -X utf8")
+    if sys.platform == "win32" and _windows_active_code_page() != 65001:
+        raise RuntimeError("Private Windows native font paths require process GetACP() == 65001")
     from weasyprint.text import fonts  # type: ignore[import-untyped]
 
     # Extend declarations, not native implementations or process environment.
