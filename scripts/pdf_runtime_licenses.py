@@ -138,7 +138,7 @@ def render(inventory: dict, policy: dict, materials: dict) -> tuple[str, dict]:
 
 
 def write_json(path: Path, value: dict) -> None:
-    path.write_text(json.dumps(value, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(value, ensure_ascii=True, indent=2) + "\n", encoding="utf-8", newline="\n")
 
 
 def emit(materials: dict, group: int) -> None:
@@ -159,15 +159,15 @@ def main() -> None:
     parser.add_argument("--emit-group", type=int)
     parser.add_argument("--out", type=Path, default=DEPS)
     args = parser.parse_args()
-    inventory = json.loads((DEPS / "pdf-runtime-win64-source-inventory.json").read_text())
-    policy = json.loads((DEPS / "pdf-runtime-license-policy.json").read_text())
+    inventory = json.loads((DEPS / "pdf-runtime-win64-source-inventory.json").read_text(encoding="utf-8"))
+    policy = json.loads((DEPS / "pdf-runtime-license-policy.json").read_text(encoding="utf-8"))
     material_file = args.out / "pdf-runtime-license-materials.json"
     if args.emit_group is not None:
-        emit(json.loads(material_file.read_text()), args.emit_group)
+        emit(json.loads(material_file.read_text(encoding="utf-8")), args.emit_group)
         return
     args.out.mkdir(parents=True, exist_ok=True)
     materials = (collect_materials(inventory, policy, args.archive) if args.archive
-                 else json.loads(material_file.read_text()))
+                 else json.loads(material_file.read_text(encoding="utf-8")))
     text, review = render(inventory, policy, materials)
     write_json(material_file, materials)
     (args.out / "pdf-runtime-THIRD-PARTY-NOTICES.txt").write_text(text, encoding="utf-8", newline="\n")

@@ -22,8 +22,8 @@ def tool(monkeypatch):
 @pytest.fixture()
 def inputs(tool):
     deps = ROOT / "docs/dependencies"
-    inv = json.loads((deps / "pdf-runtime-win64-source-inventory.json").read_text())
-    policy = json.loads((deps / "pdf-runtime-license-policy.json").read_text())
+    inv = json.loads((deps / "pdf-runtime-win64-source-inventory.json").read_text(encoding="utf-8"))
+    policy = json.loads((deps / "pdf-runtime-license-policy.json").read_text(encoding="utf-8"))
     files = {}
     for key, required in policy["supplements"].items():
         text = "\n".join(required["required_text"]) + "\n" + "x" * required["minimum_bytes"]
@@ -148,3 +148,24 @@ def test_mandatory_gates_and_full_inventory_binding(tool, inputs):
     inv["dlls"][next(iter(inv["dlls"]))]["sha256"] = "0" * 64
     with pytest.raises(ValueError, match="fingerprint"):
         tool.validate_policy(inv, policy)
+
+
+def test_cli_json_io_is_explicit_utf8_even_with_windows_legacy_locale(tool, inputs, monkeypatch, tmp_path):
+    inv, policy, materials = inputs
+    for name, value in [("pdf-runtime-win64-source-inventory.json", inv),
+                        ("pdf-runtime-license-policy.json", policy),
+                        ("pdf-runtime-license-materials.json", materials)]:
+        (tmp_path / name).write_text(json.dumps(value, ensure_ascii=False), encoding="utf-8")
+    monkeypatch.setattr(tool, "DEPS", tmp_path)
+    monkeypatch.setattr("sys.argv", ["pdf_runtime_licenses.py", "--out", str(tmp_path)])
+    original = Path.read_text
+
+    def strict_utf8(self, *args, **kwargs):
+        assert kwargs.get("encoding") == "utf-8", "platform-default encoding corrupts copyright bytes"
+        return original(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", strict_utf8)
+    tool.main()
+    notices = (tmp_path / "pdf-runtime-THIRD-PARTY-NOTICES.txt").read_bytes()
+    assert "Copyright ©".encode() in notices
+    assert b"\r\n" not in (tmp_path / "pdf-runtime-license-review.json").read_bytes()
