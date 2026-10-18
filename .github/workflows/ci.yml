@@ -268,8 +268,11 @@ jobs:
           $out = (uv run pytest -q --tb=short 2>&1 | Out-String)
           Write-Host $out
           if ($LASTEXITCODE -ne 0) {
-            ($out -split "`n") | Select-Object -Last 40 | ForEach-Object {
-              if ($_.Trim()) { Write-Host "::error title=pytest (native Windows)::$(($_ -replace '%','%25') -replace "`r",'')" }
+            $last = $out.Substring([Math]::Max(0, $out.Length - 8000))
+            for ($i = 0; $i -lt $last.Length; $i += 2600) {
+              $part = $last.Substring($i, [Math]::Min(2600, $last.Length - $i))
+              $part = (($part -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A'
+              Write-Host "::error title=pytest (native Windows) part ${i}::$part"
             }
             throw "pytest failed on native Windows"
           }
