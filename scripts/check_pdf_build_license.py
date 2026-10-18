@@ -36,6 +36,8 @@ ALLOWED_FILES = frozenset({
     "scripts/source_pdf_inventory.py",
     "scripts/pdf_runtime_inventory.py",
     "scripts/check_pdf_build_license.py",
+    "scripts/rebuild_pdf_native.ps1",
+    "scripts/audit_pdf_native_rebuild.py",
 })
 
 
@@ -114,7 +116,11 @@ def write_sidecar(root: Path, scope: dict, destination: Path) -> None:
         "was missing from the original archive's wrapper appendix.\n"
         "It is NOT the whole application, a full standalone workflow, an offline\n"
         "compiler SDK or permission to redistribute third-party/CRT binaries.\n"
-        "The workflow still references application/staging files outside this grant.\n"
+        "The OLD workflow still references app/staging files outside this grant.\n"
+        "Native-only entry point (Windows x64, PowerShell 7, Git, MSVC/SDK):\n"
+        "  pwsh -File scripts/rebuild_pdf_native.ps1 -WorkDir C:/new-native-build\n"
+        "Use a NEW absolute directory; native build tools may be downloaded.\n"
+        "No Node, uv, application Python environment or app checkout is required.\n"
         "Original corresponding-source.zip remains unchanged; deliver its upstream\n"
         "notices and this grant together at an explicitly authorized future release.\n",
         encoding="utf-8", newline="\n",

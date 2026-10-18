@@ -1,0 +1,141 @@
+name: Independent native PDF rebuild and CRT evidence
+
+on:
+  push:
+    paths:
+      - '.github/workflows/pdf-native-rebuild-proof.yml'
+      - 'scripts/rebuild_pdf_native.ps1'
+      - 'scripts/audit_pdf_native_rebuild.py'
+      - 'backend/tests/test_pdf_native_rebuild.py'
+  pull_request:
+    paths:
+      - '.github/workflows/pdf-native-rebuild-proof.yml'
+      - 'scripts/rebuild_pdf_native.ps1'
+      - 'scripts/audit_pdf_native_rebuild.py'
+      - 'backend/tests/test_pdf_native_rebuild.py'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  compiler-evidence:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download pinned original build records, not guessed Python compiler metadata
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $pin = Get-Content docs/dependencies/pdf-source-proof-run.json -Raw | ConvertFrom-Json
+          $run = gh api "repos/$env:GH_REPO/actions/runs/$($pin.run_id)" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $run.head_sha -ne $pin.head_sha -or $run.path -ne $pin.workflow_path -or $run.conclusion -ne "success") { throw "wrong source producer" }
+          gh run download $pin.run_id --name $pin.artifact_name --dir "$env:RUNNER_TEMP/original-native-records"
+          if ($LASTEXITCODE -ne 0) { throw "original build evidence download failed" }
+      - name: Record current VS/SDK candidate terms separately from original compiler records
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Force reports/crt-evidence | Out-Null
+          $vswhere = "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe"
+          $vs = @(& $vswhere -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -format json | ConvertFrom-Json)
+          if ($LASTEXITCODE -ne 0 -or $vs.Count -eq 0) { throw "VS compiler installation not identified" }
+          $candidates = @()
+          foreach ($install in $vs) {
+            foreach ($relative in @("Licenses", "VC/Auxiliary/Build")) {
+              $root = Join-Path $install.installationPath $relative
+              if (Test-Path $root) {
+                $candidates += Get-ChildItem $root -Recurse -File | Where-Object { $_.Name -match '(?i)(licen[sc]e|eula|redist)' -and $_.Extension -in @('.rtf', '.txt', '.html') }
+              }
+            }
+          }
+          $sdk = "${env:ProgramFiles(x86)}/Windows Kits/10/Licenses"
+          if (Test-Path $sdk) { $candidates += Get-ChildItem $sdk -Recurse -File -Filter *.rtf }
+          $files = @($candidates | Sort-Object FullName -Unique | Select-Object -First 8 -ExpandProperty FullName)
+          $facts = @{ installations = $vs; license_candidate_count = $candidates.Count; license_files = $files; current_runner_only = $true }
+          $facts | ConvertTo-Json -Depth 12 | Set-Content -Encoding utf8 reports/crt-evidence/current-runner-facts.json
+          python scripts/audit_pdf_native_rebuild.py --compiler-root "$env:RUNNER_TEMP/original-native-records" --facts reports/crt-evidence/current-runner-facts.json --out reports/crt-evidence/original-compiler-evidence.json
+          if ($LASTEXITCODE -ne 0) { throw "compiler record extraction failed" }
+      - name: Compiler evidence group 0
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/crt-evidence/original-compiler-evidence.json --emit-group 0
+      - name: Compiler evidence group 1
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/crt-evidence/original-compiler-evidence.json --emit-group 1
+      - name: Compiler evidence group 2
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/crt-evidence/original-compiler-evidence.json --emit-group 2
+      - name: Compiler evidence group 3
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/crt-evidence/original-compiler-evidence.json --emit-group 3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-compiler-and-term-evidence
+          path: reports/crt-evidence/
+          retention-days: 90
+          if-no-files-found: error
+
+  rebuild:
+    runs-on: windows-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+      - name: Export the licensed sidecar, with no application checkout inside it
+        shell: pwsh
+        run: |
+          python scripts/check_pdf_build_license.py --sidecar "$env:RUNNER_TEMP/licensed-native-only"
+          if ($LASTEXITCODE -ne 0) { throw "license sidecar failed" }
+          foreach ($name in @("backend", "frontend", "pyproject.toml", "uv.lock", ".git")) {
+            if (Test-Path (Join-Path "$env:RUNNER_TEMP/licensed-native-only" $name)) { throw "application dependency leaked into sidecar" }
+          }
+      - name: Test plan validation and refuse existing work directories
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $script = "$env:RUNNER_TEMP/licensed-native-only/scripts/rebuild_pdf_native.ps1"
+          $plan = & pwsh -NoProfile -File $script -WorkDir "$env:RUNNER_TEMP/native-rebuild-work" -PlanOnly | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $plan.application_required -ne $false -or $plan.binary_cache -ne "DISABLED") { throw "invalid native-only plan" }
+          & pwsh -NoProfile -File $script -WorkDir "$env:RUNNER_TEMP/licensed-native-only" -PlanOnly
+          if ($LASTEXITCODE -eq 0) { throw "existing directory was incorrectly accepted" }
+          $global:LASTEXITCODE = 0
+      - name: Compile from isolated sidecar; no app, Node, uv or application dependencies
+        shell: pwsh
+        run: |
+          Set-Location "$env:RUNNER_TEMP/licensed-native-only"
+          & pwsh -NoProfile -File ./scripts/rebuild_pdf_native.ps1 -WorkDir "$env:RUNNER_TEMP/native-rebuild-work"
+          if ($LASTEXITCODE -ne 0) { throw "independent native rebuild failed" }
+      - name: Verify same preferred-source trees, PE owners/closure and actual DLL origins
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          python -m venv "$env:RUNNER_TEMP/native-inspector"
+          if ($LASTEXITCODE -ne 0) { throw "inspector environment failed" }
+          $python = "$env:RUNNER_TEMP/native-inspector/Scripts/python.exe"
+          & $python -m pip install --no-deps "https://files.pythonhosted.org/packages/54/16/12b82f791c7f50ddec566873d5bdd245baa1491bac11d15ffb98aecc8f8b/pefile-2024.8.26-py3-none-any.whl#sha256=76f8b485dcd3b1bb8166f1128d395fa3d87af26360c2358fb75b80019b957c6f"
+          if ($LASTEXITCODE -ne 0) { throw "hash-pinned inspector install failed" }
+          & $python "$env:RUNNER_TEMP/licensed-native-only/scripts/audit_pdf_native_rebuild.py" --sidecar "$env:RUNNER_TEMP/licensed-native-only" --work "$env:RUNNER_TEMP/native-rebuild-work" --reference docs/dependencies/pdf-runtime-win64-source-inventory.json --out reports/native-rebuild/verified-native-rebuild.json
+          if ($LASTEXITCODE -ne 0) { throw "native source/closure/origin audit failed" }
+      - name: Rebuild evidence group 0
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/native-rebuild/verified-native-rebuild.json --emit-group 0
+      - name: Rebuild evidence group 1
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/native-rebuild/verified-native-rebuild.json --emit-group 1
+      - name: Rebuild evidence group 2
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/native-rebuild/verified-native-rebuild.json --emit-group 2
+      - name: Rebuild evidence group 3
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/native-rebuild/verified-native-rebuild.json --emit-group 3
+      - name: Preserve diagnostic logs and metadata, never the compiled DLL directory
+        if: always()
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force reports/native-rebuild | Out-Null
+          foreach ($file in @("rebuild-plan.json", "rebuild-result.json", "DO_NOT_DISTRIBUTE.txt", "build.log")) {
+            $source = Join-Path "$env:RUNNER_TEMP/native-rebuild-work" $file
+            if (Test-Path $source) { Copy-Item $source reports/native-rebuild/ }
+          }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: independent-native-rebuild-evidence-no-dlls
+          path: reports/native-rebuild/
+          retention-days: 90
+          if-no-files-found: error

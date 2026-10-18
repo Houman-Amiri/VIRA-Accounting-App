@@ -41,7 +41,7 @@
       "corresponding_source_member": "vira-recipe/vcpkg.json"
     },
     "scripts/check_pdf_build_license.py": {
-      "sha256_lf": "1e46b736de157e41dfb78605bf00c2c6ce25fc6ec95437e573a587dfb6ebea5b",
+      "sha256_lf": "e974464f0636057980641b3102cf74b8539a0fcc36acb96446d81b7dafc09d0a",
       "corresponding_source_member": null
     },
     "scripts/pdf_runtime_inventory.py": {
@@ -57,8 +57,21 @@
       "sha256_lf": "370d77f5096592ff63e93feb0d0e9961f910f8e41c902771257fadceec496b03",
       "source_build_reference_commit": "2ec79b82ccebc89d754dbe25c10aeef4c31d8738",
       "corresponding_source_member": "vira-build/scripts/source_pdf_inventory.py"
+    },
+    "scripts/rebuild_pdf_native.ps1": {
+      "sha256_lf": "18b12c31b5fb098ce3775d2fb030dce1162e90395978a69196f0623ece14022f",
+      "corresponding_source_member": null
+    },
+    "scripts/audit_pdf_native_rebuild.py": {
+      "sha256_lf": "a421e3796b2a3ef277be6996137e5aa1b9a4441e1b813b5a21b8c4959502f689",
+      "corresponding_source_member": null
     }
   },
   "source_archive_sha256": "259532d2cd8c5d3b176402acdcfb9daadb2cb897d5710010cc198eeabe5401de",
-  "delivery_requirement": "Include this scope document and the unaltered MIT license with the licensed source copies/recipe sidecar. The existing source ZIP need not be rewritten; seven archived file versions match the grant after checkout-newline normalization. This record does not prove full workflow dependency coverage or recipient source access."
+  "delivery_requirement": "Include this scope document and the unaltered MIT license with the licensed source copies/recipe sidecar. The existing source ZIP need not be rewritten; seven archived file versions match the grant after checkout-newline normalization. This record does not prove full workflow dependency coverage or recipient source access.",
+  "native_only_derivatives": {
+    "authorization": "Within the owner-approved native PDF build-tooling scope and MIT derivative rights; no application code grant.",
+    "entry_point": "scripts/rebuild_pdf_native.ps1",
+    "audit": "scripts/audit_pdf_native_rebuild.py"
+  }
 }
