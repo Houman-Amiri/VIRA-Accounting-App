@@ -1,0 +1,15 @@
+{
+  "failed_run_id": 39158539677,
+  "producer_manifest_sha256": "1a609db6a0c50512bff5edcd68246bf469ea74e4f06f1d1c011ffe1e8ca60658",
+  "missing_files": [
+    "original-kit/licensed-build-files/.github/workflows/pdf-source-proof.yml"
+  ],
+  "unexpected_files": [],
+  "artifact_code_executed": false,
+  "diagnostic_run_id": 39158897974,
+  "diagnostic_job_id": 117767798086,
+  "head_sha": "f00ca08b715c1c4da59990d92b1c685a798c974e",
+  "original_failure_conclusion": "WINDOWS_RECIPIENT_FAILURE_AFTER_SUCCESSFUL_LINUX_ASSEMBLY",
+  "repair": "Opt in to hidden files only for validated source kit/license artifacts; keep strict manifest and scope checks",
+  "historical_artifact_delivery_claim": "Pre-upload verification does not prove completeness after upload/download"
+}

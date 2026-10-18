@@ -680,3 +680,31 @@ candidate. Six gates remain OPEN: private consumption is NOT installed replaceme
 EULA approval, CRT rights, durable source delivery, normal Inno/native delta/rollback,
 production Unicode Fontconfig/bootstrap or installed-user acceptance. No normal
 payload/install/data/math, broad license, version/tag/release change.
+
+### Complete modified-source PRIVATE review packaging — 2026-10-18
+
+The next authorized source-delivery prerequisite packages a DIFFERENT complete
+modified source ZIP, retaining the byte-identical original kit/ZIP and scoped MIT
+recipe. Actual successful assembly and DOWNLOADED Windows extraction/preparation:
+**39158897935 / f00ca08**. All original archive members checked, all 20 compiled
+preferred trees match, 25505 entries/21 links preserved. Modified ZIP SHA256
+`1d56fe9a3305f3b9bb7a741dbb697b7d5b9a80a74a1c7bb172e91895ea311921`.
+The licensed derivative remains 14 explicitly listed files, not QA/app/CRT.
+
+[Report](docs/reports/pdf-modified-source-kit-fa.md),
+[proof](docs/dependencies/pdf-modified-source-kit-proof.json),
+[real transport failure](docs/dependencies/pdf-modified-source-transport-failure.json).
+Artifact upload initially omitted the licensed hidden .github workflow; independent
+manifest-versus-downloaded-members diagnostics proved the exact missing file.
+Scoped source artifacts now opt in to hidden files, without weakening hash/scope
+checks. Pre-upload success is NOT post-download completeness. 35 new tests / 119
+focused; 597 backend tests pass locally, with native extraction regression pending.
+
+An external prominent modification/date notice is included; the exact compiled
+Pango file has NO new inline change/date notice. Legal completeness is explicitly
+NOT approved; adding one changes hashes and needs a fresh build/reference. Old
+adapter references stay source_archive=null (it does not bind this separate review
+archive), and historical proofs retain their original preparation flags. No new
+compilation FROM this envelope is claimed. Six gates OPEN; no anonymous durable
+public source delivery, CRT/EULA/production clearance, release/tag/version, normal
+payload/install/data/math or installed acceptance change.

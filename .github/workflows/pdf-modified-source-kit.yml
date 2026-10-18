@@ -2,9 +2,9 @@ name: Private complete modified native source review kit
 
 on:
   push:
-    paths: ['.github/workflows/pdf-modified-source-kit.yml', 'scripts/pdf_source_kit.py', 'backend/tests/test_pdf_modified_source_kit.py']
+    paths: ['.github/workflows/pdf-modified-source-kit.yml', 'scripts/pdf_source_kit.py', 'backend/tests/test_pdf_modified_source_kit.py', 'backend/tests/test_pdf_source_transport.py', 'docs/dependencies/pdf-native-rebuild-guide.md', 'docs/dependencies/pdf-runtime-license-policy.json', 'docs/dependencies/pdf-runtime-license-review.json', 'docs/dependencies/pdf-build-script-license-scope.json', 'docs/dependencies/pdf-local-source-app-consumer-proof.json', 'docs/dependencies/pdf-local-source-app-consumer-evidence.json']
   pull_request:
-    paths: ['.github/workflows/pdf-modified-source-kit.yml', 'scripts/pdf_source_kit.py', 'backend/tests/test_pdf_modified_source_kit.py']
+    paths: ['.github/workflows/pdf-modified-source-kit.yml', 'scripts/pdf_source_kit.py', 'backend/tests/test_pdf_modified_source_kit.py', 'backend/tests/test_pdf_source_transport.py', 'docs/dependencies/pdf-native-rebuild-guide.md', 'docs/dependencies/pdf-runtime-license-policy.json', 'docs/dependencies/pdf-runtime-license-review.json', 'docs/dependencies/pdf-build-script-license-scope.json', 'docs/dependencies/pdf-local-source-app-consumer-proof.json', 'docs/dependencies/pdf-local-source-app-consumer-evidence.json']
 
 permissions:
   contents: read

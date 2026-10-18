@@ -256,3 +256,27 @@ def test_cli_missing_authentication_or_mode_inputs_fails(args):
     result = subprocess.run([sys.executable, '-I', '-S', str(ROOT / 'scripts/pdf_source_kit.py'), *args],
                             capture_output=True, text=True, check=False)
     assert result.returncode == 2
+
+
+@pytest.mark.parametrize('metadata', ['external_attr', 'date_time', 'comment'])
+def test_source_modes_timestamps_and_notices_cannot_be_silently_rewritten(sample, metadata):
+    tool, _, _, _, proof, out = sample
+    build(sample)
+    record = json.loads((out / 'modification-record.json').read_text())
+    path = out / 'modified-corresponding-source.zip'
+    with zipfile.ZipFile(path) as archive:
+        comment = archive.comment
+        members = [(copy.copy(e), archive.read(e)) for e in archive.infolist()]
+    with zipfile.ZipFile(path, 'w') as archive:
+        archive.comment = comment
+        for entry, data in members:
+            if entry.filename.endswith('/run.sh'):
+                if metadata == 'external_attr':
+                    entry.external_attr = (stat.S_IFREG | 0o644) << 16
+                elif metadata == 'date_time':
+                    entry.date_time = (2026, 10, 18, 0, 0, 0)
+                else:
+                    entry.comment = b'rewritten original comment'
+            archive.writestr(entry, data)
+    with pytest.raises(ValueError, match='mode/time metadata changed'):
+        tool.verify_modified_archive(path, out / 'original-kit', record, proof)

@@ -191,9 +191,10 @@ original/current tree hashes and `changed_packages`, before compiling.
 `local-source-reference.json` is a distinct audit reference: it preserves
 `original_source_archive` as provenance, sets `source_archive` to null, and does
 **not** claim that the old ZIP is the complete corresponding source of changed
-new DLLs. A new corresponding-source archive has not been assembled/published.
-Keep the exact edits and full modified preferred sources for that future task,
-including required prominent modification notices/dates before redistribution.
+new DLLs. At the original local-replay checkpoint no modified archive had been
+assembled. The later PRIVATE archive-review route below is separate: the old
+adapter still does not bind or create that archive. Preserve the exact compiled
+bytes; required modification notices/dates and legal review remain separate.
 Use this generated reference with the optional native inspector, rather than
 expecting changed libraries to retain the old baseline hashes:
 
@@ -214,3 +215,81 @@ the actual build/audit 39146630126 on 576c0ea passed, returning
 [the pinned witness](pdf-local-source-replay-proof.json). Use `-B` for the optional
 inspector to avoid adding Python bytecode caches to a source-kit envelope. Even a successful
 modified DLL test is **not** installed-app LGPL replacement/EULA acceptance.
+
+
+## Complete modified-source PRIVATE review envelope
+
+This separately packages the exact controlled Pango experiment already compiled
+and consumed by the private app, not arbitrary source edits or a release runtime.
+The existing `pdf_source_kit.py` MIT derivative stays in the same explicit 14-file
+scope; application QA, upstream, compiler/SDK and accounting code are NOT relicensed.
+
+Authenticate the verifier/adjacent checker independently. Internal manifests are
+consistency checks, not publisher authentication. Use the externally trusted base
+kit digest and the exact successful native/app witness digest from
+`pdf-local-source-app-consumer-proof.json`:
+
+```powershell
+python -I -S C:/trusted-tools/scripts/pdf_source_kit.py `
+  --modified-base-kit C:/authenticated-original-kit `
+  --expected-manifest-sha256 TRUSTED_BASE_KIT_DIGEST `
+  --witness C:/evidence/pdf-local-source-app-consumer-evidence.json `
+  --expected-witness-sha256 TRUSTED_WITNESS_DIGEST `
+  --change-date 2026-10-18 --out C:/fresh-modified-review
+
+python -I -S C:/trusted-tools/scripts/pdf_source_kit.py `
+  --verify-modified C:/fresh-modified-review `
+  --expected-manifest-sha256 TRUSTED_MODIFIED_KIT_DIGEST `
+  --extract-sources C:/fresh-modified-preferred
+```
+
+The new envelope keeps `original-kit/` in full, including the byte-identical
+original ZIP, scoped licensed recipe and notices. A DIFFERENT complete
+`modified-corresponding-source.zip` contains every original member, exactly the
+witnessed modified Pango file, and `VIRA-MODIFICATIONS.txt`. Both before/after file
+hashes, producer modification date, original/new archive hashes and the successful
+build witness digest are recorded. Source modes, relative links and ZIP LOCAL
+wall timestamps are retained, not reset to packaging time (Autotools ordering).
+This does not claim the recorded ZIP timestamp is the later source edit time.
+
+Verification checks every nonmodified archive member byte-for-byte, not only
+Pango, then independently hashes all twenty preferred source trees against the
+actual successful build. Extraction preserves the twenty-one safe relative links,
+including Windows nested targets. Original input ZIP and existing output paths
+are never overwritten. App/native binaries, compiler, SDK and user data are not
+newly supplied by this envelope.
+
+The existing preparation adapter can consume the extracted modified source copy
+with the retained original kit, explicit `--allow-modified`, and a fresh external
+output directory:
+
+```powershell
+python -I -S C:/trusted-tools/scripts/prepare_pdf_local_sources.py `
+  --kit C:/fresh-modified-review/original-kit `
+  --expected-manifest-sha256 TRUSTED_ORIGINAL_SUBKIT_DIGEST `
+  --sources C:/fresh-modified-preferred --out C:/fresh-modified-overlay `
+  --allow-modified
+```
+
+That adapter's reference deliberately STILL has `source_archive=null` and its
+own `new_corresponding_source_archive_prepared=false`: the adapter does not create
+or authenticate this separate review archive. The envelope's independent receipt
+records `new_modified_source_archive_prepared=true`. Do not rewrite historical
+native/app proof fields or call this a new compilation from the envelope itself.
+
+**Known legal-notice gap:** the exact compiled Pango file does not contain a new
+inline VIRA change/date notice. The archive-root external notice identifies the
+file/date/change, but does NOT certify LGPL notice compliance. Adding an inline
+notice changes the preferred-source hash and would require a fresh build/reference.
+Do not silently modify the captured compiled file or close this issue based on
+packaging success. Component/CRT rights, anonymous durable public delivery,
+installed replacement/EULA, production Unicode bootstrap/native update/rollback
+and installed acceptance remain open. Ninety-day private Actions retention is NOT
+public recipient delivery. No release/tag/version, ordinary payload or real data
+changes are authorized by this packaging command.
+
+Source artifacts must opt in to retaining the explicitly licensed hidden
+`.github/workflows/pdf-source-proof.yml`. A successful pre-upload manifest check
+alone is NOT proof that the transport retained every file. The modified-kit CI
+actually downloads and verifies the artifact on Windows before preparing recipes.
+See [the packaging phase report](../reports/pdf-modified-source-kit-fa.md).

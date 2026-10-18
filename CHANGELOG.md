@@ -7,6 +7,22 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Complete modified native PDF source review archive (private, no release)
+- Package a separate full modified ZIP alongside the immutable original kit,
+  scoped-MIT recipe and notices; bind all 20 preferred source trees to the actual
+  successful modified native/app witness. Preserve 25505 source entries/21 links,
+  source modes and ZIP local wall times; check EVERY nonmodified archive member.
+- Private 39158897935 / f00ca08 passes Linux assembly and actual downloaded Windows
+  extraction/recipe preparation. New ZIP 188616942 bytes, SHA256
+  1d56fe9a3305f3b9bb7a741dbb697b7d5b9a80a74a1c7bb172e91895ea311921.
+- Preserve failure: artifact transport omitted the licensed hidden .github workflow.
+  Independent downloaded-manifest diagnostics prove the exact missing member;
+  scoped source artifacts now explicitly retain hidden files, with strict checks.
+- 35 new archive/transport tests, 119 focused; existing 14-file MIT scope only.
+  External change/date notice is NOT inline LGPL notice-completeness approval.
+  No compilation FROM this envelope, durable public delivery, CRT/EULA/production
+  clearance, normal install/payload/data/math or version/tag/release is inferred.
+
 ### Private app consumption of locally modified source-built PDF engine
 - Fresh standalone build/audit followed by relocated production CPython 3.11.17
   app rendering: 39153212109 / 284e827 SUCCESS. Bind candidate PE closure, hashes,

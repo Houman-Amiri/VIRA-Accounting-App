@@ -167,5 +167,10 @@
       "retention_days": 90,
       "recipient_source_delivery": false
     }
+  },
+  "historical_transport_limitation": {
+    "pre_upload_verification_is_not_downloaded_artifact_completeness": true,
+    "subsequently_proven_transport_failure": "docs/dependencies/pdf-modified-source-transport-failure.json",
+    "note": "Historical assembly/extraction proofs remain valid for producer files, not assumed to prove hidden sidecar members survived upload. Current source artifact workflows explicitly include hidden scoped files; modified-kit workflow actually downloads and verifies on Windows."
   }
 }

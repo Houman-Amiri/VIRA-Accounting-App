@@ -225,7 +225,9 @@
         "local_source_replay_proof": "docs/dependencies/pdf-local-source-replay-proof.json",
         "local_source_replay_run_id": 39146630126,
         "local_modified_build_is_distribution_candidate": false,
-        "new_modified_corresponding_source_archive_prepared": false
+        "new_modified_corresponding_source_archive_prepared": true,
+        "modified_source_kit_proof": "docs/dependencies/pdf-modified-source-kit-proof.json",
+        "new_native_build_from_modified_review_envelope_proven": false
       }
     },
     {
@@ -235,7 +237,12 @@
         "private_kit_assembled": true,
         "public_durable_download_verified": false,
         "source_kit_proof": "docs/dependencies/pdf-source-kit-proof.json",
-        "gate_closed": false
+        "gate_closed": false,
+        "private_modified_source_archive_prepared": true,
+        "modified_source_kit_proof": "docs/dependencies/pdf-modified-source-kit-proof.json",
+        "modified_source_archive_sha256": "1d56fe9a3305f3b9bb7a741dbb697b7d5b9a80a74a1c7bb172e91895ea311921",
+        "actual_windows_artifact_extraction_and_recipe_preparation_verified": true,
+        "inline_modified_file_notice_compliance_approved": false
       }
     },
     {

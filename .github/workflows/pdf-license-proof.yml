@@ -79,4 +79,5 @@ jobs:
           name: private-native-license-review-and-source
           path: reports/native-licenses/
           retention-days: 90
+          include-hidden-files: true
           if-no-files-found: error
