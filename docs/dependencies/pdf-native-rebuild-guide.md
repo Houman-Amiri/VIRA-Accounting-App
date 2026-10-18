@@ -115,3 +115,90 @@ LGPL DLL replacement in the installed app, production bootstrap, or native delta
 rollback. See the separate source-delivery plan and phase report. No compiler,
 SDK, compiled DLL directory, application bundle or release is uploaded by this
 independent proof workflow; artifacts contain diagnostic metadata/logs only.
+
+## Consume the captured LOCAL preferred-source trees
+
+The default command above still downloads target source archives. It is NOT the
+local replay route. The separate `prepare_pdf_local_sources.py` adapter and
+`pdf-local-source-port-pins.json` are explicit MIT build-tool derivatives; they
+are included in the **14-file** sidecar, not a repository-wide grant.
+
+For the new source kit containing that sidecar, authenticate the kit manifest
+SHA256 and trusted verifier independently first. With standard-library Python
+3.11+ (no VIRA Python environment or `pefile` needed for preparation):
+
+```powershell
+python -I -S C:/source-kit/licensed-build-files/scripts/pdf_source_kit.py `
+  --verify C:/source-kit --expected-manifest-sha256 TRUSTED_MANIFEST_SHA256 `
+  --extract-sources C:/new-preferred-inputs
+
+python -I -S C:/source-kit/licensed-build-files/scripts/prepare_pdf_local_sources.py `
+  --kit C:/source-kit --expected-manifest-sha256 TRUSTED_MANIFEST_SHA256 `
+  --sources C:/new-preferred-inputs --out C:/new-local-overlay
+
+cd C:/source-kit/licensed-build-files
+pwsh -NoProfile -File scripts/rebuild_pdf_native.ps1 `
+  -WorkDir C:/new-local-native-build -OverlayPorts C:/new-local-overlay
+
+python -I -S scripts/prepare_pdf_local_sources.py `
+  --check-inputs C:/new-local-overlay/local-source-preparation.json
+```
+
+All output/work paths must be **new**, not the installed app/data directory.
+Windows must permit real symlink creation; no flattened substitute is accepted.
+Use a short ASCII build path. Quotes, semicolons, dollar signs, square brackets
+and newlines in preferred-input paths are deliberately unsupported/rejected
+rather than interpolated as executable CMake text.
+
+The adapter checks the authenticated original kit/source ZIP, every original
+package digest, archived port recipe SHA256 and its LF-canonical pin, exact
+acquisition count and expected root layout **before creating the overlay**.
+The original capture has exactly one root for each of 19 packages and an empty
+`pthread` alias; unexpected additional/renamed roots are rejected, not silently
+selected. Safe relative file symlinks are retained. External/dangling/directory
+links, junctions and executable CMake path injection are refused.
+
+Only target `x64-vira-pdf` source acquisition calls in the pinned recipes are
+replaced. Host recipes are retained verbatim beside the adapter. Bootstrap,
+compiler, Python/Meson, MSYS and host-tool downloads still work: download helper
+functions are **not globally overridden**. This is not a network-isolated or
+bitwise-reproducible compiler SDK.
+
+For each target recipe, CMake copies the verified already-patched preferred
+root into that port's fresh vcpkg buildtrees `src` directory. It never patches,
+cleans or writes the external input kit/source tree. The disposable buildtrees
+source area is replaced to avoid mixing host and target roots. Preserve basenames
+so the final tree audit remains meaningful. PCRE2's SLJIT subtree is already
+merged and must NOT be deleted/remerged. libpng's optional APNG feature is
+explicitly rejected because this captured baseline did not contain that patch.
+Other unreviewed feature/source variants need a separately reviewed adapter.
+
+### Explicit local modifications
+
+After verified extraction, make permitted library edits in the **new input
+copy**, never the immutable original ZIP. Re-run preparation with
+`--allow-modified` to acknowledge them. Without that option changed preferred
+source bytes fail closed. Review `local-source-preparation.json`, including
+original/current tree hashes and `changed_packages`, before compiling.
+
+`local-source-reference.json` is a distinct audit reference: it preserves
+`original_source_archive` as provenance, sets `source_archive` to null, and does
+**not** claim that the old ZIP is the complete corresponding source of changed
+new DLLs. A new corresponding-source archive has not been assembled/published.
+Keep the exact edits and full modified preferred sources for that future task.
+Use this generated reference with the optional native inspector, rather than
+expecting changed libraries to retain the old baseline hashes:
+
+```powershell
+python scripts/audit_pdf_native_rebuild.py `
+  --sidecar C:/source-kit/licensed-build-files --work C:/new-local-native-build `
+  --reference C:/new-local-overlay/local-source-reference.json `
+  --out C:/evidence/local-native-audit.json
+```
+
+The separate local replay CI deliberately changes Pango's exported version
+string and requires its actual DLL function to return the edited string, along
+with all 20 tree digests, 21 DLL origins/owners/closure and unchanged external
+input hashes. A generated overlay or passing synthetic test is not that proof;
+see the local-source phase report for actual run status. Even a successful
+modified DLL test is **not** installed-app LGPL replacement/EULA acceptance.

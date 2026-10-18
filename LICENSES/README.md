@@ -42,8 +42,11 @@ it is **not an additional restriction on rights granted by the MIT license**.
 
 ## Current build-tool derivatives
 
-The current explicit allowlist has **12 files**: the historical nine, native-only
-rebuild/audit helpers, and `scripts/pdf_source_kit.py`. The latter assembles and
+The current explicit allowlist has **14 files**: the historical nine, native-only
+rebuild/audit helpers, `scripts/pdf_source_kit.py`, and the local preferred-source
+adapter `scripts/prepare_pdf_local_sources.py` with its explicit port-pin settings
+`docs/dependencies/pdf-local-source-port-pins.json`. These are build-tool derivatives,
+not new grants for the app or upstream sources. The kit tool assembles and
 checks a private source/recipe/notices kit with standard-library Python; it never
 publishes, installs a runtime or grants third-party/CRT permission. All reference
 hashes and the seven historical source-archive bindings remain checked. Kit

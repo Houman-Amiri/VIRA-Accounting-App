@@ -67,11 +67,11 @@
       "corresponding_source_member": null
     },
     "scripts/pdf_source_kit.py": {
-      "sha256_lf": "44f3baa99a6aba4f090c0c89c72a3c5a8cecfd1fe10df748b685ac547536e590",
+      "sha256_lf": "b5908e0ac9c0ff11d85f684d5f3dc32beefde2b008a3f18675b7ab4494dd429f",
       "corresponding_source_member": null
     },
     "scripts/prepare_pdf_local_sources.py": {
-      "sha256_lf": "ee7f1cc2afde6f37a1c16d4b886669cc1339cd784bd789da0ab11849ba2d591e",
+      "sha256_lf": "4075488089a00516e4a8ee57d3af7de527428951f797830f8b62c08ee9a49c6a",
       "corresponding_source_member": null
     },
     "docs/dependencies/pdf-local-source-port-pins.json": {

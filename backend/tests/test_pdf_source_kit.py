@@ -116,8 +116,8 @@ def test_existing_extraction_directory_is_never_overwritten(tool, monkeypatch, t
 def test_real_extraction_preserves_links_and_scripts(tool, monkeypatch, tmp_path):
     kit = tmp_path / "kit"
     kit.mkdir()
-    with archive([("sources/a/script.sh", "#!/bin/sh\n", False),
-                  ("sources/a/link", "script.sh", True)]) as z:
+    with archive([("sources/a/sub/script.sh", "#!/bin/sh\n", False),
+                  ("sources/a/link", "sub/script.sh", True)]) as z:
         (kit / "corresponding-source.zip").write_bytes(z.fp.getvalue())
     monkeypatch.setattr(tool, "verify", lambda *a: {})
     dest = tmp_path / "new-sources"
@@ -127,7 +127,7 @@ def test_real_extraction_preserves_links_and_scripts(tool, monkeypatch, tmp_path
         if getattr(exc, "winerror", None) == 1314:
             # Explicitly test the documented refusal, not silent flattening.
             assert not (dest / "sources/a/link").exists()
-            assert (dest / "sources/a/script.sh").is_file()
+            assert (dest / "sources/a/sub/script.sh").is_file()
             return
         raise
     assert (dest / "sources/a/link").is_symlink()
@@ -160,3 +160,17 @@ def test_envelope_rejects_external_entries_without_platform_privileges(tool, tmp
         monkeypatch.setattr(Path, "resolve", lambda p, **kw: tmp_path.parent / "outside" if p == target else original(p, **kw))
     with pytest.raises(ValueError, match="external/junction"):
         tool.verify(tmp_path)
+
+
+def test_windows_nested_symlink_targets_use_native_separators(tool, monkeypatch, tmp_path):
+    kit = tmp_path / "kit"
+    kit.mkdir()
+    with archive([("sources/a/sub/file", "actual", False),
+                  ("sources/a/link", "sub/file", True)]) as z:
+        (kit / "corresponding-source.zip").write_bytes(z.fp.getvalue())
+    monkeypatch.setattr(tool, "verify", lambda *a: {})
+    seen = []
+    monkeypatch.setattr(tool.os, "sep", "\\")
+    monkeypatch.setattr(tool.os, "symlink", lambda target, path, **kw: seen.append((target, kw)))
+    tool.extract_sources(kit, tmp_path / "new-sources")
+    assert seen == [("sub\\file", {"target_is_directory": False})]

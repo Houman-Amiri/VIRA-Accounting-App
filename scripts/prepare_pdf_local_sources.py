@@ -125,7 +125,7 @@ def tree_record(root: Path) -> dict:
             raise ValueError("Junction in preferred sources")
         if path.is_symlink():
             if not path.exists() or path.is_dir():
-                raise ValueError("Dangling or directory preferred-source symlink")
+                raise ValueError(f"Dangling or directory preferred-source symlink: {path}")
             target = os.readlink(path).replace("\\", "/")
             if target.startswith("/") or ":" in target or "\0" in target:
                 raise ValueError("Unsafe preferred-source symlink")

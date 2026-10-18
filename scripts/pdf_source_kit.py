@@ -48,10 +48,19 @@ are required. vcpkg can download its own build tools, including Python/Meson.
 4. cd licensed-build-files
    pwsh -NoProfile -File scripts/rebuild_pdf_native.ps1 -WorkDir C:/new-native-build
    See evidence/pdf-native-rebuild-guide.md for plan, overlays and optional audit.
-   This command downloads verified upstream inputs at the pinned vcpkg baseline;
-   it does not automatically consume extracted preferred-source trees. Modified
-   local sources need reviewed overlay ports; offline/local-source replay is NOT
-   established by this kit. Historical app-dependent wrappers are not the entry.
+   This default command downloads upstream target sources; it is NOT local replay.
+5. For LOCAL preferred inputs, first authenticate/extract as above, then run:
+   python -I -S licensed-build-files/scripts/prepare_pdf_local_sources.py --kit KIT_DIRECTORY --expected-manifest-sha256 HASH --sources NEW_DIRECTORY --out NEW_OVERLAY
+   From licensed-build-files run the same native driver with -OverlayPorts NEW_OVERLAY
+   and a NEW absolute WorkDir. After compilation, check external inputs with:
+   python -I -S scripts/prepare_pdf_local_sources.py --check-inputs NEW_OVERLAY/local-source-preparation.json
+   See evidence/pdf-native-rebuild-guide.md for explicit --allow-modified,
+   target-only bounded adapters, preserved links and PCRE2/SLJIT/APNG limits.
+   Host/build-tool downloads still need network; this is NOT an offline SDK.
+   Generated recipes alone are not build proof. Modified inputs need a distinct
+   source reference and eventual corresponding-source archive, not a false claim
+   that the immutable original ZIP corresponds unchanged to the new DLLs.
+   Historical app-dependent wrappers are not the independent entry point.
 
 MIT covers ONLY the explicit build-tool scope and derivatives. Keep the full MIT
 notice with those files; third-party sources/notices/CRT have independent terms.
@@ -294,7 +303,10 @@ def extract_sources(kit: Path, destination: Path, expected_manifest_sha256: str 
             path = destination / name
             path.parent.mkdir(parents=True, exist_ok=True)
             resolved = destination / posixpath.normpath(posixpath.join(posixpath.dirname(name), target))
-            os.symlink(target, path, target_is_directory=resolved.is_dir())
+            # Windows reparse-point targets need native separators. A relative
+            # POSIX target containing '/' may exist as a link yet not resolve.
+            # Captured/digested targets remain canonical POSIX strings.
+            os.symlink(target.replace("/", os.sep), path, target_is_directory=resolved.is_dir())
 
 
 def main() -> None:
