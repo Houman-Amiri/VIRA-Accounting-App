@@ -106,8 +106,14 @@ jobs:
         shell: pwsh
         run: |
           $hash = (Get-Content reports/local-source/kit-receipt.json -Raw | ConvertFrom-Json).kit_manifest_sha256
-          python -I -S "$env:RUNNER_TEMP/local-kit/licensed-build-files/scripts/prepare_pdf_local_sources.py" --kit "$env:RUNNER_TEMP/local-kit" --expected-manifest-sha256 $hash --sources "$env:RUNNER_TEMP/preferred" --out "$env:RUNNER_TEMP/local-overlay" --allow-modified
-          if ($LASTEXITCODE -ne 0) { throw "local source overlay validation failed" }
+          $output = (python -I -S "$env:RUNNER_TEMP/local-kit/licensed-build-files/scripts/prepare_pdf_local_sources.py" --kit "$env:RUNNER_TEMP/local-kit" --expected-manifest-sha256 $hash --sources "$env:RUNNER_TEMP/preferred" --out "$env:RUNNER_TEMP/local-overlay" --allow-modified 2>&1 | Out-String)
+          $code = $LASTEXITCODE
+          Write-Host $output
+          if ($code -ne 0) {
+            $text = (($output -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A'
+            Write-Output "::error title=Local preferred-source preparation::$text"
+            throw "local source overlay validation failed"
+          }
           Copy-Item "$env:RUNNER_TEMP/local-overlay/local-source-*.json" reports/local-source/
       - name: Compile all target libraries from local preferred trees with binary caches disabled
         shell: pwsh
