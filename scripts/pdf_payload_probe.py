@@ -20,6 +20,7 @@ def main() -> None:
     parser.add_argument("--contexts", type=Path, required=True)
     parser.add_argument("--fontconfig-file", type=Path, required=True)
     parser.add_argument("--out-dir", type=Path, required=True)
+    parser.add_argument("--expected-pango-version")
     args = parser.parse_args()
     root = args.app_root.resolve()
     native = root / "native/pdf/bin"
@@ -74,6 +75,15 @@ def main() -> None:
             if not data.startswith(b"%PDF-"):
                 raise ValueError("HTML fallback is not a bundled native PDF proof")
             (args.out_dir / f"{name}.pdf").write_bytes(data)
+        pango_names = [name for name in inventory["dlls"] if name in ("pango-1.0-0.dll", "libpango-1.0-0.dll")]
+        if len(pango_names) != 1:
+            raise ValueError("Exactly one audited Pango implementation required")
+        pango = ctypes.CDLL(str(native / pango_names[0]))
+        pango.pango_version_string.argtypes = []
+        pango.pango_version_string.restype = ctypes.c_char_p
+        actual_pango_version = pango.pango_version_string().decode("ascii")
+        if args.expected_pango_version is not None and actual_pango_version != args.expected_pango_version:
+            raise ValueError(f"Rendered payload did not consume the modified Pango: {actual_pango_version}")
         from ctypes import wintypes
 
         kernel = ctypes.WinDLL("kernel32", use_last_error=True)
@@ -100,6 +110,8 @@ def main() -> None:
             "version": sys.version, "isolated": sys.flags.isolated,
             "development_dependencies_absent": True, "ctypes_callbacks_verified": True,
             "fontconfig_file": str(config), "loaded_dlls": loaded,
+            "pango_version_string": actual_pango_version,
+            "expected_pango_version_string": args.expected_pango_version,
             "distribution_status": inventory["distribution_status"],
         }
         (args.out_dir / "worker-proof.json").write_text(json.dumps(result, indent=2), encoding="utf-8")

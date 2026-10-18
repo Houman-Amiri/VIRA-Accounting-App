@@ -38,7 +38,9 @@ $escapedCache = [System.Security.SecurityElement]::Escape($cache.Replace('\', '/
 $reports = Join-Path (Get-Location) "reports/bundled-pdf"
 New-Item -ItemType Directory -Force -Path $reports | Out-Null
 Copy-Item (Join-Path $native "runtime-inventory.json") (Join-Path $reports "runtime-inventory.json")
-& (Join-Path $app "python/python.exe") -I (Join-Path $app "scripts/pdf_payload_probe.py") --app-root $app --contexts $contexts --fontconfig-file (Join-Path $root "fonts.conf") --out-dir $reports
+$probeArgs = @()
+if ($env:VIRA_PDF_EXPECT_PANGO_VERSION) { $probeArgs += @("--expected-pango-version", $env:VIRA_PDF_EXPECT_PANGO_VERSION) }
+& (Join-Path $app "python/python.exe") -I (Join-Path $app "scripts/pdf_payload_probe.py") --app-root $app --contexts $contexts --fontconfig-file (Join-Path $root "fonts.conf") --out-dir $reports @probeArgs
 if ($LASTEXITCODE -ne 0) { throw "bundled production interpreter PDF render failed" }
 # PDF inspection lives in dev, not in the staged interpreter/site-packages.
 uv run python scripts/pdf_payload_verify.py --app-root $app --reports $reports

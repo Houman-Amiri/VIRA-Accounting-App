@@ -17,6 +17,15 @@ def verify(root: Path, reports: Path) -> dict:
     if worker["distribution_status"] != BLOCKED:
         raise ValueError("Private candidate must not silently acquire distribution approval")
     inventory = json.loads((root / "native/pdf/runtime-inventory.json").read_text())
+    expected_version = inventory.get("expected_pango_version_string")
+    if expected_version is not None and (
+        worker.get("pango_version_string") != expected_version
+        or worker.get("expected_pango_version_string") != expected_version
+        or inventory.get("private_consumption_only") is not True
+        or inventory.get("modified_build_is_distribution_candidate") is not False
+        or inventory.get("source_archive") is not None
+    ):
+        raise ValueError("Local-source consumer proof must match the executed modified Pango and remain private")
     for name, entry in inventory["dlls"].items():
         if hashlib.sha256((root / "native/pdf/bin" / name).read_bytes()).hexdigest() != entry["sha256"]:
             raise ValueError(f"Candidate DLL changed: {name}")
@@ -54,7 +63,9 @@ def main() -> None:
                "isolated": result["worker"]["isolated"], "dll_count": result["dll_count"],
                "loaded_dll_count": len(result["worker"]["loaded_dlls"]),
                "ctypes_callbacks_verified": result["worker"]["ctypes_callbacks_verified"],
-               "distribution_status": BLOCKED, "documents": result["documents"]}
+               "distribution_status": BLOCKED, "documents": result["documents"],
+               "pango_version_string": result["worker"].get("pango_version_string"),
+               "expected_pango_version_string": result["worker"].get("expected_pango_version_string")}
     encoded = json.dumps(summary, ensure_ascii=True).replace("%", "%25")
     print(f"::notice title=Private bundled Python PDF proof::{encoded}")
 
