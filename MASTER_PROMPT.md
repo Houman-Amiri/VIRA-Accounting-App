@@ -608,3 +608,12 @@ checks, Ruff/Mypy (84 files) and configured Bandit pass. Six distribution gates
 remain tracked; no source availability, CRT permission, LGPL replacement/EULA,
 production bootstrap/native updates or installed-user acceptance is inferred.
 No runtime payload, broad license, version/tag/release, real data or pricing change.
+
+Final code evidence: source kit **39113483257**, scoped-source/license audit
+**39113483241** and all five ordinary CI jobs **39113483256**, on **1e27683**, passed.
+506 backend / 196 frontend / six browser scenarios, both Windows current apply/
+rollback and public 1.0.10 schema/compiled-helper rollback are green. The separate
+CRT probe **39113097728 / 0bceb1e** passed with its original evidence failures
+preserved. Kit manifest digest and artifact retention are pinned in the proof;
+no binary/source publication or legal clearance is implied. Final evidence-only
+updates do not alter the native recipe or business application.

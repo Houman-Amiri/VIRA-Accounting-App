@@ -1,17 +1,20 @@
 {
   "schema": 1,
-  "run_id": 39112775358,
-  "head_sha": "b9dc528261fd1ff444aa469489bfe695a335a496",
+  "run_id": 39113483257,
+  "head_sha": "1e27683522029db7ad5a909fc4f0c807e6e87ae9",
   "workflow_path": ".github/workflows/pdf-source-kit.yml",
-  "job_id": 117632222953,
+  "job_id": 117634367637,
   "conclusion": "success",
-  "kit_manifest_sha256": "5aada9b75f87a45476e5c44b761725771bfe154694a6ddc25ba5bc185ae69f18",
+  "kit_manifest_sha256": "5e938c307250a3dd067a48620bfc213c9d01d3f149aef45564057266c39f64d4",
   "kit_manifested_files": 24,
   "licensed_build_files": 12,
   "original_source_archive_sha256": "259532d2cd8c5d3b176402acdcfb9daadb2cb897d5710010cc198eeabe5401de",
   "recipient_style_verification": {
     "standard_library_only": true,
-    "isolated_python_flags": ["-I", "-S"],
+    "isolated_python_flags": [
+      "-I",
+      "-S"
+    ],
     "external_manifest_hash_checked": true,
     "packages": 20,
     "source_entries": 25505,
@@ -20,11 +23,11 @@
     "second_read_only_verification": "success"
   },
   "retained_artifact": {
-    "id": 12131625201,
+    "id": 12131925208,
     "name": "private-native-source-kit-not-recipient-publication",
-    "size_in_bytes": 177953731,
-    "digest": "sha256:09a4c2c2e6e7fa1e0a33e10e14d3cb4e3947ebb03b2112034faaabe313c8c890",
-    "expires_at": "2027-01-16T08:46:56Z",
+    "size_in_bytes": 177954912,
+    "digest": "sha256:684bc8031cb97758db41e3aaf21b737c35419e9287710ebc8fefd0e29db56a61",
+    "expires_at": "2027-01-16T08:58:07Z",
     "retention_days": 90,
     "recipient_source_delivery": false
   },
@@ -38,5 +41,78 @@
   ],
   "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
   "release_authorized": false,
-  "application_license_changed": false
+  "application_license_changed": false,
+  "historical_initial_hardened_kit_run": {
+    "run_id": 39112775358,
+    "head_sha": "b9dc528261fd1ff444aa469489bfe695a335a496",
+    "manifest_sha256": "5aada9b75f87a45476e5c44b761725771bfe154694a6ddc25ba5bc185ae69f18",
+    "note": "Replaced by current code/policy kit with junction and scope-count checks; historical assembly remains genuine."
+  },
+  "recipient_receipt": {
+    "schema": 1,
+    "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+    "kit_manifest_sha256": "5e938c307250a3dd067a48620bfc213c9d01d3f149aef45564057266c39f64d4",
+    "external_manifest_hash_checked": true,
+    "authentication": "REQUIRES_TRUSTED_EXTERNAL_DIGEST_AND_VERIFIER",
+    "kit_files": 24,
+    "licensed_files": 12,
+    "verified_sources": {
+      "packages": 20,
+      "source_entries": 25505,
+      "source_symlinks": 21
+    },
+    "source_archive_sha256": "259532d2cd8c5d3b176402acdcfb9daadb2cb897d5710010cc198eeabe5401de",
+    "recipient_source_delivery": false,
+    "actual_extracted_source_trees_rehashed": 20
+  },
+  "ordinary_regression": {
+    "run_id": 39113483256,
+    "head_sha": "1e27683522029db7ad5a909fc4f0c807e6e87ae9",
+    "conclusion": "success",
+    "jobs_passed": 5,
+    "jobs": [
+      {
+        "id": 117634445018,
+        "name": "Backend \u2014 lint, type, security, tests",
+        "conclusion": "success"
+      },
+      {
+        "id": 117634445110,
+        "name": "Playwright e2e (native processes)",
+        "conclusion": "success"
+      },
+      {
+        "id": 117634445165,
+        "name": "Frontend \u2014 lint, types, contract, tests, build",
+        "conclusion": "success"
+      },
+      {
+        "id": 117634445218,
+        "name": "Windows-native smoke (SQLite paths, venv, build)",
+        "conclusion": "success"
+      },
+      {
+        "id": 117634445351,
+        "name": "OpenAPI contract is in sync",
+        "conclusion": "success"
+      }
+    ],
+    "backend_tests": 506,
+    "frontend_tests": 196,
+    "browser_scenarios": 6,
+    "windows_real_in_app_and_public_schema_compiled_helper_rollback": "success"
+  },
+  "local_checks": {
+    "backend_tests": 506,
+    "focused_tests": 79,
+    "ruff": "PASS",
+    "mypy_app_files": 84,
+    "bandit_app_and_changed_helpers": "PASS"
+  },
+  "scoped_license_and_source_audit": {
+    "run_id": 39113483241,
+    "conclusion": "success",
+    "job_id": 117634367617
+  },
+  "native_recipe_unchanged_from_independent_proof_commit": "d5b2516cca2f28f6d305f8a67c4f87d7da331f46"
 }

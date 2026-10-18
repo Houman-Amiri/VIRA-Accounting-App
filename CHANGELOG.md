@@ -23,7 +23,9 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
   evidence failures and use full `/VERBOSE`, not library-search-only diagnostics.
   This is not the native DLLs' link map or CRT entitlement/redistribution clearance.
 - 30 new contracts/security tests; 506 backend tests, 79 focused checks and local
-  Ruff/Mypy/Bandit pass. No pricing/data, runtime payload, version/tag/release or
+  Ruff/Mypy/Bandit pass. Kit 39113483257, license/source audit 39113483241 and all
+  five ordinary CI jobs 39113483256 on 1e27683 pass (196 frontend / six browser
+  scenarios, both real Windows rollback paths). No pricing/data, runtime payload, version/tag/release or
   installed-user acceptance changes; six distribution gates remain tracked.
 
 
