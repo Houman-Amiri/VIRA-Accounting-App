@@ -134,6 +134,16 @@ def seed_business() -> None:
 LEGACY_SHA256 = "5b5ddba7656a35c7ab14d2f92d0d0263f442f1d1890d4ba74e1d27e632928e16"
 
 
+def emit_diagnostic(path: Path) -> None:
+    """Keep all failure evidence even on Windows' legacy stdout code page."""
+    text = path.read_text(encoding="utf-8-sig", errors="replace")[-2300:]
+    escaped = text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+    # ASCII transport preserves non-ASCII characters as explicit escapes. A
+    # Persian startup path must not crash reporting before server.log is read.
+    annotation = f"::error title=phase8 {path.name}::{escaped}"
+    print(annotation.encode("ascii", errors="backslashreplace").decode("ascii"), flush=True)
+
+
 def verify_payload(root: Path, *, runtime: bool = False) -> None:
     """Check shipped file bytes, excluding mutable Python caches only after boot."""
     manifest = json.loads((root / "install_manifest.json").read_text(encoding="utf-8-sig"))
@@ -560,11 +570,7 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
             *root.rglob("last-result.json"),
             *root.glob("*server.log"),
         ]:
-            text = diagnostic.read_text(encoding="utf-8-sig", errors="replace")[-2300:]
-            # Actions annotations are bounded; emit each diagnostic separately
-            # so an earlier startup transcript cannot hide the rollback reason.
-            escaped = text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-            print(f"::error title=phase8 {diagnostic.name}::{escaped}", flush=True)
+            emit_diagnostic(diagnostic)
         raise
     finally:
         # Stop only this fixture's listener; never touch another VIRA installation.

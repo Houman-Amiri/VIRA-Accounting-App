@@ -72,3 +72,19 @@ def test_public_asset_digest_cannot_be_substituted(tmp_path, harness):
     (tmp_path / "base-1.0.9.zip").write_bytes(b"not the public payload")
     with pytest.raises(ValueError, match="ZIP digest mismatch"):
         harness.PublishedUpgrade(base, tmp_path / "packages").validate()
+
+
+def test_failure_diagnostics_survive_windows_code_page(tmp_path, harness, monkeypatch):
+    import io
+
+    file = tmp_path / "server.log"
+    file.write_text("خطای راه‌اندازی — 100%\r\nnext", encoding="utf-8")
+    buffer = io.BytesIO()
+    stdout = io.TextIOWrapper(buffer, encoding="cp1252")
+    monkeypatch.setattr(harness.sys, "stdout", stdout)
+    harness.emit_diagnostic(file)
+    text = buffer.getvalue().decode("ascii")
+    assert "::error title=phase8 server.log::" in text
+    assert r"\u062e" in text
+    assert r"\u2014" in text
+    assert "100%25%0Anext" in text
