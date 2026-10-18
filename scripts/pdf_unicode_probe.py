@@ -82,6 +82,17 @@ def main() -> None:
         pinned_libffi = [ffi.dlopen(name, flags=0x1000) for name in preloads]
         import ctypes
 
+        kernel_acp = ctypes.WinDLL('kernel32', use_last_error=True)
+        kernel_acp.GetACP.restype = ctypes.c_uint
+        active_code_page = kernel_acp.GetACP()
+        print('::notice title=Private process active code page::'+str(active_code_page), flush=True)
+        if active_code_page != 65001:
+            raise ValueError('Private native Unicode paths require Windows process GetACP() == 65001, not only Python -X utf8')
+        process_manifest = json.loads((root / 'private-utf8-process-manifest.json').read_text(encoding='utf-8-sig'))
+        if (not process_manifest['private_only'] or process_manifest['python_executable_is_unmodified_upstream_binary']
+                or process_manifest['executable_sha256_before'] == process_manifest['executable_sha256_after']
+                or hashlib.sha256(Path(sys.executable).read_bytes()).hexdigest() != process_manifest['executable_sha256_after']):
+            raise ValueError('Private modified process manifest provenance mismatch')
         integer_callback = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_int)(lambda n: n + 1)
         float_callback = ctypes.CFUNCTYPE(ctypes.c_double, ctypes.c_double)(lambda n: n + 0.5)
         if integer_callback(41) != 42 or float_callback(41.5) != 42.0:
@@ -175,7 +186,8 @@ def main() -> None:
         result = {
             "python": str(Path(sys.executable).resolve()), "base_prefix": sys.base_prefix,
             "version": sys.version, "isolated": sys.flags.isolated,
-            "utf8_mode": sys.flags.utf8_mode, "preferred_encoding": locale.getpreferredencoding(False),
+            "utf8_mode": sys.flags.utf8_mode, "windows_active_code_page": active_code_page,
+            "process_manifest_bootstrap": process_manifest, "preferred_encoding": locale.getpreferredencoding(False),
             "weasyprint_path_encoding": fonts.PREFERRED_ENCODING,
             "development_dependencies_absent": True, "ctypes_callbacks_verified": True,
             "fontconfig_file": None, "legacy_fontconfig_env_ignored": str(config),

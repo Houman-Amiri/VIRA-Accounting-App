@@ -80,5 +80,27 @@
       "raw_details": ""
     }
   ],
-  "observed": "With explicit -X utf8, codec exception is absent, but Pango has a NULL font and the process fails before final proof. Cause not yet established; direct native UTF-8 filename queries added as preflight-only controls."
+  "observed": "With explicit -X utf8, codec exception is absent, but Pango has a NULL font and the process fails before final proof. Cause not yet established; direct native UTF-8 filename queries added as preflight-only controls.",
+  "native_filename_diagnosis": {
+    "run_id": 39174537102,
+    "head_sha": "cb81dcb0b6dc6b44e5325d6e067fa267c7c75b2c",
+    "job_id": 117814392636,
+    "conclusion": "failure",
+    "diagnostic": [
+      {
+        "path": ".github",
+        "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/cb81dcb0b6dc6b44e5325d6e067fa267c7c75b2c/.github",
+        "start_line": 145,
+        "start_column": null,
+        "end_line": 145,
+        "end_column": null,
+        "annotation_level": "notice",
+        "title": "Unicode native filename diagnostic",
+        "message": "{\"windows_acp\": 1252, \"python_utf8_mode\": 1, \"preferred_encoding\": \"utf-8\", \"paths\": {\"unicode\": {\"added\": [false, false], \"font_count\": 0}, \"ascii\": {\"added\": [true, true], \"font_count\": 2}}}",
+        "raw_details": ""
+      }
+    ],
+    "finding": "Python UTF-8 mode 1 and preferred encoding UTF-8, but Windows GetACP 1252: direct native Unicode font additions both FALSE and app font count zero; identical ASCII control font additions both TRUE and count two. ASCII copies are preflight-only controls, removed before real rendering, never a render fallback.",
+    "next_private_fix_not_yet_proven": "Preserve existing CPython PE manifest and embed Windows activeCodePage UTF-8 using Windows SDK mt.exe, record changed EXE hash and both manifests. Require independent GetACP()==65001 before all rendering. Normal staging/installer unchanged. Windows 10 1903+ requirement and modified executable must remain explicit open production/review gates."
+  }
 }

@@ -17,6 +17,7 @@ if ($UpstreamPreflight) {
 } elseif ($inventory.origin -ne "LOCAL_PINNED_VCPKG_SOURCE_BUILD" -or $inventory.private_consumption_only -ne $true -or $inventory.modified_build_is_distribution_candidate -ne $false) { throw "fresh private source candidate required" }
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $native) | Out-Null
 Copy-Item -Recurse $Candidate $native
+& ./scripts/pdf_unicode_process_manifest.ps1 -AppRoot $app
 $contexts = Join-Path $root "contexts.json"
 @'
 import json,runpy
@@ -37,6 +38,7 @@ try {
         $reports = Join-Path $repo "reports/unicode-pdf/$case"
         New-Item -ItemType Directory -Force -Path $reports | Out-Null
         Copy-Item (Join-Path $native "runtime-inventory.json") (Join-Path $reports "runtime-inventory.json")
+        Copy-Item (Join-Path $app "private-utf8-process-manifest.json") (Join-Path $reports "private-utf8-process-manifest.json")
         $probeArgs = @()
         if ($UpstreamPreflight) { $probeArgs += "--diagnostic" }
         if (-not $UpstreamPreflight) { $probeArgs += @("--expected-pango-version", "1.58.0-vira-local-source") }
