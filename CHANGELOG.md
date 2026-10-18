@@ -7,6 +7,26 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Private native source kit and separate static CRT probe
+- Assemble/check an immutable-source/limited-MIT-sidecar/notices/recipe review kit
+  with standard-library Python and per-file hashes. Explicit build-tool allowlist
+  is now 12 files; no app-wide grant or runtime publication.
+- Add safe preferred-source extraction: preserve relative symlinks/script modes;
+  reject path escape, collision, cycles, special entries, external envelope paths,
+  archive overflow and existing outputs. Never execute a checker from an arbitrary
+  inspected kit; distinguish consistency from externally authenticated delivery.
+- Private CI verifies actual kit, isolated `-I -S` recipient check, 21 extracted
+  symlinks and all 20 source-tree hashes/25,505 entries. Local/offline compilation
+  and durable anonymous recipient source delivery remain unproven.
+- Actual separate `/MT` C++ probe records seven searched library paths/hashes,
+  317 Loaded trace events and static directives/KERNEL32 imports. Preserve initial
+  evidence failures and use full `/VERBOSE`, not library-search-only diagnostics.
+  This is not the native DLLs' link map or CRT entitlement/redistribution clearance.
+- 30 new contracts/security tests; 506 backend tests, 79 focused checks and local
+  Ruff/Mypy/Bandit pass. No pricing/data, runtime payload, version/tag/release or
+  installed-user acceptance changes; six distribution gates remain tracked.
+
+
 ### Independent native PDF rebuild preparation and CRT evidence
 - Add an isolated PowerShell 7 native-only build entry point and native inspector,
   explicit MIT derivatives within the 11-file allowlist. Compile from the licensed

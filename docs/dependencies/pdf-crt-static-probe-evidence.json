@@ -1,0 +1,156 @@
+{
+  "probe_imports": "\r\nDump of file probe.exe\r\n\r\nFile Type: EXECUTABLE IMAGE\r\n\r\n  Image has the following dependencies:\r\n\r\n    KERNEL32.dll\r\n\r\n  Summary\r\n\r\n        2000 .data\r\n        1000 .fptable\r\n        2000 .pdata\r\n        C000 .rdata\r\n        1000 .reloc\r\n       19000 .text\r\n",
+  "compile_flags": [
+    "/MT",
+    "/EHsc",
+    "/Od"
+  ],
+  "actual_native_dll_component_mapping": "STILL_PENDING",
+  "loaded_object_count": 317,
+  "producer_license_entitlement": "NOT_ESTABLISHED",
+  "probe_defaultlib_directives": "\r\nDump of file probe.obj\r\n\r\nFile Type: COFF OBJECT\r\n\r\n   Linker Directives\r\n   -----------------\r\n   /FAILIFMISMATCH:_CRT_STDIO_ISO_WIDE_SPECIFIERS=0\r\n   /FAILIFMISMATCH:annotate_string=0\r\n   /FAILIFMISMATCH:annotate_vector=0\r\n   /FAILIFMISMATCH:annotate_optional=0\r\n   /FAILIFMISMATCH:_MSC_VER=1900\r\n   /FAILIFMISMATCH:_ITERATOR_DEBUG_LEVEL=0\r\n   /FAILIFMISMATCH:RuntimeLibrary=MT_StaticRelease\r\n   /DEFAULTLIB:libcpmt\r\n   /alternatename:_Avx2WmemEnabled=_Avx2WmemEnabledWeakValue\r\n   /DEFAULTLIB:LIBCMT\r\n   /DEFAULTLIB:OLDNAMES\r\n\r\n  Summary\r\n\r\n           C .bss\r\n         6D0 .chks64\r\n          77 .data$r\r\n          74 .debug$S\r\n         19C .drectve\r\n         288 .pdata\r\n         2F8 .rdata\r\n         150 .rdata$r\r\n         E6F .text$mn\r\n          18 .text$x\r\n         1E6 .xdata\r\n          A4 .xdata$x\r\n",
+  "full_loaded_object_trace_in_log": true,
+  "search_is_not_proof_of_linked_code": true,
+  "installations": [
+    {
+      "instanceId": "d2e552a4",
+      "installDate": "2026-10-07T22:18:56Z",
+      "installationName": "VisualStudio/18.10.3+12224.181",
+      "installationPath": "C:\\Program Files\\Microsoft Visual Studio\\18\\Enterprise",
+      "installationVersion": "18.10.12224.181",
+      "productId": "Microsoft.VisualStudio.Product.Enterprise",
+      "productPath": "C:\\Program Files\\Microsoft Visual Studio\\18\\Enterprise\\Common7\\IDE\\devenv.exe",
+      "state": 4294967295,
+      "isComplete": true,
+      "isLaunchable": true,
+      "isPrerelease": false,
+      "isRebootRequired": false,
+      "displayName": "Visual Studio Enterprise 2026",
+      "description": "Built for scale, security, and speed \u2013 the IDE for complex, high-impact development.",
+      "channelId": "VisualStudio.18.Release",
+      "channelUri": "https://aka.ms/vs/18/stable/channel",
+      "enginePath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\resources\\app\\ServiceHub\\Services\\Microsoft.VisualStudio.Setup.Service",
+      "expirationDate": "2027-03-23T17:00:00+00:00",
+      "installChannelUri": "https://aka.ms/vs/18/stable/channel",
+      "installedChannelId": "VisualStudio.18.Release",
+      "installedChannelUri": "https://aka.ms/vs/18/stable/channel",
+      "releaseNotes": "https://docs.microsoft.com/en-us/visualstudio/releases/18/release-notes-v18.10#18.10.3",
+      "resolvedInstallationPath": "C:\\Program Files\\Microsoft Visual Studio\\18\\Enterprise",
+      "thirdPartyNotices": "https://go.microsoft.com/fwlink/?LinkId=661480",
+      "updateDate": "2026-10-07T22:18:56.6061842Z",
+      "catalog": {
+        "buildBranch": "stable",
+        "buildVersion": "18.10.12224.181",
+        "featureReleaseMonth": "09",
+        "featureReleaseYear": "2026",
+        "id": "VisualStudio/18.10.3+12224.181",
+        "includeBuildVersionInDisplayVersion": "False",
+        "localBuild": "build-lab",
+        "manifestName": "VisualStudio",
+        "manifestType": "installer",
+        "productDisplayVersion": "18.10.3",
+        "productLine": "Dev18",
+        "productLineVersion": "18",
+        "productMilestone": "RTW",
+        "productMilestoneIsPreRelease": "False",
+        "productName": "Visual Studio",
+        "productPatchVersion": "3",
+        "productPreReleaseMilestoneSuffix": "1.0",
+        "productRelease": "RTW",
+        "productSemanticVersion": "18.10.3+12224.181",
+        "requiredEngineVersion": "4.10.30.62513"
+      },
+      "properties": {
+        "campaignId": "",
+        "channelManifestId": "VisualStudio.18.Release/18.10.3+12224.181",
+        "includeRecommended": "1",
+        "nickname": "",
+        "setupEngineFilePath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\setup.exe"
+      }
+    }
+  ],
+  "scope": "CURRENT_RUNNER_SEPARATE_MT_PROBE_NOT_ORIGINAL_OR_REBUILT_21_DLL_LINK_MAP",
+  "searched_libraries": [
+    {
+      "sha256": "341c7d56125a03b458e4d5093e4c79b33123ccfdfd610fe236937b8e6f3134bb",
+      "path": "C:\\Program Files (x86)\\Windows Kits\\10\\\\lib\\10.0.26100.0\\\\um\\x64\\kernel32.lib",
+      "size": 311908
+    },
+    {
+      "sha256": "29558f81492e99d7de1b921b6eb8f21d74c96474e18653465aff10fcb01c2626",
+      "path": "C:\\Program Files (x86)\\Windows Kits\\10\\\\lib\\10.0.26100.0\\\\um\\x64\\uuid.lib",
+      "size": 8940674
+    },
+    {
+      "sha256": "ea2ffa5d9b1ebc3fa76f34c364471750db8951b341dbccbc1bef628ef1a20e39",
+      "path": "C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.26100.0\\ucrt\\x64\\libucrt.lib",
+      "size": 43342854
+    },
+    {
+      "sha256": "d4cc4c224455825dec1669f9ad6a9872a4f5b37ed1daae1fd0b9044d7650d908",
+      "path": "C:\\Program Files\\Microsoft Visual Studio\\18\\Enterprise\\VC\\Tools\\MSVC\\14.51.36231\\lib\\x64\\LIBCMT.lib",
+      "size": 6610744
+    },
+    {
+      "sha256": "96f3a2e1113ae8884f459e679a38a35cab542013229a9e6106f58382a6fb47c8",
+      "path": "C:\\Program Files\\Microsoft Visual Studio\\18\\Enterprise\\VC\\Tools\\MSVC\\14.51.36231\\lib\\x64\\libcpmt.lib",
+      "size": 24294796
+    },
+    {
+      "sha256": "f0a898588ecb26fe4c7530b2495a6fe5e768856309a33391702a3cbcb72b0589",
+      "path": "C:\\Program Files\\Microsoft Visual Studio\\18\\Enterprise\\VC\\Tools\\MSVC\\14.51.36231\\lib\\x64\\libvcruntime.lib",
+      "size": 2364572
+    },
+    {
+      "sha256": "67653ba64d59a33964a811d950c9d424f7afacba8e613af60138f64fe10c2679",
+      "path": "C:\\Program Files\\Microsoft Visual Studio\\18\\Enterprise\\VC\\Tools\\MSVC\\14.51.36231\\lib\\x64\\OLDNAMES.lib",
+      "size": 157422
+    }
+  ],
+  "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+  "log_files": {
+    "directives.txt": {
+      "bytes": 809,
+      "sha256": "4d07e421fb0a46c1558e67727577a658291085912cee4619870d3ef5132713ae"
+    },
+    "link.log": {
+      "bytes": 1393288,
+      "sha256": "15e323dbbb5694cf0c4718a0c3256a96cc66e0b9f72417928abadeae52e06bce"
+    },
+    "probe.cpp": {
+      "bytes": 219,
+      "sha256": "f0691cd21d8b6d37deee04af586395434a90b3a5e31e808e69497728c1f27071"
+    },
+    "imports.txt": {
+      "bytes": 261,
+      "sha256": "d8755c999123b60025dab5a611174ae47629139ba307fe2d72fe198012fec2f1"
+    },
+    "probe.map": {
+      "bytes": 293528,
+      "sha256": "4c5eb7941a9cdcd98ff98a49377d7d2bbafd1a1ff93386e718b1cbc30336b249"
+    }
+  },
+  "schema": 1,
+  "loaded_object_preview": [
+    "libcpmt.lib(xthrow.obj)",
+    "LIBCMT.lib(new_scalar.obj)",
+    "LIBCMT.lib(delete_scalar_size.obj)",
+    "LIBCMT.lib(gshandler.obj)",
+    "LIBCMT.lib(amdsecgs.obj)",
+    "LIBCMT.lib(std_type_info_static.obj)",
+    "LIBCMT.lib(gs_cookie.obj)",
+    "LIBCMT.lib(exe_main.obj)",
+    "LIBCMT.lib(throw_bad_alloc.obj)",
+    "LIBCMT.lib(delete_scalar.obj)",
+    "LIBCMT.lib(gs_report.obj)",
+    "LIBCMT.lib(utility.obj)",
+    "LIBCMT.lib(gs_support.obj)",
+    "LIBCMT.lib(matherr.obj)",
+    "LIBCMT.lib(argv_mode.obj)",
+    "LIBCMT.lib(commit_mode.obj)",
+    "LIBCMT.lib(file_mode.obj)",
+    "LIBCMT.lib(new_mode.obj)",
+    "LIBCMT.lib(thread_locale.obj)",
+    "LIBCMT.lib(tncleanup.obj)"
+  ]
+}

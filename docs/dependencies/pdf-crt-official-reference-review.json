@@ -20,21 +20,35 @@
       "url": "https://visualstudio.microsoft.com/wp-content/uploads/2025/10/Visual_Studio_2026-License-Enterprise_Professional_ENU.docx",
       "official_landing_page": "https://visualstudio.microsoft.com/license-terms/vs2026-ga-pro-enterprise/",
       "last_updated_in_document": "2025-10-01",
-      "sections_reviewed": ["I.a trial restrictions", "II.6(c) build devices", "II.6(g) separately licensed components", "II.7 distributable code", "II.10 scope"],
+      "sections_reviewed": [
+        "I.a trial restrictions",
+        "II.6(c) build devices",
+        "II.6(g) separately licensed components",
+        "II.7 distributable code",
+        "II.10 scope"
+      ],
       "finding": "Full-use and trial rights differ; trial-built production distribution is not permitted by the trial clause. Section 7 distribution is conditional, requires significant functionality and protective terms, and contains an Excluded License restriction. A hosted Enterprise installation path does not alone prove the applicable full-use entitlement."
     },
     {
       "url": "https://visualstudio.microsoft.com/wp-content/uploads/2025/10/Visual_Studio_2026-License-Diagnostic_and_Build_Tools_ENU.docx",
       "official_landing_page": "https://visualstudio.microsoft.com/license-terms/vs2026-ga-diagnostic-buildtools/",
       "last_updated_in_document": "2025-10-01",
-      "sections_reviewed": ["1(a)-(e) installation/use", "2(b) build devices", "4(e)-(f) scope"],
+      "sections_reviewed": [
+        "1(a)-(e) installation/use",
+        "2(b) build devices",
+        "4(e)-(f) scope"
+      ],
       "finding": "The separate open-source-dependency build permission in 1(d) has prerequisites and 1(e) restricts development/testing modifications without a Visual Studio Product license. It must not be presented as an unconditional redistribution grant or proof of arbitrary LGPL-modification rights with that compiler."
     },
     {
       "url": "https://visualstudio.microsoft.com/wp-content/uploads/2025/10/Visual-C-V14-License-Redistributable_and_Runtime_ENU.docx",
       "official_landing_page": "https://visualstudio.microsoft.com/license-terms/vs2026-ga-visualcpp-v14-redist-runtime/",
       "last_updated_in_document": "2025-10-01",
-      "sections_reviewed": ["1 installation/use", "3 third-party components", "4(e)-(f) distribution restrictions"],
+      "sections_reviewed": [
+        "1 installation/use",
+        "3 third-party components",
+        "4(e)-(f) distribution restrictions"
+      ],
       "quote": "You may install and use any number of copies of the software.",
       "finding": "Installation/use permission is not permission to redistribute. Section 4 separately restricts sharing/distribution. Do not substitute this end-user runtime agreement for the applicable developer distribution rights."
     },
@@ -47,6 +61,13 @@
       "url": "https://github.com/MicrosoftDocs/cpp-docs/blob/8c10ba44ad09b39449ba78f81ca4ed3b1765e81d/docs/windows/latest-supported-vc-redist.md",
       "attribution": "Microsoft documentation, CC-BY-4.0; findings paraphrased, not a new license grant",
       "finding": "The current v14 documentation explicitly covers Visual Studio 2017 through 2026; runtime version/architecture/OS compatibility and licensing are distinct checks."
+    },
+    {
+      "url": "https://github.com/MicrosoftDocs/cpp-docs/blob/c7f69f5583fed1631c12c6cf3f31b40791d841e3/docs/c-runtime-library/crt-library-features.md",
+      "raw_markdown_sha256": "cedad5d84a7df29a061da20041796075e16cc3241aa13e3aadf742ab19376ed0",
+      "retrieval": "Exact commit via GitHub contents API, base64 decoded raw Markdown; unlike the earlier remote DOCX checksums this hash is available.",
+      "attribution": "Microsoft documentation, CC-BY-4.0; findings paraphrased; documentation license is not the runtime license.",
+      "finding": "libucrt is the static UCRT in the Windows SDK; libvcruntime is static compiler-specific support; libcmt is native static CRT initialization; libcpmt is the static C++ standard library. CRT startup is statically linked even with dynamic UCRT; changing /MT to /MD alone does not establish redistribution permission or remove all static startup code. Different CRT allocator/state across DLL boundaries requires ABI/resource review."
     }
   ],
   "remaining_checks": [
@@ -55,5 +76,19 @@
     "Ensure upstream LGPL system-library/source exceptions and replacement/debugging rights remain compatible with the selected CRT and application/EULA packaging route.",
     "Provide required notices/source and verify the actual installed replacement/update behavior before production native integration."
   ],
-  "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW"
+  "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+  "separate_static_probe": {
+    "proof": "docs/dependencies/pdf-crt-static-probe-proof.json",
+    "evidence": "docs/dependencies/pdf-crt-static-probe-evidence.json",
+    "status": "SEPARATE_PROBE_ONLY_NOT_NATIVE_DLL_COMPONENT_OR_ENTITLEMENT_CLEARANCE",
+    "observed_libraries_and_documented_roles": {
+      "libucrt.lib": "Static UCRT; observed SDK path 10.0.26100.0",
+      "libvcruntime.lib": "Static compiler-specific runtime support; observed MSVC tools path 14.51.36231",
+      "LIBCMT.lib": "Static native CRT startup; observed MSVC tools path",
+      "libcpmt.lib": "Static C++ standard library; observed MSVC tools path",
+      "OLDNAMES.lib": "Observed default-library directive/search; component-specific licensing still needs mapping",
+      "kernel32.lib": "Observed Windows SDK library search; not itself proof of linked code",
+      "uuid.lib": "Observed Windows SDK library search; not itself proof of linked code"
+    }
+  }
 }

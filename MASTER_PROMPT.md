@@ -569,3 +569,42 @@ subsequent diagnostic-test/lint corrections remain recorded; successful retry
 alone does not establish the initial readiness root cause. No production health,
 hash or rollback condition was relaxed. Final evidence updates are documentation
 only, not a new native output or release.
+
+### Native source-kit assembly and separate CRT probe (2026-10-18)
+
+The next authorized preparation phase adds `pdf_source_kit.py`, an explicit MIT
+native-build-tool derivative (**12 listed files**, not the accounting app). It
+assembles the immutable original source ZIP, licensed sidecar, guide, notices,
+policy/reference evidence and a per-file SHA256/size manifest in a NEW directory.
+Its standard-library-only inspector must use its OWN trusted checker, never
+execute a checker from an arbitrary inspected kit, reject envelope symlinks/
+external resolved paths (including junctions) and require consistency across
+source/notices/policy/scope. Internal hashes do not authenticate a publisher:
+use an independently trusted external digest and trusted verifier.
+
+Actual private CI kit assembly, `python -I -S` recipient-style checking, extraction
+of **21 relative symlinks** and rehashing **all 20 source trees / 25,505 entries**
+are recorded in [kit proof](docs/dependencies/pdf-source-kit-proof.json). Preserve
+safe relative symlinks and script modes; reject path escapes, collisions, cycles,
+missing targets, special entries, oversized archives and existing destinations.
+Windows symlink-permission failure must be explicit, not silently flatten links.
+This is a temporary 90-day review kit, NOT anonymous durable source delivery.
+The build still downloads pinned inputs: direct extracted-local-source/offline
+compilation is NOT proven, and modified sources need reviewed overlays.
+
+The [separate CRT probe](docs/dependencies/pdf-crt-static-probe-proof.json) genuinely
+compiled/ran `/MT`, recorded `MT_StaticRelease`, seven searched library paths/hashes,
+317 Loaded trace events (not 317 unique native components) and KERNEL32-only imports
+for THAT probe. Full `/VERBOSE` was required; initial `/VERBOSE:LIB` evidence failures
+are retained, not hidden or waived. Actual original/rebuilt 21-DLL object mapping
+and producer entitlement remain pending. Microsoft documentation distinguishes SDK
+static UCRT, compiler support, static startup and C++ library; simply switching to
+`/MD` does not eliminate static startup or establish redistribution permission.
+
+[Persian report](docs/reports/pdf-source-kit-and-crt-probe-fa.md) and the updated
+[source-delivery plan](docs/dependencies/pdf-runtime-source-delivery-plan-fa.md)
+preserve boundaries and regression evidence. 506 backend tests locally, 79 focused
+checks, Ruff/Mypy (84 files) and configured Bandit pass. Six distribution gates
+remain tracked; no source availability, CRT permission, LGPL replacement/EULA,
+production bootstrap/native updates or installed-user acceptance is inferred.
+No runtime payload, broad license, version/tag/release, real data or pricing change.

@@ -101,3 +101,32 @@ artifact جدید `private-native-license-review-and-source` برای بررسی
 اجرای موفقِ بعد از تأیید مالک و artifact دارای ضمیمهٔ MIT در
 [proof مجوز اسکریپت‌ها](pdf-build-script-license-proof.json) ثبت شده است؛ پین قدیمیِ
 ممیزیِ مواد بالا به اجرای پیش از اعطای MIT اشاره می‌کند و به‌عنوان سابقه حفظ شده است.
+
+## به‌روزرسانی اجرایی: بستهٔ بررسی واقعی و استخراج امن (۲۰۲۶-۱۰-۱۸)
+
+بخش‌های ۹فایلی بالا سابقهٔ تأیید اولیه‌اند؛ دامنهٔ **فعلی ۱۲ فایل صریح** است:
+ورودی native و بازرس آن، و اکنون `pdf_source_kit.py` به‌عنوان مشتقات ابزار ساخت.
+مجوز کل برنامه یا کد CRT تغییر نکرده است. برای ورودی مستقل، از راهنمای جدید و
+`rebuild_pdf_native.ps1` استفاده شود، نه wrapper قدیمیِ وابسته به app/staging.
+
+`pdf_source_kit.py --archive <original-zip> --out <new-directory>` اکنون بستهٔ بررسی
+را واقعاً می‌سازد: ZIP اصلیِ بدون تغییر، سایدکار مجاز، مجوز/دامنه، دستور ساخت،
+notices/مکمل‌ها، inventory/policy/review و مرجع رسمی CRT، با manifest اندازه/SHA256.
+`--verify` فقط کتابخانهٔ استاندارد Python می‌خواهد؛ کد checker از پوشهٔ هدف را
+اجرا نمی‌کند. digest مستقل و verifier مورد اعتماد شرط authentication‌اند؛ هش‌های
+خود بسته به‌تنهایی هویت ناشر نیستند. `--extract-sources` مسیر تازه می‌خواهد و
+symlinkهای نسبی امن و executable bit را حفظ می‌کند؛ escape/collision/cycle،
+symlink/junction خروجی از envelope، special file و بازنویسی مسیر موجود رد می‌شوند.
+نبود مجوز ساخت symlink در ویندوز، خطای صریح است، نه flatten کردن لینک.
+
+[proof بسته](pdf-source-kit-proof.json) و [گزارش](../reports/pdf-source-kit-and-crt-probe-fa.md)
+اجرای واقعی استاندارد-library/`-I -S`، استخراج ۲۱ symlink و محاسبهٔ مجدد و برابرِ
+درخت هر ۲۰ بسته / ۲۵٬۵۰۵ ورودی را ثبت می‌کنند. source ZIP همان هش قبلی را دارد.
+این **artifact بررسی ۹۰روزه** است؛ انتشار عمومی/ناشناسِ پایدار اجرا نشده است.
+
+همچنان خودِ فرمان build، منابع پین‌شده را از شبکه می‌گیرد؛ مصرف مستقیم درخت‌های
+local استخراج‌شده/تغییرکرده یا بازسازی آفلاین ثابت نشده و overlay بررسی‌شده لازم
+است. بستهٔ بررسی را نباید اثبات خودکار همهٔ گیت‌های source delivery نامید.
+[probe CRT](pdf-crt-static-probe-proof.json) نیز فقط یک برنامهٔ جدا با `/MT` است،
+نه map اجزای همان ۲۱ DLL یا اجازهٔ توزیع. entitlement و شروط CRT/SDK، LGPL/EULA،
+bootstrap/native delta/rollback و پذیرش نصب‌شده همچنان مستقل و بازند.

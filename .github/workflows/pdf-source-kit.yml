@@ -2,9 +2,9 @@ name: Assemble and inspect private native source kit
 
 on:
   push:
-    paths: ['.github/workflows/pdf-source-kit.yml', 'scripts/pdf_source_kit.py', 'scripts/check_pdf_build_license.py', 'backend/tests/test_pdf_source_kit.py', 'docs/dependencies/pdf-build-script-license-scope.json']
+    paths: ['.github/workflows/pdf-source-kit.yml', 'scripts/pdf_source_kit.py', 'scripts/check_pdf_build_license.py', 'backend/tests/test_pdf_source_kit.py', 'docs/dependencies/pdf-build-script-license-scope.json', 'docs/dependencies/pdf-runtime-*.json', 'docs/dependencies/pdf-runtime-THIRD-PARTY-NOTICES.txt', 'docs/dependencies/pdf-native-rebuild-guide.md', 'docs/dependencies/pdf-crt-official-reference-review.json', 'LICENSES/VIRA-PDF-BUILD-MIT.txt']
   pull_request:
-    paths: ['.github/workflows/pdf-source-kit.yml', 'scripts/pdf_source_kit.py', 'scripts/check_pdf_build_license.py', 'backend/tests/test_pdf_source_kit.py', 'docs/dependencies/pdf-build-script-license-scope.json']
+    paths: ['.github/workflows/pdf-source-kit.yml', 'scripts/pdf_source_kit.py', 'scripts/check_pdf_build_license.py', 'backend/tests/test_pdf_source_kit.py', 'docs/dependencies/pdf-build-script-license-scope.json', 'docs/dependencies/pdf-runtime-*.json', 'docs/dependencies/pdf-runtime-THIRD-PARTY-NOTICES.txt', 'docs/dependencies/pdf-native-rebuild-guide.md', 'docs/dependencies/pdf-crt-official-reference-review.json', 'LICENSES/VIRA-PDF-BUILD-MIT.txt']
 
 permissions:
   contents: read

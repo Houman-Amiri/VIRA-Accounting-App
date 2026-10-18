@@ -264,3 +264,19 @@ rollback واقعی جاری و schema/compiled-helper rollback نسخهٔ عم�
 محلی موفق‌اند. شکست اولیهٔ readiness و اصلاح‌های diagnostic/test/lint حفظ شدند؛
 موفقیت retry به معنی یافتن علت اولیه نیست. هیچ شرط production سلامت/hash/rollback
 ضعیف نشد. ثبت نهاییِ شواهد فقط مستندات است، نه runtime یا انتشار جدید.
+
+### ادامهٔ آماده‌سازی بستهٔ سورس و شواهد دقیق‌تر CRT
+
+با دستور بعدی «ادامه بده»، ابزار استاندارد-library برای بستهٔ بررسی واقعی و
+اعتبارسنجی/استخراج امن اضافه شد؛ دامنهٔ MIT فقط ۱۲ فایل صریح ابزار ساخت است.
+[proof بسته](../dependencies/pdf-source-kit-proof.json): ساخت و بررسی `-I -S`،
+۲۱ symlink استخراج‌شده و rehash برابرِ ۲۰ درخت / ۲۵٬۵۰۵ ورودی؛ نه source delivery
+عمومی یا بازسازی مستقیم local/offline. بازرس کد داخل هدف دلخواه را اجرا نمی‌کند؛
+هش داخلی بدون digest/verifier مستقل، authentication ناشر نیست.
+
+[probe جداگانه](../dependencies/pdf-crt-static-probe-proof.json) `/MT` را واقعاً
+اجرا و trace کامل object/هش هفت library و import KERNEL32 را ثبت کرد؛ شکست‌های
+verbosity هم حفظ شدند. این map موتور ۲۱ DLL یا مجوز CRT نیست؛ حتی `/MD` همهٔ
+startup استاتیک را حذف نمی‌کند. ۵۰۶ بک‌اند محلی / ۷۹ متمرکز و Ruff/Mypy/Bandit
+موفق‌اند؛ [گزارش فارسی و نتیجهٔ CI](../reports/pdf-source-kit-and-crt-probe-fa.md).
+شش گیت حقوقی/تحویل/production بازند؛ انتشار، payload، داده یا محاسبه عوض نشد.

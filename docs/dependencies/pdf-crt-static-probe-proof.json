@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "run_id": 39113097728,
+  "head_sha": "0bceb1edbcf9714c5bba823da46f6622572829e2",
+  "workflow_path": ".github/workflows/pdf-crt-link-proof.yml",
+  "job_id": 117633191271,
+  "conclusion": "success",
+  "metadata_chunks": 2,
+  "raw_metadata_payload_sha256": "515a969310144c1b6ddeedf2749256d1a4fd0d398b63a01b43250bae36104bf4",
+  "stored_metadata_file": "docs/dependencies/pdf-crt-static-probe-evidence.json",
+  "stored_metadata_sha256": "49ac7ac127fd637f02535012d80d1e6ac2b9b3c16e874034bba84ce34c01e3c5",
+  "scope": "SEPARATE_CURRENT_RUNNER_PROBE_NOT_THE_21_NATIVE_DLL_LINK_MAP",
+  "loaded_trace_records": 317,
+  "loaded_trace_count_is_not_a_unique_native_component_count": true,
+  "searched_library_files": 7,
+  "dynamic_imports": [
+    "KERNEL32.dll"
+  ],
+  "compiler_directives": [
+    "RuntimeLibrary=MT_StaticRelease",
+    "DEFAULTLIB:libcpmt",
+    "DEFAULTLIB:LIBCMT",
+    "DEFAULTLIB:OLDNAMES"
+  ],
+  "full_linker_diagnostics_in_artifact": true,
+  "failed_runs": [
+    {
+      "run_id": 39112661722,
+      "finding": "Initial evidence collection failed; first output had no detailed traceback. Later same probe diagnosed missing object-level trace."
+    },
+    {
+      "run_id": 39112775339,
+      "finding": "No object-level linker trace captured, despite successful compile/run and library search logs."
+    },
+    {
+      "run_id": 39112976078,
+      "finding": "Actual log showed /VERBOSE:LIB search records, not required Loaded object records. Switched to full /VERBOSE; did not weaken the nonempty object-trace requirement."
+    }
+  ],
+  "retained_artifact": {
+    "id": 12131805289,
+    "name": "static-crt-probe-logs-no-binaries",
+    "size_in_bytes": 161655,
+    "digest": "sha256:9135910eacc6080e13150566a2004ec395b1b90be9ade1d4b2ebeebadae42838",
+    "expires_at": "2027-01-16T08:51:59Z"
+  },
+  "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+  "producer_entitlement": "NOT_ESTABLISHED",
+  "actual_21_dll_component_mapping": "NOT_ESTABLISHED"
+}

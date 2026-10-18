@@ -199,7 +199,9 @@
         "installed_terms_evidence": "docs/dependencies/pdf-native-installed-terms-evidence.json",
         "official_2026_terms_review": "docs/dependencies/pdf-crt-official-reference-review.json",
         "entitlement_and_static_component_mapping": "PENDING_NOT_INFERRED_FROM_RUNNER_OR_REDIST_LIST",
-        "gate_closed": false
+        "gate_closed": false,
+        "separate_static_probe": "docs/dependencies/pdf-crt-static-probe-proof.json",
+        "probe_is_original_native_link_map": false
       }
     },
     {
@@ -210,18 +212,27 @@
         "scope_file": "docs/dependencies/pdf-build-script-license-scope.json",
         "standalone_recipe_completeness": "NATIVE_ONLY_BASELINE_BUILD_AND_AUDIT_VERIFIED_RECIPIENT_ASSEMBLY_REVIEW_PENDING",
         "gate_closed": false,
-        "licensed_files": 11,
+        "licensed_files": 12,
         "native_only_entry_point": "scripts/rebuild_pdf_native.ps1",
         "standalone_recipe_guide": "docs/dependencies/pdf-native-rebuild-guide.md",
         "independent_rebuild_proof": "docs/dependencies/pdf-native-rebuild-proof-run.json",
         "independent_baseline_run_id": 39108011284,
         "verified_source_trees": 20,
-        "verified_native_dlls": 21
+        "verified_native_dlls": 21,
+        "recipient_kit_assembly": "PRIVATE_CI_ASSEMBLY_AND_EXTRACTED_TREES_VERIFIED",
+        "source_kit_proof": "docs/dependencies/pdf-source-kit-proof.json",
+        "local_preferred_source_replay": "NOT_YET_PROVEN"
       }
     },
     {
       "id": "RECIPIENT_SOURCE_DELIVERY",
-      "requirement": "At an explicitly authorized release, supply the exact source archive plus complete licensed recipe sidecar and notices alongside every relevant native binary/delta; verify anonymous download and hashes. Actions artifacts, even 90-day copies, are not durable recipient source delivery."
+      "requirement": "At an explicitly authorized release, supply the exact source archive plus complete licensed recipe sidecar and notices alongside every relevant native binary/delta; verify anonymous download and hashes. Actions artifacts, even 90-day copies, are not durable recipient source delivery.",
+      "progress": {
+        "private_kit_assembled": true,
+        "public_durable_download_verified": false,
+        "source_kit_proof": "docs/dependencies/pdf-source-kit-proof.json",
+        "gate_closed": false
+      }
     },
     {
       "id": "LGPL_SHARED_LIBRARY_REPLACEMENT",

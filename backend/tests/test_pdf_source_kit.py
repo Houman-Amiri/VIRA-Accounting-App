@@ -144,3 +144,19 @@ def test_inspection_never_executes_checker_from_target_kit(tool, tmp_path):
             name: {"sha256": tool.sha_file(injected), "size": injected.stat().st_size}}}))
     with pytest.raises(FileNotFoundError):
         tool.verify(tmp_path)
+
+
+@pytest.mark.parametrize("escape_kind", ["symlink", "junction"])
+def test_envelope_rejects_external_entries_without_platform_privileges(tool, tmp_path, monkeypatch, escape_kind):
+    (tmp_path / "kit-manifest.json").write_text(json.dumps({"schema": 1, "distribution_status": tool.BLOCKED,
+        "status": "PRIVATE_REVIEW_KIT_NOT_RECIPIENT_DELIVERY", "files": {}}))
+    target = tmp_path / "unsafe"
+    target.write_bytes(b"x")
+    if escape_kind == "symlink":
+        original = Path.is_symlink
+        monkeypatch.setattr(Path, "is_symlink", lambda p: p == target or original(p))
+    else:
+        original = Path.resolve
+        monkeypatch.setattr(Path, "resolve", lambda p, **kw: tmp_path.parent / "outside" if p == target else original(p, **kw))
+    with pytest.raises(ValueError, match="external/junction"):
+        tool.verify(tmp_path)

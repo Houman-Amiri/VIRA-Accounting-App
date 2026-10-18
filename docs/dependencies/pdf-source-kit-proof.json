@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "run_id": 39112775358,
+  "head_sha": "b9dc528261fd1ff444aa469489bfe695a335a496",
+  "workflow_path": ".github/workflows/pdf-source-kit.yml",
+  "job_id": 117632222953,
+  "conclusion": "success",
+  "kit_manifest_sha256": "5aada9b75f87a45476e5c44b761725771bfe154694a6ddc25ba5bc185ae69f18",
+  "kit_manifested_files": 24,
+  "licensed_build_files": 12,
+  "original_source_archive_sha256": "259532d2cd8c5d3b176402acdcfb9daadb2cb897d5710010cc198eeabe5401de",
+  "recipient_style_verification": {
+    "standard_library_only": true,
+    "isolated_python_flags": ["-I", "-S"],
+    "external_manifest_hash_checked": true,
+    "packages": 20,
+    "source_entries": 25505,
+    "actual_relative_symlinks_extracted": 21,
+    "actual_extracted_source_trees_rehashed": 20,
+    "second_read_only_verification": "success"
+  },
+  "retained_artifact": {
+    "id": 12131625201,
+    "name": "private-native-source-kit-not-recipient-publication",
+    "size_in_bytes": 177953731,
+    "digest": "sha256:09a4c2c2e6e7fa1e0a33e10e14d3cb4e3947ebb03b2112034faaabe313c8c890",
+    "expires_at": "2027-01-16T08:46:56Z",
+    "retention_days": 90,
+    "recipient_source_delivery": false
+  },
+  "trust_boundary": "Internal hashes establish consistency, not publisher authentication; use an independently trusted external digest and trusted verifier. Inspection does not execute the checker from an arbitrary target kit.",
+  "not_proven": [
+    "Public anonymous durable source delivery",
+    "Native compilation directly from extracted local preferred sources or offline replay",
+    "New native compilation of this assembled kit (unchanged native entry point was proven separately)",
+    "Original/rebuilt native DLL CRT object mapping or producer entitlement",
+    "Installed LGPL replacement, production bootstrap/native updates or installed-user acceptance"
+  ],
+  "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+  "release_authorized": false,
+  "application_license_changed": false
+}

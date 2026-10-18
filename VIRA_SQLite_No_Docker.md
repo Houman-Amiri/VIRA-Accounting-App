@@ -1092,3 +1092,32 @@ rollback واقعی جاری و schema/compiled-helper rollback نسخهٔ عم�
 محلی موفق‌اند. شکست اولیهٔ readiness و اصلاح‌های diagnostic/test/lint حفظ شدند؛
 موفقیت retry به معنی یافتن علت اولیه نیست. هیچ شرط production سلامت/hash/rollback
 ضعیف نشد. ثبت نهاییِ شواهد فقط مستندات است، نه runtime یا انتشار جدید.
+
+### بستهٔ بررسی سورس و آزمون مستقل CRT — ۲۰۲۶-۱۰-۱۸
+
+ابزار `pdf_source_kit.py` به‌عنوان مشتق صریح ابزار ساخت MIT اضافه شد: دامنهٔ فعلی
+۱۲ فایل است، نه مجوز برنامه. بستهٔ بررسی شامل ZIP اصلیِ ثابت، سایدکار دارای حقوق،
+راهنما، notices/مکمل‌ها، inventory/policy/review و مرجع رسمی CRT با manifest اندازه/
+SHA256 است. ساخت/بررسی فقط Python استاندارد می‌خواهد؛ بازرس هرگز checker پوشهٔ
+هدف دلخواه را اجرا نمی‌کند و symlink/junction بیرون envelope را رد می‌کند. هش‌های
+خود بسته authentication ناشر نیستند؛ digest مستقل و verifier مورد اعتماد لازم‌اند.
+
+[proof بسته](docs/dependencies/pdf-source-kit-proof.json) اجرای واقعی `-I -S`،
+استخراج ۲۱ symlink نسبی و محاسبهٔ مجددِ برابر ۲۰ درخت / ۲۵٬۵۰۵ ورودی را ثبت می‌کند.
+استخراج امن، executable bit را حفظ و escape/collision/cycle/special-file و مسیر
+موجود را رد می‌کند. در ویندوز نبود مجوز symlink خطای صریح است، نه flatten کردن.
+artifact بررسی ۹۰روزه، تحویل پایدار ناشناس نیست؛ کامپایل مستقیم از درخت local یا
+آفلاین ثابت نشده و فرمان build هنوز ورودی‌های پین‌شده را دانلود می‌کند.
+
+[probe مستقل CRT](docs/dependencies/pdf-crt-static-probe-proof.json) با `/MT` واقعاً
+کامپایل/اجرا شد: directive استاتیک، هفت مسیر library با هش، ۳۱۷ رویداد Loaded و
+import فقط KERNEL32 برای همین probe ثبت شدند؛ نه ۳۱۷ جزء یکتا یا map همان ۲۱ DLL.
+شکست‌های `/VERBOSE:LIB` حفظ و با `/VERBOSE` کامل، بدون حذف شرط object trace، اصلاح
+شدند. SDK-UCRT، پشتیبانی کامپایلر، startup و C++ static library جدا هستند؛ تغییر
+ساده به `/MD` هم startup استاتیک را حذف یا مجوز توزیع را اثبات نمی‌کند.
+
+[گزارش فارسی](docs/reports/pdf-source-kit-and-crt-probe-fa.md) و قرارداد تحویل سورس
+همگام‌اند. ۵۰۶ تست بک‌اند محلی / ۷۹ متمرکز، Ruff/Mypy/۸۴ و Bandit موفق‌اند؛ نتایج
+CI عادی جدا ثبت می‌شوند. شش گیت، از جمله حقوق CRT، تحویل واقعی، LGPL/EULA و
+production bootstrap/native updates/پذیرش نصب‌شده بازند. داده، محاسبه، payload
+عادی، نسخه/تگ/انتشار یا مجوز کل برنامه تغییر نکرده است.

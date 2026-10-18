@@ -204,7 +204,7 @@ def build(root: Path, archive: Path, destination: Path) -> dict:
     return verify(destination)
 
 
-def verify_evidence(kit: Path, inventory: dict) -> None:
+def verify_evidence(kit: Path, inventory: dict, licensed_count: int) -> None:
     evidence = kit / "evidence"
     policy = json.loads((evidence / "pdf-runtime-license-policy.json").read_text(encoding="utf-8"))
     review = json.loads((evidence / "pdf-runtime-license-review.json").read_text(encoding="utf-8"))
@@ -217,6 +217,7 @@ def verify_evidence(kit: Path, inventory: dict) -> None:
             or any(x["source_archive"] != inventory["source_archive"] for x in (policy, review, materials))
             or policy["inventory_fingerprint_sha256"] != fingerprint
             or policy["open_gates"] != review["open_gates"]
+            or next(g for g in policy["open_gates"] if g["id"] == "BUILD_SCRIPT_PERMISSIONS_AND_COMPLETENESS")["progress"]["licensed_files"] != licensed_count
             or {g["id"] for g in policy["open_gates"]} != gates
             or review["notices_sha256"] != sha_file(evidence / "pdf-runtime-THIRD-PARTY-NOTICES.txt")):
         raise ValueError("Inconsistent source/notices/policy evidence or missing distribution gates")
@@ -240,9 +241,13 @@ def verify(kit: Path, expected_manifest_sha256: str | None = None) -> dict:
             or manifest["status"] != "PRIVATE_REVIEW_KIT_NOT_RECIPIENT_DELIVERY"):
         raise ValueError("Kit is not a blocked review candidate")
     files = manifest["files"]
-    if any(p.is_symlink() for p in kit.rglob("*")):
-        raise ValueError("Symlink in kit envelope")
-    actual = {p.relative_to(kit).as_posix() for p in kit.rglob("*") if p.is_file()}
+    entries = list(kit.rglob("*"))
+    root = kit.resolve()
+    if any(p.is_symlink() or not p.resolve().is_relative_to(root) for p in entries):
+        raise ValueError("Symlink or external/junction path in kit envelope")
+    if any(not p.is_file() and not p.is_dir() for p in entries):
+        raise ValueError("Special file in kit envelope")
+    actual = {p.relative_to(kit).as_posix() for p in entries if p.is_file()}
     if actual != set(files) | {"kit-manifest.json"}:
         raise ValueError("Kit has missing/unmanifested files")
     for name, record in files.items():
@@ -263,7 +268,7 @@ def verify(kit: Path, expected_manifest_sha256: str | None = None) -> dict:
         raise ValueError("Kit envelope scope changed; app/binary extras are forbidden")
     inventory = json.loads((kit / "evidence/pdf-runtime-win64-source-inventory.json").read_text(encoding="utf-8"))
     sources = verify_sources(kit / "corresponding-source.zip", inventory)
-    verify_evidence(kit, inventory)
+    verify_evidence(kit, inventory, grant["licensed_file_count"])
     return {"schema": 1, "distribution_status": BLOCKED, "kit_manifest_sha256": manifest_sha,
             "external_manifest_hash_checked": expected_manifest_sha256 is not None,
             "authentication": "REQUIRES_TRUSTED_EXTERNAL_DIGEST_AND_VERIFIER",

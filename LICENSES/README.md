@@ -39,3 +39,14 @@ third-party/CRT terms and recipient source availability remain separate gates.
 
 The runtime's `BLOCKED` flag describes this project's release-readiness decision;
 it is **not an additional restriction on rights granted by the MIT license**.
+
+## Current build-tool derivatives
+
+The current explicit allowlist has **12 files**: the historical nine, native-only
+rebuild/audit helpers, and `scripts/pdf_source_kit.py`. The latter assembles and
+checks a private source/recipe/notices kit with standard-library Python; it never
+publishes, installs a runtime or grants third-party/CRT permission. All reference
+hashes and the seven historical source-archive bindings remain checked. Kit
+consistency is not publisher authentication without an independently trusted
+external digest/verifier. See `docs/dependencies/pdf-source-kit-proof.json` and
+`docs/reports/pdf-source-kit-and-crt-probe-fa.md`. No root application license.
