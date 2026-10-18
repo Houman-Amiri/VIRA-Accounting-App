@@ -1,0 +1,59 @@
+name: Private native PDF local preferred-source replay
+
+on:
+  push:
+    paths: ['.github/workflows/pdf-local-source-replay.yml', 'scripts/prepare_pdf_local_sources.py', 'backend/tests/test_pdf_local_sources.py', 'docs/dependencies/pdf-local-source-port-pins.json']
+  pull_request:
+    paths: ['.github/workflows/pdf-local-source-replay.yml', 'scripts/prepare_pdf_local_sources.py', 'backend/tests/test_pdf_local_sources.py', 'docs/dependencies/pdf-local-source-port-pins.json']
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  catalog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Obtain the exact original corresponding sources, not guessed upstream trees
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api repos/$GH_REPO/actions/runs/39048889428 > "$RUNNER_TEMP/producer.json"
+          python - "$RUNNER_TEMP/producer.json" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]));p=json.load(open('docs/dependencies/pdf-source-proof-run.json'))
+          assert x['id']==p['run_id'] and x['head_sha']==p['head_sha'] and x['path']==p['workflow_path'] and x['conclusion']=='success'
+          PY
+          gh run download 39048889428 --name private-pdf-source-evidence --dir "$RUNNER_TEMP/original"
+      - name: Catalog actual preferred-source roots and captured port hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive=$(find "$RUNNER_TEMP/original" -name corresponding-source.zip)
+          python - "$archive" <<'PY'
+          import collections,hashlib,json,pathlib,sys,zipfile
+          inv=json.load(open('docs/dependencies/pdf-runtime-win64-source-inventory.json'))
+          p=pathlib.Path(sys.argv[1]);assert p.stat().st_size==inv['source_archive']['size']
+          assert hashlib.sha256(p.read_bytes()).hexdigest()==inv['source_archive']['sha256']
+          result={'vcpkg_commit':inv['vcpkg_commit'],'source_archive':inv['source_archive'],'packages':{}}
+          with zipfile.ZipFile(p) as z:
+            for name in inv['source_packages']:
+              prefix='sources/'+name+'/'
+              roots=dict(collections.Counter(n[len(prefix):].split('/')[0] for n in z.namelist() if n.startswith(prefix)))
+              port=z.read('vcpkg/ports/'+name+'/portfile.cmake')
+              result['packages'][name]={'roots':roots,'port_sha256':hashlib.sha256(port).hexdigest()}
+          out=pathlib.Path('reports/local-source-catalog.json');out.parent.mkdir(parents=True,exist_ok=True)
+          out.write_text(json.dumps(result,indent=2)+'\n')
+          PY
+          python scripts/audit_pdf_native_rebuild.py --out reports/local-source-catalog.json --emit-group 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: local-preferred-source-catalog-no-binaries
+          path: reports/local-source-catalog.json
+          retention-days: 90
+          if-no-files-found: error
