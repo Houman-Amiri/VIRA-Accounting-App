@@ -280,3 +280,52 @@ def test_source_modes_timestamps_and_notices_cannot_be_silently_rewritten(sample
             archive.writestr(entry, data)
     with pytest.raises(ValueError, match='mode/time metadata changed'):
         tool.verify_modified_archive(path, out / 'original-kit', record, proof)
+
+
+def test_inline_notice_creates_new_candidate_not_a_fabricated_prior_build(sample):
+    tool, base, digest, witness, proof, out = sample
+    result = tool.build_modified(base, digest, witness, sha(witness.read_bytes()), '2026-10-19', out, inline_notice=True)
+    record = json.loads((out / 'modification-record.json').read_text())
+    assert result['archive_variant'] == tool.INLINE_VARIANT
+    assert result['inline_change_date_notice_present_in_archive_source'] is True
+    assert result['prior_build_witness_applies_to_archive_sources'] is False
+    assert result['new_native_build_from_this_envelope_proven'] is False
+    assert record['inline_change_date_notice_present_in_compiled_source'] is False
+    assert record['compiled_source_trees'] == proof['preferred_source_trees']
+    assert record['archive_source_trees']['pango'] != record['compiled_source_trees']['pango']
+    assert all(record['archive_source_trees'][n] == t for n, t in proof['preferred_source_trees'].items() if n != 'pango')
+    with zipfile.ZipFile(out / 'modified-corresponding-source.zip') as z:
+        content = z.read(record['modified_member'])
+    assert content.startswith(b'/* VIRA modification notice - 2026-10-19\n')
+    assert content.endswith(proof['explicit_edit']['modified_source_file'].encode())
+    assert sha(content) == record['after_sha256'] != record['prior_modified_file_sha256']
+    assert (out / 'native-build-witness.json').read_bytes() == witness.read_bytes()
+    assert result['legal_notice_completeness_approved'] is False
+    assert tool.verify_modified(out, sha((out / tool.MODIFIED_MANIFEST).read_bytes())) == result
+
+
+@pytest.mark.parametrize('field,value', [
+    ('prior_build_witness_applies_to_archive_sources', True),
+    ('inline_change_date_notice_present_in_compiled_source', True),
+    ('after_sha256', 'wrong'), ('archive_variant', 'unreviewed'),
+])
+def test_new_inline_notice_cannot_inherit_old_binary_attestation(sample, field, value):
+    tool, base, digest, witness, _, out = sample
+    tool.build_modified(base, digest, witness, sha(witness.read_bytes()), '2026-10-19', out, inline_notice=True)
+    path = out / 'modification-record.json'
+    record = json.loads(path.read_text())
+    record[field] = value
+    path.write_text(json.dumps(record))
+    with pytest.raises(ValueError):
+        tool.verify_modified(out, rehash(tool, out))
+
+
+def test_new_inline_notice_hash_must_cover_entire_candidate_tree(sample):
+    tool, base, digest, witness, _, out = sample
+    tool.build_modified(base, digest, witness, sha(witness.read_bytes()), '2026-10-19', out, inline_notice=True)
+    path = out / 'modification-record.json'
+    record = json.loads(path.read_text())
+    record['archive_source_trees']['pango']['tree_sha256'] = record['compiled_source_trees']['pango']['tree_sha256']
+    path.write_text(json.dumps(record))
+    with pytest.raises(ValueError, match='record differs'):
+        tool.verify_modified(out, rehash(tool, out))

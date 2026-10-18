@@ -380,7 +380,61 @@ def modified_record(base: Path, witness: Path, expected_witness_sha256: str, cha
     return record, proof
 
 
+INLINE_VARIANT = "INLINE_NOTICE_PENDING_FRESH_BUILD_V1"
+
+
+def noticed_file(change_date: str, previous_file: bytes) -> bytes:
+    """Prominent in-file notice; retain all original headers and actual version edit."""
+    if datetime.date.fromisoformat(change_date).isoformat() != change_date:
+        raise ValueError("Canonical ISO modification date required")
+    return (f"/* VIRA modification notice - {change_date}\n"
+            " * Modified by VIRA contributors for the private native-source replay test.\n"
+            " * pango_version_string() appends the suffix -vira-local-source.\n"
+            " * This dated notice is part of the modified source file itself.\n"
+            " * Original upstream copyright and license terms below are retained.\n"
+            " */\n").encode("ascii") + previous_file
+
+
+def noticed_record(base: Path, witness: Path, expected_witness_sha256: str, change_date: str) -> tuple[dict, dict]:
+    record, proof = modified_record(base, witness, expected_witness_sha256, change_date)
+    data = noticed_file(change_date, proof["explicit_edit"]["modified_source_file"].encode("utf-8"))
+    record.update(archive_variant=INLINE_VARIANT, prior_modified_file_sha256=record["after_sha256"],
+                  after_sha256=hashlib.sha256(data).hexdigest(),
+                  inline_change_date_notice_present_in_archive_source=True,
+                  prior_build_witness_applies_to_archive_sources=False,
+                  compiled_source_trees_is_prior_witness_only=True,
+                  archive_source_trees=copy.deepcopy(record["compiled_source_trees"]))
+    # Compute the new Pango tree from the complete original source ZIP, not a
+    # fabricated future build witness. Every other tree retains its prior hash.
+    prefix = "sources/pango/"
+    with zipfile.ZipFile(base / "corresponding-source.zip") as archive:
+        entries, links = source_entries(archive)
+        files = sorted(e.filename for e in entries if e.filename.startswith(prefix))
+        digest = hashlib.sha256()
+        for name in files:
+            content = data if name == record["modified_member"] else archive.read(name)
+            kind = b"symlink" if name in links else b"file"
+            digest.update(name[len(prefix):].encode() + b"\0" + kind + b"\0"
+                          + hashlib.sha256(content).hexdigest().encode() + b"\n")
+    record["archive_source_trees"]["pango"] = {"source_entries": len(files), "tree_sha256": digest.hexdigest()}
+    return record, proof
+
+
+
 def modification_notice(record: dict) -> str:
+    if record.get("archive_variant") == INLINE_VARIANT:
+        return ("VIRA NOTICED PANGO SOURCE CANDIDATE - PRIVATE REVIEW ONLY\n"
+                f"Modified file: {record['modified_member']}\n"
+                f"Modification/inline-notice date: {record['modification_date']}\n"
+                "Change: version suffix -vira-local-source, with a prominent dated in-file notice.\n"
+                f"Original file SHA256: {record['before_sha256']}\n"
+                f"Prior modified file SHA256: {record['prior_modified_file_sha256']}\n"
+                f"New noticed file SHA256: {record['after_sha256']}\n"
+                "Original upstream headers/licenses and all other archive members are retained.\n"
+                "The retained PRIOR build witness does NOT prove these new noticed source bytes.\n"
+                "A separate fresh build/PDF witness must bind this archive and all twenty trees.\n"
+                "Presence of this notice is not full component/CRT/EULA legal sign-off or delivery.\n"
+                + BLOCKED + "\n")
     return ("VIRA CONTROLLED PANGO MODIFICATION — PRIVATE SOURCE REVIEW\n"
             f"Modified file: {record['modified_member']}\n"
             f"Modification date (producer record): {record['modification_date']}\n"
@@ -397,6 +451,10 @@ def modification_notice(record: dict) -> str:
 
 def verify_modified_archive(archive: Path, base: Path, record: dict, proof: dict) -> dict:
     """Check every original member and source tree, including modes, times and links."""
+    source_data = proof["explicit_edit"]["modified_source_file"].encode("utf-8")
+    if record.get("archive_variant") == INLINE_VARIANT:
+        source_data = noticed_file(record["modification_date"], source_data)
+    expected_trees = record.get("archive_source_trees", record["compiled_source_trees"])
     with zipfile.ZipFile(base / "corresponding-source.zip") as original, zipfile.ZipFile(archive) as changed:
         old_entries, old_links = source_entries(original)
         entries, links = source_entries(changed)
@@ -415,11 +473,11 @@ def verify_modified_archive(archive: Path, base: Path, record: dict, proof: dict
                     or entry.compress_type != other.compress_type):
                 raise ValueError(f"Archive mode/time metadata changed: {name}")
             actual = changed.read(name)
-            expected = proof["explicit_edit"]["modified_source_file"].encode("utf-8") if name == record["modified_member"] else original.read(name)
+            expected = source_data if name == record["modified_member"] else original.read(name)
             if actual != expected:
                 raise ValueError(f"Unwitnessed modified archive content: {name}")
         count = 0
-        for name, expected in record["compiled_source_trees"].items():
+        for name, expected in expected_trees.items():
             prefix = f"sources/{name}/"
             files = sorted(n for n in new if n.startswith(prefix))
             digest = hashlib.sha256()
@@ -436,13 +494,18 @@ def verify_modified_archive(archive: Path, base: Path, record: dict, proof: dict
 
 
 def build_modified(base: Path, expected_base_sha256: str, witness: Path, expected_witness_sha256: str,
-                   change_date: str, destination: Path) -> dict:
+                   change_date: str, destination: Path, *, inline_notice: bool = False) -> dict:
+    destination = destination.resolve()
     if destination.exists():
         raise FileExistsError("Fresh modified review output required")
     if destination.resolve().is_relative_to(base.resolve()) or destination.resolve().is_relative_to(witness.parent.resolve()):
         raise ValueError("Modified output must be outside kit/witness inputs")
     receipt = verify(base, expected_base_sha256)
-    record, proof = modified_record(base, witness, expected_witness_sha256, change_date)
+    make_record = noticed_record if inline_notice else modified_record
+    record, proof = make_record(base, witness, expected_witness_sha256, change_date)
+    source_data = proof["explicit_edit"]["modified_source_file"].encode("utf-8")
+    if inline_notice:
+        source_data = noticed_file(change_date, source_data)
     destination.mkdir(parents=True, exist_ok=False)
     shutil.copytree(base, destination / "original-kit")
     shutil.copyfile(witness, destination / "native-build-witness.json")
@@ -452,7 +515,7 @@ def build_modified(base: Path, expected_base_sha256: str, witness: Path, expecte
             destination / "modified-corresponding-source.zip", "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as output:
         output.comment = source.comment
         for entry in source.infolist():
-            data = proof["explicit_edit"]["modified_source_file"].encode("utf-8") if entry.filename == record["modified_member"] else source.read(entry)
+            data = source_data if entry.filename == record["modified_member"] else source.read(entry)
             output.writestr(copy.copy(entry), data)
         info = zipfile.ZipInfo("VIRA-MODIFICATIONS.txt", (*datetime.date.fromisoformat(change_date).timetuple()[:3], 0, 0, 0))
         info.create_system = 3
@@ -479,6 +542,20 @@ def build_modified(base: Path, expected_base_sha256: str, witness: Path, expecte
         "Compiler/SDK/network prerequisites and all six legal/production gates remain.\n"
         "No app/QA harness license, DLLs, compiler, SDK or installed-user data supplied.\n",
         encoding="utf-8", newline="\n")
+    if inline_notice:
+        (destination / "README.txt").write_text(
+            "PRIVATE NOTICED SOURCE CANDIDATE - REQUIRES FRESH BUILD/PDF ATTESTATION\n"
+            "All original sources/recipes/licenses remain in original-kit/.\n"
+            "modified-corresponding-source.zip contains full sources with the new dated\n"
+            "notice INSIDE Pango's modified file. Old witness/source tree fields describe\n"
+            "the prior build only, not this new source. archive_source_trees are the new\n"
+            "candidate hashes; a fresh build must match all twenty before acceptance.\n"
+            "Use an independently authenticated verifier/adjacent checker and external\n"
+            "manifest digest with --verify-modified and --extract-sources NEW_OUTSIDE_DIR.\n"
+            "Prepare with original-kit/ plus extracted sources and --allow-modified.\n"
+            "No legal sign-off, public delivery, compiler/CRT right, installed replacement,\n"
+            "production integration or release approval is inferred from packaging.\n",
+            encoding="utf-8", newline="\n")
     files = {p.relative_to(destination).as_posix(): {"sha256": sha_file(p), "size": p.stat().st_size}
              for p in sorted(destination.rglob("*")) if p.is_file()}
     manifest = {"schema": 1, "status": MODIFIED_STATUS, "distribution_status": BLOCKED, "files": files}
@@ -510,7 +587,11 @@ def verify_modified(kit: Path, expected_manifest_sha256: str) -> dict:
     base_files = json.loads((kit / "original-kit/kit-manifest.json").read_text(encoding="utf-8"))["files"]
     if set(files) != MODIFIED_EXTRAS | {"original-kit/kit-manifest.json"} | {"original-kit/" + n for n in base_files}:
         raise ValueError("Modified envelope scope forbids app/binary extras")
-    rebuilt, proof = modified_record(kit / "original-kit", kit / "native-build-witness.json",
+    variant = record.get("archive_variant")
+    if variant is not None and variant != INLINE_VARIANT:
+        raise ValueError("Unknown modified archive variant")
+    make_record = noticed_record if variant == INLINE_VARIANT else modified_record
+    rebuilt, proof = make_record(kit / "original-kit", kit / "native-build-witness.json",
                                      record["native_build_witness_sha256"], record["modification_date"])
     if any(record.get(k) != v for k, v in rebuilt.items()):
         raise ValueError("Modified source record differs from witnessed build")
@@ -520,7 +601,7 @@ def verify_modified(kit: Path, expected_manifest_sha256: str) -> dict:
     if (kit / "VIRA-MODIFICATIONS.txt").read_bytes() != modification_notice(record).encode("utf-8"):
         raise ValueError("External modification notice differs")
     sources = verify_modified_archive(archive, kit / "original-kit", record, proof)
-    return {"schema": 1, "distribution_status": BLOCKED, "modified_kit_manifest_sha256": expected_manifest_sha256,
+    result = {"schema": 1, "distribution_status": BLOCKED, "modified_kit_manifest_sha256": expected_manifest_sha256,
             "external_manifest_hash_checked": True, "original_kit_manifest_sha256": receipt["kit_manifest_sha256"],
             "original_archive_sha256": SOURCE_SHA, "modified_archive_sha256": record["modified_archive_sha256"],
             "modified_archive_size": record["modified_archive_size"], "native_build_witness_sha256": record["native_build_witness_sha256"],
@@ -528,6 +609,10 @@ def verify_modified(kit: Path, expected_manifest_sha256: str) -> dict:
             "new_modified_source_archive_prepared": True, "recipient_source_delivery": False,
             "legal_notice_completeness_approved": False, "modified_build_is_distribution_candidate": False,
             "new_native_build_from_this_envelope_proven": False}
+    if variant == INLINE_VARIANT:
+        result.update(archive_variant=variant, inline_change_date_notice_present_in_archive_source=True,
+                      prior_build_witness_applies_to_archive_sources=False)
+    return result
 
 
 
@@ -543,12 +628,13 @@ def main() -> None:
     parser.add_argument("--expected-witness-sha256")
     parser.add_argument("--change-date")
     parser.add_argument("--verify-modified", type=Path)
+    parser.add_argument("--inline-notice", action="store_true", help="New source candidate, NOT a prior compiled-source claim")
     args = parser.parse_args()
     if args.modified_base_kit or args.verify_modified:
         if args.archive or args.verify or not args.expected_manifest_sha256:
             parser.error("modified modes require an external manifest digest and no original build/verify flags")
         if args.verify_modified:
-            if args.modified_base_kit or args.out or args.witness or args.expected_witness_sha256 or args.change_date:
+            if args.modified_base_kit or args.out or args.witness or args.expected_witness_sha256 or args.change_date or args.inline_notice:
                 parser.error("modified verification and assembly must be separate")
             result = verify_modified(args.verify_modified, args.expected_manifest_sha256)
             if args.extract_sources:
@@ -559,10 +645,10 @@ def main() -> None:
             if not args.out or not args.witness or not args.expected_witness_sha256 or not args.change_date or args.extract_sources:
                 parser.error("modified assembly requires fresh output, authenticated witness and change date")
             result = build_modified(args.modified_base_kit, args.expected_manifest_sha256, args.witness,
-                                    args.expected_witness_sha256, args.change_date, args.out)
+                                    args.expected_witness_sha256, args.change_date, args.out, inline_notice=args.inline_notice)
         print(json.dumps(result, indent=2))
         return
-    if args.witness or args.expected_witness_sha256 or args.change_date:
+    if args.witness or args.expected_witness_sha256 or args.change_date or args.inline_notice:
         parser.error("witness and change date are modified-mode only")
     if args.verify:
         if args.archive or args.out:
