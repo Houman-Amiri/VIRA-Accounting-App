@@ -657,3 +657,26 @@ Final guide/policy source kit **39150398698 / f4c088b** and limited-license/sour
 audit **39150398692** pass: 26 manifested files, 14 licensed build files, actual
 20-tree rehash/21 symlinks. The native Windows build remains separately pinned;
 no exact-envelope/bitwise or durable-public-delivery claim.
+
+### Private application consumption of locally source-built PDF engine — 2026-10-18
+
+Authorized follow-up completed: fresh native build **39153212109 / 284e827** then
+real app rendering from relocated production **CPython 3.11.17**, in `VIRA چاپ بومی`.
+All 20 preferred-source trees/21 DLL hashes, owners and origins audited; all 21
+candidate DLLs actually loaded from the relocated private closure. The SAME render
+process executed `pango_version_string()` = `1.58.0-vira-local-source`. Real single/
+four-page A4 PDFs embed/use Vazirmatn 400/700 with Latin/Persian/Arabic digits; hashes
+match the previous synthetic fixtures. Production manifest unchanged; dev PDF/PE
+inspectors absent from production; isolation and ctypes callbacks pass.
+
+[Report](docs/reports/pdf-local-source-app-consumer-fa.md) and
+[eight-part hash-pinned proof](docs/dependencies/pdf-local-source-app-consumer-proof.json).
+26 new tests; 562 backend / 61 focused, Ruff/Mypy (84 app files)/Bandit pass.
+Ordinary **39153212117 / 284e827: all five jobs SUCCESS**, 196 frontend/six browser
+scenarios and both existing Windows rollback paths. App-QA handoff/controller are
+NOT added to the 14-file MIT native recipe scope. Modified reference retains
+`source_archive=null`; no new modified corresponding-source archive or distribution
+candidate. Six gates remain OPEN: private consumption is NOT installed replacement/
+EULA approval, CRT rights, durable source delivery, normal Inno/native delta/rollback,
+production Unicode Fontconfig/bootstrap or installed-user acceptance. No normal
+payload/install/data/math, broad license, version/tag/release change.

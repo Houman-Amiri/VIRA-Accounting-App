@@ -7,6 +7,22 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Private app consumption of locally modified source-built PDF engine
+- Fresh standalone build/audit followed by relocated production CPython 3.11.17
+  app rendering: 39153212109 / 284e827 SUCCESS. Bind candidate PE closure, hashes,
+  owners and origins to the new native witness and modified preferred-source reference.
+- Execute modified Pango version 1.58.0-vira-local-source IN the real PDF process;
+  21 candidate DLLs loaded from the private Persian/spaced payload path. Single/
+  four-page A4, embedded/used Vazirmatn 400/700 and all digit sets, production
+  isolation, ctypes and unchanged staged manifest verified. PDF fixture hashes stable.
+- 26 negative/contract tests; 562 backend, 61 focused, Ruff/Mypy/Bandit pass.
+  Ordinary CI 39153212117 / 284e827 all five jobs SUCCESS (196 frontend/six browser
+  scenarios/both existing Windows rollback paths). Complete eight-part witness pinned.
+- App-QA scripts remain OUTSIDE 14-file native-build MIT grant. No modified source
+  archive or distribution candidate; six gates OPEN. Not installed replacement/EULA,
+  CRT rights, durable source delivery or production Unicode bootstrap/native updates.
+  No normal payload/install/data/math, version/tag/release or broad-license change.
+
 
 ### Local preferred-source native PDF replay
 - Add a standard-library, target-only local-source overlay adapter and exact port

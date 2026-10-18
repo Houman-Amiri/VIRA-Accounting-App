@@ -240,11 +240,28 @@
     },
     {
       "id": "LGPL_SHARED_LIBRARY_REPLACEMENT",
-      "requirement": "Test replacing a compatible LGPL DLL in the actual installed Unicode-path app; compatible EULA must permit modification and reverse engineering for debugging library modifications; no integrity/signature policy may silently prohibit replacement."
+      "requirement": "Test replacing a compatible LGPL DLL in the actual installed Unicode-path app; compatible EULA must permit modification and reverse engineering for debugging library modifications; no integrity/signature policy may silently prohibit replacement.",
+      "progress": {
+        "private_modified_source_app_pdf": "VERIFIED_RELOCATED_PRODUCTION_CPYTHON_NOT_INSTALLED_REPLACEMENT",
+        "private_consumer_proof": "docs/dependencies/pdf-local-source-app-consumer-proof.json",
+        "private_consumer_run_id": 39153212109,
+        "observed_pango_version_string": "1.58.0-vira-local-source",
+        "actual_installed_replacement_proven": false,
+        "eula_compatibility_approved": false,
+        "gate_closed": false
+      }
     },
     {
       "id": "PRODUCTION_BOOTSTRAP_UPDATES_AND_ACCEPTANCE",
-      "requirement": "Safe Unicode font/bootstrap, clean-machine Inno installation, native delta update and rollback with unchanged business data, followed by deferred installed-user testing."
+      "requirement": "Safe Unicode font/bootstrap, clean-machine Inno installation, native delta update and rollback with unchanged business data, followed by deferred installed-user testing.",
+      "progress": {
+        "private_payload_pdf_vazirmatn_and_digits": "VERIFIED_WITH_LOCALLY_SOURCE_BUILT_ENGINE",
+        "private_consumer_proof": "docs/dependencies/pdf-local-source-app-consumer-proof.json",
+        "production_fontconfig_unicode_environment_proven": false,
+        "ordinary_native_bootstrap_and_delta_integrated": false,
+        "installed_user_acceptance": "DEFERRED_NOT_ACCEPTED",
+        "gate_closed": false
+      }
     }
   ],
   "inventory_fingerprint_sha256": "092dc8711f17749458ba9fef0dba467a2ae6657b6fe820a182d2feb6b55541fc"

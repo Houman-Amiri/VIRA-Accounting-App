@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "run_id": 39153212109,
+  "head_sha": "284e827b20aee6cba209950d27a72562eff4d6af",
+  "workflow_path": ".github/workflows/pdf-local-consumer.yml",
+  "job_id": 117751097320,
+  "conclusion": "success",
+  "run_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39153212109",
+  "created_at": "2026-10-18T18:14:00Z",
+  "completed_at": "2026-10-18T18:58:11Z",
+  "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+  "application_license_changed": false,
+  "native_build_mit_scope_file_count": 14,
+  "application_qa_harness_in_mit_scope": false,
+  "release_authorized": false,
+  "ordinary_runtime_payload_changed": false,
+  "installed_app_replacement_proven": false,
+  "modified_build_is_distribution_candidate": false,
+  "new_modified_corresponding_source_archive_prepared": false,
+  "original_source_archive_sha256": "259532d2cd8c5d3b176402acdcfb9daadb2cb897d5710010cc198eeabe5401de",
+  "verified": {
+    "fresh_native_source_trees": 20,
+    "changed_packages": [
+      "pango"
+    ],
+    "native_dlls": 21,
+    "dlls_actually_loaded_in_rendering_process": 21,
+    "all_loaded_dlls_from_relocated_private_candidate": true,
+    "observed_pango_version_string": "1.58.0-vira-local-source",
+    "interpreter": "3.11.17 (main, Oct 14 2026, 01:04:22) [MSC v.1944 64 bit (AMD64)]",
+    "production_interpreter_isolated": true,
+    "development_dependencies_absent_from_payload": true,
+    "ctypes_callbacks_verified": true,
+    "original_staged_manifest_unchanged": true,
+    "application_service": "render_pdf(\"proforma.html\", synthetic_context)",
+    "documents": {
+      "single-page": {
+        "pages": 1,
+        "sha256": "ae92659254d59fed845c8ce4880d7bfa2846d64850085e5facfc657579ee4ebd",
+        "bytes": 21463,
+        "fonts": [
+          {
+            "name": "/GMIUCZ+Vazirmatn-Bold",
+            "weight": 700,
+            "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+          },
+          {
+            "name": "/RFZBDK+Vazirmatn",
+            "weight": 400,
+            "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+          }
+        ]
+      },
+      "multi-page": {
+        "pages": 4,
+        "sha256": "8273a9acad1e600661ec44a7ff4d2d1ae6e8fba69914a5b1c2aa0344871c5650",
+        "bytes": 32973,
+        "fonts": [
+          {
+            "name": "/GMIUCZ+Vazirmatn-Bold",
+            "weight": 700,
+            "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+          },
+          {
+            "name": "/RFZBDK+Vazirmatn",
+            "weight": 400,
+            "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+          }
+        ]
+      }
+    },
+    "fontconfig_fixture": "ASCII empty private config; NOT production Unicode environment bootstrap",
+    "native_only_audit_sha256": "420a02adddd1349acb1dd62571652252232ded278889fb800a4a9b63ccf7ec2a",
+    "consumer_inventory_sha256_reported_by_runner": "0868450f1281939857e6021e3d1544ff8ef073a48b3c372abfc1ba98c66dc6f5"
+  },
+  "evidence": {
+    "path": "docs/dependencies/pdf-local-source-app-consumer-evidence.json",
+    "size": 64278,
+    "sha256": "eb275260c533e1572a3a8a31fc445e8af92353aaa88e6255da61c9b8127b464b",
+    "complete_annotation_parts": 8,
+    "retrieval": "All eight compressed annotation parts recovered, decoded and locally verified; reconstructed exact fresh native-only audit hash matches the consumer handoff. Artifact bytes not independently redownloaded."
+  },
+  "retained_artifact": {
+    "id": 12147435746,
+    "name": "private-local-source-consumer-evidence-no-dlls",
+    "size_in_bytes": 550260,
+    "digest": "sha256:46fc323b5f3851e6c7d18d271f7456294b8ac932e6563b95a4aacc8d8318416e",
+    "expires_at": "2027-01-16T18:14:01Z"
+  },
+  "retention_days": 90,
+  "recipient_source_delivery": false,
+  "compiled_dll_payload_uploaded": false,
+  "superseded_attempt": {
+    "run_id": 39153145759,
+    "head_sha": "e4d9b087079a823768c72009c41a7c9bdd4c9d39",
+    "conclusion": "cancelled",
+    "stage": "BEFORE_NATIVE_COMPILATION",
+    "reason": "Concurrency superseded when final negative tests were pushed"
+  },
+  "regression": {
+    "ordinary_ci_run_id": 39153212117,
+    "head_sha": "284e827b20aee6cba209950d27a72562eff4d6af",
+    "all_five_jobs": "SUCCESS",
+    "backend_tests": 562,
+    "frontend_tests": 196,
+    "browser_scenarios": 6,
+    "new_consumer_unit_tests": 26,
+    "focused_consumer_native_and_scope_tests": 61,
+    "ruff_mypy_bandit": "PASS"
+  },
+  "not_proven": [
+    "Compiler/CRT rights and complete component legal review",
+    "Durable anonymous corresponding-source delivery",
+    "Normal Inno installation/native delta/rollback",
+    "Installed LGPL replacement and EULA compatibility",
+    "Production Unicode Fontconfig/bootstrap",
+    "Deferred installed-user acceptance",
+    "Offline SDK or bitwise reproduction"
+  ],
+  "native_application_present_scope_note": "application_present=false in raw witness describes the standalone native-build audit BEFORE application dependencies were installed; consumer is the subsequent real app-rendering witness."
+}
