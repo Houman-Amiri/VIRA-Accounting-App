@@ -8,6 +8,8 @@ Standard library only. Never publish, install native binaries or grant clearance
 from __future__ import annotations
 
 import argparse
+import copy
+import datetime
 import hashlib
 import importlib.util
 import json
@@ -291,7 +293,11 @@ def extract_sources(kit: Path, destination: Path, expected_manifest_sha256: str 
     if destination.resolve().is_relative_to(kit.resolve()):
         raise ValueError("Extraction output must be outside the source kit")
     verify(kit, expected_manifest_sha256)
-    with zipfile.ZipFile(kit / "corresponding-source.zip") as bundle:
+    extract_archive(kit / "corresponding-source.zip", destination)
+
+
+def extract_archive(archive: Path, destination: Path) -> None:
+    with zipfile.ZipFile(archive) as bundle:
         entries, links = source_entries(bundle)
         destination.mkdir(parents=True, exist_ok=False)
         for entry in entries:
@@ -319,6 +325,212 @@ def extract_sources(kit: Path, destination: Path, expected_manifest_sha256: str 
             os.symlink(target.replace("/", os.sep), path, target_is_directory=resolved.is_dir())
 
 
+MODIFIED_STATUS = "PRIVATE_MODIFIED_SOURCE_REVIEW_NOT_RECIPIENT_DELIVERY"
+MODIFIED_MANIFEST = "modified-kit-manifest.json"
+MODIFIED_EXTRAS = {"modified-corresponding-source.zip", "native-build-witness.json",
+                   "modification-record.json", "VIRA-MODIFICATIONS.txt", "README.txt"}
+
+
+def modified_record(base: Path, witness: Path, expected_witness_sha256: str, change_date: str) -> tuple[dict, dict]:
+    """Authenticate the recorded compiled bytes, not arbitrary edits or version text."""
+    if datetime.date.fromisoformat(change_date).isoformat() != change_date:
+        raise ValueError("Canonical ISO modification date required")
+    if sha_file(witness) != expected_witness_sha256:
+        raise ValueError("External native witness hash mismatch")
+    proof = json.loads(witness.read_text(encoding="utf-8"))
+    if (proof["distribution_status"] != BLOCKED or proof["native_compilation"] != "SUCCESS"
+            or proof["local_preferred_source_replay"] != "SUCCESS"
+            or proof["private_local_source_payload_pdf"] != "SUCCESS"
+            or proof["changed_packages"] != ["pango"] or proof["dll_count"] != 21
+            or len(proof["dlls"]) != 21
+            or proof["actual_pango_version_string"] != "1.58.0-vira-local-source"
+            or proof["input_source_trees_unchanged_during_compilation"] is not True
+            or proof["original_archive_modified"] is not False
+            or proof["kit_receipt"]["source_archive_sha256"] != SOURCE_SHA):
+        raise ValueError("Successful modified-source native/app witness required")
+    edit = proof["explicit_edit"]
+    member = "sources/pango/" + relative(edit["file"])
+    if not member.endswith("/pango/pango-utils.c") or edit["package"] != "pango":
+        raise ValueError("Only the witnessed Pango version edit is supported")
+    data = edit["modified_source_file"].encode("utf-8")
+    if hashlib.sha256(data).hexdigest() != edit["after_sha256"]:
+        raise ValueError("Witness modified source bytes differ")
+    with zipfile.ZipFile(base / "corresponding-source.zip") as archive:
+        original = archive.read(member)
+    before, after = b"return PANGO_VERSION_STRING;", b'return PANGO_VERSION_STRING "-vira-local-source";'
+    if (hashlib.sha256(original).hexdigest() != edit["before_sha256"]
+            or original.count(before) != 1 or original.replace(before, after) != data):
+        raise ValueError("Source modification differs from the actual controlled edit")
+    inventory = json.loads((base / "evidence/pdf-runtime-win64-source-inventory.json").read_text(encoding="utf-8"))
+    trees = proof["preferred_source_trees"]
+    if len(trees) != 20 or set(trees) != set(inventory["source_packages"]):
+        raise ValueError("Twenty compiled source trees required")
+    for name, package in inventory["source_packages"].items():
+        if (trees[name]["source_entries"] != package["patched_source_files"]
+                or (name != "pango" and trees[name]["tree_sha256"] != package["patched_source_tree_sha256"])):
+            raise ValueError("Unrelated source tree differs from native build")
+    record = {"schema": 1, "distribution_status": BLOCKED, "original_archive_sha256": SOURCE_SHA,
+              "native_build_witness_sha256": expected_witness_sha256, "modification_date": change_date,
+              "modified_member": member, "before_sha256": edit["before_sha256"], "after_sha256": edit["after_sha256"],
+              "expected_pango_version": "1.58.0-vira-local-source", "compiled_source_trees": trees,
+              "new_modified_source_archive_prepared": True, "recipient_source_delivery": False,
+              "modified_build_is_distribution_candidate": False,
+              "inline_change_date_notice_present_in_compiled_source": False,
+              "legal_notice_completeness_approved": False}
+    return record, proof
+
+
+def modification_notice(record: dict) -> str:
+    return ("VIRA CONTROLLED PANGO MODIFICATION — PRIVATE SOURCE REVIEW\n"
+            f"Modified file: {record['modified_member']}\n"
+            f"Modification date (producer record): {record['modification_date']}\n"
+            "Change: append -vira-local-source to pango_version_string().\n"
+            f"Before SHA256: {record['before_sha256']}\nAfter SHA256: {record['after_sha256']}\n"
+            "The complete modified file is supplied, not only a patch. Original upstream\n"
+            "copyright/license headers and all captured upstream license files are retained.\n"
+            "Compiled bytes have no new inline VIRA change/date notice. This external notice\n"
+            "does NOT certify LGPL notice completeness or distribution compliance. Adding an\n"
+            "inline notice later changes source bytes and requires a fresh build/reference.\n"
+            "No CRT permission, public delivery, installed replacement or release approval.\n"
+            + BLOCKED + "\n")
+
+
+def verify_modified_archive(archive: Path, base: Path, record: dict, proof: dict) -> dict:
+    """Check every original member and source tree, including modes, times and links."""
+    with zipfile.ZipFile(base / "corresponding-source.zip") as original, zipfile.ZipFile(archive) as changed:
+        old_entries, old_links = source_entries(original)
+        entries, links = source_entries(changed)
+        old = {e.filename: e for e in old_entries}
+        new = {e.filename: e for e in entries}
+        if (set(new) != set(old) | {"VIRA-MODIFICATIONS.txt"} or links != old_links
+                or changed.comment != original.comment):
+            raise ValueError("Modified archive member/link coverage differs")
+        if changed.read("VIRA-MODIFICATIONS.txt") != modification_notice(record).encode("utf-8"):
+            raise ValueError("Prominent modification notice differs")
+        for name, entry in old.items():
+            other = new[name]
+            if (entry.external_attr != other.external_attr or entry.date_time != other.date_time
+                    or entry.create_system != other.create_system or entry.comment != other.comment
+                    or entry.extra != other.extra or entry.internal_attr != other.internal_attr
+                    or entry.compress_type != other.compress_type):
+                raise ValueError(f"Archive mode/time metadata changed: {name}")
+            actual = changed.read(name)
+            expected = proof["explicit_edit"]["modified_source_file"].encode("utf-8") if name == record["modified_member"] else original.read(name)
+            if actual != expected:
+                raise ValueError(f"Unwitnessed modified archive content: {name}")
+        count = 0
+        for name, expected in record["compiled_source_trees"].items():
+            prefix = f"sources/{name}/"
+            files = sorted(n for n in new if n.startswith(prefix))
+            digest = hashlib.sha256()
+            for member in files:
+                kind = b"symlink" if member in links else b"file"
+                digest.update(member[len(prefix):].encode() + b"\0" + kind + b"\0"
+                              + hashlib.sha256(changed.read(member)).hexdigest().encode() + b"\n")
+            if len(files) != expected["source_entries"] or digest.hexdigest() != expected["tree_sha256"]:
+                raise ValueError(f"Modified archive differs from compiled source tree: {name}")
+            count += len(files)
+    return {"packages": len(record["compiled_source_trees"]), "source_entries": count,
+            "source_symlinks": len(links), "all_nonmodified_members_unchanged": True,
+            "source_modes_and_zip_local_times_retained": True}
+
+
+def build_modified(base: Path, expected_base_sha256: str, witness: Path, expected_witness_sha256: str,
+                   change_date: str, destination: Path) -> dict:
+    if destination.exists():
+        raise FileExistsError("Fresh modified review output required")
+    if destination.resolve().is_relative_to(base.resolve()) or destination.resolve().is_relative_to(witness.parent.resolve()):
+        raise ValueError("Modified output must be outside kit/witness inputs")
+    receipt = verify(base, expected_base_sha256)
+    record, proof = modified_record(base, witness, expected_witness_sha256, change_date)
+    destination.mkdir(parents=True, exist_ok=False)
+    shutil.copytree(base, destination / "original-kit")
+    shutil.copyfile(witness, destination / "native-build-witness.json")
+    notice = modification_notice(record)
+    (destination / "VIRA-MODIFICATIONS.txt").write_text(notice, encoding="utf-8", newline="\n")
+    with zipfile.ZipFile(base / "corresponding-source.zip") as source, zipfile.ZipFile(
+            destination / "modified-corresponding-source.zip", "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as output:
+        output.comment = source.comment
+        for entry in source.infolist():
+            data = proof["explicit_edit"]["modified_source_file"].encode("utf-8") if entry.filename == record["modified_member"] else source.read(entry)
+            output.writestr(copy.copy(entry), data)
+        info = zipfile.ZipInfo("VIRA-MODIFICATIONS.txt", (*datetime.date.fromisoformat(change_date).timetuple()[:3], 0, 0, 0))
+        info.create_system = 3
+        info.external_attr = (stat.S_IFREG | 0o644) << 16
+        output.writestr(info, notice.encode("utf-8"))
+    record["modified_archive_sha256"] = sha_file(destination / "modified-corresponding-source.zip")
+    record["modified_archive_size"] = (destination / "modified-corresponding-source.zip").stat().st_size
+    record["original_kit_manifest_sha256"] = receipt["kit_manifest_sha256"]
+    (destination / "modification-record.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8", newline="\n")
+    (destination / "README.txt").write_text(
+        "PRIVATE MODIFIED SOURCE REVIEW KIT — NOT PUBLIC RECIPIENT DELIVERY\n"
+        "Authenticate this envelope manifest digest AND your verifier independently.\n"
+        "Run trusted pdf_source_kit.py --verify-modified KIT --expected-manifest-sha256 HASH\n"
+        "Add --extract-sources NEW_OUTSIDE_DIRECTORY for safe modified-source extraction.\n"
+        "original-kit/ retains the immutable original ZIP, complete limited-MIT build\n"
+        "sidecar and upstream notices/evidence. It is NOT the modified binary source ZIP.\n"
+        "modified-corresponding-source.zip includes ALL original members, the exact\n"
+        "witnessed modified Pango file, and a prominent external modification notice.\n"
+        "All twenty preferred trees must equal those audited in the successful build.\n"
+        "The older local-source adapter can use original-kit/ plus the extracted\n"
+        "modified tree with --allow-modified; it intentionally keeps source_archive=null\n"
+        "and does not itself bind this separately packaged review archive. No new build\n"
+        "from THIS envelope is claimed. See VIRA-MODIFICATIONS.txt for inline-notice gap.\n"
+        "Compiler/SDK/network prerequisites and all six legal/production gates remain.\n"
+        "No app/QA harness license, DLLs, compiler, SDK or installed-user data supplied.\n",
+        encoding="utf-8", newline="\n")
+    files = {p.relative_to(destination).as_posix(): {"sha256": sha_file(p), "size": p.stat().st_size}
+             for p in sorted(destination.rglob("*")) if p.is_file()}
+    manifest = {"schema": 1, "status": MODIFIED_STATUS, "distribution_status": BLOCKED, "files": files}
+    (destination / MODIFIED_MANIFEST).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8", newline="\n")
+    return verify_modified(destination, sha_file(destination / MODIFIED_MANIFEST))
+
+
+def verify_modified(kit: Path, expected_manifest_sha256: str) -> dict:
+    path = kit / MODIFIED_MANIFEST
+    if path.is_symlink() or sha_file(path) != expected_manifest_sha256:
+        raise ValueError("External modified manifest hash mismatch")
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    if manifest["schema"] != 1 or manifest["status"] != MODIFIED_STATUS or manifest["distribution_status"] != BLOCKED:
+        raise ValueError("Blocked modified review envelope required")
+    entries = list(kit.rglob("*"))
+    if any(p.is_symlink() or not p.resolve().is_relative_to(kit.resolve())
+           or not (p.is_file() or p.is_dir()) for p in entries):
+        raise ValueError("Unsafe modified envelope entry")
+    actual = {p.relative_to(kit).as_posix() for p in entries if p.is_file()}
+    files = manifest["files"]
+    if actual != set(files) | {MODIFIED_MANIFEST}:
+        raise ValueError("Modified envelope has missing/unmanifested files")
+    for name, item in files.items():
+        target = kit / relative(name)
+        if target.stat().st_size != item["size"] or sha_file(target) != item["sha256"]:
+            raise ValueError(f"Modified envelope hash/size mismatch: {name}")
+    record = json.loads((kit / "modification-record.json").read_text(encoding="utf-8"))
+    receipt = verify(kit / "original-kit", record["original_kit_manifest_sha256"])
+    base_files = json.loads((kit / "original-kit/kit-manifest.json").read_text(encoding="utf-8"))["files"]
+    if set(files) != MODIFIED_EXTRAS | {"original-kit/kit-manifest.json"} | {"original-kit/" + n for n in base_files}:
+        raise ValueError("Modified envelope scope forbids app/binary extras")
+    rebuilt, proof = modified_record(kit / "original-kit", kit / "native-build-witness.json",
+                                     record["native_build_witness_sha256"], record["modification_date"])
+    if any(record.get(k) != v for k, v in rebuilt.items()):
+        raise ValueError("Modified source record differs from witnessed build")
+    archive = kit / "modified-corresponding-source.zip"
+    if sha_file(archive) != record["modified_archive_sha256"] or archive.stat().st_size != record["modified_archive_size"]:
+        raise ValueError("Modified archive pin mismatch")
+    if (kit / "VIRA-MODIFICATIONS.txt").read_bytes() != modification_notice(record).encode("utf-8"):
+        raise ValueError("External modification notice differs")
+    sources = verify_modified_archive(archive, kit / "original-kit", record, proof)
+    return {"schema": 1, "distribution_status": BLOCKED, "modified_kit_manifest_sha256": expected_manifest_sha256,
+            "external_manifest_hash_checked": True, "original_kit_manifest_sha256": receipt["kit_manifest_sha256"],
+            "original_archive_sha256": SOURCE_SHA, "modified_archive_sha256": record["modified_archive_sha256"],
+            "modified_archive_size": record["modified_archive_size"], "native_build_witness_sha256": record["native_build_witness_sha256"],
+            "verified_sources": sources, "licensed_files": receipt["licensed_files"], "kit_files": len(files),
+            "new_modified_source_archive_prepared": True, "recipient_source_delivery": False,
+            "legal_notice_completeness_approved": False, "modified_build_is_distribution_candidate": False,
+            "new_native_build_from_this_envelope_proven": False}
+
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--archive", type=Path)
@@ -326,7 +538,32 @@ def main() -> None:
     parser.add_argument("--verify", type=Path)
     parser.add_argument("--expected-manifest-sha256")
     parser.add_argument("--extract-sources", type=Path)
+    parser.add_argument("--modified-base-kit", type=Path)
+    parser.add_argument("--witness", type=Path)
+    parser.add_argument("--expected-witness-sha256")
+    parser.add_argument("--change-date")
+    parser.add_argument("--verify-modified", type=Path)
     args = parser.parse_args()
+    if args.modified_base_kit or args.verify_modified:
+        if args.archive or args.verify or not args.expected_manifest_sha256:
+            parser.error("modified modes require an external manifest digest and no original build/verify flags")
+        if args.verify_modified:
+            if args.modified_base_kit or args.out or args.witness or args.expected_witness_sha256 or args.change_date:
+                parser.error("modified verification and assembly must be separate")
+            result = verify_modified(args.verify_modified, args.expected_manifest_sha256)
+            if args.extract_sources:
+                if args.extract_sources.resolve().is_relative_to(args.verify_modified.resolve()):
+                    parser.error("extraction must be outside the modified kit")
+                extract_archive(args.verify_modified / "modified-corresponding-source.zip", args.extract_sources)
+        else:
+            if not args.out or not args.witness or not args.expected_witness_sha256 or not args.change_date or args.extract_sources:
+                parser.error("modified assembly requires fresh output, authenticated witness and change date")
+            result = build_modified(args.modified_base_kit, args.expected_manifest_sha256, args.witness,
+                                    args.expected_witness_sha256, args.change_date, args.out)
+        print(json.dumps(result, indent=2))
+        return
+    if args.witness or args.expected_witness_sha256 or args.change_date:
+        parser.error("witness and change date are modified-mode only")
     if args.verify:
         if args.archive or args.out:
             parser.error("verify and build modes are separate")

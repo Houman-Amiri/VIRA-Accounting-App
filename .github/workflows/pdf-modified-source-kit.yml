@@ -1,0 +1,123 @@
+name: Private complete modified native source review kit
+
+on:
+  push:
+    paths: ['.github/workflows/pdf-modified-source-kit.yml', 'scripts/pdf_source_kit.py', 'backend/tests/test_pdf_modified_source_kit.py']
+  pull_request:
+    paths: ['.github/workflows/pdf-modified-source-kit.yml', 'scripts/pdf_source_kit.py', 'backend/tests/test_pdf_modified_source_kit.py']
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: modified-source-kit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Authenticate original source and actual modified-build PDF producer
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          for pin_name in ['pdf-source-proof-run.json','pdf-local-source-app-consumer-proof.json']:
+              pin=json.load(open('docs/dependencies/'+pin_name))
+              run=json.loads(subprocess.check_output(['gh','api',f'repos/{__import__("os").environ["GH_REPO"]}/actions/runs/{pin["run_id"]}']))
+              assert run['head_sha']==pin['head_sha'] and run['path']==pin['workflow_path'] and run['conclusion']=='success'
+              if 'evidence' in pin:
+                  evidence=pin['evidence'];data=pathlib.Path(evidence['path']).read_bytes()
+                  assert hashlib.sha256(data).hexdigest()==evidence['sha256'] and len(data)==evidence['size']
+                  assert run['created_at'][:10]=='2026-10-18'
+          PY
+          run=$(python -c 'import json;print(json.load(open("docs/dependencies/pdf-source-proof-run.json"))["run_id"])')
+          gh run download "$run" --name private-pdf-source-evidence --dir "$RUNNER_TEMP/original-producer"
+      - name: Assemble immutable original kit then full modified-source review envelope
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive=$(find "$RUNNER_TEMP/original-producer" -name corresponding-source.zip)
+          python -I -S scripts/pdf_source_kit.py --archive "$archive" --out "$RUNNER_TEMP/original-kit" > "$RUNNER_TEMP/base-receipt.json"
+          hash=$(python -c 'import json;print(json.load(open(__import__("os").environ["RUNNER_TEMP"]+"/base-receipt.json"))["kit_manifest_sha256"])')
+          witness_hash=$(python -c 'import json;print(json.load(open("docs/dependencies/pdf-local-source-app-consumer-proof.json"))["evidence"]["sha256"])')
+          mkdir -p reports
+          python -I -S scripts/pdf_source_kit.py --modified-base-kit "$RUNNER_TEMP/original-kit" --expected-manifest-sha256 "$hash" --witness docs/dependencies/pdf-local-source-app-consumer-evidence.json --expected-witness-sha256 "$witness_hash" --change-date 2026-10-18 --out reports/modified-source-kit > reports/modified-kit-receipt.json
+      - name: Authenticated recipient extraction and independent actual twenty-tree rehash
+        shell: bash
+        run: |
+          set -euo pipefail
+          hash=$(python -c 'import json;print(json.load(open("reports/modified-kit-receipt.json"))["modified_kit_manifest_sha256"])')
+          python -I -S reports/modified-source-kit/original-kit/licensed-build-files/scripts/pdf_source_kit.py --verify-modified reports/modified-source-kit --expected-manifest-sha256 "$hash" --extract-sources "$RUNNER_TEMP/modified-recipient" > reports/modified-kit-recipient.json
+          python -I -S - <<'PY'
+          import hashlib,json,os,pathlib
+          record=json.load(open('reports/modified-source-kit/modification-record.json'))
+          root=pathlib.Path(os.environ['RUNNER_TEMP'],'modified-recipient','sources')
+          for name,expected in record['compiled_source_trees'].items():
+              base=root/name;h=hashlib.sha256();files=sorted((p for p in base.rglob('*') if p.is_file() or p.is_symlink()),key=lambda p:p.relative_to(base).as_posix())
+              for p in files:
+                  data=os.readlink(p).encode() if p.is_symlink() else p.read_bytes();kind=b'symlink' if p.is_symlink() else b'file'
+                  h.update(p.relative_to(base).as_posix().encode()+b'\0'+kind+b'\0'+hashlib.sha256(data).hexdigest().encode()+b'\n')
+              assert len(files)==expected['source_entries'] and h.hexdigest()==expected['tree_sha256'],name
+          r=json.load(open('reports/modified-kit-recipient.json'));r['actual_extracted_trees_rehashed']=20
+          assert r['verified_sources']['source_entries']==25505 and r['verified_sources']['source_symlinks']==21
+          assert r['recipient_source_delivery'] is False and r['legal_notice_completeness_approved'] is False
+          pathlib.Path('reports/modified-kit-recipient.json').write_text(json.dumps(r,indent=2)+'\n')
+          print('::notice title=Modified source recipient proof::'+json.dumps(r))
+          PY
+          python -I -S reports/modified-source-kit/original-kit/licensed-build-files/scripts/pdf_source_kit.py --verify-modified reports/modified-source-kit --expected-manifest-sha256 "$hash"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: private-complete-modified-sources-no-dlls
+          path: |
+            reports/modified-source-kit/
+            reports/modified-kit-receipt.json
+            reports/modified-kit-recipient.json
+          retention-days: 90
+          if-no-files-found: error
+  windows-recipient:
+    needs: assemble
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: private-complete-modified-sources-no-dlls
+          path: ${{ runner.temp }}/modified-envelope
+      - name: Verify and extract complete modified sources with isolated Python on Windows
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $base = "$env:RUNNER_TEMP/modified-envelope"
+          $kit = "$base/modified-source-kit"
+          $hash = (Get-Content "$base/modified-kit-receipt.json" -Raw | ConvertFrom-Json).modified_kit_manifest_sha256
+          # Cross-check trusted producer-step receipt against the manifest before executing kit code.
+          if ((Get-FileHash "$kit/modified-kit-manifest.json" -Algorithm SHA256).Hash.ToLower() -ne $hash) { throw "modified artifact manifest differs" }
+          python -I -S scripts/pdf_source_kit.py --verify-modified $kit --expected-manifest-sha256 $hash --extract-sources "$env:RUNNER_TEMP/modified-preferred"
+          if ($LASTEXITCODE -ne 0) { throw "Windows source/link/time extraction failed" }
+          $originalHash = (Get-Content "$kit/modification-record.json" -Raw | ConvertFrom-Json).original_kit_manifest_sha256
+          python -I -S "$kit/original-kit/licensed-build-files/scripts/prepare_pdf_local_sources.py" --kit "$kit/original-kit" --expected-manifest-sha256 $originalHash --sources "$env:RUNNER_TEMP/modified-preferred" --out "$env:RUNNER_TEMP/modified-overlay" --allow-modified
+          if ($LASTEXITCODE -ne 0) { throw "Windows modified-source recipe preparation failed" }
+          python -I -S "$kit/original-kit/licensed-build-files/scripts/prepare_pdf_local_sources.py" --check-inputs "$env:RUNNER_TEMP/modified-overlay/local-source-preparation.json"
+          if ($LASTEXITCODE -ne 0) { throw "preferred input changed" }
+          @'
+          import json,os,pathlib
+          base=pathlib.Path(os.environ['RUNNER_TEMP']);kit=base/'modified-envelope/modified-source-kit'
+          record=json.load(open(kit/'modification-record.json'));actual=json.load(open(base/'modified-overlay/local-source-preparation.json'))
+          assert actual['changed_packages']==['pango']
+          for name,expected in record['compiled_source_trees'].items():
+              assert actual['packages'][name]['patched_source_files']==expected['source_entries']
+              assert actual['packages'][name]['patched_source_tree_sha256']==expected['tree_sha256']
+          links=[p for p in (base/'modified-preferred').rglob('*') if p.is_symlink()];assert len(links)==21 and all(p.exists() for p in links)
+          report={'distribution_status':record['distribution_status'],'actual_extracted_trees_rehashed':20,'relative_symlinks_extracted':len(links),'changed_packages':actual['changed_packages'],'recipe_preparation_matches_successful_build_trees':True,'modified_archive_prepared_by_packager':True,'old_adapter_source_archive_field':None,'old_adapter_does_not_bind_review_archive':True,'new_native_build_from_this_envelope_proven':False,'recipient_source_delivery':False,'legal_notice_completeness_approved':False}
+          print('::notice title=Modified Windows source recipient proof::'+json.dumps(report))
+          '@ | python -I -S -
+          if ($LASTEXITCODE -ne 0) { throw "Windows source recipe correspondence failed" }
