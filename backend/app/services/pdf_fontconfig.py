@@ -89,6 +89,9 @@ def private_font_configuration(cache_dir: Path) -> Iterator[Any]:
     finally:
         instance.strut_layouts.clear()
         instance.font_features.clear()
+        # Do not leave freed C pointers usable through the Python container.
+        del instance.font_map
+        del instance._config
         ffi.release(font_map)
         folder = instance._folder
         instance._folder = None  # prevent upstream __del__ from hiding cleanup errors

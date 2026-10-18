@@ -64,9 +64,10 @@ def test_native_config_owns_exact_refs_and_cleans_unicode_fonts(native, tmp_path
     assert calls[-1] == ('release', font_map)
     assert sum(c[0] == 'destroy' for c in calls) == sum(c[0] == 'release' for c in calls) == 1
     assert not folder.exists() and obj._folder is None and not obj.strut_layouts
+    assert not hasattr(obj, 'font_map') and not hasattr(obj, '_config')
 
 
-@pytest.mark.parametrize('fault', ['allocate', 'parse', 'build', 'system-fonts', 'null-fontset', 'map'])
+@pytest.mark.parametrize('fault', ['allocate', 'parse', 'build', 'system-fonts', 'null-fontset', 'map', 'gc', 'attach'])
 def test_no_silent_system_or_default_fallback(native, tmp_path, fault):
     bindings, calls, _, _ = native
     if fault == 'allocate':
@@ -79,6 +80,13 @@ def test_no_silent_system_or_default_fallback(native, tmp_path, fault):
         bindings.fontconfig.FcConfigGetFonts = lambda *_: None if fault == 'null-fontset' else SimpleNamespace(nfont=1)
     if fault == 'map':
         bindings.pangoft2.pango_ft2_font_map_new = lambda: None
+    def fail(*_):
+        raise RuntimeError('native ownership failure')
+    if fault == 'gc':
+        bindings.ffi.gc = fail
+        bindings.gobject.g_object_unref = lambda ptr: calls.append(('unref-raw', ptr))
+    if fault == 'attach':
+        bindings.pangoft2.pango_fc_font_map_set_config = fail
     with pytest.raises(RuntimeError), adapter.private_font_configuration(tmp_path):
         pytest.fail('A broken config must not yield a usable renderer')
     assert sum(c[0] == 'destroy' for c in calls) == (0 if fault == 'allocate' else 1)
@@ -102,6 +110,12 @@ def test_cleanup_failure_is_not_hidden(native, tmp_path, monkeypatch):
 
 def test_explicit_injection_does_not_enable_the_adapter_in_normal_rendering():
     root = Path(__file__).resolve().parents[2]
-    text = (root / 'backend/app/services/pdf.py').read_text()
+    text = (root / 'backend/app/services/pdf.py').read_text(encoding='utf-8')
     assert 'FontConfiguration() if font_configuration is None else font_configuration' in text
     assert 'pdf_fontconfig' not in text
+
+
+def test_unreviewed_weasyprint_version_fails_before_native_import(monkeypatch):
+    monkeypatch.setattr(adapter, 'version', lambda _: '71.0')
+    with pytest.raises(RuntimeError, match='reviewed WeasyPrint 70.0'):
+        adapter._bindings()
