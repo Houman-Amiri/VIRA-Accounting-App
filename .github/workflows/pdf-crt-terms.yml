@@ -51,13 +51,20 @@ jobs:
               distributable_code_mentioned = $text -match '(?i)distributable code'
               excluded_license_mentioned = $text -match '(?i)excluded license'
               extraction = 'Windows RichTextBox text for review; original RTF hash retained; not legal approval'
-              text = $text
+              full_text_chars = $text.Length
+              text_preview = $text.Substring(0, [Math]::Min(1200, $text.Length))
+              text_preview_truncated = $text.Length -gt 1200
+              relevant_passages = @([regex]::Matches($text, '(?is).{0,160}(distributable code|excluded license|distribution requirements|visual studio enterprise|license terms apply).{0,600}') | Select-Object -First 8 | ForEach-Object { $_.Value })
+              full_text_retained_in_artifact = $true
             }
           }
           $result = @{ schema = 1; current_runner_only = $true; installations = $vs; documents = $records; distribution_status = 'BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW'; license_entitlement = 'NOT_ESTABLISHED_BY_RUNNER_INSPECTION' }
           $result | ConvertTo-Json -Depth 14 | Set-Content -Encoding utf8 "$out/installed-terms.json"
-      - name: Emit all terms with bounded, complete metadata
-        run: python scripts/audit_pdf_native_rebuild.py --out reports/crt-terms/installed-terms.json --emit-group 0
+      - name: Emit bounded review metadata; full documents remain in artifact
+        shell: pwsh
+        run: |
+          python scripts/audit_pdf_native_rebuild.py --out reports/crt-terms/installed-terms.json --emit-group 0
+          if ($LASTEXITCODE -ne 0) { Write-Host '::error::Term metadata exceeded its bounds or emission failed; full text is retained, not silently truncated'; exit 1 }
       - name: Terms group 1
         run: python scripts/audit_pdf_native_rebuild.py --out reports/crt-terms/installed-terms.json --emit-group 1
       - name: Terms group 2
@@ -65,6 +72,7 @@ jobs:
       - name: Terms group 3
         run: python scripts/audit_pdf_native_rebuild.py --out reports/crt-terms/installed-terms.json --emit-group 3
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: installed-msvc-sdk-terms-for-review
           path: reports/crt-terms/
