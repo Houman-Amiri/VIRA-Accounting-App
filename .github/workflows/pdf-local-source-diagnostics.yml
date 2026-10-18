@@ -1,0 +1,58 @@
+name: Inspect local PDF replay failure evidence
+
+on:
+  push:
+    paths: ['.github/workflows/pdf-local-source-diagnostics.yml']
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read failed local build logs and immutable preferred-source metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh run download 39144188922 --name local-preferred-source-rebuild-evidence-no-dlls --dir "$RUNNER_TEMP/failure"
+          gh run download 39048889428 --name private-pdf-source-evidence --dir "$RUNNER_TEMP/original"
+          python - <<'PY'
+          import hashlib,json,os,pathlib,re,zipfile
+          base=pathlib.Path(os.environ['RUNNER_TEMP'])
+          archive=list((base/'original').rglob('corresponding-source.zip'));assert len(archive)==1
+          inv=json.load(open('docs/dependencies/pdf-runtime-win64-source-inventory.json'))
+          assert hashlib.sha256(archive[0].read_bytes()).hexdigest()==inv['source_archive']['sha256']
+          result={'failed_run_id':39144188922,'files':{},'source_generated_files':[],'source_timestamp_samples':{},'suspected_cause':'EXTRACTION_ORDER_MTIMES_MAY_FORCE_AUTOTOOLS_REGENERATION_NOT_YET_CONFIRMED'}
+          for p in (base/'failure').rglob('*'):
+            if p.is_file() and p.name in {'build.log','diagnostic-tail.txt'}:
+              text=p.read_text(encoding='utf-8-sig',errors='replace')
+              result['files'][p.relative_to(base/'failure').as_posix()]={'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'last_lines':text.splitlines()[-250:]}
+          with zipfile.ZipFile(archive[0]) as z:
+            for entry in z.infolist():
+              if not entry.filename.startswith('sources/gettext-libintl/'):
+                continue
+              tail=entry.filename.split('/',3)[-1]
+              leaf=tail.split('/')[-1]
+              if leaf in {'config.status','config.log','libtool','Makefile','config.cache'}:
+                result['source_generated_files'].append(tail)
+              if tail in {'gettext-runtime/configure','gettext-runtime/configure.ac','gettext-runtime/Makefile.in','gettext-runtime/Makefile.am','gettext-runtime/intl/Makefile.in','gettext-runtime/intl/Makefile.am','gettext-runtime/intl/configure','gettext-runtime/intl/configure.ac','build-aux/compile','build-aux/ltmain.sh'}:
+                result['source_timestamp_samples'][tail]={'zip_date_time':entry.date_time,'sha256':hashlib.sha256(z.read(entry)).hexdigest()}
+          p=pathlib.Path('reports/local-source-failure-analysis.json');p.parent.mkdir(parents=True,exist_ok=True);p.write_text(json.dumps(result,indent=2)+'\n')
+          PY
+      - name: Diagnostic evidence group zero
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/local-source-failure-analysis.json --emit-group 0
+      - name: Diagnostic evidence group one
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/local-source-failure-analysis.json --emit-group 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: local-source-failure-analysis-no-binaries
+          path: reports/local-source-failure-analysis.json
+          retention-days: 90
+          if-no-files-found: error
