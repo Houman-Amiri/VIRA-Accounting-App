@@ -1,11 +1,11 @@
 {
   "schema": 1,
-  "run_id": 39146630041,
-  "head_sha": "576c0ea0fda791053d7f6fcde0815aa62fe3826a",
+  "run_id": 39150398698,
+  "head_sha": "f4c088b391ab1405623ce1a6908a60ad42f4ea6e",
   "workflow_path": ".github/workflows/pdf-source-kit.yml",
-  "job_id": 117731679980,
+  "job_id": 117742682013,
   "conclusion": "success",
-  "kit_manifest_sha256": "11e3e8bbf93b6fea753a06869917be335489809d3142d82b030beb526fc67927",
+  "kit_manifest_sha256": "66cfb2dbfbe5b7defabd68f4b108acab76a070eef554771f8f091a2cfe7f6ff3",
   "kit_manifested_files": 26,
   "licensed_build_files": 14,
   "original_source_archive_sha256": "259532d2cd8c5d3b176402acdcfb9daadb2cb897d5710010cc198eeabe5401de",
@@ -23,11 +23,11 @@
     "second_read_only_verification": "success"
   },
   "retained_artifact": {
-    "id": 12143287558,
+    "id": 12144293641,
     "name": "private-native-source-kit-not-recipient-publication",
-    "size_in_bytes": 177964965,
-    "digest": "sha256:366435b3bae4b059891a766c7e5b9be20e4448c81ed202819d276636feeedfc7",
-    "expires_at": "2027-01-16T16:47:44Z",
+    "size_in_bytes": 177965462,
+    "digest": "sha256:529042ced9bca00a76cee0bab96f7034f7f153948d2203e48fa9eddd7a34aad0",
+    "expires_at": "2027-01-16T17:36:51Z",
     "retention_days": 90,
     "recipient_source_delivery": false
   },
@@ -51,7 +51,7 @@
   "recipient_receipt": {
     "schema": 1,
     "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
-    "kit_manifest_sha256": "11e3e8bbf93b6fea753a06869917be335489809d3142d82b030beb526fc67927",
+    "kit_manifest_sha256": "66cfb2dbfbe5b7defabd68f4b108acab76a070eef554771f8f091a2cfe7f6ff3",
     "external_manifest_hash_checked": true,
     "authentication": "REQUIRES_TRUSTED_EXTERNAL_DIGEST_AND_VERIFIER",
     "kit_files": 26,
@@ -111,9 +111,10 @@
     "bandit_app_and_both_source_helpers": "PASS"
   },
   "scoped_license_and_source_audit": {
-    "run_id": 39146630136,
-    "job_id": 117731680415,
+    "run_id": 39150398692,
+    "head_sha": "f4c088b391ab1405623ce1a6908a60ad42f4ea6e",
     "conclusion": "success",
+    "job_id": 117742682218,
     "licensed_build_files": 14
   },
   "native_recipe_unchanged_from_independent_proof_commit": "d5b2516cca2f28f6d305f8a67c4f87d7da331f46",
@@ -151,5 +152,20 @@
       "actual_extracted_source_trees_rehashed": 20
     }
   },
-  "local_source_replay_proof": "docs/dependencies/pdf-local-source-replay-proof.json"
+  "local_source_replay_proof": "docs/dependencies/pdf-local-source-replay-proof.json",
+  "historical_first_14_file_kit_proof": {
+    "run_id": 39146630041,
+    "head_sha": "576c0ea0fda791053d7f6fcde0815aa62fe3826a",
+    "job_id": 117731679980,
+    "kit_manifest_sha256": "11e3e8bbf93b6fea753a06869917be335489809d3142d82b030beb526fc67927",
+    "retained_artifact": {
+      "id": 12143287558,
+      "name": "private-native-source-kit-not-recipient-publication",
+      "size_in_bytes": 177964965,
+      "digest": "sha256:366435b3bae4b059891a766c7e5b9be20e4448c81ed202819d276636feeedfc7",
+      "expires_at": "2027-01-16T16:47:44Z",
+      "retention_days": 90,
+      "recipient_source_delivery": false
+    }
+  }
 }

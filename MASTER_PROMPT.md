@@ -652,3 +652,8 @@ all five jobs pass, including 196 frontend tests, six browser scenarios and both
 Windows rollback paths. No legal clearance or installed-user acceptance is inferred. Six
 source/license/CRT/LGPL/production gates remain OPEN. No version/tag/release,
 installer/native payload, business calculations or installed data change.
+
+Final guide/policy source kit **39150398698 / f4c088b** and limited-license/source
+audit **39150398692** pass: 26 manifested files, 14 licensed build files, actual
+20-tree rehash/21 symlinks. The native Windows build remains separately pinned;
+no exact-envelope/bitwise or durable-public-delivery claim.

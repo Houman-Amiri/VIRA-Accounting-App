@@ -33,14 +33,16 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 ### Private native source kit and separate static CRT probe
 - Assemble/check an immutable-source/limited-MIT-sidecar/notices/recipe review kit
   with standard-library Python and per-file hashes. Explicit build-tool allowlist
-  is now 12 files; no app-wide grant or runtime publication.
+  was 12 files at that checkpoint (14 with the later local route above); no
+  app-wide grant or runtime publication.
 - Add safe preferred-source extraction: preserve relative symlinks/script modes;
   reject path escape, collision, cycles, special entries, external envelope paths,
   archive overflow and existing outputs. Never execute a checker from an arbitrary
   inspected kit; distinguish consistency from externally authenticated delivery.
 - Private CI verifies actual kit, isolated `-I -S` recipient check, 21 extracted
-  symlinks and all 20 source-tree hashes/25,505 entries. Local/offline compilation
-  and durable anonymous recipient source delivery remain unproven.
+  symlinks and all 20 source-tree hashes/25,505 entries. At that checkpoint local
+  compilation was unproven; the later local route above now passes. Fully offline
+  and durable anonymous recipient source delivery remain separate/unproven.
 - Actual separate `/MT` C++ probe records seven searched library paths/hashes,
   317 Loaded trace events and static directives/KERNEL32 imports. Preserve initial
   evidence failures and use full `/VERBOSE`, not library-search-only diagnostics.
