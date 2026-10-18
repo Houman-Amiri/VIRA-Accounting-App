@@ -1,0 +1,213 @@
+{
+  "schema": 1,
+  "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+  "vcpkg_commit": "a5f736224e85b32e25a8ffc52562333180396642",
+  "source_archive": {
+    "name": "corresponding-source.zip",
+    "sha256": "259532d2cd8c5d3b176402acdcfb9daadb2cb897d5710010cc198eeabe5401de",
+    "size": 188615875
+  },
+  "packages": {
+    "brotli": {
+      "expected_declared_license": "MIT",
+      "selected_license": "MIT",
+      "basis": "Retain the full declared license expression and original notices. For LGPL or-later terms the proposed compliance baseline is version 2.1. No-DLL packages are NOT assumed irrelevant to static/header use."
+    },
+    "bzip2": {
+      "expected_declared_license": "bzip2-1.0.6",
+      "selected_license": "bzip2-1.0.6",
+      "basis": "Retain the full declared license expression and original notices. For LGPL or-later terms the proposed compliance baseline is version 2.1. No-DLL packages are NOT assumed irrelevant to static/header use."
+    },
+    "cairo": {
+      "expected_declared_license": "LGPL-2.1-only OR MPL-1.1",
+      "selected_license": "LGPL-2.1-only",
+      "basis": "Choose LGPL rather than MPL-1.1; retain notices conservatively even though no DLL from this package is selected."
+    },
+    "dirent": {
+      "expected_declared_license": "MIT",
+      "selected_license": "MIT",
+      "basis": "Retain the full declared license expression and original notices. For LGPL or-later terms the proposed compliance baseline is version 2.1. No-DLL packages are NOT assumed irrelevant to static/header use."
+    },
+    "expat": {
+      "expected_declared_license": "MIT AND CC0-1.0",
+      "selected_license": "MIT AND CC0-1.0",
+      "basis": "Retain the full declared license expression and original notices. For LGPL or-later terms the proposed compliance baseline is version 2.1. No-DLL packages are NOT assumed irrelevant to static/header use."
+    },
+    "fontconfig": {
+      "expected_declared_license": "MIT",
+      "selected_license": "MIT",
+      "basis": "Retain the full declared license expression and original notices. For LGPL or-later terms the proposed compliance baseline is version 2.1. No-DLL packages are NOT assumed irrelevant to static/header use."
+    },
+    "freetype": {
+      "expected_declared_license": "FTL OR GPL-2.0-or-later",
+      "selected_license": "FTL",
+      "basis": "Choose FTL, not GPL; include the FreeType attribution and contributed-driver/hash/zlib/HarfBuzz notices."
+    },
+    "fribidi": {
+      "expected_declared_license": "LGPL-2.1-or-later AND Unicode-3.0",
+      "selected_license": "LGPL-2.1-or-later AND Unicode-3.0",
+      "basis": "Retain the full declared license expression and original notices. For LGPL or-later terms the proposed compliance baseline is version 2.1. No-DLL packages are NOT assumed irrelevant to static/header use."
+    },
+    "gettext-libintl": {
+      "expected_declared_license": "LGPL-2.1-or-later",
+      "selected_license": "LGPL-2.1-or-later",
+      "basis": "Retain the full declared license expression and original notices. For LGPL or-later terms the proposed compliance baseline is version 2.1. No-DLL packages are NOT assumed irrelevant to static/header use."
+    },
+    "glib": {
+      "expected_declared_license": "LGPL-2.1-or-later AND (LGPL-2.1-only OR MPL-1.1)",
+      "selected_license": "LGPL-2.1-or-later AND LGPL-2.1-only",
+      "basis": "Choose LGPL-2.1-only for the LGPL/MPL alternative; exercise the 2.1 option for or-later library components."
+    },
+    "harfbuzz": {
+      "expected_declared_license": "MIT-Modern-Variant AND MIT",
+      "selected_license": "MIT-Modern-Variant AND MIT",
+      "basis": "Retain the full declared license expression and original notices. For LGPL or-later terms the proposed compliance baseline is version 2.1. No-DLL packages are NOT assumed irrelevant to static/header use."
+    },
+    "libffi": {
+      "expected_declared_license": "MIT",
+      "selected_license": "MIT",
+      "basis": "Retain the full declared license expression and original notices. For LGPL or-later terms the proposed compliance baseline is version 2.1. No-DLL packages are NOT assumed irrelevant to static/header use."
+    },
+    "libiconv": {
+      "expected_declared_license": null,
+      "selected_license": "LGPL-2.1-or-later (libraries only)",
+      "basis": "No port SPDX declaration. Original copyright explicitly places libiconv/libcharset libraries and headers under LGPL; GPL iconv CLI/documentation are not native-runtime DLLs. Preserve BOTH original license texts."
+    },
+    "libpng": {
+      "expected_declared_license": "libpng-2.0",
+      "selected_license": "libpng-2.0",
+      "basis": "Retain the full declared license expression and original notices. For LGPL or-later terms the proposed compliance baseline is version 2.1. No-DLL packages are NOT assumed irrelevant to static/header use."
+    },
+    "pango": {
+      "expected_declared_license": "LGPL-2.0-or-later",
+      "selected_license": "LGPL-2.1-only",
+      "basis": "Exercise the LGPL-2.0-or-later permission to use LGPL 2.1; no change to upstream license."
+    },
+    "pcre2": {
+      "expected_declared_license": "BSD-3-Clause",
+      "selected_license": "(BSD-3-Clause WITH PCRE2-exception) AND BSD-2-Clause",
+      "basis": "Upstream LICENCE.md supersedes the incomplete COPYING forwarding stub. Preserve the PCRE2 binary exception and separate SLJIT notice; do not rely on that exception to omit notices."
+    },
+    "pixman": {
+      "expected_declared_license": "MIT AND BSD-2-Clause",
+      "selected_license": "MIT AND BSD-2-Clause",
+      "basis": "Retain the full declared license expression and original notices. For LGPL or-later terms the proposed compliance baseline is version 2.1. No-DLL packages are NOT assumed irrelevant to static/header use."
+    },
+    "pthread": {
+      "expected_declared_license": null,
+      "selected_license": "DELEGATED_TO_pthreads_Apache-2.0",
+      "basis": "Verified metadata-only alias, with no DLL/source of its own; delegate only to pthreads."
+    },
+    "pthreads": {
+      "expected_declared_license": "Apache-2.0",
+      "selected_license": "Apache-2.0",
+      "basis": "Retain the full declared license expression and original notices. For LGPL or-later terms the proposed compliance baseline is version 2.1. No-DLL packages are NOT assumed irrelevant to static/header use."
+    },
+    "zlib": {
+      "expected_declared_license": "Zlib",
+      "selected_license": "Zlib",
+      "basis": "Retain the full declared license expression and original notices. For LGPL or-later terms the proposed compliance baseline is version 2.1. No-DLL packages are NOT assumed irrelevant to static/header use."
+    }
+  },
+  "supplements": {
+    "pcre2-full-license": {
+      "package": "pcre2",
+      "relative_path": "LICENCE.md",
+      "minimum_bytes": 3000,
+      "required_text": [
+        "BSD-3-Clause WITH PCRE2-exception",
+        "Redistributions in binary form"
+      ]
+    },
+    "pcre2-sljit-license": {
+      "package": "pcre2",
+      "relative_path": "deps/sljit/LICENSE",
+      "minimum_bytes": 900,
+      "required_text": [
+        "Redistribution and use",
+        "AS IS"
+      ]
+    },
+    "freetype-bdf": {
+      "package": "freetype",
+      "relative_path": "src/bdf/README",
+      "minimum_bytes": 100,
+      "required_text": []
+    },
+    "freetype-pcf": {
+      "package": "freetype",
+      "relative_path": "src/pcf/README",
+      "minimum_bytes": 100,
+      "required_text": []
+    },
+    "freetype-hash-c": {
+      "package": "freetype",
+      "relative_path": "src/base/fthash.c",
+      "minimum_bytes": 100,
+      "required_text": []
+    },
+    "freetype-hash-h": {
+      "package": "freetype",
+      "relative_path": "include/freetype/internal/fthash.h",
+      "minimum_bytes": 100,
+      "required_text": []
+    },
+    "freetype-zlib": {
+      "package": "freetype",
+      "relative_path": "src/gzip/zlib.h",
+      "minimum_bytes": 100,
+      "required_text": []
+    },
+    "freetype-harfbuzz-c": {
+      "package": "freetype",
+      "relative_path": "src/autofit/ft-hb-ft.c",
+      "minimum_bytes": 100,
+      "required_text": []
+    },
+    "freetype-harfbuzz-decls": {
+      "package": "freetype",
+      "relative_path": "src/autofit/ft-hb-decls.h",
+      "minimum_bytes": 100,
+      "required_text": []
+    },
+    "freetype-harfbuzz-types": {
+      "package": "freetype",
+      "relative_path": "src/autofit/ft-hb-types.h",
+      "minimum_bytes": 100,
+      "required_text": []
+    },
+    "freetype-harfbuzz-scripts": {
+      "package": "freetype",
+      "relative_path": "src/autofit/hb-script-list.h",
+      "minimum_bytes": 100,
+      "required_text": []
+    }
+  },
+  "open_gates": [
+    {
+      "id": "COMPLETE_COMPONENT_LEGAL_REVIEW",
+      "requirement": "Review original and supplemental texts, subcomponents, selected LGPL/FTL alternatives, static/header dependencies; prepared notices are not legal sign-off."
+    },
+    {
+      "id": "COMPILER_CRT_TERMS",
+      "requirement": "Record exact MSVC/Windows SDK versions and applicable redistribution terms for the statically linked target CRT. No inferred Microsoft permission."
+    },
+    {
+      "id": "BUILD_SCRIPT_PERMISSIONS_AND_COMPLETENESS",
+      "requirement": "Owner must define redistribution/modification permission for VIRA-authored build wrappers. Include transitive script dependencies and a usable rebuild recipe; current archive is evidence, not a self-contained SDK."
+    },
+    {
+      "id": "RECIPIENT_SOURCE_DELIVERY",
+      "requirement": "At an explicitly authorized release, supply the exact source archive plus complete licensed recipe sidecar and notices alongside every relevant native binary/delta; verify anonymous download and hashes. Actions artifacts, even 90-day copies, are not durable recipient source delivery."
+    },
+    {
+      "id": "LGPL_SHARED_LIBRARY_REPLACEMENT",
+      "requirement": "Test replacing a compatible LGPL DLL in the actual installed Unicode-path app; compatible EULA must permit modification and reverse engineering for debugging library modifications; no integrity/signature policy may silently prohibit replacement."
+    },
+    {
+      "id": "PRODUCTION_BOOTSTRAP_UPDATES_AND_ACCEPTANCE",
+      "requirement": "Safe Unicode font/bootstrap, clean-machine Inno installation, native delta update and rollback with unchanged business data, followed by deferred installed-user testing."
+    }
+  ],
+  "inventory_fingerprint_sha256": "092dc8711f17749458ba9fef0dba467a2ae6657b6fe820a182d2feb6b55541fc"
+}

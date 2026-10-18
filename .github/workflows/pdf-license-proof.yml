@@ -1,0 +1,72 @@
+name: Prepare private native PDF license materials
+
+on:
+  push:
+    paths:
+      - '.github/workflows/pdf-license-proof.yml'
+      - 'scripts/pdf_runtime_licenses.py'
+      - 'backend/tests/test_pdf_runtime_licenses.py'
+      - 'docs/dependencies/pdf-runtime-license-policy.json'
+  pull_request:
+    paths:
+      - '.github/workflows/pdf-license-proof.yml'
+      - 'scripts/pdf_runtime_licenses.py'
+      - 'backend/tests/test_pdf_runtime_licenses.py'
+      - 'docs/dependencies/pdf-runtime-license-policy.json'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  licenses:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Reverify the exact existing source archive; never recompile native code
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv sync --frozen --all-extras
+          run_id=$(python -c 'import json; print(json.load(open("docs/dependencies/pdf-source-proof-run.json"))["run_id"])')
+          artifact=$(python -c 'import json; print(json.load(open("docs/dependencies/pdf-source-proof-run.json"))["artifact_name"])')
+          gh api "repos/$GH_REPO/actions/runs/$run_id" > "$RUNNER_TEMP/producer-run.json"
+          uv run python -c 'import json,sys; sys.path.insert(0,"scripts"); from pdf_source_evidence import validate_run; validate_run(json.load(open(sys.argv[1])),json.load(open("docs/dependencies/pdf-source-proof-run.json")))' "$RUNNER_TEMP/producer-run.json"
+          gh run download "$run_id" --name "$artifact" --dir "$RUNNER_TEMP/source-evidence"
+          archive=$(find "$RUNNER_TEMP/source-evidence" -name corresponding-source.zip)
+          test -n "$archive"
+          uv run python scripts/pdf_runtime_licenses.py --archive "$archive" --out reports/native-licenses
+          uv run pytest backend/tests/test_pdf_runtime_licenses.py backend/tests/test_pdf_source_evidence.py
+      # Eight notices per step, 64 maximum. Overflow is an error, not truncation.
+      - name: Preserve verified supplemental texts (group 0)
+        run: uv run python scripts/pdf_runtime_licenses.py --out reports/native-licenses --emit-group 0
+      - name: Preserve verified supplemental texts (group 1)
+        run: uv run python scripts/pdf_runtime_licenses.py --out reports/native-licenses --emit-group 1
+      - name: Preserve verified supplemental texts (group 2)
+        run: uv run python scripts/pdf_runtime_licenses.py --out reports/native-licenses --emit-group 2
+      - name: Preserve verified supplemental texts (group 3)
+        run: uv run python scripts/pdf_runtime_licenses.py --out reports/native-licenses --emit-group 3
+      - name: Preserve verified supplemental texts (group 4)
+        run: uv run python scripts/pdf_runtime_licenses.py --out reports/native-licenses --emit-group 4
+      - name: Preserve verified supplemental texts (group 5)
+        run: uv run python scripts/pdf_runtime_licenses.py --out reports/native-licenses --emit-group 5
+      - name: Preserve verified supplemental texts (group 6)
+        run: uv run python scripts/pdf_runtime_licenses.py --out reports/native-licenses --emit-group 6
+      - name: Preserve verified supplemental texts (group 7)
+        run: uv run python scripts/pdf_runtime_licenses.py --out reports/native-licenses --emit-group 7
+      - name: Keep a longer-lived private review copy (NOT recipient source delivery)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp "$(find "$RUNNER_TEMP/source-evidence" -name corresponding-source.zip)" reports/native-licenses/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: private-native-license-review-and-source
+          path: reports/native-licenses/
+          retention-days: 90
+          if-no-files-found: error
