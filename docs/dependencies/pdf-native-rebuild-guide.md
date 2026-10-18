@@ -97,7 +97,7 @@ check their actual origins. This optional inspector needs Python and
 need app dependencies. Supply the reference source inventory explicitly:
 
 ```powershell
-python scripts/audit_pdf_native_rebuild.py `
+python -B scripts/audit_pdf_native_rebuild.py `
   --sidecar C:/new-licensed-build-files --work C:/new-vira-native-build `
   --reference C:/evidence/pdf-runtime-win64-source-inventory.json `
   --out C:/evidence/native-rebuild-audit.json
@@ -148,6 +148,11 @@ All output/work paths must be **new and outside the input kit/preferred tree**,
 not the installed app/data directory. Extraction and overlay preparation reject
 nested output directories before creating them, including resolved aliases.
 Windows must permit real symlink creation; no flattened substitute is accepted.
+The extractor restores the ZIP-recorded local modification times of regular
+files (two-second ZIP precision). Autotools can regenerate configure/Makefile.in
+when fresh extraction-order mtimes invert their dependencies. Preserving those
+relative times avoids that unintended toolchain regeneration; it does not claim
+an absolute UTC timestamp or bitwise reproduction.
 Use a short ASCII build path. Quotes, semicolons, dollar signs, square brackets
 and newlines in preferred-input paths are deliberately unsupported/rejected
 rather than interpolated as executable CMake text.
@@ -161,7 +166,7 @@ selected. Safe relative file symlinks are retained. External/dangling/directory
 links, junctions and executable CMake path injection are refused.
 
 Only target `x64-vira-pdf` source acquisition calls in the pinned recipes are
-replaced. Host recipes are retained verbatim beside the adapter. Bootstrap,
+replaced. Host recipes retain the original LF-canonical text beside the adapter. Bootstrap,
 compiler, Python/Meson, MSYS and host-tool downloads still work: download helper
 functions are **not globally overridden**. This is not a network-isolated or
 bitwise-reproducible compiler SDK.
@@ -187,12 +192,13 @@ original/current tree hashes and `changed_packages`, before compiling.
 `original_source_archive` as provenance, sets `source_archive` to null, and does
 **not** claim that the old ZIP is the complete corresponding source of changed
 new DLLs. A new corresponding-source archive has not been assembled/published.
-Keep the exact edits and full modified preferred sources for that future task.
+Keep the exact edits and full modified preferred sources for that future task,
+including required prominent modification notices/dates before redistribution.
 Use this generated reference with the optional native inspector, rather than
 expecting changed libraries to retain the old baseline hashes:
 
 ```powershell
-python scripts/audit_pdf_native_rebuild.py `
+python -B scripts/audit_pdf_native_rebuild.py `
   --sidecar C:/source-kit/licensed-build-files --work C:/new-local-native-build `
   --reference C:/new-local-overlay/local-source-reference.json `
   --out C:/evidence/local-native-audit.json
@@ -202,5 +208,9 @@ The separate local replay CI deliberately changes Pango's exported version
 string and requires its actual DLL function to return the edited string, along
 with all 20 tree digests, 21 DLL origins/owners/closure and unchanged external
 input hashes. A generated overlay or passing synthetic test is not that proof;
-see the local-source phase report for actual run status. Even a successful
+the actual build/audit 39146630126 on 576c0ea passed, returning
+`1.58.0-vira-local-source`. See
+[the phase report](../reports/pdf-local-preferred-source-replay-fa.md) and
+[the pinned witness](pdf-local-source-replay-proof.json). Use `-B` for the optional
+inspector to avoid adding Python bytecode caches to a source-kit envelope. Even a successful
 modified DLL test is **not** installed-app LGPL replacement/EULA acceptance.

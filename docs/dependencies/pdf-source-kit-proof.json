@@ -1,13 +1,13 @@
 {
   "schema": 1,
-  "run_id": 39113483257,
-  "head_sha": "1e27683522029db7ad5a909fc4f0c807e6e87ae9",
+  "run_id": 39146630041,
+  "head_sha": "576c0ea0fda791053d7f6fcde0815aa62fe3826a",
   "workflow_path": ".github/workflows/pdf-source-kit.yml",
-  "job_id": 117634367637,
+  "job_id": 117731679980,
   "conclusion": "success",
-  "kit_manifest_sha256": "5e938c307250a3dd067a48620bfc213c9d01d3f149aef45564057266c39f64d4",
-  "kit_manifested_files": 24,
-  "licensed_build_files": 12,
+  "kit_manifest_sha256": "11e3e8bbf93b6fea753a06869917be335489809d3142d82b030beb526fc67927",
+  "kit_manifested_files": 26,
+  "licensed_build_files": 14,
   "original_source_archive_sha256": "259532d2cd8c5d3b176402acdcfb9daadb2cb897d5710010cc198eeabe5401de",
   "recipient_style_verification": {
     "standard_library_only": true,
@@ -23,21 +23,21 @@
     "second_read_only_verification": "success"
   },
   "retained_artifact": {
-    "id": 12131925208,
+    "id": 12143287558,
     "name": "private-native-source-kit-not-recipient-publication",
-    "size_in_bytes": 177954912,
-    "digest": "sha256:684bc8031cb97758db41e3aaf21b737c35419e9287710ebc8fefd0e29db56a61",
-    "expires_at": "2027-01-16T08:58:07Z",
+    "size_in_bytes": 177964965,
+    "digest": "sha256:366435b3bae4b059891a766c7e5b9be20e4448c81ed202819d276636feeedfc7",
+    "expires_at": "2027-01-16T16:47:44Z",
     "retention_days": 90,
     "recipient_source_delivery": false
   },
   "trust_boundary": "Internal hashes establish consistency, not publisher authentication; use an independently trusted external digest and trusted verifier. Inspection does not execute the checker from an arbitrary target kit.",
   "not_proven": [
     "Public anonymous durable source delivery",
-    "Native compilation directly from extracted local preferred sources or offline replay",
-    "New native compilation of this assembled kit (unchanged native entry point was proven separately)",
+    "New native compilation of these exact Linux kit-envelope bytes; the Windows controlled local build is separately pinned",
+    "Fully offline compiler SDK or bitwise reproducibility",
     "Original/rebuilt native DLL CRT object mapping or producer entitlement",
-    "Installed LGPL replacement, production bootstrap/native updates or installed-user acceptance"
+    "Installed LGPL replacement/EULA, production bootstrap/native updates or installed-user acceptance"
   ],
   "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
   "release_authorized": false,
@@ -51,11 +51,11 @@
   "recipient_receipt": {
     "schema": 1,
     "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
-    "kit_manifest_sha256": "5e938c307250a3dd067a48620bfc213c9d01d3f149aef45564057266c39f64d4",
+    "kit_manifest_sha256": "11e3e8bbf93b6fea753a06869917be335489809d3142d82b030beb526fc67927",
     "external_manifest_hash_checked": true,
     "authentication": "REQUIRES_TRUSTED_EXTERNAL_DIGEST_AND_VERIFIER",
-    "kit_files": 24,
-    "licensed_files": 12,
+    "kit_files": 26,
+    "licensed_files": 14,
     "verified_sources": {
       "packages": 20,
       "source_entries": 25505,
@@ -66,53 +66,90 @@
     "actual_extracted_source_trees_rehashed": 20
   },
   "ordinary_regression": {
-    "run_id": 39113483256,
-    "head_sha": "1e27683522029db7ad5a909fc4f0c807e6e87ae9",
+    "run_id": 39146693875,
+    "head_sha": "ca4b61ec35253ff6baa47de4b4786651654006fb",
     "conclusion": "success",
     "jobs_passed": 5,
     "jobs": [
       {
-        "id": 117634445018,
+        "id": 117732023844,
         "name": "Backend \u2014 lint, type, security, tests",
         "conclusion": "success"
       },
       {
-        "id": 117634445110,
-        "name": "Playwright e2e (native processes)",
-        "conclusion": "success"
-      },
-      {
-        "id": 117634445165,
-        "name": "Frontend \u2014 lint, types, contract, tests, build",
-        "conclusion": "success"
-      },
-      {
-        "id": 117634445218,
+        "id": 117732023916,
         "name": "Windows-native smoke (SQLite paths, venv, build)",
         "conclusion": "success"
       },
       {
-        "id": 117634445351,
+        "id": 117732023986,
+        "name": "Frontend \u2014 lint, types, contract, tests, build",
+        "conclusion": "success"
+      },
+      {
+        "id": 117732023988,
         "name": "OpenAPI contract is in sync",
+        "conclusion": "success"
+      },
+      {
+        "id": 117732024013,
+        "name": "Playwright e2e (native processes)",
         "conclusion": "success"
       }
     ],
-    "backend_tests": 506,
+    "backend_tests_linux": 536,
     "frontend_tests": 196,
     "browser_scenarios": 6,
     "windows_real_in_app_and_public_schema_compiled_helper_rollback": "success"
   },
   "local_checks": {
-    "backend_tests": 506,
-    "focused_tests": 79,
+    "backend_tests": 536,
+    "focused_kit_scope_and_local_tests": 84,
+    "new_or_extended_regression_tests": 30,
     "ruff": "PASS",
     "mypy_app_files": 84,
-    "bandit_app_and_changed_helpers": "PASS"
+    "bandit_app_and_both_source_helpers": "PASS"
   },
   "scoped_license_and_source_audit": {
-    "run_id": 39113483241,
+    "run_id": 39146630136,
+    "job_id": 117731680415,
     "conclusion": "success",
-    "job_id": 117634367617
+    "licensed_build_files": 14
   },
-  "native_recipe_unchanged_from_independent_proof_commit": "d5b2516cca2f28f6d305f8a67c4f87d7da331f46"
+  "native_recipe_unchanged_from_independent_proof_commit": "d5b2516cca2f28f6d305f8a67c4f87d7da331f46",
+  "historical_12_file_kit_proof": {
+    "run_id": 39113483257,
+    "head_sha": "1e27683522029db7ad5a909fc4f0c807e6e87ae9",
+    "job_id": 117634367637,
+    "kit_manifest_sha256": "5e938c307250a3dd067a48620bfc213c9d01d3f149aef45564057266c39f64d4",
+    "kit_manifested_files": 24,
+    "licensed_build_files": 12,
+    "retained_artifact": {
+      "id": 12131925208,
+      "name": "private-native-source-kit-not-recipient-publication",
+      "size_in_bytes": 177954912,
+      "digest": "sha256:684bc8031cb97758db41e3aaf21b737c35419e9287710ebc8fefd0e29db56a61",
+      "expires_at": "2027-01-16T08:58:07Z",
+      "retention_days": 90,
+      "recipient_source_delivery": false
+    },
+    "recipient_receipt": {
+      "schema": 1,
+      "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+      "kit_manifest_sha256": "5e938c307250a3dd067a48620bfc213c9d01d3f149aef45564057266c39f64d4",
+      "external_manifest_hash_checked": true,
+      "authentication": "REQUIRES_TRUSTED_EXTERNAL_DIGEST_AND_VERIFIER",
+      "kit_files": 24,
+      "licensed_files": 12,
+      "verified_sources": {
+        "packages": 20,
+        "source_entries": 25505,
+        "source_symlinks": 21
+      },
+      "source_archive_sha256": "259532d2cd8c5d3b176402acdcfb9daadb2cb897d5710010cc198eeabe5401de",
+      "recipient_source_delivery": false,
+      "actual_extracted_source_trees_rehashed": 20
+    }
+  },
+  "local_source_replay_proof": "docs/dependencies/pdf-local-source-replay-proof.json"
 }

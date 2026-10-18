@@ -228,7 +228,7 @@
       "progress": {
         "scoped_native_build_permissions": "OWNER_CONFIRMED_MIT",
         "scope_file": "docs/dependencies/pdf-build-script-license-scope.json",
-        "standalone_recipe_completeness": "NATIVE_ONLY_BASELINE_BUILD_AND_AUDIT_VERIFIED_RECIPIENT_ASSEMBLY_REVIEW_PENDING",
+        "standalone_recipe_completeness": "NATIVE_BASELINE_AND_LOCAL_MODIFIED_SOURCE_BUILD_VERIFIED_RECIPIENT_PUBLIC_DELIVERY_REVIEW_PENDING",
         "gate_closed": false,
         "licensed_files": 14,
         "native_only_entry_point": "scripts/rebuild_pdf_native.ps1",
@@ -239,7 +239,11 @@
         "verified_native_dlls": 21,
         "recipient_kit_assembly": "PRIVATE_CI_ASSEMBLY_AND_EXTRACTED_TREES_VERIFIED",
         "source_kit_proof": "docs/dependencies/pdf-source-kit-proof.json",
-        "local_preferred_source_replay": "NOT_YET_PROVEN"
+        "local_preferred_source_replay": "NATIVE_BUILD_20_TREES_21_DLL_ORIGINS_AND_EXECUTED_MODIFIED_PANGO_VERIFIED",
+        "local_source_replay_proof": "docs/dependencies/pdf-local-source-replay-proof.json",
+        "local_source_replay_run_id": 39146630126,
+        "local_modified_build_is_distribution_candidate": false,
+        "new_modified_corresponding_source_archive_prepared": false
       }
     },
     {

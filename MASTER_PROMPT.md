@@ -617,3 +617,38 @@ CRT probe **39113097728 / 0bceb1e** passed with its original evidence failures
 preserved. Kit manifest digest and artifact retention are pinned in the proof;
 no binary/source publication or legal clearance is implied. Final evidence-only
 updates do not alter the native recipe or business application.
+
+### Local preferred-source replay phase — 2026-10-18
+
+The next authorized step adds a standard-library local-source adapter and explicit
+port pins to the limited MIT build-tool derivatives (**14 files**, no app-wide
+license). The default native driver still downloads target sources; the new
+route uses its existing `-OverlayPorts` option with verified, already-patched
+kit inputs. Actual catalog: 19 single-root source packages plus empty `pthread`.
+Unknown/multiple roots, recipe edits, unsafe links/paths and unacknowledged source
+changes fail closed. Source extraction now creates Windows nested symlink targets
+with native separators; digest targets remain canonical POSIX paths.
+
+Native driver/profile remain unchanged. Only pinned TARGET source-acquisition
+blocks are replaced; host/build-tool downloads still work, so this is not an
+offline compiler SDK. Preserve PCRE2's already-merged SLJIT; reject uncaptured APNG.
+Full MIT/upstream notices are retained. A controlled local Pango version-string
+edit must be observed through its real rebuilt DLL function, with all 20 source
+trees/21 DLL owners, closure and origins audited and external inputs unchanged.
+Original ZIP stays immutable; the modified reference is separate and explicitly
+NOT a new corresponding-source archive or the ordinary distribution candidate.
+
+[Report](docs/reports/pdf-local-preferred-source-replay-fa.md) and
+[exact local instructions](docs/dependencies/pdf-native-rebuild-guide.md).
+Current automated evidence: 536 backend tests, 84 focused checks and Ruff/Mypy/
+Bandit pass. Actual native build **39146630126 / 576c0ea** and final audit PASSED:
+20 source trees, 21 DLL origins/owners/closure and the executed modified version
+`1.58.0-vira-local-source`, with external source inputs unchanged. All seven raw
+annotation chunks are recovered and hash-pinned in the
+[proof](docs/dependencies/pdf-local-source-replay-proof.json). The Windows nested
+symlink issue and real gettext make failure are retained; ZIP mtime preservation
+fixes unwanted Autotools regeneration. Ordinary CI **39146693875 / ca4b61e**:
+all five jobs pass, including 196 frontend tests, six browser scenarios and both
+Windows rollback paths. No legal clearance or installed-user acceptance is inferred. Six
+source/license/CRT/LGPL/production gates remain OPEN. No version/tag/release,
+installer/native payload, business calculations or installed data change.

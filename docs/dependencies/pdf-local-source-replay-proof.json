@@ -1,0 +1,186 @@
+{
+  "schema": 1,
+  "run_id": 39146630126,
+  "head_sha": "576c0ea0fda791053d7f6fcde0815aa62fe3826a",
+  "workflow_path": ".github/workflows/pdf-local-source-replay.yml",
+  "job_id": 117731680335,
+  "conclusion": "success",
+  "run_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39146630126",
+  "created_at": "2026-10-18T16:47:44Z",
+  "completed_at": "2026-10-18T17:29:48Z",
+  "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+  "application_license_changed": false,
+  "release_authorized": false,
+  "ordinary_runtime_payload_changed": false,
+  "modified_build_is_distribution_candidate": false,
+  "original_source_archive": {
+    "sha256": "259532d2cd8c5d3b176402acdcfb9daadb2cb897d5710010cc198eeabe5401de",
+    "size": 188615875,
+    "modified_by_tools": false
+  },
+  "input_kit_receipt": {
+    "schema": 1,
+    "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+    "kit_manifest_sha256": "db8be4aa518dfc9adcad406f2253adec94714c0d9e6bc8dff5be5cd4257b92ee",
+    "external_manifest_hash_checked": false,
+    "authentication": "REQUIRES_TRUSTED_EXTERNAL_DIGEST_AND_VERIFIER",
+    "kit_files": 26,
+    "licensed_files": 14,
+    "verified_sources": {
+      "packages": 20,
+      "source_entries": 25505,
+      "source_symlinks": 21
+    },
+    "source_archive_sha256": "259532d2cd8c5d3b176402acdcfb9daadb2cb897d5710010cc198eeabe5401de",
+    "recipient_source_delivery": false
+  },
+  "input_kit_authentication_note": "The embedded receipt is the initial assembly receipt (external hash flag false). The trusted workflow then passes this manifest digest to isolated extraction and to the mandatory preparation verifier; both steps succeeded. This is not anonymous durable recipient delivery.",
+  "verified": {
+    "native_target_package_trees": 20,
+    "nonempty_source_roots": 19,
+    "unchanged_original_trees_including_empty_alias": 19,
+    "explicitly_changed_trees": 1,
+    "changed_packages": [
+      "pango"
+    ],
+    "native_dlls_loaded_from_private_build": 21,
+    "owners_and_pe_closure_match_original": true,
+    "observed_pango_version_string": "1.58.0-vira-local-source",
+    "external_preferred_input_contents_unchanged_after_build": true,
+    "binary_cache": "DISABLED",
+    "application_required": false,
+    "host_and_build_tool_downloads_still_allowed": true,
+    "offline_sdk": false,
+    "new_modified_corresponding_source_archive_prepared": false
+  },
+  "evidence": {
+    "path": "docs/dependencies/pdf-local-source-replay-evidence.json",
+    "sha256": "dcc457e7870338d6c930ef08b9568fe1ca0941cec4ea12c1b795e81669d10cb1",
+    "size": 57540,
+    "complete_annotation_parts": 7,
+    "retrieval": "All bounded compressed annotation parts recovered, decoded and locally checked; artifact bytes not independently re-downloaded in sandbox"
+  },
+  "retained_artifact": {
+    "id": 12145066075,
+    "name": "local-preferred-source-rebuild-evidence-no-dlls",
+    "size_in_bytes": 367905,
+    "digest": "sha256:734d4c92e5cb049df99bb8ce3da4c254b215e3550cc4b0926ec638329b122dec",
+    "expires_at": "2027-01-16T16:47:44Z",
+    "retention_days": 90,
+    "recipient_source_delivery": false,
+    "compiled_dll_payload_uploaded": false
+  },
+  "catalog_preflight": {
+    "run_id": 39143216401,
+    "job_id": 117721702844,
+    "pin_file": "docs/dependencies/pdf-local-source-port-pins.json"
+  },
+  "failed_attempts": [
+    {
+      "run_id": 39143696133,
+      "head_sha": "ebf30151f562ebe7e0527d979b28c756b3a8526f",
+      "conclusion": "failure",
+      "stage": "PREPARE",
+      "observed": "Failure before diagnostic capture; do not infer exact exception"
+    },
+    {
+      "run_id": 39143878456,
+      "head_sha": "ce49a745bcf83b565821c884768d38d775fd3583",
+      "conclusion": "failure",
+      "stage": "PREPARE",
+      "observed": "Dangling/directory symlink refusal on Windows; native target separator fix followed"
+    },
+    {
+      "run_id": 39144077487,
+      "head_sha": "b345a2561dca268b3ca8b1ef09af06c66b8a6e75",
+      "conclusion": "failure",
+      "stage": "COMPILE",
+      "observed": "Earlier duplicate controlled local build; compilation failed"
+    },
+    {
+      "run_id": 39144188922,
+      "head_sha": "1fe9a131ccc3fe70c1cf269c27eeab85b9ee9491",
+      "conclusion": "failure",
+      "stage": "COMPILE",
+      "observed": "GNU make: No rule to make target ../config.h; full logs and ZIP timestamps recovered"
+    },
+    {
+      "run_id": 39145747996,
+      "head_sha": "0e409ddec46500105fa36ee457e8665287f7e184",
+      "conclusion": "failure",
+      "stage": "COMPILE",
+      "observed": "Compilation failed before timestamp-restoration fix"
+    }
+  ],
+  "failure_analysis": {
+    "run_id": 39146694091,
+    "job_id": 117731866111,
+    "head_sha": "ca4b61ec35253ff6baa47de4b4786651654006fb",
+    "path": "docs/dependencies/pdf-local-source-replay-failure-evidence.json",
+    "sha256": "b92e285a8666f83d4cabed5738ab825b268f3c6b83c0001108e2099cd1f1634d",
+    "size": 84240,
+    "method": "Complete recovered tail and last 250 build-log lines, not an inference from truncated first annotation",
+    "timestamp_restoration": "Restore ZIP local wall times/two-second precision; do not infer every libtool warning root cause"
+  },
+  "ordinary_regression": {
+    "run_id": 39146693875,
+    "head_sha": "ca4b61ec35253ff6baa47de4b4786651654006fb",
+    "conclusion": "success",
+    "jobs_passed": 5,
+    "jobs": [
+      {
+        "id": 117732023844,
+        "name": "Backend \u2014 lint, type, security, tests",
+        "conclusion": "success"
+      },
+      {
+        "id": 117732023916,
+        "name": "Windows-native smoke (SQLite paths, venv, build)",
+        "conclusion": "success"
+      },
+      {
+        "id": 117732023986,
+        "name": "Frontend \u2014 lint, types, contract, tests, build",
+        "conclusion": "success"
+      },
+      {
+        "id": 117732023988,
+        "name": "OpenAPI contract is in sync",
+        "conclusion": "success"
+      },
+      {
+        "id": 117732024013,
+        "name": "Playwright e2e (native processes)",
+        "conclusion": "success"
+      }
+    ],
+    "backend_tests_linux": 536,
+    "frontend_tests": 196,
+    "browser_scenarios": 6,
+    "windows_real_in_app_and_public_schema_compiled_helper_rollback": "success"
+  },
+  "local_checks": {
+    "backend_tests": 536,
+    "focused_kit_scope_and_local_tests": 84,
+    "new_or_extended_regression_tests": 30,
+    "ruff": "PASS",
+    "mypy_app_files": 84,
+    "bandit_app_and_both_source_helpers": "PASS"
+  },
+  "scoped_license_and_source_audit": {
+    "run_id": 39146630136,
+    "job_id": 117731680415,
+    "conclusion": "success",
+    "licensed_build_files": 14
+  },
+  "native_driver_and_profile_unchanged_from": "d5b2516cca2f28f6d305f8a67c4f87d7da331f46",
+  "not_proven": [
+    "Full component legal approval or CRT producer entitlement/static-component map of these DLLs",
+    "Public anonymous durable corresponding-source/recipe delivery",
+    "New corresponding-source archive for the explicitly modified Pango build",
+    "Actual installed-app LGPL replacement/EULA compatibility",
+    "Application PDF rendering with the new controlled local build",
+    "Production font/bootstrap, native delta/rollback and deferred installed-user acceptance",
+    "Fully offline compiler SDK or bitwise reproducibility"
+  ]
+}

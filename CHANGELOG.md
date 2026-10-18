@@ -7,6 +7,29 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+
+### Local preferred-source native PDF replay
+- Add a standard-library, target-only local-source overlay adapter and exact port
+  pins; 14 explicitly licensed MIT build-tool files, not an app-wide grant.
+- Authenticate kit/source input, preserve one captured source root per real port,
+  reject unknown/multiple roots and unsafe paths/links; do not reapply acquisition
+  patches or delete PCRE2's merged SLJIT. Uncaptured APNG is explicitly unsupported.
+- Fix native Windows nested symlink target separators without flattening links;
+  retain full MIT/upstream notices with generated recipes. Original native driver,
+  triplets and immutable corresponding-source ZIP remain unchanged.
+- Require explicit modified-input acknowledgement and a separate source reference;
+  local CI must execute the deliberately edited LGPL Pango version function, audit
+  all 20 target trees/21 DLLs and check unchanged external input hashes.
+- 30 new/regression tests; 536 backend and 84 focused checks, Ruff/Mypy/Bandit pass.
+  Native build 39146630126 / 576c0ea PASSED with 20 audited trees, 21 loaded DLLs
+  and the executed Pango string 1.58.0-vira-local-source. Preserve actual Windows
+  symlink/gettext make failures; restore ZIP mtimes to avoid Autotools regeneration.
+  Complete seven-part witness is hash-pinned. Ordinary CI 39146693875 / ca4b61e:
+  all five jobs pass (196 frontend / six browser scenarios / both Windows rollback
+  paths). Host/build-tool downloads remain allowed; not an offline SDK, source
+  publication, CRT/LGPL clearance,
+  ordinary native integration, data/math change or new version/tag/release.
+
 ### Private native source kit and separate static CRT probe
 - Assemble/check an immutable-source/limited-MIT-sidecar/notices/recipe review kit
   with standard-library Python and per-file hashes. Explicit build-tool allowlist
