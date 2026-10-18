@@ -698,7 +698,15 @@ Artifact upload initially omitted the licensed hidden .github workflow; independ
 manifest-versus-downloaded-members diagnostics proved the exact missing file.
 Scoped source artifacts now opt in to hidden files, without weakening hash/scope
 checks. Pre-upload success is NOT post-download completeness. 35 new tests / 119
-focused; 597 backend tests pass locally, with native extraction regression pending.
+focused; 597 backend tests pass locally. Native extraction/build regression
+**39158539572 / d47e2c9 SUCCESS**: 20 matching trees/21 DLL origins/real modified
+Pango, with full seven-part witness pinned. Ordinary **39160309610 / 693f887**
+all five jobs pass (196 frontend/six browser scenarios/both Windows rollback paths).
+Preserve real 7139 startup-badge timeout; QA-only bounded diagnostic retry changed
+NO waits/assertions/product behavior and does not establish the initial root cause.
+Final documented modified kit **39159627961 / 7139e41**, original kit
+**39159627909**, source/license **39159627993** all pass; original subkit manifest
+is cross-bound to actual downloaded Windows verification.
 
 An external prominent modification/date notice is included; the exact compiled
 Pango file has NO new inline change/date notice. Legal completeness is explicitly

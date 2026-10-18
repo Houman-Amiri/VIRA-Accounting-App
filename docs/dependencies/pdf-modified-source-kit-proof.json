@@ -1,25 +1,25 @@
 {
   "schema": 1,
-  "run_id": 39158897935,
-  "head_sha": "f00ca08b715c1c4da59990d92b1c685a798c974e",
+  "run_id": 39159627961,
+  "head_sha": "7139e41c7a8652757ebd92ffcd9612c4d23f0d25",
   "workflow_path": ".github/workflows/pdf-modified-source-kit.yml",
-  "run_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39158897935",
+  "run_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39159627961",
   "conclusion": "success",
-  "created_at": "2026-10-18T19:28:07Z",
+  "created_at": "2026-10-18T19:37:39Z",
   "jobs": [
     {
-      "id": 117767798158,
+      "id": 117770000831,
       "name": "assemble",
       "conclusion": "success",
-      "started_at": "2026-10-18T19:28:10Z",
-      "completed_at": "2026-10-18T19:30:13Z"
+      "started_at": "2026-10-18T19:37:43Z",
+      "completed_at": "2026-10-18T19:39:49Z"
     },
     {
-      "id": 117768271061,
+      "id": 117770484713,
       "name": "windows-recipient",
       "conclusion": "success",
-      "started_at": "2026-10-18T19:30:19Z",
-      "completed_at": "2026-10-18T19:32:04Z"
+      "started_at": "2026-10-18T19:39:52Z",
+      "completed_at": "2026-10-18T19:41:38Z"
     }
   ],
   "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
@@ -55,9 +55,9 @@
     "assemble": {
       "schema": 1,
       "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
-      "modified_kit_manifest_sha256": "1a609db6a0c50512bff5edcd68246bf469ea74e4f06f1d1c011ffe1e8ca60658",
+      "modified_kit_manifest_sha256": "b40c2f14a82cd07cd8948f00ef11b831d9e9b233e99a7a0638ee7022d52cf04a",
       "external_manifest_hash_checked": true,
-      "original_kit_manifest_sha256": "b97591c3516d0cb2fe2504c5039cd3342eb003e8a6ee43d19e7d271b027226d7",
+      "original_kit_manifest_sha256": "a6a018c4a853393826fd593279b5a01c7127965981d79f4b1f46fe120d8c70c8",
       "original_archive_sha256": "259532d2cd8c5d3b176402acdcfb9daadb2cb897d5710010cc198eeabe5401de",
       "modified_archive_sha256": "1d56fe9a3305f3b9bb7a741dbb697b7d5b9a80a74a1c7bb172e91895ea311921",
       "modified_archive_size": 188616942,
@@ -95,11 +95,11 @@
     }
   },
   "retained_artifact": {
-    "id": 12148182214,
+    "id": 12148243358,
     "name": "private-complete-modified-sources-no-dlls",
-    "size_in_bytes": 355622797,
-    "digest": "sha256:a27ed5de11a18c5b299b012697a332182b38c03d730ac16f5e0374e62cdbfb69",
-    "expires_at": "2027-01-16T19:28:07Z"
+    "size_in_bytes": 355624566,
+    "digest": "sha256:d20f3a3b389fb4d866d41f459edab0ac50769417d891198d143a50b40c99209d",
+    "expires_at": "2027-01-16T19:37:40Z"
   },
   "retention_days": 90,
   "compiled_dll_payload_uploaded": false,
@@ -121,7 +121,86 @@
     "backend_tests": 597,
     "ruff_mypy_bandit": "PASS",
     "native_extraction_regression_run_id": 39158539572,
-    "native_extraction_regression_status": "IN_PROGRESS",
-    "native_route": "Original archive extraction plus explicit local Pango edit, NOT compilation from the new envelope"
+    "native_extraction_regression_status": "SUCCESS",
+    "native_route": "Original archive extraction plus explicit local Pango edit, NOT compilation from the new envelope",
+    "startup_failure_evidence": "docs/dependencies/pdf-modified-source-regression-failure.json",
+    "native_extraction_regression_head_sha": "d47e2c9b104fe0b01a3d84cb2bcb8f2d99cc7552",
+    "native_extraction_regression_job_id": 117766733434,
+    "native_extraction_regression_completed_at": "2026-10-18T20:06:20Z",
+    "native_extraction_regression_evidence": {
+      "path": "docs/dependencies/pdf-modified-source-native-regression-evidence.json",
+      "sha256": "fc16e0a20222a9a04aca75b703a11e3f44ef7fc386d26c73c9d9c64dd056fb80",
+      "size": 57540,
+      "complete_annotation_parts": 7
+    },
+    "native_regression_artifact": {
+      "id": 12148599461,
+      "name": "local-preferred-source-rebuild-evidence-no-dlls",
+      "size_in_bytes": 367901,
+      "digest": "sha256:69459edee2cee32551cd7f5adcf268b3168a5fc68d485d108beba5c0a8b15661",
+      "expires_at": "2027-01-16T19:23:22Z"
+    },
+    "ordinary_ci_run_id": 39160309610,
+    "ordinary_ci_head_sha": "693f88743e73f6915d4400b0806967c50eace52c",
+    "all_five_jobs": "SUCCESS",
+    "frontend_tests": 196,
+    "browser_scenarios": 6,
+    "startup_badge_failure_root_cause": "NOT_ESTABLISHED_FROM_PASSING_DIAGNOSTIC_RETRY",
+    "update_waits_assertions_and_product_unchanged": true
+  },
+  "earlier_successful_private_envelope": {
+    "run_id": 39158897935,
+    "head_sha": "f00ca08b715c1c4da59990d92b1c685a798c974e",
+    "conclusion": "success",
+    "recipient_receipts": {
+      "assemble": {
+        "schema": 1,
+        "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+        "modified_kit_manifest_sha256": "1a609db6a0c50512bff5edcd68246bf469ea74e4f06f1d1c011ffe1e8ca60658",
+        "external_manifest_hash_checked": true,
+        "original_kit_manifest_sha256": "b97591c3516d0cb2fe2504c5039cd3342eb003e8a6ee43d19e7d271b027226d7",
+        "original_archive_sha256": "259532d2cd8c5d3b176402acdcfb9daadb2cb897d5710010cc198eeabe5401de",
+        "modified_archive_sha256": "1d56fe9a3305f3b9bb7a741dbb697b7d5b9a80a74a1c7bb172e91895ea311921",
+        "modified_archive_size": 188616942,
+        "native_build_witness_sha256": "eb275260c533e1572a3a8a31fc445e8af92353aaa88e6255da61c9b8127b464b",
+        "verified_sources": {
+          "packages": 20,
+          "source_entries": 25505,
+          "source_symlinks": 21,
+          "all_nonmodified_members_unchanged": true,
+          "source_modes_and_zip_local_times_retained": true
+        },
+        "licensed_files": 14,
+        "kit_files": 32,
+        "new_modified_source_archive_prepared": true,
+        "recipient_source_delivery": false,
+        "legal_notice_completeness_approved": false,
+        "modified_build_is_distribution_candidate": false,
+        "new_native_build_from_this_envelope_proven": false,
+        "actual_extracted_trees_rehashed": 20
+      },
+      "windows-recipient": {
+        "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+        "actual_extracted_trees_rehashed": 20,
+        "relative_symlinks_extracted": 21,
+        "changed_packages": [
+          "pango"
+        ],
+        "recipe_preparation_matches_successful_build_trees": true,
+        "modified_archive_prepared_by_packager": true,
+        "old_adapter_source_archive_field": null,
+        "old_adapter_does_not_bind_review_archive": true,
+        "new_native_build_from_this_envelope_proven": false,
+        "recipient_source_delivery": false,
+        "legal_notice_completeness_approved": false
+      }
+    },
+    "retained_artifact": {
+      "id": 12148182214,
+      "name": "private-complete-modified-sources-no-dlls",
+      "size_in_bytes": 355622797,
+      "digest": "sha256:a27ed5de11a18c5b299b012697a332182b38c03d730ac16f5e0374e62cdbfb69",
+      "expires_at": "2027-01-16T19:28:07Z"
+    }
   }
 }

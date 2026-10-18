@@ -18,7 +18,13 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 - Preserve failure: artifact transport omitted the licensed hidden .github workflow.
   Independent downloaded-manifest diagnostics prove the exact missing member;
   scoped source artifacts now explicitly retain hidden files, with strict checks.
-- 35 new archive/transport tests, 119 focused; existing 14-file MIT scope only.
+- 35 new archive/transport tests, 119 focused / 597 backend; Ruff/Mypy/Bandit pass.
+  Native extraction regression 39158539572 / d47e2c9 SUCCESS (20 trees/21 DLLs/real
+  modified Pango), full seven-part witness pinned. Final documented kit 39159627961,
+  original kit 39159627909 and license/source 39159627993 on 7139 all pass.
+  Ordinary 39160309610 / 693f887 all five jobs pass (196 frontend/six browser/both
+  Windows rollback paths). Preserve real startup-badge timeout and QA-only diagnostic
+  retry; no wait/assertion/product change or inferred root cause. 14-file MIT only.
   External change/date notice is NOT inline LGPL notice-completeness approval.
   No compilation FROM this envelope, durable public delivery, CRT/EULA/production
   clearance, normal install/payload/data/math or version/tag/release is inferred.

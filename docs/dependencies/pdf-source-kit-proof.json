@@ -1,11 +1,11 @@
 {
   "schema": 1,
-  "run_id": 39150398698,
-  "head_sha": "f4c088b391ab1405623ce1a6908a60ad42f4ea6e",
+  "run_id": 39159627909,
+  "head_sha": "7139e41c7a8652757ebd92ffcd9612c4d23f0d25",
   "workflow_path": ".github/workflows/pdf-source-kit.yml",
-  "job_id": 117742682013,
+  "job_id": 117770000566,
   "conclusion": "success",
-  "kit_manifest_sha256": "66cfb2dbfbe5b7defabd68f4b108acab76a070eef554771f8f091a2cfe7f6ff3",
+  "kit_manifest_sha256": "a6a018c4a853393826fd593279b5a01c7127965981d79f4b1f46fe120d8c70c8",
   "kit_manifested_files": 26,
   "licensed_build_files": 14,
   "original_source_archive_sha256": "259532d2cd8c5d3b176402acdcfb9daadb2cb897d5710010cc198eeabe5401de",
@@ -23,11 +23,11 @@
     "second_read_only_verification": "success"
   },
   "retained_artifact": {
-    "id": 12144293641,
+    "id": 12148511420,
     "name": "private-native-source-kit-not-recipient-publication",
-    "size_in_bytes": 177965462,
-    "digest": "sha256:529042ced9bca00a76cee0bab96f7034f7f153948d2203e48fa9eddd7a34aad0",
-    "expires_at": "2027-01-16T17:36:51Z",
+    "size_in_bytes": 177972890,
+    "digest": "sha256:2b8efcfac6f8979a20ff91afd0c0e13fc20309da38eb3a3893601c3c4ffe3764",
+    "expires_at": "2027-01-16T19:37:40Z",
     "retention_days": 90,
     "recipient_source_delivery": false
   },
@@ -51,7 +51,7 @@
   "recipient_receipt": {
     "schema": 1,
     "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
-    "kit_manifest_sha256": "66cfb2dbfbe5b7defabd68f4b108acab76a070eef554771f8f091a2cfe7f6ff3",
+    "kit_manifest_sha256": "a6a018c4a853393826fd593279b5a01c7127965981d79f4b1f46fe120d8c70c8",
     "external_manifest_hash_checked": true,
     "authentication": "REQUIRES_TRUSTED_EXTERNAL_DIGEST_AND_VERIFIER",
     "kit_files": 26,
@@ -172,5 +172,46 @@
     "pre_upload_verification_is_not_downloaded_artifact_completeness": true,
     "subsequently_proven_transport_failure": "docs/dependencies/pdf-modified-source-transport-failure.json",
     "note": "Historical assembly/extraction proofs remain valid for producer files, not assumed to prove hidden sidecar members survived upload. Current source artifact workflows explicitly include hidden scoped files; modified-kit workflow actually downloads and verifies on Windows."
+  },
+  "historical_pre_modified_archive_packaging_kit": {
+    "run_id": 39150398698,
+    "head_sha": "f4c088b391ab1405623ce1a6908a60ad42f4ea6e",
+    "job_id": 117742682013,
+    "kit_manifest_sha256": "66cfb2dbfbe5b7defabd68f4b108acab76a070eef554771f8f091a2cfe7f6ff3",
+    "retained_artifact": {
+      "id": 12144293641,
+      "name": "private-native-source-kit-not-recipient-publication",
+      "size_in_bytes": 177965462,
+      "digest": "sha256:529042ced9bca00a76cee0bab96f7034f7f153948d2203e48fa9eddd7a34aad0",
+      "expires_at": "2027-01-16T17:36:51Z",
+      "retention_days": 90,
+      "recipient_source_delivery": false
+    },
+    "recipient_receipt": {
+      "schema": 1,
+      "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+      "kit_manifest_sha256": "66cfb2dbfbe5b7defabd68f4b108acab76a070eef554771f8f091a2cfe7f6ff3",
+      "external_manifest_hash_checked": true,
+      "authentication": "REQUIRES_TRUSTED_EXTERNAL_DIGEST_AND_VERIFIER",
+      "kit_files": 26,
+      "licensed_files": 14,
+      "verified_sources": {
+        "packages": 20,
+        "source_entries": 25505,
+        "source_symlinks": 21
+      },
+      "source_archive_sha256": "259532d2cd8c5d3b176402acdcfb9daadb2cb897d5710010cc198eeabe5401de",
+      "recipient_source_delivery": false,
+      "actual_extracted_source_trees_rehashed": 20
+    }
+  },
+  "downloaded_original_subkit_verification": {
+    "run_id": 39159627961,
+    "job_id": 117770484713,
+    "original_subkit_manifest_matches_this_kit_manifest": true,
+    "all_files_verified_after_actual_artifact_download": true,
+    "hidden_licensed_workflow_retained": true,
+    "original_kit_manifest_sha256": "a6a018c4a853393826fd593279b5a01c7127965981d79f4b1f46fe120d8c70c8",
+    "private_only": true
   }
 }
