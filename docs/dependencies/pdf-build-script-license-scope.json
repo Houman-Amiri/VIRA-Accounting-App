@@ -71,7 +71,7 @@
       "corresponding_source_member": null
     },
     "scripts/prepare_pdf_local_sources.py": {
-      "sha256_lf": "4075488089a00516e4a8ee57d3af7de527428951f797830f8b62c08ee9a49c6a",
+      "sha256_lf": "d8a6e966c76ea1c02e927a0e6ecabd0e43f04bb7f29ac47500eec2f8eacd10f1",
       "corresponding_source_member": null
     },
     "docs/dependencies/pdf-local-source-port-pins.json": {

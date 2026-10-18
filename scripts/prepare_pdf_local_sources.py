@@ -221,7 +221,9 @@ def prepare(kit: Path, sources: Path, destination: Path, expected_manifest_sha25
                              "transformed_port_sha256": sha(transformed.encode()), "source_path": str(root.resolve())}
             reference["source_packages"][name].update(actual)
         # Validate every input before creating anything at the destination.
+        mit_notice = (ROOT / "LICENSES/VIRA-PDF-BUILD-MIT.txt").read_bytes()
         destination.mkdir(parents=True, exist_ok=False)
+        (destination / "VIRA-PDF-BUILD-MIT.txt").write_bytes(mit_notice)
         for name, record in records.items():
             port = destination / name
             port.mkdir()

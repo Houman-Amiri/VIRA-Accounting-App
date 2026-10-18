@@ -144,6 +144,8 @@ def synthetic(tool, tmp_path, monkeypatch):
     pins = {"vcpkg_commit": "pinned", "source_archive_sha256": "original-archive", "packages": {"pango": pin(tool, recipe)}}
     repo = tmp_path / "trusted-repo"
     (repo / "docs/dependencies").mkdir(parents=True)
+    (repo / "LICENSES").mkdir()
+    (repo / "LICENSES/VIRA-PDF-BUILD-MIT.txt").write_text("retained full MIT notice")
     (repo / tool.PIN_FILE).write_text(json.dumps(pins))
     evidence = kit / "evidence"
     evidence.mkdir()
@@ -175,6 +177,7 @@ def test_full_preparation_retains_original_recipes_and_separates_reference_prove
     assert "vcpkg_from_github(" in (dest / "pango/upstream-portfile.cmake").read_text()
     assert "vcpkg_from_github(" not in (dest / "pango/local-portfile.cmake").read_text()
     assert (dest / "UPSTREAM-VCPKG-LICENSE.txt").read_text() == "upstream license retained"
+    assert (dest / "VIRA-PDF-BUILD-MIT.txt").read_text() == "retained full MIT notice"
     ref = json.loads((dest / "local-source-reference.json").read_text())
     assert ref["source_archive"] is None
     assert ref["original_source_archive"]["sha256"] == "original-archive"
