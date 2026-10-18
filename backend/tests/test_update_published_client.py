@@ -78,7 +78,7 @@ def test_failure_diagnostics_survive_windows_code_page(tmp_path, harness, monkey
     import io
 
     file = tmp_path / "server.log"
-    file.write_bytes("خطای راه‌اندازی — 100%\r\nnext".encode("utf-8"))
+    file.write_bytes("خطای راه‌اندازی — 100%\r\nnext".encode())
     buffer = io.BytesIO()
     stdout = io.TextIOWrapper(buffer, encoding="cp1252")
     monkeypatch.setattr(harness.sys, "stdout", stdout)

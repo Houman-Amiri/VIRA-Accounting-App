@@ -1049,3 +1049,33 @@ The permissions substep is confirmed; recipe completeness and every other native
 runtime gate remain open. BLOCKED is project release-readiness, not an extra MIT
 restriction. No application-wide MIT grant, native-runtime integration, binary
 publication/version/tag/release, user-data/pricing change or human acceptance.
+
+### گام دستور مستقل native PDF و شواهد CRT — ۲۰۲۶-۱۰-۱۸
+
+ورودی `rebuild_pdf_native.ps1` و بازرس native به‌عنوان مشتقات ابزار ساخت MIT،
+صریحاً در دامنهٔ ۱۱فایلی ثبت شده‌اند؛ مجوز برنامه عوض نشده است.
+[راهنمای ساخت مستقل](docs/dependencies/pdf-native-rebuild-guide.md) از سایدکار و
+مسیر مطلقِ جدید، vcpkg پین‌شده و cache خاموش استفاده می‌کند؛ کامپایل به checkout
+برنامه، Node/uv/Python برنامه، staging یا دیتابیس نیاز ندارد. Windows x64، PowerShell
+7، Git، کامپایلر/SDK با شرایط مجاز و اینترنت پیش‌نیازند؛ SDK آفلاین نیست. بازرس
+جداگانه Python/pefile می‌خواهد. overlay و تغییر مجاز سورس ممنوع نشده‌اند؛ هش مرجع
+فقط معیار baseline است.
+
+[proof ساخت طولانی مستقل و تست‌های عادی](docs/dependencies/pdf-native-rebuild-proof-run.json)
+مرجع وضعیت نهایی است: اجرای plan یا تست قرارداد، موفقیت کامپایل واقعی نیست.
+ممیزی باید ۲۰ درخت سورس مرجع و ۲۱ DLL/مالک/closure و مسیر واقعی بارگذاری را بررسی
+کند؛ این هم اثبات PDF برنامه با DLL جدید، بازتولید بیت‌به‌بیت یا پذیرش نصب نیست.
+
+کامپایلر اصلی از log واقعی مشخص شد: MSVC 19.51.36260.0، VS18/v145، مسیر ابزار
+14.51.36231 و SDK/rc 10.0.26100.0؛ نه MSC1944 متعلق به Python همراه. متن‌های
+نصب‌شده و توافق‌های رسمی ۲۰۲۶ VS/Build Tools/C++ Runtime بررسی و
+[نشانی‌ها/بندها](docs/dependencies/pdf-crt-official-reference-review.json) ثبت شدند.
+حقوق trial/full-use، استثنای ساخت وابستگی متن‌باز و نصب runtime با مجوز توزیع یکی
+نیستند؛ entitlement و تطبیق CRT استاتیک بازند. نصب runner یا فهرست REDIST جای
+اجازهٔ حقوقی نیست؛ برای DOCX صرفاً parse‌شده هش خام اختراع نشده است.
+
+[گزارش فارسی](docs/reports/pdf-native-independent-rebuild-fa.md) شکست واقعی readiness/
+rollback ویندوز و اصلاح diagnostic مربوط به cp1252 را هم حفظ می‌کند؛ سلامت و hash
+ضعیف نشده‌اند. ۴۷۶ تست بک‌اند محلی، Ruff و Mypy/۸۴ موفق‌اند. شش گیت توزیع همچنان
+ردیابی می‌شوند؛ موتور وارد payload عادی نشده، نسخه/تگ/انتشار نداریم و داده/محاسبه
+یا پذیرش نصب‌شده تغییر نکرده است.

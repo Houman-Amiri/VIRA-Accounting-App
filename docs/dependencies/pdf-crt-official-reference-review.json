@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "review_date": "2026-10-18",
+  "status": "OFFICIAL_TERMS_IDENTIFIED_CONDITIONS_NOT_DISTRIBUTION_APPROVAL",
+  "raw_remote_document_sha256": null,
+  "remote_evidence_method": "Official Microsoft pages and DOCX files parsed by fetch_page. No raw remote-file checksum is claimed; installed-file checksums are recorded separately.",
+  "sources": [
+    {
+      "url": "https://visualstudio.microsoft.com/license-terms/",
+      "role": "Official directory distinguishing Enterprise/Professional, Build Tools and C++ Runtime 2026 agreements",
+      "finding": "Use the actual 2026 terms, not an assumed 2022 agreement or the 190-byte installed REDIST forwarding stub."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/visualstudio/releases/2026/redistribution",
+      "section": "Distributable Code Files for Visual Studio 2026 and later; Visual C++ Runtime Files",
+      "quote": "If you have a validly licensed copy of such software, you may copy and distribute with your program the unmodified form of the files listed below, subject to the License Terms for the software.",
+      "finding": "The list identifies VC145/redist files and excludes debug_nonredist/preview components. A filename list is not unconditional permission and does not itself establish static-CRT source/object licensing coverage."
+    },
+    {
+      "url": "https://visualstudio.microsoft.com/wp-content/uploads/2025/10/Visual_Studio_2026-License-Enterprise_Professional_ENU.docx",
+      "official_landing_page": "https://visualstudio.microsoft.com/license-terms/vs2026-ga-pro-enterprise/",
+      "last_updated_in_document": "2025-10-01",
+      "sections_reviewed": ["I.a trial restrictions", "II.6(c) build devices", "II.6(g) separately licensed components", "II.7 distributable code", "II.10 scope"],
+      "finding": "Full-use and trial rights differ; trial-built production distribution is not permitted by the trial clause. Section 7 distribution is conditional, requires significant functionality and protective terms, and contains an Excluded License restriction. A hosted Enterprise installation path does not alone prove the applicable full-use entitlement."
+    },
+    {
+      "url": "https://visualstudio.microsoft.com/wp-content/uploads/2025/10/Visual_Studio_2026-License-Diagnostic_and_Build_Tools_ENU.docx",
+      "official_landing_page": "https://visualstudio.microsoft.com/license-terms/vs2026-ga-diagnostic-buildtools/",
+      "last_updated_in_document": "2025-10-01",
+      "sections_reviewed": ["1(a)-(e) installation/use", "2(b) build devices", "4(e)-(f) scope"],
+      "finding": "The separate open-source-dependency build permission in 1(d) has prerequisites and 1(e) restricts development/testing modifications without a Visual Studio Product license. It must not be presented as an unconditional redistribution grant or proof of arbitrary LGPL-modification rights with that compiler."
+    },
+    {
+      "url": "https://visualstudio.microsoft.com/wp-content/uploads/2025/10/Visual-C-V14-License-Redistributable_and_Runtime_ENU.docx",
+      "official_landing_page": "https://visualstudio.microsoft.com/license-terms/vs2026-ga-visualcpp-v14-redist-runtime/",
+      "last_updated_in_document": "2025-10-01",
+      "sections_reviewed": ["1 installation/use", "3 third-party components", "4(e)-(f) distribution restrictions"],
+      "quote": "You may install and use any number of copies of the software.",
+      "finding": "Installation/use permission is not permission to redistribute. Section 4 separately restricts sharing/distribution. Do not substitute this end-user runtime agreement for the applicable developer distribution rights."
+    },
+    {
+      "url": "https://github.com/MicrosoftDocs/cpp-docs/blob/64d64c38a91851deeb0838da6163005e25a15159/docs/windows/redistributing-visual-cpp-files.md",
+      "attribution": "Microsoft documentation, CC-BY-4.0; short excerpt, no endorsement implied",
+      "quote": "Distribution of the Visual C++ Runtime Redistributable package, merge modules, and individual binaries is limited to licensed Visual Studio users and is subject to Microsoft Software License Terms."
+    },
+    {
+      "url": "https://github.com/MicrosoftDocs/cpp-docs/blob/8c10ba44ad09b39449ba78f81ca4ed3b1765e81d/docs/windows/latest-supported-vc-redist.md",
+      "attribution": "Microsoft documentation, CC-BY-4.0; findings paraphrased, not a new license grant",
+      "finding": "The current v14 documentation explicitly covers Visual Studio 2017 through 2026; runtime version/architecture/OS compatibility and licensing are distinct checks."
+    }
+  ],
+  "remaining_checks": [
+    "Identify the applicable compiler-use/distribution entitlement for the actual build context without requesting or recording product keys or credentials.",
+    "Map the actual statically linked MSVC/UCRT components to the applicable agreements, not merely a dynamic-REDIST filename list.",
+    "Ensure upstream LGPL system-library/source exceptions and replacement/debugging rights remain compatible with the selected CRT and application/EULA packaging route.",
+    "Provide required notices/source and verify the actual installed replacement/update behavior before production native integration."
+  ],
+  "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW"
+}

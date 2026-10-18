@@ -190,16 +190,30 @@
     },
     {
       "id": "COMPILER_CRT_TERMS",
-      "requirement": "Record exact MSVC/Windows SDK versions and applicable redistribution terms for the statically linked target CRT. No inferred Microsoft permission."
+      "requirement": "Record exact MSVC/Windows SDK versions and applicable redistribution terms for the statically linked target CRT. No inferred Microsoft permission.",
+      "progress": {
+        "original_compiler_evidence": "docs/dependencies/pdf-native-original-compiler-evidence.json",
+        "actual_original_msvc": "19.51.36260.0",
+        "actual_original_toolset": "v145 / VS 18 Enterprise / tools path 14.51.36231",
+        "actual_original_sdk_rc": "10.0.26100.0",
+        "installed_terms_evidence": "docs/dependencies/pdf-native-installed-terms-evidence.json",
+        "official_2026_terms_review": "docs/dependencies/pdf-crt-official-reference-review.json",
+        "entitlement_and_static_component_mapping": "PENDING_NOT_INFERRED_FROM_RUNNER_OR_REDIST_LIST",
+        "gate_closed": false
+      }
     },
     {
       "id": "BUILD_SCRIPT_PERMISSIONS_AND_COMPLETENESS",
-      "requirement": "Owner confirmed MIT for the explicitly listed VIRA native PDF build files on 2026-10-18; see pdf-build-script-license-scope.json. Preserve the grant/license with those sources. Full standalone recipe/workflow dependency completeness remains unproven; no grant for application/staging files or third-party code.",
+      "requirement": "Owner confirmed MIT for explicitly scoped native PDF build files and derivatives; no application/staging/third-party grant. Native-only entry point and isolated baseline build proof are tracked separately from the historical app-dependent workflow. Recipient-ready source/recipe assembly and applicable toolchain prerequisites still need review.",
       "progress": {
         "scoped_native_build_permissions": "OWNER_CONFIRMED_MIT",
         "scope_file": "docs/dependencies/pdf-build-script-license-scope.json",
-        "standalone_recipe_completeness": "PENDING",
-        "gate_closed": false
+        "standalone_recipe_completeness": "NATIVE_BASELINE_CI_IN_PROGRESS_RECIPIENT_ASSEMBLY_PENDING",
+        "gate_closed": false,
+        "licensed_files": 11,
+        "native_only_entry_point": "scripts/rebuild_pdf_native.ps1",
+        "standalone_recipe_guide": "docs/dependencies/pdf-native-rebuild-guide.md",
+        "independent_rebuild_proof": "docs/dependencies/pdf-native-rebuild-proof-run.json"
       }
     },
     {

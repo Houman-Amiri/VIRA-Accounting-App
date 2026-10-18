@@ -518,3 +518,38 @@ The permissions substep is confirmed; recipe completeness and every other native
 runtime gate remain open. BLOCKED is project release-readiness, not an extra MIT
 restriction. No application-wide MIT grant, native-runtime integration, binary
 publication/version/tag/release, user-data/pricing change or human acceptance.
+
+### Independent native-only PDF recipe and compiler/CRT evidence (2026-10-18)
+
+The next authorized preparation step adds `rebuild_pdf_native.ps1` and its native
+inspector as explicit MIT build-tool derivatives (11 files now, not an app-wide
+license). The [native-only guide](docs/dependencies/pdf-native-rebuild-guide.md)
+uses a NEW absolute work directory, pinned vcpkg and disabled binary caches; no
+application checkout, Node/uv/app Python/staging/database is needed to compile.
+Windows x64, PowerShell 7, Git, appropriately licensed MSVC/SDK and downloads are
+prerequisites, not an offline SDK. Python/pefile is an optional separate inspector.
+Modified overlays are permitted; baseline hash comparison is not a legal ban on
+MIT/LGPL modifications. Historical archive/grant proofs remain historical.
+
+[Independent run and regression evidence](docs/dependencies/pdf-native-rebuild-proof-run.json)
+is authoritative for the long Windows build's final status; plan/contract-test
+success MUST NOT be reported as completed native compilation. The audit requires
+20 reference preferred-source trees, 21 DLL owners/PE closure and actual private
+loaded origins. Even a successful native audit is not app rendering with these
+new DLLs, bitwise reproduction or production installation/update acceptance.
+
+Actual original compiler records identify MSVC 19.51.36260.0, VS18/v145, tools path
+14.51.36231 and SDK rc 10.0.26100.0, NOT bundled Python's MSC1944. Installed terms
+and official 2026 Enterprise/Professional, Build Tools and C++ Runtime agreements
+are now recorded in the [official reference review](docs/dependencies/pdf-crt-official-reference-review.json).
+Full-use/trial, OSS Build Tools compilation exceptions and runtime installation
+rights are distinct from conditional redistribution. Runner installation and a
+REDIST filename list do not establish entitlement or static-CRT component coverage.
+No remote raw-DOCX checksum is claimed from parsed text. CRT gate remains open.
+
+[Persian report](docs/reports/pdf-native-independent-rebuild-fa.md) preserves the
+ordinary Windows readiness/rollback failure and cp1252 diagnostic fix; no failing
+gate may be hidden by local passes or weakened readiness/hash checks. 476 backend
+tests locally, Ruff and Mypy/84 pass. Six distribution gates remain tracked; native
+integration remains BLOCKED. No runtime payload, release/version/tag, accounting
+values, real user data or installed-user acceptance changed.

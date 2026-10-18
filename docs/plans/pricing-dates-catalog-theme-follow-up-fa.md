@@ -236,3 +236,19 @@ rollback و پذیرش نصب‌شده بازند. مجوز MIT برای کده�
 نتیجهٔ نهایی همین تأیید: هر پنج job عادی `39104212641` و ممیزی/ضمیمهٔ محدود
 `39104212604` روی `0742355` موفق شدند؛ شامل ویندوز، PDF، ۱۹۶ تست فرانت‌اند، شش
 سناریوی مرورگر و rollback واقعی. [proof](../dependencies/pdf-build-script-license-proof.json).
+
+### ادامهٔ دستور ساخت مستقل native PDF و بررسی واقعی CRT
+
+دستور بعدی «ادامه بده» به ورودی مستقل native، build واقعی ایزوله و شواهد نسخه/
+شرایط کامپایلر محدود شد؛ نه نصب عادی یا انتشار. دامنهٔ MIT اکنون ۱۱ فایل صریح
+است و برنامه را شامل نمی‌شود. [راهنما](../dependencies/pdf-native-rebuild-guide.md)،
+[proof/وضعیت ساخت طولانی و regression](../dependencies/pdf-native-rebuild-proof-run.json)
+و [گزارش فارسی](../reports/pdf-native-independent-rebuild-fa.md) مرجع‌اند؛ plan و
+تست قرارداد جای کامپایل واقعی را نمی‌گیرند.
+
+MSVC واقعی 19.51.36260.0، VS18/v145 و SDK/rc 10.0.26100.0 از artifact اصلی
+ثبت شد؛ متن‌های نصب‌شده و توافق‌های رسمی ۲۰۲۶ هم بررسی شدند، بدون استنباط اجازهٔ
+توزیع از نصب runner/REDIST یا مجوز نصب runtime. حقوق/تطبیق CRT، source delivery،
+LGPL replacement و production bootstrap/native updates بازند. شکست واقعی ویندوز
+و اصلاح diagnostic در proof حفظ می‌شوند. ۴۷۶ تست بک‌اند محلی و Ruff/Mypy موفق‌اند؛
+هیچ داده/محاسبه، DLL عادی، نسخه/تگ/انتشار یا پذیرش انسانی ایجاد نشده است.

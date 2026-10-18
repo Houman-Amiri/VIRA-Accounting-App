@@ -7,6 +7,24 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Independent native PDF rebuild preparation and CRT evidence
+- Add an isolated PowerShell 7 native-only build entry point and native inspector,
+  explicit MIT derivatives within the 11-file allowlist. Compile from the licensed
+  sidecar, fresh absolute work directory and pinned vcpkg without application,
+  Node/uv/app Python/staging dependencies; clear binary caches and permit overlays.
+- Record actual original MSVC 19.51 / VS18-v145 / SDK 26100 compiler logs, installed
+  English terms and official 2026 VS/Build Tools/C++ Runtime agreements. Keep
+  entitlement/static-CRT mapping pending; installation/REDIST is not legal approval.
+- Track the real isolated Windows rebuild and ordinary regression in
+  `docs/dependencies/pdf-native-rebuild-proof-run.json`; do not equate plan tests
+  with completed compilation or native loading with app/installed acceptance.
+- Preserve Windows readiness/rollback failure evidence; make test-harness failure
+  annotations Unicode/code-page safe without weakening readiness or hashes. Add
+  exact-CRLF/cp1252 regression coverage; 476 backend tests locally, Ruff/Mypy pass.
+- No native payload integration, release/tag/version, broad license, user-data or
+  pricing changes; source delivery and all remaining production gates stay open.
+
+
 ### Owner-approved MIT grant for native PDF build files only
 - Record explicit owner consent (2026-10-18) and the full MIT text for nine listed
   native PDF build/configuration/documentation/checker files. Exact reference
