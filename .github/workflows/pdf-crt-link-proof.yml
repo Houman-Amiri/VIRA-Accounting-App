@@ -67,6 +67,11 @@ jobs:
             Copy-Item "$out/$name" reports/crt-link/
           }
           $log = Get-Content "$out/link.log" -Raw
+          $tail = $log.Substring([Math]::Max(0, $log.Length - 9000))
+          for ($i = 0; $i -lt $tail.Length; $i += 3000) {
+            $piece = $tail.Substring($i, [Math]::Min(3000, $tail.Length - $i)).Replace('%','%25').Replace("`r",'%0D').Replace("`n",'%0A')
+            Write-Host "::notice title=Actual CRT linker diagnostic tail::$piece"
+          }
           $searched = @()
           foreach ($m in [regex]::Matches($log, '(?im)^\s*Searching\s+(.+?\.lib):\s*$')) {
             $path = $m.Groups[1].Value.Trim()
