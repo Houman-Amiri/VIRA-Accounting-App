@@ -1,5 +1,7 @@
 /** Isolated Windows fixture only: actual browser, API, HTTP ZIP and helper. */
 const { chromium, expect } = require("../frontend/node_modules/@playwright/test");
+// Bounded, header-free evidence only; never change timeouts or bypass badge checks.
+const startupChecks = [];
 async function stepUp(page) {
   // Historical 1.0.9 has no sudo test IDs. Use its real native dialog/form,
   // and observe the UI's authenticated request (sudo token is JS memory, not
@@ -16,6 +18,17 @@ async function stepUp(page) {
   try {
     const page = await browser.newPage();
     const base = process.env.VIRA_NATIVE_BASE;
+    page.on("response", async (response) => {
+      if (new URL(response.url()).pathname !== "/api/v1/system/check-updates") return;
+      const record = { status: response.status() };
+      try {
+        const body = await response.json();
+        for (const key of ["current", "latest", "update_available", "checked"])
+          if (Object.hasOwn(body, key)) record[key] = body[key];
+      } catch { record.body_unreadable = true; }
+      if (startupChecks.length < 8) startupChecks.push(record);
+      console.log("Native startup check:", JSON.stringify(record));
+    });
     await page.goto(base + "/login");
     await page.getByTestId("login-username").fill("owner");
     await page.getByTestId("login-password").fill(process.env.VIRA_NATIVE_PASSWORD);
@@ -85,6 +98,7 @@ async function stepUp(page) {
     console.log("Native in-app update:", process.env.VIRA_NATIVE_EXPECTED, "— consent, delta-only, SQLite schema/data and receipt integrity verified");
   } finally { await browser.close(); }
 })().catch((error) => {
+  console.error("::notice title=native browser startup evidence::" + JSON.stringify(startupChecks).replaceAll("%", "%25"));
   const raw = String(error.stack || error).split(process.env.VIRA_NATIVE_PASSWORD || "__no_password__").join("[fixture password]")
     .replace(/(cookie|authorization|x-csrf-token|x-sudo-token)\s*:\s*[^\r\n]*/gi, "$1: [REDACTED]");
   const text = raw.length > 2300 ? raw.slice(0, 1100) + "\n...\n" + raw.slice(-1100) : raw;
