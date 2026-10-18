@@ -7,6 +7,20 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Dated inline Pango notice and actual noticed-source-archive build/PDF (private)
+- Add in-file change/date notice without removing upstream headers. Package new
+  complete source ZIP b1078a6bba74d86565b97694c8ac2afc6adf15c045a843cdbf55cb08f6226fc2
+  (188617046 bytes); preserve immutable original and historical witnesses.
+- 39165372821 / 84c20ac SUCCESS: download/authenticate against independent producer
+  job pins, extract and cold-compile exact noticed archive sources BEFORE app deps;
+  20 actual buildtrees, noticed Pango bytes and 21 DLLs bound to real app PDF.
+  Production CPython 3.11.17/Persian-spaced payload, Pango private suffix, A4 one/four
+  pages, Vazirmatn 400/700/all digits pass; source envelope reverified afterward.
+- Separate pending packaging record from fresh completed build proof. Ten new
+  tests; 607 backend, Ruff/Mypy84/Bandit/license14 pass. This is not full legal/CRT/
+  EULA/production/durable-source/installed-user approval; all six gates stay open.
+  No install/data/math/normal payload/broad license/version/tag/release change.
+
 ### Complete modified native PDF source review archive (private, no release)
 - Package a separate full modified ZIP alongside the immutable original kit,
   scoped-MIT recipe and notices; bind all 20 preferred source trees to the actual

@@ -186,7 +186,13 @@
   "open_gates": [
     {
       "id": "COMPLETE_COMPONENT_LEGAL_REVIEW",
-      "requirement": "Review original and supplemental texts, subcomponents, selected LGPL/FTL alternatives, static/header dependencies; prepared notices are not legal sign-off."
+      "requirement": "Review original and supplemental texts, subcomponents, selected LGPL/FTL alternatives, static/header dependencies; prepared notices are not legal sign-off.",
+      "progress": {
+        "private_inline_notice_present_in_compiled_source": true,
+        "private_noticed_archive_build_proof": "docs/dependencies/pdf-noticed-archive-build-proof.json",
+        "legal_notice_completeness_approved": false,
+        "gate_closed": false
+      }
     },
     {
       "id": "COMPILER_CRT_TERMS",
@@ -227,7 +233,12 @@
         "local_modified_build_is_distribution_candidate": false,
         "new_modified_corresponding_source_archive_prepared": true,
         "modified_source_kit_proof": "docs/dependencies/pdf-modified-source-kit-proof.json",
-        "new_native_build_from_modified_review_envelope_proven": false
+        "new_native_build_from_modified_review_envelope_proven": false,
+        "noticed_archive_actual_native_build_and_app_pdf": "SUCCESS_20_TREES_21_DLLS_FROM_DOWNLOADED_NOTICED_ARCHIVE",
+        "noticed_archive_build_proof": "docs/dependencies/pdf-noticed-archive-build-proof.json",
+        "noticed_archive_run_id": 39165372821,
+        "new_native_build_from_noticed_source_envelope_proven": true,
+        "prior_unnoticed_review_envelope_build_claim_remains_false": true
       }
     },
     {
@@ -242,7 +253,10 @@
         "modified_source_kit_proof": "docs/dependencies/pdf-modified-source-kit-proof.json",
         "modified_source_archive_sha256": "1d56fe9a3305f3b9bb7a741dbb697b7d5b9a80a74a1c7bb172e91895ea311921",
         "actual_windows_artifact_extraction_and_recipe_preparation_verified": true,
-        "inline_modified_file_notice_compliance_approved": false
+        "inline_modified_file_notice_compliance_approved": false,
+        "noticed_modified_source_archive_sha256": "b1078a6bba74d86565b97694c8ac2afc6adf15c045a843cdbf55cb08f6226fc2",
+        "noticed_archive_build_proof": "docs/dependencies/pdf-noticed-archive-build-proof.json",
+        "inline_change_date_notice_present_in_compiled_source": true
       }
     },
     {
@@ -255,7 +269,9 @@
         "observed_pango_version_string": "1.58.0-vira-local-source",
         "actual_installed_replacement_proven": false,
         "eula_compatibility_approved": false,
-        "gate_closed": false
+        "gate_closed": false,
+        "private_noticed_archive_render_proven": true,
+        "private_noticed_archive_proof": "docs/dependencies/pdf-noticed-archive-build-proof.json"
       }
     },
     {
@@ -267,7 +283,8 @@
         "production_fontconfig_unicode_environment_proven": false,
         "ordinary_native_bootstrap_and_delta_integrated": false,
         "installed_user_acceptance": "DEFERRED_NOT_ACCEPTED",
-        "gate_closed": false
+        "gate_closed": false,
+        "private_noticed_archive_pdf_vazirmatn_and_digits": "VERIFIED_NOT_PRODUCTION_BOOTSTRAP_OR_INSTALLED_ACCEPTANCE"
       }
     }
   ],

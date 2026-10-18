@@ -716,3 +716,31 @@ archive), and historical proofs retain their original preparation flags. No new
 compilation FROM this envelope is claimed. Six gates OPEN; no anonymous durable
 public source delivery, CRT/EULA/production clearance, release/tag/version, normal
 payload/install/data/math or installed acceptance change.
+
+### Inline modification/date notice, actual archive build and PDF — 2026-10-19
+
+Authorized private step **SUCCESS: 39165372821 / 84c20ac**. Add prominent dated
+notice INSIDE the modified Pango file; retain all upstream headers and original
+ZIP. New complete archive: 188617046 bytes, SHA256
+`b1078a6bba74d86565b97694c8ac2afc6adf15c045a843cdbf55cb08f6226fc2`.
+Windows actually DOWNLOADS and authenticates it against producer-job output pins
+separate from the artifact bytes. Compile those extracted sources, WITHOUT any
+post-extraction edit or binary cache, BEFORE installing application dependencies.
+All 20 real buildtrees and noticed Pango bytes match the archive inputs; 21 DLL
+origins/closure/hashes match the candidate and real PDF process. Production CPython
+3.11.17, isolated Persian/spaced payload, Pango 1.58.0-vira-local-source, one/four
+A4 pages, embedded/used Vazirmatn 400/700/all 30 digit glyphs pass. Reverify the exact
+source envelope AFTER compilation/rendering. No bitwise/offline claim.
+
+[Persian report](docs/reports/pdf-noticed-archive-build-fa.md),
+[archive/build/PDF proof](docs/dependencies/pdf-noticed-archive-build-proof.json),
+with independently hashed complete new witness. Preserve historical evidence and
+the packaging-time false fresh-build flag; the NEW witness binds success to that
+exact source archive, not the old build. Old adapter's source_archive=null remains
+scoped/truthful. Ten new tests; 607 backend, Ruff/Mypy84/Bandit/license14 pass.
+
+Technical inline-notice and compile-FROM-this-archive gaps are now proven, NOT
+legal approval, recipient-ready/toolchain review, durable anonymous source delivery,
+CRT rights, EULA/installed DLL replacement, production Unicode bootstrap/Inno/native
+delta/rollback or installed-user acceptance. All six policy gates stay OPEN. No
+normal payload/install/data/math, broad app/QA license, version/tag/release change.

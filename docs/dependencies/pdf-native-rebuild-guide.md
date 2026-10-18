@@ -293,3 +293,58 @@ Source artifacts must opt in to retaining the explicitly licensed hidden
 alone is NOT proof that the transport retained every file. The modified-kit CI
 actually downloads and verifies the artifact on Windows before preparing recipes.
 See [the packaging phase report](../reports/pdf-modified-source-kit-fa.md).
+
+
+## Noticed modified archive: fresh compile FROM the downloaded source envelope
+
+The dated inline-notice candidate is DISTINCT from the older suffix-only archive.
+See `pdf-noticed-archive-build-proof.json` and the Persian report for the exact
+successful producer run, independent source-kit manifest digest, archive SHA256,
+new file/tree hashes and fresh native/app witness. Historical packaging-time
+`new_native_build_from_this_envelope_proven=false` describes that point in time;
+keep it unchanged and consult the separately authenticated completed-build proof.
+Do not substitute the retained old witness for the new source bytes.
+
+Authenticate the publisher/run/digest and trusted verifier/checker independently.
+Using a trusted verifier from that exact reviewed build-tool revision, not
+unchecked code from the artifact, in PowerShell 7:
+
+```powershell
+python -I -S C:/trusted-recipe/scripts/pdf_source_kit.py `
+  --verify-modified C:/noticed-kit --expected-manifest-sha256 TRUSTED_NOTICED_MANIFEST `
+  --extract-sources C:/new-noticed-inputs
+
+# The verified receipt supplies the separate original_kit_manifest_sha256.
+Copy-Item C:/noticed-kit/original-kit/licensed-build-files C:/new-native-recipe -Recurse
+python -I -S C:/new-native-recipe/scripts/prepare_pdf_local_sources.py `
+  --kit C:/noticed-kit/original-kit --expected-manifest-sha256 TRUSTED_ORIGINAL_MANIFEST `
+  --sources C:/new-noticed-inputs --out C:/new-noticed-overlay --allow-modified
+
+cd C:/new-native-recipe
+pwsh -NoProfile -File scripts/rebuild_pdf_native.ps1 `
+  -WorkDir C:/new-noticed-native-build -OverlayPorts C:/new-noticed-overlay
+python -I -S scripts/prepare_pdf_local_sources.py `
+  --check-inputs C:/new-noticed-overlay/local-source-preparation.json
+
+# Optional native inspector, with the separately described pefile prerequisite:
+python -B scripts/audit_pdf_native_rebuild.py `
+  --sidecar C:/new-native-recipe --work C:/new-noticed-native-build `
+  --reference C:/new-noticed-overlay/local-source-reference.json `
+  --out C:/evidence/noticed-native-audit.json
+```
+
+Do NOT edit the extracted source copy between archive verification and this
+replay. Compare all twenty prepared/actual buildtree hashes to the modification
+record's `archive_source_trees`, NOT its prior-only `compiled_source_trees`; check
+the noticed Pango source file SHA256 as well. Every new output directory must be
+unused and outside the kit/input trees; Windows needs real relative file symlinks.
+The recipe copy avoids temporary compiler/Python files mutating the authenticated
+envelope. The original source ZIP remains unchanged provenance; the old adapter's
+`source_archive=null` flag does not assert absence of the separate new envelope.
+
+The private CI separately binds the same newly built DLL hashes/origins to the
+app's real production-interpreter PDF process, then re-verifies the exact downloaded
+source envelope. App QA is NOT part of the 14-file MIT build grant and is NOT a
+prerequisite to compiling the native libraries. Appropriate toolchain rights,
+complete component/notice review, durable recipient delivery, installed replacement/
+EULA and production integration/acceptance remain independent open gates.
