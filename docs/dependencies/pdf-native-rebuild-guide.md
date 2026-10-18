@@ -36,7 +36,9 @@ python scripts/check_pdf_build_license.py --sidecar C:/new-licensed-build-files
 ```
 
 The **exporter** uses only standard-library Python. Recipients of the exported
-sidecar do not need Python for the native compilation command below. The old
+sidecar do not need to run the exporter or provision an application Python
+environment. vcpkg may download/use its own build tools, including Python/Meson;
+that is distinct from depending on VIRA's app environment. The old
 `source_pdf_build.ps1`/GitHub proof workflow still references app staging; do not
 use it as the independent entry point.
 

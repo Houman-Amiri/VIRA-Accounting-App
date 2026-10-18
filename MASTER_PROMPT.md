@@ -553,3 +553,19 @@ gate may be hidden by local passes or weakened readiness/hash checks. 476 backen
 tests locally, Ruff and Mypy/84 pass. Six distribution gates remain tracked; native
 integration remains BLOCKED. No runtime payload, release/version/tag, accounting
 values, real user data or installed-user acceptance changed.
+
+Independent baseline result: **39108011284 / d5b2516 succeeded**. The isolated
+entry point compiled; all 20 preferred-source tree hashes matched and all 21
+DLLs passed owner/PE-closure/private-origin loading checks. Two complete metadata
+chunks are committed in `pdf-native-independent-rebuild-evidence.json` with hash
+and log-only artifact provenance in the proof. This closes the baseline technical
+experiment, NOT CRT clearance, recipient assembly/delivery or runtime integration.
+
+Final ordinary code regression **39110216955 / 867dfd3: all five jobs passed**,
+including both Windows real in-app apply/rollback and public 1.0.10 schema/
+compiled-helper rollback; 476 backend / 196 frontend / six browser scenarios.
+71 focused checks and local app/audit Bandit pass. Initial readiness failure and
+subsequent diagnostic-test/lint corrections remain recorded; successful retry
+alone does not establish the initial readiness root cause. No production health,
+hash or rollback condition was relaxed. Final evidence updates are documentation
+only, not a new native output or release.

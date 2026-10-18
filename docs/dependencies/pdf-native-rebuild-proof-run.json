@@ -4,7 +4,7 @@
   "rebuild_head_sha": "d5b2516cca2f28f6d305f8a67c4f87d7da331f46",
   "workflow_path": ".github/workflows/pdf-native-rebuild-proof.yml",
   "rebuild_job_id": 117617944849,
-  "rebuild_status_at_recording": "IN_PROGRESS_NOT_YET_APPROVED_OR_PROVEN",
+  "rebuild_status_at_recording": "COMPLETED_SUCCESS",
   "original_compiler_evidence_job_id": 117617944668,
   "original_compiler_evidence_conclusion": "success",
   "installed_terms_run_id": 39108554105,
@@ -15,7 +15,7 @@
   "installed_terms_raw_payload_sha256": "c88a34de7a23f3ec8de395848d42a558fe571b4ab05e0329891653b79963cb20",
   "original_compiler_metadata_chunks": 15,
   "runtime_distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
-  "last_checked_at": "2026-10-18T07:53:26Z",
+  "last_checked_at": "2026-10-18T08:14:07Z",
   "installed_terms_retained_artifact": {
     "id": 12129027641,
     "name": "installed-msvc-sdk-terms-for-review",
@@ -28,7 +28,8 @@
   "evidence_files_sha256": {
     "docs/dependencies/pdf-native-original-compiler-evidence.json": "f502f5a009de74380994a1bc542c753d5a1fcaaf223e448ea4487f5cce7446ac",
     "docs/dependencies/pdf-native-installed-terms-evidence.json": "58fed37345f0a4021ba73f5a5e88c22bca0c302c4f104a27b7b3ea441fbb3b1f",
-    "docs/dependencies/pdf-crt-official-reference-review.json": "0cbe0c5d8108a4fec7c24341e3423c76ac0066f8652eca93f11c29c65e47159b"
+    "docs/dependencies/pdf-crt-official-reference-review.json": "0cbe0c5d8108a4fec7c24341e3423c76ac0066f8652eca93f11c29c65e47159b",
+    "docs/dependencies/pdf-native-independent-rebuild-evidence.json": "1018758ba6f30fc9a3a8b55ebfefdf0a62a4b9bfe2c95ba6c2c0197b94c97e43"
   },
   "ordinary_regression": {
     "initial_run_id": 39108554186,
@@ -36,18 +37,56 @@
     "initial_failed_step": "Real in-app delta apply and rollback (isolated Windows, current-code fixtures)",
     "initial_failure": "Fixture unexpectedly rolled back after target readiness/build validation failed; cp1252 diagnostics then failed with UnicodeEncodeError. Do not infer the underlying readiness cause.",
     "diagnostic_fix_commit": "ae02bb7442b3406634482a1c5b35a21b02624c70",
-    "retry_run_id": 39109778319,
-    "retry_conclusion": "PENDING",
+    "retry_run_id": 39110216955,
+    "retry_conclusion": "success",
     "diagnostic_test_windows_crlf_failure_run_id": 39109413866,
     "diagnostic_test_windows_crlf_failure": "Exact-CRLF fixture initially used write_text; Windows newline translation produced an extra carriage return. Corrected to write_bytes; no production/readiness condition changed.",
     "additional_lint_failure_run_id": 39109778319,
-    "additional_lint_failure": "UP012 on explicit UTF-8 encode default in the new diagnostic test; removed redundant argument and verified Ruff locally. Windows in-app update step passed on this retry, but that does not establish the original transient readiness failure cause."
+    "additional_lint_failure": "UP012 on explicit UTF-8 encode default in the new diagnostic test; removed redundant argument and verified Ruff locally. Windows in-app update step passed on this retry, but that does not establish the original transient readiness failure cause.",
+    "additional_lint_run_conclusion": "cancelled after replacement push; backend lint failed, Windows in-app apply/rollback passed; public-version rollback was cancelled, not passed",
+    "retry_head_sha": "867dfd326fc12407bfce9537521e3aec62b146b7",
+    "jobs_passed": 5,
+    "jobs": [
+      {
+        "id": 117624759343,
+        "name": "Frontend \u2014 lint, types, contract, tests, build",
+        "conclusion": "success"
+      },
+      {
+        "id": 117624759491,
+        "name": "Backend \u2014 lint, type, security, tests",
+        "conclusion": "success"
+      },
+      {
+        "id": 117624759579,
+        "name": "OpenAPI contract is in sync",
+        "conclusion": "success"
+      },
+      {
+        "id": 117624759585,
+        "name": "Playwright e2e (native processes)",
+        "conclusion": "success"
+      },
+      {
+        "id": 117624759592,
+        "name": "Windows-native smoke (SQLite paths, venv, build)",
+        "conclusion": "success"
+      }
+    ],
+    "backend_tests": 476,
+    "frontend_tests": 196,
+    "browser_scenarios": 6,
+    "windows_real_in_app_delta_and_rollback": "success",
+    "windows_public_1_0_10_schema_and_compiled_helper_rollback": "success",
+    "original_readiness_failure_root_cause": "NOT_ESTABLISHED_BY_SUCCESSFUL_RETRY; diagnostic emission was fixed, production readiness was not weakened"
   },
   "local_tests": {
     "backend_passed": 476,
     "ruff": "PASS",
     "mypy_app_files": 84,
-    "diagnostic_regression": "PASS"
+    "diagnostic_regression": "PASS",
+    "focused_passed": 71,
+    "bandit_app_and_changed_audit_harness": "PASS"
   },
   "no_release_or_application_license_change": true,
   "compiler_record_preview_limitations": "Collector retains at most 30 matching lines of at most 1200 characters each. lines_truncated reports the matching-line-count cap only, not per-line width clipping. Full original file hashes are retained; do not interpret these excerpts as full compiler logs.",
@@ -65,5 +104,38 @@
       "expires_at": "2027-01-16T07:31:52Z",
       "recipient_source_delivery": false
     }
-  }
+  },
+  "rebuild_conclusion": "success",
+  "rebuild_evidence_chunks": 2,
+  "rebuild_evidence_raw_payload_sha256": "1018758ba6f30fc9a3a8b55ebfefdf0a62a4b9bfe2c95ba6c2c0197b94c97e43",
+  "verified_native_rebuild": {
+    "source_package_trees": 20,
+    "native_dlls": 21,
+    "source_tree_hashes_equal_to_original_baseline": true,
+    "dll_owners_and_pe_closure_equal_to_original_baseline": true,
+    "all_selected_dlls_loaded_from_private_build_output": true,
+    "application_checkout_required": false,
+    "bitwise_reproducibility_claimed": false,
+    "app_pdf_rendering_with_this_rebuild_claimed": false
+  },
+  "rebuild_retained_artifacts": [
+    {
+      "id": 12130006924,
+      "name": "independent-native-rebuild-evidence-no-dlls",
+      "size_in_bytes": 15534,
+      "digest": "sha256:6346530c09dd938a704f5a9a3687ec44d9c385f134733866c6037986a7d20122",
+      "expires_at": "2027-01-16T07:31:52Z",
+      "retention_days": 90,
+      "recipient_source_delivery": false
+    },
+    {
+      "id": 12128643448,
+      "name": "native-compiler-and-term-evidence",
+      "size_in_bytes": 33051,
+      "digest": "sha256:51f35cbb24464f7ea40d44b5f52e3d54b84b4ab2dce6eae3277c8f2c49653cd5",
+      "expires_at": "2027-01-16T07:31:52Z",
+      "retention_days": 90,
+      "recipient_source_delivery": false
+    }
+  ]
 }

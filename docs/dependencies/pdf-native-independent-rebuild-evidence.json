@@ -1,0 +1,202 @@
+{
+  "schema": 1,
+  "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+  "application_present": false,
+  "native_compilation": "SUCCESS",
+  "preferred_source_trees": {
+    "brotli": {
+      "source_entries": 167,
+      "tree_sha256": "dbd3a49c029b7987709016c830d91d81965140cd968899774cde542e96227b52"
+    },
+    "bzip2": {
+      "source_entries": 57,
+      "tree_sha256": "eae6339dedd63e3c4919a06d34c6f720ed01ff5919858f11efaacb052d4057ec"
+    },
+    "cairo": {
+      "source_entries": 4949,
+      "tree_sha256": "c464d129dad5472d3634c2103ea7d877fbe59a660518c3a9e591dbcb7a0a591b"
+    },
+    "dirent": {
+      "source_entries": 46,
+      "tree_sha256": "af4c3eaa83c0c0b2f575b7dcd7b2ec244c0c2148606ee0e2211535b614c71995"
+    },
+    "expat": {
+      "source_entries": 232,
+      "tree_sha256": "8ee999e481158da858f42a8219915ff8ea3ea8ec7e0cb6cda8c572b0c2cdb145"
+    },
+    "fontconfig": {
+      "source_entries": 618,
+      "tree_sha256": "8c1ba8655e514d077e652ba11c66ac4c659ec5f562098b8a0f902a98bdec1ea0"
+    },
+    "freetype": {
+      "source_entries": 744,
+      "tree_sha256": "b90227de0647bcdfb79521081c68f97c2a7e57aae8da3fc3e7a0622a30d45849"
+    },
+    "fribidi": {
+      "source_entries": 134,
+      "tree_sha256": "4796dfebf071048db5ee6ea24dc8938279d9e296b8a078c4fdc5b5376dcde3a0"
+    },
+    "gettext-libintl": {
+      "source_entries": 7200,
+      "tree_sha256": "79d17dec1e2c5a82f5115e0e742d84e5bed3a312a5531f288f2511a0aa6abdc6"
+    },
+    "glib": {
+      "source_entries": 2395,
+      "tree_sha256": "f44a752458028ea8af656f2b49fe5ec1046fb7b740a1f08a73f04a756a1b4d70"
+    },
+    "harfbuzz": {
+      "source_entries": 3873,
+      "tree_sha256": "26d960d02c680eb073678fd9b110a1377780408d8f7dbcf4428b88a3ce2b25d5"
+    },
+    "libffi": {
+      "source_entries": 481,
+      "tree_sha256": "6fc9638f10f798341a44522a95bddf760df134c216a64d44313902171192ac72"
+    },
+    "libiconv": {
+      "source_entries": 1109,
+      "tree_sha256": "ad2a87da82e69221ddd2ee4f27cefe11d43976ea9d6ec99f630f817c97bca43c"
+    },
+    "libpng": {
+      "source_entries": 614,
+      "tree_sha256": "758103f80501c993c41dead506585729bf5ca1a3f3a87e6d6648c3bd186d05b2"
+    },
+    "pango": {
+      "source_entries": 1333,
+      "tree_sha256": "d9b002dfb01e7f4525f70bcef082ad618339bc0885c923ed56ec2cd93a89bda2"
+    },
+    "pcre2": {
+      "source_entries": 646,
+      "tree_sha256": "a9dc03571cfa9e7c523624ac7943b3b39b0748928141ac739c5137647c7dbbd1"
+    },
+    "pixman": {
+      "source_entries": 224,
+      "tree_sha256": "d35d4d470f750c443bf817df080a3431a7f2e63b112ed1880a5541650a872f4c"
+    },
+    "pthread": {
+      "source_entries": 0,
+      "tree_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "pthreads": {
+      "source_entries": 421,
+      "tree_sha256": "f5ad35883c380b0fe9e77daaef2b0667724683cdc756dec66a5456f0e858b2a9"
+    },
+    "zlib": {
+      "source_entries": 262,
+      "tree_sha256": "d5a8207f1132f75079688ca21cc9d713e86ad128fc4f34a3fc837e8e0c7c00b6"
+    }
+  },
+  "dll_count": 21,
+  "dlls": {
+    "brotlicommon.dll": {
+      "source_package": "brotli",
+      "sha256": "4516b85f8039900e57c1bc6c1071587ddc4f0eea039e4a35b4751ac9266ce0d1",
+      "loaded_path": "D:\\a\\_temp\\native-rebuild-work\\installed\\x64-vira-pdf\\bin\\brotlicommon.dll"
+    },
+    "brotlidec.dll": {
+      "source_package": "brotli",
+      "sha256": "2e6c7a52c633ec52693006bab157de891c336d1aeb9057f73cb402157720c60f",
+      "loaded_path": "D:\\a\\_temp\\native-rebuild-work\\installed\\x64-vira-pdf\\bin\\brotlidec.dll"
+    },
+    "bz2.dll": {
+      "source_package": "bzip2",
+      "sha256": "5cee2037cac7a9f1beeda9ff5792f7d73fd15cb2e184fe016e40daf290a90845",
+      "loaded_path": "D:\\a\\_temp\\native-rebuild-work\\installed\\x64-vira-pdf\\bin\\bz2.dll"
+    },
+    "ffi-8.dll": {
+      "source_package": "libffi",
+      "sha256": "206ad44da7c62b42d9ba8a69bad2050562c36d506c3715bbf7470615a628d300",
+      "loaded_path": "D:\\a\\_temp\\native-rebuild-work\\installed\\x64-vira-pdf\\bin\\ffi-8.dll"
+    },
+    "fontconfig-1.dll": {
+      "source_package": "fontconfig",
+      "sha256": "da946265069ffc2fd45e99bb028009ba27409fdbba3593c4de26c94676eed4bf",
+      "loaded_path": "D:\\a\\_temp\\native-rebuild-work\\installed\\x64-vira-pdf\\bin\\fontconfig-1.dll"
+    },
+    "freetype.dll": {
+      "source_package": "freetype",
+      "sha256": "fef3c6ebd9876be7db1217c6fdcbb3e221e8ddfe39e9fb3bdc395a060bdf2b72",
+      "loaded_path": "D:\\a\\_temp\\native-rebuild-work\\installed\\x64-vira-pdf\\bin\\freetype.dll"
+    },
+    "fribidi-0.dll": {
+      "source_package": "fribidi",
+      "sha256": "375b926806bd4131d22172e8669139c1cdb67b8f78221f81855567fd631255ac",
+      "loaded_path": "D:\\a\\_temp\\native-rebuild-work\\installed\\x64-vira-pdf\\bin\\fribidi-0.dll"
+    },
+    "gio-2.0-0.dll": {
+      "source_package": "glib",
+      "sha256": "d80d4acf91e7ac9c5b21e02aa21be38b70af9ae0b6ca96238792bd9eb84e563f",
+      "loaded_path": "D:\\a\\_temp\\native-rebuild-work\\installed\\x64-vira-pdf\\bin\\gio-2.0-0.dll"
+    },
+    "glib-2.0-0.dll": {
+      "source_package": "glib",
+      "sha256": "917601068464de95019c3d5fa4ab84e0fa6e5b2bdc01c185fbf0232b04348824",
+      "loaded_path": "D:\\a\\_temp\\native-rebuild-work\\installed\\x64-vira-pdf\\bin\\glib-2.0-0.dll"
+    },
+    "gmodule-2.0-0.dll": {
+      "source_package": "glib",
+      "sha256": "900fe9e310e51df30671ea76d6428bbb8c7cb947551a3602ab7ae401f4c845a8",
+      "loaded_path": "D:\\a\\_temp\\native-rebuild-work\\installed\\x64-vira-pdf\\bin\\gmodule-2.0-0.dll"
+    },
+    "gobject-2.0-0.dll": {
+      "source_package": "glib",
+      "sha256": "d7e314846c870596178af876a4a4ac94485d9afe9e8770f44e2f0522fda413dc",
+      "loaded_path": "D:\\a\\_temp\\native-rebuild-work\\installed\\x64-vira-pdf\\bin\\gobject-2.0-0.dll"
+    },
+    "harfbuzz-subset.dll": {
+      "source_package": "harfbuzz",
+      "sha256": "cf32f9d2d99cb7717c5eee55bf6bbc4cc816674b439af9ca55f6bbd81e96810e",
+      "loaded_path": "D:\\a\\_temp\\native-rebuild-work\\installed\\x64-vira-pdf\\bin\\harfbuzz-subset.dll"
+    },
+    "harfbuzz.dll": {
+      "source_package": "harfbuzz",
+      "sha256": "2d93154374840de35644fddecda1fd93f7484027a5e97ddc038ec936c928c0d2",
+      "loaded_path": "D:\\a\\_temp\\native-rebuild-work\\installed\\x64-vira-pdf\\bin\\harfbuzz.dll"
+    },
+    "iconv-2.dll": {
+      "source_package": "libiconv",
+      "sha256": "b053e8c688c07b186fc0779541c3bd5b3306e4217a6398e2803319284d27e0b5",
+      "loaded_path": "D:\\a\\_temp\\native-rebuild-work\\installed\\x64-vira-pdf\\bin\\iconv-2.dll"
+    },
+    "intl-8.dll": {
+      "source_package": "gettext-libintl",
+      "sha256": "890f964b75badc2043cdb10623d739994be659b32d802bc9bef5fb6e92440d85",
+      "loaded_path": "D:\\a\\_temp\\native-rebuild-work\\installed\\x64-vira-pdf\\bin\\intl-8.dll"
+    },
+    "libexpat.dll": {
+      "source_package": "expat",
+      "sha256": "dc3747b9d2ecca933dc5a7cdabd4d439a46802763ab04b9c555515b88df00f07",
+      "loaded_path": "D:\\a\\_temp\\native-rebuild-work\\installed\\x64-vira-pdf\\bin\\libexpat.dll"
+    },
+    "libpng16.dll": {
+      "source_package": "libpng",
+      "sha256": "cc1276c8f958e85fd96086220aabea787930d50b77280cd4087680c8e5090c66",
+      "loaded_path": "D:\\a\\_temp\\native-rebuild-work\\installed\\x64-vira-pdf\\bin\\libpng16.dll"
+    },
+    "pango-1.0-0.dll": {
+      "source_package": "pango",
+      "sha256": "294615cc89117ba619e230723bc8122d27321afe1f8e73857db00989e8e428fc",
+      "loaded_path": "D:\\a\\_temp\\native-rebuild-work\\installed\\x64-vira-pdf\\bin\\pango-1.0-0.dll"
+    },
+    "pangoft2-1.0-0.dll": {
+      "source_package": "pango",
+      "sha256": "690e7d5540f5a5ac6d4b3f427336cd8e6191e759cc735e99bbca58b82fc5a123",
+      "loaded_path": "D:\\a\\_temp\\native-rebuild-work\\installed\\x64-vira-pdf\\bin\\pangoft2-1.0-0.dll"
+    },
+    "pcre2-8.dll": {
+      "source_package": "pcre2",
+      "sha256": "402be6ee990a90b4002725a538bbf0949f3251b08e304bfbdf6a1f4c2465302c",
+      "loaded_path": "D:\\a\\_temp\\native-rebuild-work\\installed\\x64-vira-pdf\\bin\\pcre2-8.dll"
+    },
+    "z.dll": {
+      "source_package": "zlib",
+      "sha256": "1446bbe394bb63eec4dff2ed393d47741c0bdeda8a4ff8d6cf7f62bad3ab4d56",
+      "loaded_path": "D:\\a\\_temp\\native-rebuild-work\\installed\\x64-vira-pdf\\bin\\z.dll"
+    }
+  },
+  "not_proven": [
+    "application PDF rendering with this new build",
+    "bitwise reproducibility",
+    "compiler/CRT redistribution permission",
+    "production installation/updates"
+  ]
+}

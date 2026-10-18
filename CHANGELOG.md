@@ -15,12 +15,20 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 - Record actual original MSVC 19.51 / VS18-v145 / SDK 26100 compiler logs, installed
   English terms and official 2026 VS/Build Tools/C++ Runtime agreements. Keep
   entitlement/static-CRT mapping pending; installation/REDIST is not legal approval.
-- Track the real isolated Windows rebuild and ordinary regression in
+- Independent Windows rebuild 39108011284 / d5b2516 succeeds: 20 original
+  preferred-source trees and 21 DLL owners/PE closure/private loaded origins
+  verified; two complete metadata chunks committed, no binary upload. Track
+  ordinary regression in
   `docs/dependencies/pdf-native-rebuild-proof-run.json`; do not equate plan tests
   with completed compilation or native loading with app/installed acceptance.
 - Preserve Windows readiness/rollback failure evidence; make test-harness failure
   annotations Unicode/code-page safe without weakening readiness or hashes. Add
-  exact-CRLF/cp1252 regression coverage; 476 backend tests locally, Ruff/Mypy pass.
+  exact-CRLF/cp1252 regression coverage; 476 backend tests, 71 focused checks,
+  Ruff/Mypy/Bandit pass locally. All five ordinary CI jobs 39110216955 / 867dfd3
+  pass, including Windows real delta/schema/compiled-helper rollback, 196 frontend
+  tests and six browser scenarios. Preserve the original unexplained readiness
+  failure and intermediate test/lint failures rather than claiming a proven
+  production root-cause fix from a successful retry.
 - No native payload integration, release/tag/version, broad license, user-data or
   pricing changes; source delivery and all remaining production gates stay open.
 
