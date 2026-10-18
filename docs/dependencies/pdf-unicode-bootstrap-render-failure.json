@@ -96,5 +96,183 @@
   ],
   "root_cause": "WeasyPrint 70.0 encodes the actual Unicode temporary font path with locale-derived PREFERRED_ENCODING=cp1252 (fonts.py:244); UnicodeEncodeError before FcConfigAppFontAddFile. Separate from the earlier UTF-8 test-file decoding error.",
   "planned_fix": "Explicit -X utf8 on private staged CPython command, assert UTF-8 mode/preferred native path encoding, while retaining in-memory Fontconfig to bypass CRT getenv. No process-global monkeypatch of WeasyPrint or forced encoding on ordinary tests.",
-  "render_success_inferred": false
+  "render_success_inferred": false,
+  "job_steps": [
+    {
+      "number": 1,
+      "name": "Set up job",
+      "conclusion": "success",
+      "started_at": "2026-10-18T22:03:32Z",
+      "completed_at": "2026-10-18T22:03:34Z"
+    },
+    {
+      "number": 2,
+      "name": "Run actions/checkout@v4",
+      "conclusion": "success",
+      "started_at": "2026-10-18T22:03:34Z",
+      "completed_at": "2026-10-18T22:03:40Z"
+    },
+    {
+      "number": 3,
+      "name": "Authenticate the exact prior noticed-source producer and artifact",
+      "conclusion": "success",
+      "started_at": "2026-10-18T22:03:40Z",
+      "completed_at": "2026-10-18T22:03:55Z"
+    },
+    {
+      "number": 4,
+      "name": "Authenticate downloaded archive, extract exact noticed sources and prepare recipe",
+      "conclusion": "success",
+      "started_at": "2026-10-18T22:03:55Z",
+      "completed_at": "2026-10-18T22:05:14Z"
+    },
+    {
+      "number": 5,
+      "name": "Compile all target libraries from local preferred trees with binary caches disabled",
+      "conclusion": "success",
+      "started_at": "2026-10-18T22:05:14Z",
+      "completed_at": "2026-10-18T22:47:22Z"
+    },
+    {
+      "number": 6,
+      "name": "Verify twenty actual build trees, twenty-one DLL origins, and executed modified LGPL function",
+      "conclusion": "success",
+      "started_at": "2026-10-18T22:47:22Z",
+      "completed_at": "2026-10-18T22:47:53Z"
+    },
+    {
+      "number": 7,
+      "name": "Run astral-sh/setup-uv@v5",
+      "conclusion": "success",
+      "started_at": "2026-10-18T22:47:53Z",
+      "completed_at": "2026-10-18T22:47:57Z"
+    },
+    {
+      "number": 8,
+      "name": "Run pnpm/action-setup@v4",
+      "conclusion": "success",
+      "started_at": "2026-10-18T22:47:57Z",
+      "completed_at": "2026-10-18T22:48:02Z"
+    },
+    {
+      "number": 9,
+      "name": "Run actions/setup-node@v4",
+      "conclusion": "success",
+      "started_at": "2026-10-18T22:48:02Z",
+      "completed_at": "2026-10-18T22:48:19Z"
+    },
+    {
+      "number": 10,
+      "name": "Prepare locked application only AFTER the standalone native build and audit",
+      "conclusion": "success",
+      "started_at": "2026-10-18T22:48:19Z",
+      "completed_at": "2026-10-18T22:49:08Z"
+    },
+    {
+      "number": 11,
+      "name": "Real Unicode profile, TEMP, memory Fontconfig and restart in relocated production CPython",
+      "conclusion": "failure",
+      "started_at": "2026-10-18T22:49:08Z",
+      "completed_at": "2026-10-18T22:49:40Z"
+    },
+    {
+      "number": 12,
+      "name": "Bind Unicode PDFs, restarted process, DLLs and archive to this fresh build",
+      "conclusion": "skipped",
+      "started_at": "2026-10-18T22:49:40Z",
+      "completed_at": "2026-10-18T22:49:40Z"
+    },
+    {
+      "number": 13,
+      "name": "Reverify the exact source envelope after native compilation and rendering",
+      "conclusion": "skipped",
+      "started_at": "2026-10-18T22:49:40Z",
+      "completed_at": "2026-10-18T22:49:40Z"
+    },
+    {
+      "number": 14,
+      "name": "Consumer evidence group zero",
+      "conclusion": "skipped",
+      "started_at": "2026-10-18T22:49:40Z",
+      "completed_at": "2026-10-18T22:49:40Z"
+    },
+    {
+      "number": 15,
+      "name": "Consumer evidence group one",
+      "conclusion": "skipped",
+      "started_at": "2026-10-18T22:49:40Z",
+      "completed_at": "2026-10-18T22:49:40Z"
+    },
+    {
+      "number": 16,
+      "name": "Preserve bounded diagnostics and recipes, never compiled binaries",
+      "conclusion": "success",
+      "started_at": "2026-10-18T22:49:40Z",
+      "completed_at": "2026-10-18T22:49:43Z"
+    },
+    {
+      "number": 17,
+      "name": "Run actions/upload-artifact@v4",
+      "conclusion": "success",
+      "started_at": "2026-10-18T22:49:43Z",
+      "completed_at": "2026-10-18T22:49:45Z"
+    },
+    {
+      "number": 31,
+      "name": "Post Run actions/setup-node@v4",
+      "conclusion": "skipped",
+      "started_at": "2026-10-18T22:49:45Z",
+      "completed_at": "2026-10-18T22:49:45Z"
+    },
+    {
+      "number": 32,
+      "name": "Post Run pnpm/action-setup@v4",
+      "conclusion": "success",
+      "started_at": "2026-10-18T22:49:45Z",
+      "completed_at": "2026-10-18T22:49:45Z"
+    },
+    {
+      "number": 33,
+      "name": "Post Run astral-sh/setup-uv@v5",
+      "conclusion": "skipped",
+      "started_at": "2026-10-18T22:49:45Z",
+      "completed_at": "2026-10-18T22:49:45Z"
+    },
+    {
+      "number": 34,
+      "name": "Post Run actions/checkout@v4",
+      "conclusion": "success",
+      "started_at": "2026-10-18T22:49:45Z",
+      "completed_at": "2026-10-18T22:49:47Z"
+    },
+    {
+      "number": 35,
+      "name": "Complete job",
+      "conclusion": "success",
+      "started_at": "2026-10-18T22:49:47Z",
+      "completed_at": "2026-10-18T22:49:47Z"
+    }
+  ],
+  "failed_run_artifact": [
+    {
+      "id": 12153840502,
+      "node_id": "MDg6QXJ0aWZhY3QxMjE1Mzg0MDUwMg==",
+      "name": "private-unicode-bootstrap-build-pdf-evidence-no-dlls",
+      "size_in_bytes": 483828,
+      "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/artifacts/12153840502",
+      "archive_download_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/artifacts/12153840502/zip",
+      "expired": false,
+      "digest": "sha256:d1ed4d6df2954e36d83b46183195f39787dbc9f30dfa21c677c29ae00ccb6b4d",
+      "created_at": "2026-10-18T22:49:44Z",
+      "updated_at": "2026-10-18T22:49:44Z",
+      "expires_at": "2027-01-16T22:03:12Z",
+      "workflow_run": {
+        "id": 39170525115,
+        "repository_id": 1418734289,
+        "head_repository_id": 1418734289,
+        "head_branch": "arena/aee91951-vira-accounting-app",
+        "head_sha": "bd728bffd08369ba6bd80e8660763c421b0bf6cf"
+      }
+    }
+  ]
 }

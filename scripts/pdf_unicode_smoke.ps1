@@ -38,6 +38,7 @@ try {
         New-Item -ItemType Directory -Force -Path $reports | Out-Null
         Copy-Item (Join-Path $native "runtime-inventory.json") (Join-Path $reports "runtime-inventory.json")
         $probeArgs = @()
+        if ($UpstreamPreflight) { $probeArgs += "--diagnostic" }
         if (-not $UpstreamPreflight) { $probeArgs += @("--expected-pango-version", "1.58.0-vira-local-source") }
         if ($case -eq "restarted-process") { $probeArgs += "--reuse-state" }
         Push-Location -LiteralPath $cwd

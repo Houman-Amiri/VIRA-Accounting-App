@@ -10,6 +10,7 @@ import importlib.util
 import json
 import locale
 import os
+import shutil
 import sys
 import tempfile
 from pathlib import Path
@@ -23,6 +24,7 @@ def main() -> None:
     parser.add_argument("--contexts", type=Path, required=True)
     parser.add_argument("--state-root", type=Path, required=True)
     parser.add_argument("--reuse-state", action="store_true")
+    parser.add_argument("--diagnostic", action="store_true")
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--expected-pango-version")
     args = parser.parse_args()
@@ -92,6 +94,27 @@ def main() -> None:
         xml = configuration_xml(cache)
         (state / "memory-fontconfig.xml").write_bytes(xml)
         documents = {}
+        if args.diagnostic:
+            args.out_dir.mkdir(parents=True, exist_ok=True)
+            # Preflight ONLY: compare direct native filename handling, never
+            # preload these control fonts into the actual document config.
+            control = Path(os.environ['RUNNER_TEMP']) / f'font-path-control-{os.getpid()}'
+            control.mkdir(exist_ok=False)
+            paths = [root / 'app/assets/fonts' / f'Vazirmatn-{w}.ttf' for w in ('Regular','Bold')]
+            for path in paths:
+                shutil.copyfile(path, control / path.name)
+            from weasyprint.text import fonts
+            kernel_diag = ctypes.WinDLL('kernel32', use_last_error=True)
+            kernel_diag.GetACP.restype = ctypes.c_uint
+            diag = {'windows_acp': kernel_diag.GetACP(), 'python_utf8_mode': sys.flags.utf8_mode, 'preferred_encoding': fonts.PREFERRED_ENCODING, 'paths':{}}
+            for label, files in [('unicode', paths), ('ascii', [control / p.name for p in paths])]:
+                with private_font_configuration(cache) as cfg:
+                    values = [bool(fonts.fontconfig.FcConfigAppFontAddFile(cfg._config,p.as_posix().encode('utf-8'))) for p in files]
+                    fs = fonts.fontconfig.FcConfigGetFonts(cfg._config,fonts.fontconfig.FcSetApplication)
+                    diag['paths'][label] = {'added':values, 'font_count':fs.nfont if fs != fonts.ffi.NULL else None}
+            (args.out_dir / 'native-path-diagnostic.json').write_text(json.dumps(diag,indent=2),encoding='utf-8')
+            print('::notice title=Unicode native filename diagnostic::'+json.dumps(diag),flush=True)
+            shutil.rmtree(control)
 
         contexts = json.loads(args.contexts.read_text(encoding="utf-8-sig"))
         args.out_dir.mkdir(parents=True, exist_ok=True)
