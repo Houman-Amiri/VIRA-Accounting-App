@@ -16,6 +16,7 @@ import posixpath
 import shutil
 import stat
 import sys
+import time
 import zipfile
 from pathlib import Path, PurePosixPath
 
@@ -300,6 +301,12 @@ def extract_sources(kit: Path, destination: Path, expected_manifest_sha256: str 
             target.parent.mkdir(parents=True, exist_ok=True)
             with bundle.open(entry) as source, target.open("xb") as output:
                 shutil.copyfileobj(source, output)
+            # Autotools uses relative mtimes to decide whether to regenerate
+            # configure/Makefile.in. Fresh extraction-order times can trigger an
+            # unintended autoreconf with a different toolchain. ZIP stores local
+            # wall time at two-second precision; restore those recorded fields.
+            modified = time.mktime((*entry.date_time, 0, 0, -1))
+            os.utime(target, (modified, modified))
             # Preserve executable source scripts; never restore setuid/setgid bits.
             target.chmod((entry.external_attr >> 16) & 0o777 or 0o644)
         for name, target in sorted(links.items()):

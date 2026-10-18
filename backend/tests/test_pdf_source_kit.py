@@ -183,3 +183,23 @@ def test_extraction_cannot_add_unmanifested_files_inside_input_kit(tool, tmp_pat
     with pytest.raises(ValueError, match="outside the source kit"):
         tool.extract_sources(tmp_path, tmp_path / "new-extracted")
     assert not (tmp_path / "new-extracted").exists()
+
+
+def test_extraction_preserves_autotools_relative_mtimes(tool, monkeypatch, tmp_path):
+    import time
+    kit = tmp_path / "kit"
+    kit.mkdir()
+    with zipfile.ZipFile(kit / "corresponding-source.zip", "w") as z:
+        for name, stamp in (("configure", (2026, 10, 16, 12, 0, 0)),
+                            ("configure.ac", (2025, 7, 19, 12, 0, 0))):
+            info = zipfile.ZipInfo("sources/a/" + name, date_time=stamp)
+            z.writestr(info, "source bytes")
+    monkeypatch.setattr(tool, "verify", lambda *a: {})
+    out = tmp_path / "preferred"
+    tool.extract_sources(kit, out)
+    configure = out / "sources/a/configure"
+    configure_ac = out / "sources/a/configure.ac"
+    assert configure.stat().st_mtime > configure_ac.stat().st_mtime
+    assert time.localtime(configure.stat().st_mtime)[:6] == (2026, 10, 16, 12, 0, 0)
+    assert time.localtime(configure_ac.stat().st_mtime)[:6] == (2025, 7, 19, 12, 0, 0)
+    assert configure.read_text() == configure_ac.read_text() == "source bytes"

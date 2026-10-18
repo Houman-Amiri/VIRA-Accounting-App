@@ -2,9 +2,9 @@ name: Private native PDF local preferred-source replay
 
 on:
   push:
-    paths: ['.github/workflows/pdf-local-source-replay.yml', 'scripts/prepare_pdf_local_sources.py', 'backend/tests/test_pdf_local_sources.py', 'docs/dependencies/pdf-local-source-port-pins.json']
+    paths: ['.github/workflows/pdf-local-source-replay.yml', 'scripts/prepare_pdf_local_sources.py', 'scripts/pdf_source_kit.py', 'backend/tests/test_pdf_local_sources.py', 'docs/dependencies/pdf-local-source-port-pins.json']
   pull_request:
-    paths: ['.github/workflows/pdf-local-source-replay.yml', 'scripts/prepare_pdf_local_sources.py', 'backend/tests/test_pdf_local_sources.py', 'docs/dependencies/pdf-local-source-port-pins.json']
+    paths: ['.github/workflows/pdf-local-source-replay.yml', 'scripts/prepare_pdf_local_sources.py', 'scripts/pdf_source_kit.py', 'backend/tests/test_pdf_local_sources.py', 'docs/dependencies/pdf-local-source-port-pins.json']
 
 permissions:
   contents: read
