@@ -81,4 +81,5 @@ jobs:
             reports-source-kit-receipt.json
             reports-source-kit-recipient.json
           retention-days: 90
+          include-hidden-files: true
           if-no-files-found: error

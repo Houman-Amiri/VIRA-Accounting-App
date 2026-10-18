@@ -81,6 +81,7 @@ jobs:
             reports/modified-kit-receipt.json
             reports/modified-kit-recipient.json
           retention-days: 90
+          include-hidden-files: true
           if-no-files-found: error
   windows-recipient:
     needs: assemble
@@ -96,18 +97,29 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
+          function Invoke-CheckedPython([string[]]$PythonArgs) {
+            $output = (& python @PythonArgs 2>&1 | Out-String)
+            $code = $LASTEXITCODE
+            Write-Host $output
+            if ($code -ne 0) {
+              $last = $output.Substring([Math]::Max(0, $output.Length - 8000))
+              for ($i = 0; $i -lt $last.Length; $i += 2600) {
+                $part = $last.Substring($i, [Math]::Min(2600, $last.Length - $i))
+                $part = (($part -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A'
+                Write-Output "::error title=Modified source Windows failure part ${i}::$part"
+              }
+              throw "isolated Python source-kit command failed"
+            }
+          }
           $base = "$env:RUNNER_TEMP/modified-envelope"
           $kit = "$base/modified-source-kit"
           $hash = (Get-Content "$base/modified-kit-receipt.json" -Raw | ConvertFrom-Json).modified_kit_manifest_sha256
           # Cross-check trusted producer-step receipt against the manifest before executing kit code.
           if ((Get-FileHash "$kit/modified-kit-manifest.json" -Algorithm SHA256).Hash.ToLower() -ne $hash) { throw "modified artifact manifest differs" }
-          python -I -S scripts/pdf_source_kit.py --verify-modified $kit --expected-manifest-sha256 $hash --extract-sources "$env:RUNNER_TEMP/modified-preferred"
-          if ($LASTEXITCODE -ne 0) { throw "Windows source/link/time extraction failed" }
+          Invoke-CheckedPython -PythonArgs @('-I', '-S', 'scripts/pdf_source_kit.py', '--verify-modified', $kit, '--expected-manifest-sha256', $hash, '--extract-sources', "$env:RUNNER_TEMP/modified-preferred")
           $originalHash = (Get-Content "$kit/modification-record.json" -Raw | ConvertFrom-Json).original_kit_manifest_sha256
-          python -I -S "$kit/original-kit/licensed-build-files/scripts/prepare_pdf_local_sources.py" --kit "$kit/original-kit" --expected-manifest-sha256 $originalHash --sources "$env:RUNNER_TEMP/modified-preferred" --out "$env:RUNNER_TEMP/modified-overlay" --allow-modified
-          if ($LASTEXITCODE -ne 0) { throw "Windows modified-source recipe preparation failed" }
-          python -I -S "$kit/original-kit/licensed-build-files/scripts/prepare_pdf_local_sources.py" --check-inputs "$env:RUNNER_TEMP/modified-overlay/local-source-preparation.json"
-          if ($LASTEXITCODE -ne 0) { throw "preferred input changed" }
+          Invoke-CheckedPython -PythonArgs @('-I', '-S', "$kit/original-kit/licensed-build-files/scripts/prepare_pdf_local_sources.py", '--kit', "$kit/original-kit", '--expected-manifest-sha256', $originalHash, '--sources', "$env:RUNNER_TEMP/modified-preferred", '--out', "$env:RUNNER_TEMP/modified-overlay", '--allow-modified')
+          Invoke-CheckedPython -PythonArgs @('-I', '-S', "$kit/original-kit/licensed-build-files/scripts/prepare_pdf_local_sources.py", '--check-inputs', "$env:RUNNER_TEMP/modified-overlay/local-source-preparation.json")
           @'
           import json,os,pathlib
           base=pathlib.Path(os.environ['RUNNER_TEMP']);kit=base/'modified-envelope/modified-source-kit'
