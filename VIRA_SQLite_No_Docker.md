@@ -1239,3 +1239,36 @@ Pango در همان فرایند `1.58.0-vira-local-source` داد؛ PDF یک/چ
 CRT و مجوز اجزا، recipient/toolchain review، تحویل ناشناس پایدار، EULA/تعویض DLL
 در نصب واقعی، bootstrap Unicode/Inno/native delta/rollback و پذیرش نصب‌شده بازند.
 نسخه/تگ/انتشار، نصب/payload معمول، داده و محاسبات تغییر نکردند.
+
+### bootstrap خصوصی Unicode: Fontconfig حافظه‌ای، UTF-8 پایتون و ACP ویندوز — ۲۰۲۶-۱۰-۱۹
+
+**39175100427 / fa68e2a موفق**: پیش‌آزمون SDK پین‌شده با ۲۷ DLL، سپس روی runner
+جدا ساخت تازهٔ بدون binary cache از آرشیو دارای اعلان، پیش از وابستگی‌های app؛
+۲۰ درخت/۲۱ DLL، Pango نشانه‌گذاری‌شده و دو فرایند private CPython 3.11 با همان
+state. app/interpreter/DLL، profile/LOCALAPPDATA/cache/TEMP و CWD نامرتبط، فارسی/
+فاصله‌دارند. configuration فعال از حافظهٔ UTF-8، صفر قلم سیستم؛ TTFهای موقت با هش
+وزیرمتن ۴۰۰/۷۰۰ تطبیق و بعد هر سند حذف شدند. PDF واقعی یک/چهارصفحه‌ای A4 و هر ۳۰
+رقم در هر دو فرایند کنترل شد؛ ممیزی native/candidate به شاهد متصل و envelope سورس
+در پایان دوباره احراز شد. SDK پیش‌آزمون **هرگز** شاهد منشأ ۲۱ DLL محسوب نشده است.
+
+خطاهای واقعی جدا ثبت شدند: CP1252 خواندن سورس تست؛ CP1252 کدگذاری مسیر موقت در
+WeasyPrint؛ سپس native filename که با وجود Python UTF-8 هنوز ACP 1252 داشت.
+کنترل مستقیم همان TTFها در مسیر فارسی/ASCII تفاوت را اثبات کرد. نسخهٔ خصوصی با
+`-I -B -X utf8` و **PE manifest تغییرکردهٔ CPython** اجرا می‌شود تا `GetACP()==65001`
+شود؛ هر دو هش EXE و manifest اصلی/جاسازی‌شده و ابزار ثبت‌اند، semantics قبلی حفظ
+شده‌اند. این EXE **دست‌نخوردهٔ upstream نیست**؛ baseline خصوصی پس از تغییر restamp
+و در هر دو worker ثابت کنترل شده است. این کار نه تغییر stage/installer عادی است،
+نه تأیید امضای تولید یا مجوز redistribution آن. نیاز 1903+، notices/امضای CPython و
+پوشش نسخه‌های ویندوز بازبینی تولیدِ باز دارند.
+
+[گزارش](docs/reports/pdf-unicode-bootstrap-fa.md)، [شاهد از سورس](docs/dependencies/pdf-unicode-bootstrap-proof.json)، [پیش‌آزمون مستقل](docs/dependencies/pdf-unicode-bootstrap-preflight-proof.json)
+و رکوردهای شکست در گزارش‌اند. **۶۲۶ بک‌اند** شامل ۱۷ کنترل helper و دو کنترل تازهٔ
+شاهد، Ruff/Mypy۸۵/Bandit گیت متوسط/شدید و MIT چهارده‌فایلی موفق‌اند. ممیزی وابستگی
+یک failure بی‌trace قابل‌دریافت داشت؛ علت آن حدس زده نشده، فرمان/exit status حفظ و
+diagnostics افزوده شد؛ قبولی واقعی اجرای بعدی جدا ثبت شده است.
+
+helper و QA خارج از grant محدود MIT هستند؛ پیش‌فرض renderer/HTTP عوض نشده و
+bootstrap خصوصی به مسیر عادی وصل نیست. read-only TTF ≠ ACL نصب؛ reuse state ≠ cache
+hit. هر شش گیت باز: حقوق اجزا/CRT، بازبینی ابزار/کیت، سورس عمومی پایدار، EULA/تعویض
+DLL و bootstrap عمومی/Inno/native delta/rollback/پذیرش نصب‌شده. داده، محاسبات، نصب
+کاربر، version/tag/release تغییر نکرده‌اند؛ انتشار مجاز نشده است.

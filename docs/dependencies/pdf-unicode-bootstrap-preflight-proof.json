@@ -1,0 +1,174 @@
+{
+  "schema": 1,
+  "role": "PINNED_STOCK_SDK_PREFLIGHT_NOT_SOURCE_PROVENANCE",
+  "run_id": 39175100427,
+  "head_sha": "fa68e2a93b0fc02eedf97fd228ecd85d407d5aa5",
+  "job_id": 117816018002,
+  "conclusion": "success",
+  "sdk_archive_sha256": "ab1151f210b4e6bb7aa7a79e91a67e8ddb760094c107bfda55241b6aaefe7d53",
+  "sdk_dll_count": 27,
+  "sdk_inventory_witness_sha256": "f80c9c50db036afea8061b38399625a94bc5540f1c1950aa41637bc85afa118a",
+  "sdk_inventory_annotation_parts": 2,
+  "native_path_diagnostics": [
+    {
+      "windows_acp": 65001,
+      "python_utf8_mode": 1,
+      "preferred_encoding": "utf-8",
+      "paths": {
+        "unicode": {
+          "added": [
+            true,
+            true
+          ],
+          "font_count": 2
+        },
+        "ascii": {
+          "added": [
+            true,
+            true
+          ],
+          "font_count": 2
+        }
+      }
+    },
+    {
+      "windows_acp": 65001,
+      "python_utf8_mode": 1,
+      "preferred_encoding": "utf-8",
+      "paths": {
+        "unicode": {
+          "added": [
+            true,
+            true
+          ],
+          "font_count": 2
+        },
+        "ascii": {
+          "added": [
+            true,
+            true
+          ],
+          "font_count": 2
+        }
+      }
+    }
+  ],
+  "pdf_notices": [
+    {
+      "python": "D:\\a\\_temp\\vira-unicode-db41eee672d9456db01f61d769d5a9c6\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\python\\python.exe",
+      "version": "3.11.17 (main, Oct 14 2026, 01:04:22) [MSC v.1944 64 bit (AMD64)]",
+      "isolated": 1,
+      "dll_count": 27,
+      "loaded_dll_count": 27,
+      "ctypes_callbacks_verified": true,
+      "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+      "documents": {
+        "single-page": {
+          "pages": 1,
+          "sha256": "ae92659254d59fed845c8ce4880d7bfa2846d64850085e5facfc657579ee4ebd",
+          "bytes": 21463,
+          "fonts": [
+            {
+              "name": "/GMIUCZ+Vazirmatn-Bold",
+              "weight": 700,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            },
+            {
+              "name": "/RFZBDK+Vazirmatn",
+              "weight": 400,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            }
+          ]
+        },
+        "multi-page": {
+          "pages": 4,
+          "sha256": "8273a9acad1e600661ec44a7ff4d2d1ae6e8fba69914a5b1c2aa0344871c5650",
+          "bytes": 32973,
+          "fonts": [
+            {
+              "name": "/GMIUCZ+Vazirmatn-Bold",
+              "weight": 700,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            },
+            {
+              "name": "/RFZBDK+Vazirmatn",
+              "weight": 400,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            }
+          ]
+        }
+      },
+      "pango_version_string": "1.58.2",
+      "expected_pango_version_string": null
+    },
+    {
+      "python": "D:\\a\\_temp\\vira-unicode-db41eee672d9456db01f61d769d5a9c6\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\python\\python.exe",
+      "version": "3.11.17 (main, Oct 14 2026, 01:04:22) [MSC v.1944 64 bit (AMD64)]",
+      "isolated": 1,
+      "dll_count": 27,
+      "loaded_dll_count": 27,
+      "ctypes_callbacks_verified": true,
+      "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+      "documents": {
+        "single-page": {
+          "pages": 1,
+          "sha256": "ae92659254d59fed845c8ce4880d7bfa2846d64850085e5facfc657579ee4ebd",
+          "bytes": 21463,
+          "fonts": [
+            {
+              "name": "/GMIUCZ+Vazirmatn-Bold",
+              "weight": 700,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            },
+            {
+              "name": "/RFZBDK+Vazirmatn",
+              "weight": 400,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            }
+          ]
+        },
+        "multi-page": {
+          "pages": 4,
+          "sha256": "8273a9acad1e600661ec44a7ff4d2d1ae6e8fba69914a5b1c2aa0344871c5650",
+          "bytes": 32973,
+          "fonts": [
+            {
+              "name": "/GMIUCZ+Vazirmatn-Bold",
+              "weight": 700,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            },
+            {
+              "name": "/RFZBDK+Vazirmatn",
+              "weight": 400,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            }
+          ]
+        }
+      },
+      "pango_version_string": "1.58.2",
+      "expected_pango_version_string": null
+    }
+  ],
+  "artifact": {
+    "id": 12154072227,
+    "node_id": "MDg6QXJ0aWZhY3QxMjE1NDA3MjIyNw==",
+    "name": "private-unicode-stock-sdk-preflight-no-dlls-not-source-proof",
+    "size_in_bytes": 129638,
+    "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/artifacts/12154072227",
+    "archive_download_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/artifacts/12154072227/zip",
+    "expired": false,
+    "digest": "sha256:4a262558d2b7113bfff86d3a29b4d1b05a68c0846b3cac4ddede25791173e922",
+    "created_at": "2026-10-18T23:08:40Z",
+    "updated_at": "2026-10-18T23:08:40Z",
+    "expires_at": "2027-01-16T23:06:25Z",
+    "workflow_run": {
+      "id": 39175100427,
+      "repository_id": 1418734289,
+      "head_repository_id": 1418734289,
+      "head_branch": "arena/aee91951-vira-accounting-app",
+      "head_sha": "fa68e2a93b0fc02eedf97fd228ecd85d407d5aa5"
+    }
+  },
+  "source_build_proof": false,
+  "release_authorized": false
+}

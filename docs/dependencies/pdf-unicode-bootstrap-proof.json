@@ -1,0 +1,704 @@
+{
+  "schema": 2,
+  "run_id": 39175100427,
+  "head_sha": "fa68e2a93b0fc02eedf97fd228ecd85d407d5aa5",
+  "workflow_path": ".github/workflows/pdf-unicode-bootstrap.yml",
+  "run_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39175100427",
+  "conclusion": "success",
+  "created_at": "2026-10-18T23:06:25Z",
+  "completed_at": "2026-10-18T23:54:26Z",
+  "job_id": 117816508451,
+  "jobs": [
+    {
+      "id": 117816018002,
+      "run_id": 39175100427,
+      "workflow_name": "Private Unicode native PDF bootstrap and restart proof",
+      "head_branch": "arena/aee91951-vira-accounting-app",
+      "run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/runs/39175100427",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVJAq0c8AAAAbbmHEUg",
+      "head_sha": "fa68e2a93b0fc02eedf97fd228ecd85d407d5aa5",
+      "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/jobs/117816018002",
+      "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39175100427/job/117816018002",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-18T23:06:25Z",
+      "started_at": "2026-10-18T23:06:28Z",
+      "completed_at": "2026-10-18T23:08:47Z",
+      "name": "unicode-preflight",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-18T23:06:29Z",
+          "completed_at": "2026-10-18T23:06:30Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-18T23:06:30Z",
+          "completed_at": "2026-10-18T23:06:37Z"
+        },
+        {
+          "name": "Run astral-sh/setup-uv@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-18T23:06:37Z",
+          "completed_at": "2026-10-18T23:06:41Z"
+        },
+        {
+          "name": "Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-18T23:06:41Z",
+          "completed_at": "2026-10-18T23:06:48Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-18T23:06:48Z",
+          "completed_at": "2026-10-18T23:07:03Z"
+        },
+        {
+          "name": "Locked app and separately pinned stock SDK (preflight only, NOT source provenance)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-18T23:07:03Z",
+          "completed_at": "2026-10-18T23:07:47Z"
+        },
+        {
+          "name": "Fast Unicode and UTF-8 interpreter preflight (no native-source claim)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-18T23:07:47Z",
+          "completed_at": "2026-10-18T23:08:39Z"
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-18T23:08:39Z",
+          "completed_at": "2026-10-18T23:08:40Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-18T23:08:40Z",
+          "completed_at": "2026-10-18T23:08:40Z"
+        },
+        {
+          "name": "Post Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-10-18T23:08:40Z",
+          "completed_at": "2026-10-18T23:08:40Z"
+        },
+        {
+          "name": "Post Run astral-sh/setup-uv@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-10-18T23:08:40Z",
+          "completed_at": "2026-10-18T23:08:40Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16,
+          "started_at": "2026-10-18T23:08:40Z",
+          "completed_at": "2026-10-18T23:08:42Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17,
+          "started_at": "2026-10-18T23:08:43Z",
+          "completed_at": "2026-10-18T23:08:43Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/check-runs/117816018002",
+      "labels": [
+        "windows-latest"
+      ],
+      "runner_id": 1000001463,
+      "runner_name": "GitHub Actions 1000001463",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 117816508451,
+      "run_id": 39175100427,
+      "workflow_name": "Private Unicode native PDF bootstrap and restart proof",
+      "head_branch": "arena/aee91951-vira-accounting-app",
+      "run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/runs/39175100427",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVJAq0c8AAAAbbmlAIw",
+      "head_sha": "fa68e2a93b0fc02eedf97fd228ecd85d407d5aa5",
+      "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/jobs/117816508451",
+      "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39175100427/job/117816508451",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-18T23:08:47Z",
+      "started_at": "2026-10-18T23:08:50Z",
+      "completed_at": "2026-10-18T23:54:26Z",
+      "name": "unicode-consumer",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-18T23:08:50Z",
+          "completed_at": "2026-10-18T23:08:52Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-18T23:08:52Z",
+          "completed_at": "2026-10-18T23:08:57Z"
+        },
+        {
+          "name": "Authenticate the exact prior noticed-source producer and artifact",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-18T23:08:57Z",
+          "completed_at": "2026-10-18T23:09:11Z"
+        },
+        {
+          "name": "Authenticate downloaded archive, extract exact noticed sources and prepare recipe",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-18T23:09:11Z",
+          "completed_at": "2026-10-18T23:10:37Z"
+        },
+        {
+          "name": "Compile all target libraries from local preferred trees with binary caches disabled",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-18T23:10:37Z",
+          "completed_at": "2026-10-18T23:51:13Z"
+        },
+        {
+          "name": "Verify twenty actual build trees, twenty-one DLL origins, and executed modified LGPL function",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-18T23:51:13Z",
+          "completed_at": "2026-10-18T23:51:41Z"
+        },
+        {
+          "name": "Run astral-sh/setup-uv@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-18T23:51:41Z",
+          "completed_at": "2026-10-18T23:51:44Z"
+        },
+        {
+          "name": "Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-18T23:51:44Z",
+          "completed_at": "2026-10-18T23:51:49Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-18T23:51:49Z",
+          "completed_at": "2026-10-18T23:52:04Z"
+        },
+        {
+          "name": "Prepare locked application only AFTER the standalone native build and audit",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-10-18T23:52:04Z",
+          "completed_at": "2026-10-18T23:52:45Z"
+        },
+        {
+          "name": "Real Unicode profile, TEMP, memory Fontconfig and restart in relocated production CPython",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-10-18T23:52:45Z",
+          "completed_at": "2026-10-18T23:53:34Z"
+        },
+        {
+          "name": "Bind Unicode PDFs, restarted process, DLLs and archive to this fresh build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-18T23:53:34Z",
+          "completed_at": "2026-10-18T23:53:35Z"
+        },
+        {
+          "name": "Reverify the exact source envelope after native compilation and rendering",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-18T23:53:35Z",
+          "completed_at": "2026-10-18T23:54:00Z"
+        },
+        {
+          "name": "Consumer evidence group zero",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-10-18T23:54:00Z",
+          "completed_at": "2026-10-18T23:54:00Z"
+        },
+        {
+          "name": "Consumer evidence group one",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-10-18T23:54:00Z",
+          "completed_at": "2026-10-18T23:54:01Z"
+        },
+        {
+          "name": "Preserve bounded diagnostics and recipes, never compiled binaries",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16,
+          "started_at": "2026-10-18T23:54:01Z",
+          "completed_at": "2026-10-18T23:54:03Z"
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17,
+          "started_at": "2026-10-18T23:54:03Z",
+          "completed_at": "2026-10-18T23:54:05Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 31,
+          "started_at": "2026-10-18T23:54:05Z",
+          "completed_at": "2026-10-18T23:54:05Z"
+        },
+        {
+          "name": "Post Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 32,
+          "started_at": "2026-10-18T23:54:05Z",
+          "completed_at": "2026-10-18T23:54:05Z"
+        },
+        {
+          "name": "Post Run astral-sh/setup-uv@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 33,
+          "started_at": "2026-10-18T23:54:05Z",
+          "completed_at": "2026-10-18T23:54:06Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 34,
+          "started_at": "2026-10-18T23:54:06Z",
+          "completed_at": "2026-10-18T23:54:08Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 35,
+          "started_at": "2026-10-18T23:54:08Z",
+          "completed_at": "2026-10-18T23:54:08Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/check-runs/117816508451",
+      "labels": [
+        "windows-latest"
+      ],
+      "runner_id": 1000001469,
+      "runner_name": "GitHub Actions 1000001469",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    }
+  ],
+  "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+  "application_license_changed": false,
+  "licensed_build_files": 14,
+  "ordinary_native_runtime_enabled": false,
+  "normal_renderer_default_changed": false,
+  "normal_staging_or_installer_changed": false,
+  "internal_optional_configuration_injection_added": true,
+  "release_authorized": false,
+  "installed_user_acceptance": false,
+  "production_bootstrap_integration_proven": false,
+  "private_python_executable_pe_manifest_modified": true,
+  "unmodified_python_executable_claim": false,
+  "minimum_windows_private_manifest": "Windows 10 version 1903+, independently checked process ACP 65001",
+  "source_archive": {
+    "sha256": "b1078a6bba74d86565b97694c8ac2afc6adf15c045a843cdbf55cb08f6226fc2",
+    "size": 188617046,
+    "only_changed_source_member": "sources/pango/pango-1-5cb02b5781.clean/pango/pango-utils.c",
+    "modified_file_sha256": "a530b81e21d8799996032c68398651ec802d62017bac88c6c9d3b7cebd89719a",
+    "notice_date": "2026-10-19"
+  },
+  "source_package_manifest_sha256": "784c8d196ad0da899e7d6b65d26aff4d4bf9bb00551526692cda9b47c43c2023",
+  "source_producer_run_id": 39165372821,
+  "source_artifact": {
+    "id": 12150501221,
+    "node_id": "MDg6QXJ0aWZhY3QxMjE1MDUwMTIyMQ==",
+    "name": "private-noticed-source-candidate-no-dlls",
+    "size_in_bytes": 355626158,
+    "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/artifacts/12150501221",
+    "archive_download_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/artifacts/12150501221/zip",
+    "expired": false,
+    "digest": "sha256:b4f8ddb1f51b62ef49f43442b6a5da15bdc9117ca6cdba161233bdd4d8707f0f",
+    "created_at": "2026-10-18T20:55:44Z",
+    "updated_at": "2026-10-18T20:55:44Z",
+    "expires_at": "2027-01-16T20:53:32Z",
+    "workflow_run": {
+      "id": 39165372821,
+      "repository_id": 1418734289,
+      "head_repository_id": 1418734289,
+      "head_branch": "arena/aee91951-vira-accounting-app",
+      "head_sha": "84c20ac0d47bc956da63a44d0b82b81fc0410bbb"
+    }
+  },
+  "witness": {
+    "path": "docs/dependencies/pdf-unicode-bootstrap-evidence.json",
+    "size": 88464,
+    "sha256": "5396a1431461249a6c1b21832553cf1dc6ac0c96034e569728a99e7aec71abf0",
+    "annotation_parts": 9,
+    "native_audit_sha256_bound_to_candidate": "24b0b888514590299f32edddc1edf6b11f19fa7e85e7dd504cec2fa7dcce566d"
+  },
+  "verified": {
+    "actual_source_trees": 20,
+    "dlls_built_and_loaded_per_process": 21,
+    "cold_build_before_app_dependencies": true,
+    "source_envelope_reverified_after_render": true,
+    "unicode_app_profile_temp_cache_and_unrelated_cwd": true,
+    "first_and_restarted_process_same_state": true,
+    "explicit_utf8_memory_configuration": true,
+    "explicit_python_utf8_mode": true,
+    "windows_process_acp_65001": true,
+    "modified_cpython_manifest_hashes_recorded": true,
+    "original_cpython_manifest_semantics_preserved": true,
+    "active_document_system_fonts": 0,
+    "font_temporary_files_hash_match_bundled_fonts": true,
+    "font_temp_cleanup_each_document": true,
+    "production_dependency_interpreter_isolated_and_no_dev_dependencies": true,
+    "ctypes_callbacks": true
+  },
+  "unicode_cases": {
+    "first-process": {
+      "worker": {
+        "python": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\python\\python.exe",
+        "base_prefix": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\python",
+        "version": "3.11.17 (main, Oct 14 2026, 01:04:22) [MSC v.1944 64 bit (AMD64)]",
+        "isolated": 1,
+        "utf8_mode": 1,
+        "windows_active_code_page": 65001,
+        "process_manifest_bootstrap": {
+          "executable_sha256_before": "f20112d2e928e92a1c026b144aaacf30a86c5440748a5b06fcc7aa71988ea1f5",
+          "modified_signature_status": "NotSigned",
+          "original_signature_status": "NotSigned",
+          "original_manifest": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n<assembly xmlns=\"urn:schemas-microsoft-com:asm.v1\" manifestVersion=\"1.0\">\n  <trustInfo xmlns=\"urn:schemas-microsoft-com:asm.v3\">\n    <security>\n      <requestedPrivileges>\n        <requestedExecutionLevel level=\"asInvoker\" uiAccess=\"false\"></requestedExecutionLevel>\n      </requestedPrivileges>\n    </security>\n  </trustInfo>\n  <compatibility xmlns=\"urn:schemas-microsoft-com:compatibility.v1\">\n    <application>\n      <supportedOS Id=\"{e2011457-1546-43c5-a5fe-008deee3d3f0}\"></supportedOS>\n      <supportedOS Id=\"{35138b9a-5d96-4fbd-8e2d-a2440225f93a}\"></supportedOS>\n      <supportedOS Id=\"{4a2f28e3-53b9-4441-ba9c-d69d4a4a6e38}\"></supportedOS>\n      <supportedOS Id=\"{1f676c76-80e1-4239-95bb-83d0f6d0da78}\"></supportedOS>\n      <supportedOS Id=\"{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}\"></supportedOS>\n    </application>\n  </compatibility>\n  <application xmlns=\"urn:schemas-microsoft-com:asm.v3\">\n    <windowsSettings>\n      <longPathAware xmlns=\"http://schemas.microsoft.com/SMI/2016/WindowsSettings\">true</longPathAware>\n    </windowsSettings>\n  </application>\n  <dependency>\n    <dependentAssembly>\n      <assemblyIdentity type=\"win32\" name=\"Microsoft.Windows.Common-Controls\" version=\"6.0.0.0\" processorArchitecture=\"*\" publicKeyToken=\"6595b64144ccf1df\" language=\"*\"></assemblyIdentity>\n    </dependentAssembly>\n  </dependency>\n</assembly>",
+          "python_executable_is_unmodified_upstream_binary": false,
+          "normal_payload_staging_changed": false,
+          "minimum_windows_for_active_code_page": "Windows 10 version 1903; actual worker must independently require GetACP() == 65001",
+          "executable": "python/python.exe",
+          "tool": {
+            "version": "10.0.26100.8249 (WinBuild.160101.0800)",
+            "name": "mt.exe",
+            "sha256": "fb1ab75294b78619bd6ac8cadf30cb95befbc7324703cbe2654ef800ddd2bf4d"
+          },
+          "executable_sha256_after": "3ced8be30ac164341206ac327de486412b7a67286e84c80603ed1a5ec112c7d2",
+          "schema": 1,
+          "embedded_manifest": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n<assembly xmlns=\"urn:schemas-microsoft-com:asm.v1\" manifestVersion=\"1.0\">\r\n  <trustInfo xmlns=\"urn:schemas-microsoft-com:asm.v3\">\r\n    <security>\r\n      <requestedPrivileges>\r\n        <requestedExecutionLevel level=\"asInvoker\" uiAccess=\"false\">\r\n        </requestedExecutionLevel>\r\n      </requestedPrivileges>\r\n    </security>\r\n  </trustInfo>\r\n  <compatibility xmlns=\"urn:schemas-microsoft-com:compatibility.v1\">\r\n    <application>\r\n      <supportedOS Id=\"{e2011457-1546-43c5-a5fe-008deee3d3f0}\">\r\n      </supportedOS>\r\n      <supportedOS Id=\"{35138b9a-5d96-4fbd-8e2d-a2440225f93a}\">\r\n      </supportedOS>\r\n      <supportedOS Id=\"{4a2f28e3-53b9-4441-ba9c-d69d4a4a6e38}\">\r\n      </supportedOS>\r\n      <supportedOS Id=\"{1f676c76-80e1-4239-95bb-83d0f6d0da78}\">\r\n      </supportedOS>\r\n      <supportedOS Id=\"{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}\">\r\n      </supportedOS>\r\n    </application>\r\n  </compatibility>\r\n  <application xmlns=\"urn:schemas-microsoft-com:asm.v3\">\r\n    <windowsSettings>\r\n      <longPathAware xmlns=\"http://schemas.microsoft.com/SMI/2016/WindowsSettings\">true</longPathAware>\r\n      <activeCodePage xmlns=\"http://schemas.microsoft.com/SMI/2019/WindowsSettings\">UTF-8</activeCodePage>\r\n    </windowsSettings>\r\n  </application>\r\n  <dependency>\r\n    <dependentAssembly>\r\n      <assemblyIdentity type=\"win32\" name=\"Microsoft.Windows.Common-Controls\" version=\"6.0.0.0\" processorArchitecture=\"*\" publicKeyToken=\"6595b64144ccf1df\" language=\"*\">\r\n      </assemblyIdentity>\r\n    </dependentAssembly>\r\n  </dependency>\r\n</assembly>",
+          "private_only": true,
+          "release_or_redistribution_approval": false
+        },
+        "preferred_encoding": "utf-8",
+        "weasyprint_path_encoding": "utf-8",
+        "development_dependencies_absent": true,
+        "ctypes_callbacks_verified": true,
+        "fontconfig_file": null,
+        "legacy_fontconfig_env_ignored": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u062a\u0646\u0638\u06cc\u0645 \u0646\u0627\u0645\u0648\u062c\u0648\u062f fonts.conf",
+        "fontconfig_mode": "EXPLICIT_UTF8_MEMORY_NO_SYSTEM_FONTS",
+        "fontconfig_xml_sha256": "7dce3099ecfac9fe0ce9b019579de9e4b3a1ff572c41e9b438726bf711813b79",
+        "unicode_temp": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u067e\u0648\u0634\u0647 \u0645\u0648\u0642\u062a \u0628\u0627 \u0641\u0627\u0635\u0644\u0647",
+        "unicode_state": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645",
+        "localappdata": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData",
+        "working_directory": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\\u0645\u062d\u0644 \u0627\u062c\u0631\u0627\u06cc \u062c\u062f\u0627",
+        "reused_state": false,
+        "font_documents": {
+          "single-page": {
+            "font_folder": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u067e\u0648\u0634\u0647 \u0645\u0648\u0642\u062a \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\weasyprint-nxvl2gj7",
+            "font_sha256": [
+              "b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56",
+              "f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723"
+            ],
+            "system_fonts": 0,
+            "font_temp_cleaned": true
+          },
+          "multi-page": {
+            "font_folder": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u067e\u0648\u0634\u0647 \u0645\u0648\u0642\u062a \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\weasyprint-g26tfuyq",
+            "font_sha256": [
+              "b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56",
+              "f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723"
+            ],
+            "system_fonts": 0,
+            "font_temp_cleaned": true
+          }
+        },
+        "loaded_dlls": {
+          "brotlicommon.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\brotlicommon.dll",
+          "brotlidec.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\brotlidec.dll",
+          "bz2.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\bz2.dll",
+          "ffi-8.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\ffi-8.dll",
+          "fontconfig-1.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\fontconfig-1.dll",
+          "freetype.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\freetype.dll",
+          "fribidi-0.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\fribidi-0.dll",
+          "gio-2.0-0.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\gio-2.0-0.dll",
+          "glib-2.0-0.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\glib-2.0-0.dll",
+          "gmodule-2.0-0.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\gmodule-2.0-0.dll",
+          "gobject-2.0-0.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\gobject-2.0-0.dll",
+          "harfbuzz-subset.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\harfbuzz-subset.dll",
+          "harfbuzz.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\harfbuzz.dll",
+          "iconv-2.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\iconv-2.dll",
+          "intl-8.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\intl-8.dll",
+          "libexpat.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libexpat.dll",
+          "libpng16.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libpng16.dll",
+          "pango-1.0-0.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\pango-1.0-0.dll",
+          "pangoft2-1.0-0.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\pangoft2-1.0-0.dll",
+          "pcre2-8.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\pcre2-8.dll",
+          "z.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\z.dll"
+        },
+        "pango_version_string": "1.58.0-vira-local-source",
+        "expected_pango_version_string": "1.58.0-vira-local-source",
+        "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW"
+      },
+      "dll_count": 21,
+      "documents": {
+        "single-page": {
+          "pages": 1,
+          "sha256": "ae92659254d59fed845c8ce4880d7bfa2846d64850085e5facfc657579ee4ebd",
+          "bytes": 21463,
+          "fonts": [
+            {
+              "name": "/GMIUCZ+Vazirmatn-Bold",
+              "weight": 700,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            },
+            {
+              "name": "/RFZBDK+Vazirmatn",
+              "weight": 400,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            }
+          ]
+        },
+        "multi-page": {
+          "pages": 4,
+          "sha256": "8273a9acad1e600661ec44a7ff4d2d1ae6e8fba69914a5b1c2aa0344871c5650",
+          "bytes": 32973,
+          "fonts": [
+            {
+              "name": "/GMIUCZ+Vazirmatn-Bold",
+              "weight": 700,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            },
+            {
+              "name": "/RFZBDK+Vazirmatn",
+              "weight": 400,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            }
+          ]
+        }
+      }
+    },
+    "restarted-process": {
+      "worker": {
+        "python": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\python\\python.exe",
+        "base_prefix": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\python",
+        "version": "3.11.17 (main, Oct 14 2026, 01:04:22) [MSC v.1944 64 bit (AMD64)]",
+        "isolated": 1,
+        "utf8_mode": 1,
+        "windows_active_code_page": 65001,
+        "process_manifest_bootstrap": {
+          "executable_sha256_before": "f20112d2e928e92a1c026b144aaacf30a86c5440748a5b06fcc7aa71988ea1f5",
+          "modified_signature_status": "NotSigned",
+          "original_signature_status": "NotSigned",
+          "original_manifest": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n<assembly xmlns=\"urn:schemas-microsoft-com:asm.v1\" manifestVersion=\"1.0\">\n  <trustInfo xmlns=\"urn:schemas-microsoft-com:asm.v3\">\n    <security>\n      <requestedPrivileges>\n        <requestedExecutionLevel level=\"asInvoker\" uiAccess=\"false\"></requestedExecutionLevel>\n      </requestedPrivileges>\n    </security>\n  </trustInfo>\n  <compatibility xmlns=\"urn:schemas-microsoft-com:compatibility.v1\">\n    <application>\n      <supportedOS Id=\"{e2011457-1546-43c5-a5fe-008deee3d3f0}\"></supportedOS>\n      <supportedOS Id=\"{35138b9a-5d96-4fbd-8e2d-a2440225f93a}\"></supportedOS>\n      <supportedOS Id=\"{4a2f28e3-53b9-4441-ba9c-d69d4a4a6e38}\"></supportedOS>\n      <supportedOS Id=\"{1f676c76-80e1-4239-95bb-83d0f6d0da78}\"></supportedOS>\n      <supportedOS Id=\"{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}\"></supportedOS>\n    </application>\n  </compatibility>\n  <application xmlns=\"urn:schemas-microsoft-com:asm.v3\">\n    <windowsSettings>\n      <longPathAware xmlns=\"http://schemas.microsoft.com/SMI/2016/WindowsSettings\">true</longPathAware>\n    </windowsSettings>\n  </application>\n  <dependency>\n    <dependentAssembly>\n      <assemblyIdentity type=\"win32\" name=\"Microsoft.Windows.Common-Controls\" version=\"6.0.0.0\" processorArchitecture=\"*\" publicKeyToken=\"6595b64144ccf1df\" language=\"*\"></assemblyIdentity>\n    </dependentAssembly>\n  </dependency>\n</assembly>",
+          "python_executable_is_unmodified_upstream_binary": false,
+          "normal_payload_staging_changed": false,
+          "minimum_windows_for_active_code_page": "Windows 10 version 1903; actual worker must independently require GetACP() == 65001",
+          "executable": "python/python.exe",
+          "tool": {
+            "version": "10.0.26100.8249 (WinBuild.160101.0800)",
+            "name": "mt.exe",
+            "sha256": "fb1ab75294b78619bd6ac8cadf30cb95befbc7324703cbe2654ef800ddd2bf4d"
+          },
+          "executable_sha256_after": "3ced8be30ac164341206ac327de486412b7a67286e84c80603ed1a5ec112c7d2",
+          "schema": 1,
+          "embedded_manifest": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n<assembly xmlns=\"urn:schemas-microsoft-com:asm.v1\" manifestVersion=\"1.0\">\r\n  <trustInfo xmlns=\"urn:schemas-microsoft-com:asm.v3\">\r\n    <security>\r\n      <requestedPrivileges>\r\n        <requestedExecutionLevel level=\"asInvoker\" uiAccess=\"false\">\r\n        </requestedExecutionLevel>\r\n      </requestedPrivileges>\r\n    </security>\r\n  </trustInfo>\r\n  <compatibility xmlns=\"urn:schemas-microsoft-com:compatibility.v1\">\r\n    <application>\r\n      <supportedOS Id=\"{e2011457-1546-43c5-a5fe-008deee3d3f0}\">\r\n      </supportedOS>\r\n      <supportedOS Id=\"{35138b9a-5d96-4fbd-8e2d-a2440225f93a}\">\r\n      </supportedOS>\r\n      <supportedOS Id=\"{4a2f28e3-53b9-4441-ba9c-d69d4a4a6e38}\">\r\n      </supportedOS>\r\n      <supportedOS Id=\"{1f676c76-80e1-4239-95bb-83d0f6d0da78}\">\r\n      </supportedOS>\r\n      <supportedOS Id=\"{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}\">\r\n      </supportedOS>\r\n    </application>\r\n  </compatibility>\r\n  <application xmlns=\"urn:schemas-microsoft-com:asm.v3\">\r\n    <windowsSettings>\r\n      <longPathAware xmlns=\"http://schemas.microsoft.com/SMI/2016/WindowsSettings\">true</longPathAware>\r\n      <activeCodePage xmlns=\"http://schemas.microsoft.com/SMI/2019/WindowsSettings\">UTF-8</activeCodePage>\r\n    </windowsSettings>\r\n  </application>\r\n  <dependency>\r\n    <dependentAssembly>\r\n      <assemblyIdentity type=\"win32\" name=\"Microsoft.Windows.Common-Controls\" version=\"6.0.0.0\" processorArchitecture=\"*\" publicKeyToken=\"6595b64144ccf1df\" language=\"*\">\r\n      </assemblyIdentity>\r\n    </dependentAssembly>\r\n  </dependency>\r\n</assembly>",
+          "private_only": true,
+          "release_or_redistribution_approval": false
+        },
+        "preferred_encoding": "utf-8",
+        "weasyprint_path_encoding": "utf-8",
+        "development_dependencies_absent": true,
+        "ctypes_callbacks_verified": true,
+        "fontconfig_file": null,
+        "legacy_fontconfig_env_ignored": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u062a\u0646\u0638\u06cc\u0645 \u0646\u0627\u0645\u0648\u062c\u0648\u062f fonts.conf",
+        "fontconfig_mode": "EXPLICIT_UTF8_MEMORY_NO_SYSTEM_FONTS",
+        "fontconfig_xml_sha256": "7dce3099ecfac9fe0ce9b019579de9e4b3a1ff572c41e9b438726bf711813b79",
+        "unicode_temp": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u067e\u0648\u0634\u0647 \u0645\u0648\u0642\u062a \u0628\u0627 \u0641\u0627\u0635\u0644\u0647",
+        "unicode_state": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645",
+        "localappdata": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData",
+        "working_directory": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\\u0645\u062d\u0644 \u0627\u062c\u0631\u0627\u06cc \u062c\u062f\u0627",
+        "reused_state": true,
+        "font_documents": {
+          "single-page": {
+            "font_folder": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u067e\u0648\u0634\u0647 \u0645\u0648\u0642\u062a \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\weasyprint-c3z3i6pi",
+            "font_sha256": [
+              "b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56",
+              "f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723"
+            ],
+            "system_fonts": 0,
+            "font_temp_cleaned": true
+          },
+          "multi-page": {
+            "font_folder": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u067e\u0648\u0634\u0647 \u0645\u0648\u0642\u062a \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\weasyprint-urt4hy_n",
+            "font_sha256": [
+              "b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56",
+              "f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723"
+            ],
+            "system_fonts": 0,
+            "font_temp_cleaned": true
+          }
+        },
+        "loaded_dlls": {
+          "brotlicommon.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\brotlicommon.dll",
+          "brotlidec.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\brotlidec.dll",
+          "bz2.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\bz2.dll",
+          "ffi-8.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\ffi-8.dll",
+          "fontconfig-1.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\fontconfig-1.dll",
+          "freetype.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\freetype.dll",
+          "fribidi-0.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\fribidi-0.dll",
+          "gio-2.0-0.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\gio-2.0-0.dll",
+          "glib-2.0-0.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\glib-2.0-0.dll",
+          "gmodule-2.0-0.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\gmodule-2.0-0.dll",
+          "gobject-2.0-0.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\gobject-2.0-0.dll",
+          "harfbuzz-subset.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\harfbuzz-subset.dll",
+          "harfbuzz.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\harfbuzz.dll",
+          "iconv-2.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\iconv-2.dll",
+          "intl-8.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\intl-8.dll",
+          "libexpat.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libexpat.dll",
+          "libpng16.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libpng16.dll",
+          "pango-1.0-0.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\pango-1.0-0.dll",
+          "pangoft2-1.0-0.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\pangoft2-1.0-0.dll",
+          "pcre2-8.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\pcre2-8.dll",
+          "z.dll": "D:\\a\\_temp\\vira-unicode-2c9b877f75944b5d8f83b80ff48ec905\\VIRA \u0686\u0627\u067e & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\z.dll"
+        },
+        "pango_version_string": "1.58.0-vira-local-source",
+        "expected_pango_version_string": "1.58.0-vira-local-source",
+        "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW"
+      },
+      "dll_count": 21,
+      "documents": {
+        "single-page": {
+          "pages": 1,
+          "sha256": "ae92659254d59fed845c8ce4880d7bfa2846d64850085e5facfc657579ee4ebd",
+          "bytes": 21463,
+          "fonts": [
+            {
+              "name": "/GMIUCZ+Vazirmatn-Bold",
+              "weight": 700,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            },
+            {
+              "name": "/RFZBDK+Vazirmatn",
+              "weight": 400,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            }
+          ]
+        },
+        "multi-page": {
+          "pages": 4,
+          "sha256": "8273a9acad1e600661ec44a7ff4d2d1ae6e8fba69914a5b1c2aa0344871c5650",
+          "bytes": 32973,
+          "fonts": [
+            {
+              "name": "/GMIUCZ+Vazirmatn-Bold",
+              "weight": 700,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            },
+            {
+              "name": "/RFZBDK+Vazirmatn",
+              "weight": 400,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "artifact": {
+    "id": 12155362066,
+    "node_id": "MDg6QXJ0aWZhY3QxMjE1NTM2MjA2Ng==",
+    "name": "private-unicode-bootstrap-build-pdf-evidence-no-dlls",
+    "size_in_bytes": 727370,
+    "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/artifacts/12155362066",
+    "archive_download_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/artifacts/12155362066/zip",
+    "expired": false,
+    "digest": "sha256:c8a70ee7af836b09f307fb9733edf2b2bf71cb4e3f7fdb19ffcc311fe30243f7",
+    "created_at": "2026-10-18T23:54:05Z",
+    "updated_at": "2026-10-18T23:54:05Z",
+    "expires_at": "2027-01-16T23:06:25Z",
+    "workflow_run": {
+      "id": 39175100427,
+      "repository_id": 1418734289,
+      "head_repository_id": 1418734289,
+      "head_branch": "arena/aee91951-vira-accounting-app",
+      "head_sha": "fa68e2a93b0fc02eedf97fd228ecd85d407d5aa5"
+    }
+  },
+  "preflight_proof": "docs/dependencies/pdf-unicode-bootstrap-preflight-proof.json",
+  "failure_records": [
+    "docs/dependencies/pdf-unicode-bootstrap-test-failure.json",
+    "docs/dependencies/pdf-unicode-bootstrap-render-failure.json",
+    "docs/dependencies/pdf-unicode-bootstrap-preflight-failure.json"
+  ],
+  "not_proven": [
+    "Complete component/CRT rights and recipient review",
+    "Durable anonymous source delivery",
+    "Ordinary launcher integration/import ordering",
+    "Inno/native delta/rollback and installed DLL replacement/EULA",
+    "Installed user acceptance",
+    "Offline SDK or bitwise native reproduction"
+  ]
+}

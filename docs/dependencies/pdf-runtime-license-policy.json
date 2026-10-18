@@ -284,7 +284,15 @@
         "ordinary_native_bootstrap_and_delta_integrated": false,
         "installed_user_acceptance": "DEFERRED_NOT_ACCEPTED",
         "gate_closed": false,
-        "private_noticed_archive_pdf_vazirmatn_and_digits": "VERIFIED_NOT_PRODUCTION_BOOTSTRAP_OR_INSTALLED_ACCEPTANCE"
+        "private_noticed_archive_pdf_vazirmatn_and_digits": "VERIFIED_NOT_PRODUCTION_BOOTSTRAP_OR_INSTALLED_ACCEPTANCE",
+        "private_explicit_memory_config_python_utf8_and_windows_process_acp": "VERIFIED_TWO_PRIVATE_PE_MANIFEST_MODIFIED_CPYTHON_PROCESSES_NOT_ORDINARY_LAUNCHER",
+        "private_unicode_bootstrap_proof": "docs/dependencies/pdf-unicode-bootstrap-proof.json",
+        "private_unicode_bootstrap_run_id": 39175100427,
+        "private_bootstrap_stock_preflight": "SEPARATE_PINNED_27_DLL_SDK_NOT_21_DLL_SOURCE_PROVENANCE",
+        "private_cpython_pe_manifest_changed": true,
+        "original_cpython_manifest_settings_preserved": true,
+        "production_cpython_manifest_signing_and_notices_review": "OPEN_NOT_APPROVED",
+        "minimum_supported_windows_review": "OPEN_PRIVATE_ACTIVE_CODE_PAGE_REQUIRES_1903_PLUS_NOT_ALL_WINDOWS_VERSIONS_TESTED"
       }
     }
   ],

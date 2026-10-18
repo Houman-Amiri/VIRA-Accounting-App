@@ -7,6 +7,24 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Private three-layer Unicode PDF bootstrap (no release)
+- Explicit in-memory Fontconfig plus CPython UTF-8 mode AND Windows process ACP
+  65001 via a private modified CPython PE manifest. Record original/modified EXE
+  hashes, both manifests and tool; preserve old manifest semantics. NOT an
+  unmodified upstream EXE, ordinary launcher integration or signing approval.
+- 39175100427 / fa68e2a: stock-SDK preflight is separate from the cold noticed-
+  archive 20-tree/21-DLL build. Two workers, Unicode app/profile/cache/TEMP/CWD,
+  real 1/4 A4 pages, Vazirmatn 400/700/all digits, temp hashes/cleanup and stable
+  private restamped manifest. Exact native audit and source-envelope bindings.
+- Preserve distinct actual Windows codec/native-filename failures. No ASCII
+  render fallback, global monkeypatch, skipped assertions or forced ordinary-CI
+  UTF-8. 626 backend; Ruff/Mypy85/Bandit existing gate/license14 pass. Unknown
+  earlier dependency-audit failure recorded; exact command/exit retained with
+  bounded diagnostics, and subsequent actual successful audit recorded apart.
+- Six legal/source/installed-production gates remain OPEN, including modified
+  CPython signing/notices and minimum-OS review. No application-wide MIT grant,
+  normal native enablement, user data/math/install, version/tag/publication change.
+
 ### Dated inline Pango notice and actual noticed-source-archive build/PDF (private)
 - Add in-file change/date notice without removing upstream headers. Package new
   complete source ZIP b1078a6bba74d86565b97694c8ac2afc6adf15c045a843cdbf55cb08f6226fc2

@@ -744,3 +744,43 @@ legal approval, recipient-ready/toolchain review, durable anonymous source deliv
 CRT rights, EULA/installed DLL replacement, production Unicode bootstrap/Inno/native
 delta/rollback or installed-user acceptance. All six policy gates stay OPEN. No
 normal payload/install/data/math, broad app/QA license, version/tag/release change.
+
+### Private three-layer Unicode PDF bootstrap — 2026-10-19, no release
+
+**39175100427 / fa68e2a SUCCESS**: separately pinned 27-DLL stock-SDK preflight,
+then independent cold source build on another runner BEFORE app dependencies,
+from the authenticated noticed archive: exact 20 source trees, 21 fresh DLLs,
+marked Pango; two isolated production-dependency CPython 3.11 workers with same
+Unicode profile/state/cache/TEMP and unrelated CWD, Unicode app/interpreter/DLLs.
+Explicit UTF-8 memory Fontconfig, zero active system fonts, actual Unicode TEMP
+TTF hashes and cleanup per document; real 1/4 A4 pages, Vazirmatn 400/700/all 30
+digits. Native audit/candidate/witness byte bindings and final envelope recheck.
+Stock SDK is NOT source provenance and never substitutes for the fresh 21 DLLs.
+
+Actual failures are preserved and distinguished: CP1252 source-test decoding,
+WeasyPrint temporary-font-path encoding, and native filename ACP 1252 despite
+Python UTF-8. Direct identical-TTF Unicode-vs-ASCII controls proved the last one.
+Private launch uses -I -B -X utf8 PLUS a modified CPython PE resource manifest
+activeCodePage UTF-8; independently require GetACP()==65001. Both EXE hashes,
+original/re-extracted manifests and SDK tool are recorded. Original manifest
+semantics preserved, PRIVATE baseline restamped then unchanged across workers.
+The EXE is NOT an unmodified upstream binary. Normal staging/installer unchanged;
+1903+ capability, minimum product OS, CPython notices/signing/redistribution and
+all-Windows-version coverage remain production review, not silently approved.
+
+[Persian report](docs/reports/pdf-unicode-bootstrap-fa.md),
+[source proof](docs/dependencies/pdf-unicode-bootstrap-proof.json),
+[separate preflight proof](docs/dependencies/pdf-unicode-bootstrap-preflight-proof.json).
+626 backend tests, Ruff/Mypy85/Bandit existing medium+high gate/license14 pass.
+One CI dependency-audit failure has unknown original cause because signed logs
+were inaccessible; exact audit/exit semantics retained, bounded diagnostics added,
+and the actual next successful audit is recorded separately, not called a fix.
+No advisory ignores/test skips/global UTF-8 CI masking/WeasyPrint monkeypatch.
+
+Adapter/app QA NOT covered by limited native-build MIT grant. Normal renderer
+and HTTP default unchanged, no ordinary launcher integration. Read-only TTFs are
+NOT installed ACL proof, state reuse NOT disk-cache-hit proof. Six gates stay
+OPEN: component/CRT rights, recipient recipe/toolchain review, durable anonymous
+source delivery, installed replacement/EULA, ordinary pre-import bootstrap,
+Inno/native delta/rollback and deferred installed acceptance. No user data/math,
+install, version, tag or release changes; no publication authority inferred.
