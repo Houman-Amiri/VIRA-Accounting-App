@@ -38,7 +38,23 @@ jobs:
         run: uv run bandit -r backend/app -ll -q
 
       - name: pip-audit (dependencies)
-        run: uv run pip-audit
+        run: |
+          mkdir -p reports
+          set +e
+          uv run pip-audit > reports/dependency-audit.log 2>&1
+          status=$?
+          set -e
+          cat reports/dependency-audit.log
+          if [ "$status" -ne 0 ]; then
+            python - <<'PYDIAG'
+          from pathlib import Path
+          tail = Path('reports/dependency-audit.log').read_text(encoding='utf-8', errors='replace')[-8000:]
+          for offset in range(0, len(tail), 2600):
+              part = tail[offset:offset+2600].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+              print(f'::error title=Dependency audit failure part {offset}::{part}')
+          PYDIAG
+          fi
+          exit "$status"
 
       - name: Fresh SQLite + migrations
         working-directory: backend
