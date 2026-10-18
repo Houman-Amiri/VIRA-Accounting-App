@@ -39,6 +39,8 @@ ALLOWED_FILES = frozenset({
     "scripts/rebuild_pdf_native.ps1",
     "scripts/audit_pdf_native_rebuild.py",
     "scripts/pdf_source_kit.py",
+    "scripts/prepare_pdf_local_sources.py",
+    "docs/dependencies/pdf-local-source-port-pins.json",
 })
 
 

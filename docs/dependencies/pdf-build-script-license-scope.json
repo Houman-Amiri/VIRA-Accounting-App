@@ -41,7 +41,7 @@
       "corresponding_source_member": "vira-recipe/vcpkg.json"
     },
     "scripts/check_pdf_build_license.py": {
-      "sha256_lf": "bf14d7bea2a5bbf036c5c21b91bb9c7e0ba1b3a935cedb10775eb009b493d044",
+      "sha256_lf": "46e21600c1b98f97efee410cb9679a7e62282c12ba5759867afe7499ad857fee",
       "corresponding_source_member": null
     },
     "scripts/pdf_runtime_inventory.py": {
@@ -68,6 +68,14 @@
     },
     "scripts/pdf_source_kit.py": {
       "sha256_lf": "44f3baa99a6aba4f090c0c89c72a3c5a8cecfd1fe10df748b685ac547536e590",
+      "corresponding_source_member": null
+    },
+    "scripts/prepare_pdf_local_sources.py": {
+      "sha256_lf": "ee7f1cc2afde6f37a1c16d4b886669cc1339cd784bd789da0ab11849ba2d591e",
+      "corresponding_source_member": null
+    },
+    "docs/dependencies/pdf-local-source-port-pins.json": {
+      "sha256_lf": "7628027a31202f3699def8a9f119da89a3a25eb0b9ff5d055cf16d7db39f3aea",
       "corresponding_source_member": null
     }
   },

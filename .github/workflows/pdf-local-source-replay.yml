@@ -57,3 +57,118 @@ jobs:
           path: reports/local-source-catalog.json
           retention-days: 90
           if-no-files-found: error
+
+  local-rebuild:
+    runs-on: windows-latest
+    timeout-minutes: 100
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Authenticate original source producer and download only the pinned source kit input
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $pin = Get-Content docs/dependencies/pdf-source-proof-run.json -Raw | ConvertFrom-Json
+          $run = gh api "repos/$env:GH_REPO/actions/runs/$($pin.run_id)" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $run.head_sha -ne $pin.head_sha -or $run.path -ne $pin.workflow_path -or $run.conclusion -ne "success") { throw "wrong source producer" }
+          gh run download $pin.run_id --name $pin.artifact_name --dir "$env:RUNNER_TEMP/original"
+          if ($LASTEXITCODE -ne 0) { throw "original source download failed" }
+      - name: Assemble narrow source kit and extract actual preferred trees without app dependencies
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Force reports/local-source | Out-Null
+          $archive = @(Get-ChildItem "$env:RUNNER_TEMP/original" -Recurse -File -Filter corresponding-source.zip)
+          if ($archive.Count -ne 1) { throw "exactly one original archive required" }
+          $receipt = python -I -S scripts/pdf_source_kit.py --archive $archive[0].FullName --out "$env:RUNNER_TEMP/local-kit"
+          if ($LASTEXITCODE -ne 0) { throw "kit assembly failed" }
+          [IO.File]::WriteAllText("$pwd/reports/local-source/kit-receipt.json", ($receipt -join "`n"))
+          $hash = ($receipt | ConvertFrom-Json).kit_manifest_sha256
+          python -I -S "$env:RUNNER_TEMP/local-kit/licensed-build-files/scripts/pdf_source_kit.py" --verify "$env:RUNNER_TEMP/local-kit" --expected-manifest-sha256 $hash --extract-sources "$env:RUNNER_TEMP/preferred"
+          if ($LASTEXITCODE -ne 0) { throw "source extraction failed; links must not be flattened" }
+      - name: Explicit LGPL local edit, recorded separately from the immutable original archive
+        shell: pwsh
+        run: |
+          @'
+          import hashlib,json,os,pathlib
+          base=pathlib.Path(os.environ['RUNNER_TEMP'],'preferred','sources','pango')
+          paths=list(base.glob('*/pango/pango-utils.c'));assert len(paths)==1
+          p=paths[0];old=p.read_bytes();before=b'return PANGO_VERSION_STRING;';after=b'return PANGO_VERSION_STRING "-vira-local-source";'
+          assert old.count(before)==1
+          new=old.replace(before,after);p.write_bytes(new)
+          report={'package':'pango','file':p.relative_to(base).as_posix(),'before_sha256':hashlib.sha256(old).hexdigest(),'after_sha256':hashlib.sha256(new).hexdigest(),'old_bytes':before.decode(),'new_bytes':after.decode(),'expected_runtime_version':'1.58.0-vira-local-source','original_archive_modified':False,'new_corresponding_source_archive_prepared':False,'modified_source_file':new.decode('utf-8')}
+          pathlib.Path('reports/local-source/explicit-pango-edit.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8',newline='\n')
+          '@ | python -I -S -
+          if ($LASTEXITCODE -ne 0) { throw "controlled Pango source edit failed" }
+      - name: Prepare only reviewed local target acquisitions in the licensed isolated sidecar
+        shell: pwsh
+        run: |
+          $hash = (Get-Content reports/local-source/kit-receipt.json -Raw | ConvertFrom-Json).kit_manifest_sha256
+          python -I -S "$env:RUNNER_TEMP/local-kit/licensed-build-files/scripts/prepare_pdf_local_sources.py" --kit "$env:RUNNER_TEMP/local-kit" --expected-manifest-sha256 $hash --sources "$env:RUNNER_TEMP/preferred" --out "$env:RUNNER_TEMP/local-overlay" --allow-modified
+          if ($LASTEXITCODE -ne 0) { throw "local source overlay validation failed" }
+          Copy-Item "$env:RUNNER_TEMP/local-overlay/local-source-*.json" reports/local-source/
+      - name: Compile all target libraries from local preferred trees with binary caches disabled
+        shell: pwsh
+        run: |
+          Set-Location "$env:RUNNER_TEMP/local-kit/licensed-build-files"
+          & pwsh -NoProfile -File ./scripts/rebuild_pdf_native.ps1 -WorkDir "$env:RUNNER_TEMP/local-native-work" -OverlayPorts "$env:RUNNER_TEMP/local-overlay"
+          if ($LASTEXITCODE -ne 0) { throw "local preferred-source native compilation failed" }
+      - name: Verify twenty actual build trees, twenty-one DLL origins, and executed modified LGPL function
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          python -m venv "$env:RUNNER_TEMP/native-inspector"
+          if ($LASTEXITCODE -ne 0) { throw "inspector environment failed" }
+          $python = "$env:RUNNER_TEMP/native-inspector/Scripts/python.exe"
+          & $python -m pip install --no-deps "https://files.pythonhosted.org/packages/54/16/12b82f791c7f50ddec566873d5bdd245baa1491bac11d15ffb98aecc8f8b/pefile-2024.8.26-py3-none-any.whl#sha256=76f8b485dcd3b1bb8166f1128d395fa3d87af26360c2358fb75b80019b957c6f"
+          if ($LASTEXITCODE -ne 0) { throw "hash-pinned inspector installation failed" }
+          & $python "$env:RUNNER_TEMP/local-kit/licensed-build-files/scripts/audit_pdf_native_rebuild.py" --sidecar "$env:RUNNER_TEMP/local-kit/licensed-build-files" --work "$env:RUNNER_TEMP/local-native-work" --reference "$env:RUNNER_TEMP/local-overlay/local-source-reference.json" --out reports/local-source/verified-local-rebuild.json
+          if ($LASTEXITCODE -ne 0) { throw "native trees/closure/origins audit failed" }
+          python -I -S "$env:RUNNER_TEMP/local-kit/licensed-build-files/scripts/prepare_pdf_local_sources.py" --check-inputs "$env:RUNNER_TEMP/local-overlay/local-source-preparation.json"
+          if ($LASTEXITCODE -ne 0) { throw "input source kit mutated during compilation" }
+          @'
+          import ctypes,json,os,pathlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'],'local-native-work','installed','x64-vira-pdf','bin')
+          with os.add_dll_directory(str(root)):
+            p=ctypes.CDLL(str(root/'pango-1.0-0.dll'))
+            p.pango_version_string.argtypes=[];p.pango_version_string.restype=ctypes.c_char_p
+            actual=p.pango_version_string().decode('ascii')
+          expected=json.load(open('reports/local-source/explicit-pango-edit.json'))['expected_runtime_version']
+          assert actual==expected,(actual,expected)
+          out=pathlib.Path('reports/local-source/verified-local-rebuild.json');x=json.loads(out.read_text())
+          prep=json.load(open('reports/local-source/local-source-preparation.json'));assert prep['changed_packages']==['pango']
+          x['local_source_preparation']=prep;x['explicit_edit']=json.load(open('reports/local-source/explicit-pango-edit.json'));x['kit_receipt']=json.load(open('reports/local-source/kit-receipt.json'))
+          x.update(local_preferred_source_replay='SUCCESS',actual_pango_version_string=actual,changed_packages=['pango'],original_source_tree_count=19,explicitly_modified_source_tree_count=1,input_source_trees_unchanged_during_compilation=True,original_archive_modified=False,new_corresponding_source_archive_prepared=False)
+          out.write_text(json.dumps(x,indent=2)+'\n',encoding='utf-8',newline='\n')
+          '@ | & $python -I -S -
+          if ($LASTEXITCODE -ne 0) { throw "executed modified Pango proof failed" }
+      - name: Local build evidence group zero
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/local-source/verified-local-rebuild.json --emit-group 0
+      - name: Local build evidence group one
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/local-source/verified-local-rebuild.json --emit-group 1
+      - name: Preserve bounded diagnostics and recipes, never compiled binaries
+        if: always()
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force reports/local-source | Out-Null
+          foreach ($file in @("rebuild-plan.json", "rebuild-result.json", "DO_NOT_DISTRIBUTE.txt", "build.log")) {
+            $source = Join-Path "$env:RUNNER_TEMP/local-native-work" $file
+            if (Test-Path $source) { Copy-Item $source reports/local-source/ }
+          }
+          $trees = "$env:RUNNER_TEMP/local-native-work/vcpkg/buildtrees"
+          if (Test-Path $trees) {
+            $tail = Get-ChildItem $trees -Recurse -File | Where-Object { $_.Extension -in @('.log', '.txt') -and $_.FullName -notmatch '[\\/]src[\\/]' } | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 10 | ForEach-Object { "FILE: $($_.FullName)"; Get-Content $_.FullName -Tail 30 }
+            $tail | Set-Content -Encoding utf8 reports/local-source/diagnostic-tail.txt
+            $text = (($tail -join "`n") -replace '%','%25') -replace "`n",'%0A'
+            Write-Output "::notice title=Local source build diagnostic::$text"
+          }
+          if (Test-Path "$env:RUNNER_TEMP/local-overlay") { Copy-Item "$env:RUNNER_TEMP/local-overlay" reports/local-source/recipes -Recurse }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: local-preferred-source-rebuild-evidence-no-dlls
+          path: reports/local-source/
+          retention-days: 90
+          if-no-files-found: error

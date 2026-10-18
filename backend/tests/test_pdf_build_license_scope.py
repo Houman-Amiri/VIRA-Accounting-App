@@ -34,7 +34,7 @@ def workspace(tool, scope, tmp_path):
 def test_actual_grant_is_narrow_and_runtime_remains_blocked(tool, scope):
     result = tool.verify(ROOT, scope)
     assert result["license_id"] == "MIT"
-    assert result["licensed_file_count"] == 12
+    assert result["licensed_file_count"] == 14
     assert result["application_license_changed"] is False
     assert result["release_authorized"] is False
     assert result["runtime_distribution_status"] == tool.BLOCKED

@@ -230,7 +230,7 @@
         "scope_file": "docs/dependencies/pdf-build-script-license-scope.json",
         "standalone_recipe_completeness": "NATIVE_ONLY_BASELINE_BUILD_AND_AUDIT_VERIFIED_RECIPIENT_ASSEMBLY_REVIEW_PENDING",
         "gate_closed": false,
-        "licensed_files": 12,
+        "licensed_files": 14,
         "native_only_entry_point": "scripts/rebuild_pdf_native.ps1",
         "standalone_recipe_guide": "docs/dependencies/pdf-native-rebuild-guide.md",
         "independent_rebuild_proof": "docs/dependencies/pdf-native-rebuild-proof-run.json",

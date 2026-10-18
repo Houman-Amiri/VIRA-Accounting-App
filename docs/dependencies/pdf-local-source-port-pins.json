@@ -1,0 +1,169 @@
+{
+  "schema": 1,
+  "license_id": "MIT",
+  "vcpkg_commit": "a5f736224e85b32e25a8ffc52562333180396642",
+  "source_archive_sha256": "259532d2cd8c5d3b176402acdcfb9daadb2cb897d5710010cc198eeabe5401de",
+  "port_hash_format": "UTF8_CRLF_TO_LF_SHA256",
+  "catalog_run_id": 39143216401,
+  "catalog_job_id": 117721702844,
+  "packages": {
+    "brotli": {
+      "roots": [
+        "v1.2.0-7af7ca71ad.clean"
+      ],
+      "port_sha256": "142eff2e161dcbd5abe54f9acc0ad1954494f2a657780a32e83e558ee7fec4f1",
+      "archived_port_sha256": "142eff2e161dcbd5abe54f9acc0ad1954494f2a657780a32e83e558ee7fec4f1",
+      "acquisition_calls": 1
+    },
+    "bzip2": {
+      "roots": [
+        "bzip2-1-336d4794a3.clean"
+      ],
+      "port_sha256": "f9214fef97e792ca76f2cf97343edb1b83d6457e7320ae36b06306d0f038b439",
+      "archived_port_sha256": "f9214fef97e792ca76f2cf97343edb1b83d6457e7320ae36b06306d0f038b439",
+      "acquisition_calls": 2
+    },
+    "cairo": {
+      "roots": [
+        "cairo-1-ebb6bf2944.clean"
+      ],
+      "port_sha256": "64d835ac4779e10c1373db5195b40bc4d4871c225924a0c184c9ae1c5e71f22d",
+      "archived_port_sha256": "64d835ac4779e10c1373db5195b40bc4d4871c225924a0c184c9ae1c5e71f22d",
+      "acquisition_calls": 2
+    },
+    "dirent": {
+      "roots": [
+        "1.26-15c15b77f8.clean"
+      ],
+      "port_sha256": "038ec47bd2b005c24d700750210bd21df863d2788b6ee09e65a97b0c482b2a6a",
+      "archived_port_sha256": "038ec47bd2b005c24d700750210bd21df863d2788b6ee09e65a97b0c482b2a6a",
+      "acquisition_calls": 1
+    },
+    "expat": {
+      "roots": [
+        "R_2_9_0-d49b1aac51.clean"
+      ],
+      "port_sha256": "1c0629d055208c4e4352294e9c0f8270630759549c6eca131ba2d500d37793e9",
+      "archived_port_sha256": "1c0629d055208c4e4352294e9c0f8270630759549c6eca131ba2d500d37793e9",
+      "acquisition_calls": 1
+    },
+    "fontconfig": {
+      "roots": [
+        "2.17.1-6edd6fe145.clean"
+      ],
+      "port_sha256": "d466e115fd9e7e1b2ac4cad483b8bef0fbf82a2db2e2ba19c037fd04845a3aac",
+      "archived_port_sha256": "d466e115fd9e7e1b2ac4cad483b8bef0fbf82a2db2e2ba19c037fd04845a3aac",
+      "acquisition_calls": 1
+    },
+    "freetype": {
+      "roots": [
+        "VER-2-14-3-46d5ca34ec.clean"
+      ],
+      "port_sha256": "c139c72f8246c293ef68b4a3cc81ce2bee26afc81ab19d466f0403655c8a9918",
+      "archived_port_sha256": "c139c72f8246c293ef68b4a3cc81ce2bee26afc81ab19d466f0403655c8a9918",
+      "acquisition_calls": 1
+    },
+    "fribidi": {
+      "roots": [
+        "v1.0.17-27f6b21819.clean"
+      ],
+      "port_sha256": "dc612dda5d3953c1436d58e7267ff8721ef60682a7e6315c60a813711e923a1a",
+      "archived_port_sha256": "dc612dda5d3953c1436d58e7267ff8721ef60682a7e6315c60a813711e923a1a",
+      "acquisition_calls": 1
+    },
+    "gettext-libintl": {
+      "roots": [
+        "gettext-0-5775b97cd5.clean"
+      ],
+      "port_sha256": "eb2d2f4c5e92b4be462da420cbc4d4b000ccf3d8bf2d32af4b58f548e474e1f1",
+      "archived_port_sha256": "eb2d2f4c5e92b4be462da420cbc4d4b000ccf3d8bf2d32af4b58f548e474e1f1",
+      "acquisition_calls": 2
+    },
+    "glib": {
+      "roots": [
+        "glib-2-85f794b129.clean"
+      ],
+      "port_sha256": "17a12add41698bc59ffc1b49c28e51ff7e60818281da4485f2be0549bbaaf9cf",
+      "archived_port_sha256": "17a12add41698bc59ffc1b49c28e51ff7e60818281da4485f2be0549bbaaf9cf",
+      "acquisition_calls": 2
+    },
+    "harfbuzz": {
+      "roots": [
+        "14.6.0-c6e291dab0.clean"
+      ],
+      "port_sha256": "9aa9a6b83ed8c6b5557cb7cd49f578781692e13081f2a46f4c38772149ae4a84",
+      "archived_port_sha256": "9aa9a6b83ed8c6b5557cb7cd49f578781692e13081f2a46f4c38772149ae4a84",
+      "acquisition_calls": 1
+    },
+    "libffi": {
+      "roots": [
+        "libffi-3-ab3188cbcc.clean"
+      ],
+      "port_sha256": "7915550ae2ec74e86fc35cbbabcb4e064c93ef5af471445c08c69fefdd0363d1",
+      "archived_port_sha256": "7915550ae2ec74e86fc35cbbabcb4e064c93ef5af471445c08c69fefdd0363d1",
+      "acquisition_calls": 2
+    },
+    "libiconv": {
+      "roots": [
+        "v1.19-81131afe73.clean"
+      ],
+      "port_sha256": "4fd50416fde07190457694efad72120512f24393f818c42fe637eb7cf20d75d2",
+      "archived_port_sha256": "4fd50416fde07190457694efad72120512f24393f818c42fe637eb7cf20d75d2",
+      "acquisition_calls": 2
+    },
+    "libpng": {
+      "roots": [
+        "v1.6.59-47af3e6fae.clean"
+      ],
+      "port_sha256": "946d34dff5d9b684e82705da689eec31998a9b2bfbcc516148641a798f6d8ad6",
+      "archived_port_sha256": "946d34dff5d9b684e82705da689eec31998a9b2bfbcc516148641a798f6d8ad6",
+      "acquisition_calls": 2
+    },
+    "pango": {
+      "roots": [
+        "pango-1-5cb02b5781.clean"
+      ],
+      "port_sha256": "26a37da1650dd56ff10abce9af6308792319eb4011d4758b3daf4fea41d0c060",
+      "archived_port_sha256": "26a37da1650dd56ff10abce9af6308792319eb4011d4758b3daf4fea41d0c060",
+      "acquisition_calls": 2
+    },
+    "pcre2": {
+      "roots": [
+        "cre2-10.49-cde0d234e5.clean"
+      ],
+      "port_sha256": "630058a170c4c73d31e8d036929d4cbe0c07a1df1e7a2de1c64e39723551019e",
+      "archived_port_sha256": "630058a170c4c73d31e8d036929d4cbe0c07a1df1e7a2de1c64e39723551019e",
+      "acquisition_calls": 2
+    },
+    "pixman": {
+      "roots": [
+        "man-0.46.4-4600eb3651.clean"
+      ],
+      "port_sha256": "b3a83e55aaa42bc09490ed9e19306374a1a3b548b5a3ca53df67c2be41fd110e",
+      "archived_port_sha256": "b3a83e55aaa42bc09490ed9e19306374a1a3b548b5a3ca53df67c2be41fd110e",
+      "acquisition_calls": 1
+    },
+    "pthread": {
+      "roots": [],
+      "port_sha256": "16471ec9a5c3dbec7727a062ac069ccbe805f3486de47296c62c92cf895d054c",
+      "archived_port_sha256": "a28cc5b696dcab4ed88e9cd8854637d1dac07f9e258715847367d09c17d3048e",
+      "acquisition_calls": 0
+    },
+    "pthreads": {
+      "roots": [
+        "-15acc74eed.clean"
+      ],
+      "port_sha256": "f1a9c2feb03dae457ffb60fe35128253e5b26ef7252d905051f6c86a316f3291",
+      "archived_port_sha256": "f1a9c2feb03dae457ffb60fe35128253e5b26ef7252d905051f6c86a316f3291",
+      "acquisition_calls": 1
+    },
+    "zlib": {
+      "roots": [
+        "v1.3.2-c19a0bfd23.clean"
+      ],
+      "port_sha256": "ea47bb5089d792f31127ad26e780e78bb940ad4372aa2d66649a4f446a1a2b72",
+      "archived_port_sha256": "ea47bb5089d792f31127ad26e780e78bb940ad4372aa2d66649a4f446a1a2b72",
+      "acquisition_calls": 1
+    }
+  }
+}
