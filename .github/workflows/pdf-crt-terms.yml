@@ -1,0 +1,72 @@
+name: Inspect installed Visual Studio and SDK terms
+
+on:
+  push:
+    paths: ['.github/workflows/pdf-crt-terms.yml']
+  pull_request:
+    paths: ['.github/workflows/pdf-crt-terms.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  terms:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read English installed terms, not a REDIST forwarding stub
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Add-Type -AssemblyName System.Windows.Forms
+          $vswhere = "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe"
+          $vs = @(& $vswhere -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -format json | ConvertFrom-Json)
+          if ($LASTEXITCODE -ne 0 -or $vs.Count -eq 0) { throw 'VS installation missing' }
+          $out = 'reports/crt-terms'
+          New-Item -ItemType Directory -Force $out | Out-Null
+          $files = @()
+          foreach ($install in $vs) {
+            $root = Join-Path $install.installationPath 'Licenses/1033'
+            if (Test-Path $root) { $files += Get-ChildItem $root -Recurse -File | Where-Object { $_.Extension -in @('.rtf', '.txt', '.htm', '.html') } }
+            $ide = Join-Path $install.installationPath 'Common7/IDE'
+            if (Test-Path $ide) { $files += Get-ChildItem $ide -File | Where-Object { $_.Name -match '(?i)(license|eula|redist)' -and $_.Extension -in @('.rtf', '.txt', '.htm', '.html') } }
+          }
+          $sdk = "${env:ProgramFiles(x86)}/Windows Kits/10/Licenses"
+          if (Test-Path $sdk) { $files += Get-ChildItem $sdk -Recurse -File -Filter '*.rtf' }
+          $records = @()
+          foreach ($file in @($files | Sort-Object FullName -Unique)) {
+            $hash = (Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            $text = [IO.File]::ReadAllText($file.FullName)
+            if ($file.Extension -eq '.rtf') {
+              $box = [System.Windows.Forms.RichTextBox]::new()
+              try { $box.Rtf = $text; $text = $box.Text } finally { $box.Dispose() }
+            }
+            $plain = Join-Path $out ($hash.Substring(0,12) + '-' + $file.BaseName + '.txt')
+            [IO.File]::WriteAllText($plain, $text, [Text.UTF8Encoding]::new($false))
+            $records += @{
+              path = $file.FullName; original_sha256 = $hash; original_bytes = $file.Length
+              plain_text_file = (Split-Path $plain -Leaf); plain_text_sha256 = (Get-FileHash $plain -Algorithm SHA256).Hash.ToLowerInvariant()
+              microsoft_visual_studio_mentioned = $text -match '(?i)Microsoft Visual Studio'
+              distributable_code_mentioned = $text -match '(?i)distributable code'
+              excluded_license_mentioned = $text -match '(?i)excluded license'
+              extraction = 'Windows RichTextBox text for review; original RTF hash retained; not legal approval'
+              text = $text
+            }
+          }
+          $result = @{ schema = 1; current_runner_only = $true; installations = $vs; documents = $records; distribution_status = 'BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW'; license_entitlement = 'NOT_ESTABLISHED_BY_RUNNER_INSPECTION' }
+          $result | ConvertTo-Json -Depth 14 | Set-Content -Encoding utf8 "$out/installed-terms.json"
+      - name: Emit all terms with bounded, complete metadata
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/crt-terms/installed-terms.json --emit-group 0
+      - name: Terms group 1
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/crt-terms/installed-terms.json --emit-group 1
+      - name: Terms group 2
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/crt-terms/installed-terms.json --emit-group 2
+      - name: Terms group 3
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/crt-terms/installed-terms.json --emit-group 3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installed-msvc-sdk-terms-for-review
+          path: reports/crt-terms/
+          retention-days: 90
+          if-no-files-found: error
