@@ -1,0 +1,98 @@
+name: Inspect static CRT linker probe (not native DLL clearance)
+
+on:
+  push:
+    paths: ['.github/workflows/pdf-crt-link-proof.yml']
+  pull_request:
+    paths: ['.github/workflows/pdf-crt-link-proof.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      VSLANG: '1033'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile a separate MT probe and retain actual linker diagnostics
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $out = Join-Path $env:RUNNER_TEMP 'crt-link-probe'
+          New-Item -ItemType Directory $out | Out-Null
+          $vswhere = "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe"
+          $vs = @(& $vswhere -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -format json | ConvertFrom-Json)
+          if ($LASTEXITCODE -ne 0 -or $vs.Count -eq 0) { throw 'MSVC not identified' }
+          $vcvars = Join-Path $vs[0].installationPath 'VC/Auxiliary/Build/vcvars64.bat'
+          @'
+          #include <cstdio>
+          #include <string>
+          int main(int argc, char **argv) {
+            std::string value(argc > 1 ? argv[1] : "private static CRT probe");
+            std::printf("%zu\n", value.size());
+            return value.empty() ? 1 : 0;
+          }
+          '@ | Set-Content -Encoding utf8 "$out/probe.cpp"
+          @"
+          @echo off
+          call "$vcvars"
+          if errorlevel 1 exit /b 1
+          where cl
+          echo LIB=%LIB%
+          cl /nologo /Bv /MT /EHsc /Od probe.cpp /Fe:probe.exe /link /VERBOSE:LIB /MAP:probe.map
+          if errorlevel 1 exit /b 1
+          dumpbin /nologo /DIRECTIVES probe.obj > directives.txt
+          if errorlevel 1 exit /b 1
+          dumpbin /nologo /DEPENDENTS probe.exe > imports.txt
+          if errorlevel 1 exit /b 1
+          probe.exe
+          if errorlevel 1 exit /b 1
+          "@ | Set-Content -Encoding ascii "$out/run.cmd"
+          Push-Location $out
+          try {
+            & cmd.exe /d /c run.cmd 2>&1 | Set-Content -Encoding utf8 link.log
+            if ($LASTEXITCODE -ne 0) { Get-Content link.log; throw 'static CRT probe failed' }
+          } finally { Pop-Location }
+          New-Item -ItemType Directory -Force reports/crt-link | Out-Null
+          foreach ($name in @('link.log','directives.txt','imports.txt','probe.map','probe.cpp')) {
+            Copy-Item "$out/$name" reports/crt-link/
+          }
+          $log = Get-Content "$out/link.log" -Raw
+          $searched = @()
+          foreach ($m in [regex]::Matches($log, '(?im)^\s*Searching\s+(.+?\.lib):\s*$')) {
+            $path = $m.Groups[1].Value.Trim()
+            if (Test-Path -LiteralPath $path -PathType Leaf) {
+              $searched += @{ path = $path; sha256 = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant(); size = (Get-Item -LiteralPath $path).Length }
+            }
+          }
+          if ($searched.Count -eq 0) { throw 'No actual linker search paths captured' }
+          $directives = Get-Content "$out/directives.txt" -Raw
+          if ($directives -notmatch '(?i)LIBCMT' -or $directives -match '(?i)DEFAULTLIB:"?MSVCRT') { throw 'Not a static CRT object' }
+          $loaded = @([regex]::Matches($log, '(?im)^\s*Loaded\s+(.+?\.lib\([^\r\n]+\))\s*$') | ForEach-Object { $_.Groups[1].Value })
+          if ($loaded.Count -eq 0) { throw 'No object-level linker trace captured' }
+          $files = @{}
+          foreach ($file in Get-ChildItem reports/crt-link -File) { $files[$file.Name] = @{ sha256 = (Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant(); bytes = $file.Length } }
+          $result = @{
+            schema = 1; distribution_status = 'BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW'
+            scope = 'CURRENT_RUNNER_SEPARATE_MT_PROBE_NOT_ORIGINAL_OR_REBUILT_21_DLL_LINK_MAP'
+            installations = $vs; compile_flags = @('/MT','/EHsc','/Od'); searched_libraries = @($searched | Sort-Object path -Unique)
+            search_is_not_proof_of_linked_code = $true; loaded_object_count = $loaded.Count
+            loaded_object_preview = @($loaded | Select-Object -First 20); full_loaded_object_trace_in_log = $true
+            probe_defaultlib_directives = $directives; probe_imports = (Get-Content "$out/imports.txt" -Raw)
+            log_files = $files; producer_license_entitlement = 'NOT_ESTABLISHED'; actual_native_dll_component_mapping = 'STILL_PENDING'
+          }
+          $result | ConvertTo-Json -Depth 14 | Set-Content -Encoding utf8 reports/crt-link/probe-evidence.json
+      - name: Emit bounded evidence, not library binaries
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/crt-link/probe-evidence.json --emit-group 0
+      - name: Evidence group 1
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/crt-link/probe-evidence.json --emit-group 1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: static-crt-probe-logs-no-binaries
+          path: reports/crt-link/
+          retention-days: 90
+          if-no-files-found: error

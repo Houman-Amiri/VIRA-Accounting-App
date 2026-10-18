@@ -38,6 +38,7 @@ ALLOWED_FILES = frozenset({
     "scripts/check_pdf_build_license.py",
     "scripts/rebuild_pdf_native.ps1",
     "scripts/audit_pdf_native_rebuild.py",
+    "scripts/pdf_source_kit.py",
 })
 
 
