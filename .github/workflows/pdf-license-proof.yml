@@ -5,12 +5,20 @@ on:
     paths:
       - '.github/workflows/pdf-license-proof.yml'
       - 'scripts/pdf_runtime_licenses.py'
+      - 'scripts/check_pdf_build_license.py'
+      - 'backend/tests/test_pdf_build_license_scope.py'
+      - 'docs/dependencies/pdf-build-script-license-scope.json'
+      - 'LICENSES/**'
       - 'backend/tests/test_pdf_runtime_licenses.py'
       - 'docs/dependencies/pdf-runtime-license-policy.json'
   pull_request:
     paths:
       - '.github/workflows/pdf-license-proof.yml'
       - 'scripts/pdf_runtime_licenses.py'
+      - 'scripts/check_pdf_build_license.py'
+      - 'backend/tests/test_pdf_build_license_scope.py'
+      - 'docs/dependencies/pdf-build-script-license-scope.json'
+      - 'LICENSES/**'
       - 'backend/tests/test_pdf_runtime_licenses.py'
       - 'docs/dependencies/pdf-runtime-license-policy.json'
 
@@ -41,7 +49,9 @@ jobs:
           archive=$(find "$RUNNER_TEMP/source-evidence" -name corresponding-source.zip)
           test -n "$archive"
           uv run python scripts/pdf_runtime_licenses.py --archive "$archive" --out reports/native-licenses
-          uv run pytest backend/tests/test_pdf_runtime_licenses.py backend/tests/test_pdf_source_evidence.py
+          uv run pytest backend/tests/test_pdf_build_license_scope.py backend/tests/test_pdf_runtime_licenses.py backend/tests/test_pdf_source_evidence.py
+      - name: Verify scoped owner grant and attach only licensed build files
+        run: uv run python scripts/check_pdf_build_license.py --out reports/native-licenses/pdf-build-script-license-check.json --sidecar reports/native-licenses/licensed-vira-build-files
       # Eight notices per step, 64 maximum. Overflow is an error, not truncation.
       - name: Preserve verified supplemental texts (group 0)
         run: uv run python scripts/pdf_runtime_licenses.py --out reports/native-licenses --emit-group 0

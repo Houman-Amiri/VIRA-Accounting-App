@@ -7,6 +7,23 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Owner-approved MIT grant for native PDF build files only
+- Record explicit owner consent (2026-10-18) and the full MIT text for nine listed
+  native PDF build/configuration/documentation/checker files. Exact reference
+  hashes and seven original-archive member bindings prevent an accidental
+  repository-wide grant; application/backend/frontend/installer and third-party
+  library/CRT code are NOT relicensed.
+- Add a standard-library scope checker and limited source/license sidecar builder:
+  preserve UTF-8, allow checkout CRLF/LF only, reject widened scope, changed source,
+  substituted license, symlinks and overwriting existing sidecar data. Attach the
+  grant and licensed sources to the private source-review artifact, not a release.
+- 24 new scope/sidecar tests, 57 focused checks and 462 backend tests pass locally;
+  Ruff/Mypy (84 app files) and configured Bandit checks pass. The recipe-rights
+  substep is recorded, but full workflow completeness, CRT/library obligations,
+  recipient delivery and production runtime/update gates remain open. No native
+  recompilation, version/tag/release, application/data/math change or installed
+  user acceptance is inferred.
+
 ### Prepared native PDF license/source-delivery materials (not legal approval)
 - Bind proposed license selections for all 20 source packages / 21 DLLs to the
   immutable source inventory. Generate complete original notices plus 11 actual

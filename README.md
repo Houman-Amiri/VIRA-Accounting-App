@@ -29,3 +29,13 @@ Windows: `scripts/setup_windows.ps1`, `scripts/start_vira.bat`, `scripts/stop_vi
 ## Status
 
 Phase 1 (planning) and Phase 2 (back-end core: double-entry ledger, SQLite/STRICT + Alembic, FastAPI, bank imports, reports, FX, receipts/PDF/OCR, scheduling, auth, backups) complete. Phase 3 (React SPA) starts on the user's "proceed".
+
+
+## Licensing — limited PDF build-tooling grant only
+
+The owner approved MIT **only for the explicitly listed native PDF build files**
+on 2026-10-18. See [the exact scope and MIT text](LICENSES/README.md) and
+[the reference file hashes](docs/dependencies/pdf-build-script-license-scope.json).
+This is **not a repository-wide MIT license**: accounting application, backend,
+frontend, installer and unlisted files are not relicensed by this grant.
+Third-party library/CRT rights and native-runtime release readiness remain separate.

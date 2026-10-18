@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "license_id": "MIT",
+  "license_file": "LICENSES/VIRA-PDF-BUILD-MIT.txt",
+  "license_sha256_lf": "69e3f3cb775f68c5ef3e4191bbe78422f795e51ea777c71872703912f44110bd",
+  "hash_format": "UTF8_CRLF_TO_LF_SHA256_V1",
+  "copyright": "Copyright (c) 2026 VIRA contributors",
+  "owner_authorization": {
+    "status": "CONFIRMED_SCOPED_MIT",
+    "date": "2026-10-18",
+    "basis": "Owner answered yes to applying MIT only to native PDF build scripts/settings, not to the accounting application.",
+    "application_license_changed": false,
+    "release_authorized": false
+  },
+  "scope_rule": "Only VIRA-authored content in these explicitly listed reference versions and MIT-permitted derivatives. No wildcard, repository-wide grant or relicensing of third-party code. Existing third-party notices and rights are unaffected.",
+  "runtime_distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+  "files": {
+    ".github/workflows/pdf-source-proof.yml": {
+      "sha256_lf": "8b199703b0d8ffe47ae491729421fd5cadf2b31a388559b7eee26e44f274bc87",
+      "source_build_reference_commit": "2ec79b82ccebc89d754dbe25c10aeef4c31d8738",
+      "corresponding_source_member": "vira-build/.github/workflows/pdf-source-proof.yml"
+    },
+    "native/pdf-source/README.md": {
+      "sha256_lf": "45a9f61de3a900e3c5625e74cdf64b1e704f9574d0067f2ac4fbf81502db91ae",
+      "source_build_reference_commit": "2ec79b82ccebc89d754dbe25c10aeef4c31d8738",
+      "corresponding_source_member": "vira-recipe/README.md"
+    },
+    "native/pdf-source/triplets/x64-vira-pdf-host.cmake": {
+      "sha256_lf": "dc28e6b14fa0b4accd29653a24e750e712177a645af0a0b5ef5c066be0c86c98",
+      "source_build_reference_commit": "2ec79b82ccebc89d754dbe25c10aeef4c31d8738",
+      "corresponding_source_member": "vira-recipe/triplets/x64-vira-pdf-host.cmake"
+    },
+    "native/pdf-source/triplets/x64-vira-pdf.cmake": {
+      "sha256_lf": "7e806eb629ed29677184bb006367e0e12e05c1b0697d357bd917ff4c150e2cdc",
+      "source_build_reference_commit": "2ec79b82ccebc89d754dbe25c10aeef4c31d8738",
+      "corresponding_source_member": "vira-recipe/triplets/x64-vira-pdf.cmake"
+    },
+    "native/pdf-source/vcpkg.json": {
+      "sha256_lf": "09dd9adbab5c1ffc8ae930c194886ea205569fbf1847eb613e87beccf4afa8ff",
+      "source_build_reference_commit": "2ec79b82ccebc89d754dbe25c10aeef4c31d8738",
+      "corresponding_source_member": "vira-recipe/vcpkg.json"
+    },
+    "scripts/check_pdf_build_license.py": {
+      "sha256_lf": "1e46b736de157e41dfb78605bf00c2c6ce25fc6ec95437e573a587dfb6ebea5b",
+      "corresponding_source_member": null
+    },
+    "scripts/pdf_runtime_inventory.py": {
+      "sha256_lf": "d4b3aee8e2aa45d98abf1be0381fe3d07e1f7cbb165c44de779b6d53070c0580",
+      "corresponding_source_member": null
+    },
+    "scripts/source_pdf_build.ps1": {
+      "sha256_lf": "b94e365477065f875e9bc0cf6641e2fdcd86bfcc045238e82568944d698da0f5",
+      "source_build_reference_commit": "2ec79b82ccebc89d754dbe25c10aeef4c31d8738",
+      "corresponding_source_member": "vira-build/scripts/source_pdf_build.ps1"
+    },
+    "scripts/source_pdf_inventory.py": {
+      "sha256_lf": "370d77f5096592ff63e93feb0d0e9961f910f8e41c902771257fadceec496b03",
+      "source_build_reference_commit": "2ec79b82ccebc89d754dbe25c10aeef4c31d8738",
+      "corresponding_source_member": "vira-build/scripts/source_pdf_inventory.py"
+    }
+  },
+  "source_archive_sha256": "259532d2cd8c5d3b176402acdcfb9daadb2cb897d5710010cc198eeabe5401de",
+  "delivery_requirement": "Include this scope document and the unaltered MIT license with the licensed source copies/recipe sidecar. The existing source ZIP need not be rewritten; seven archived file versions match the grant after checkout-newline normalization. This record does not prove full workflow dependency coverage or recipient source access."
+}

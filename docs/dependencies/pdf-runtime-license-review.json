@@ -212,7 +212,13 @@
     },
     {
       "id": "BUILD_SCRIPT_PERMISSIONS_AND_COMPLETENESS",
-      "requirement": "Owner must define redistribution/modification permission for VIRA-authored build wrappers. Include transitive script dependencies and a usable rebuild recipe; current archive is evidence, not a self-contained SDK."
+      "requirement": "Owner confirmed MIT for the explicitly listed VIRA native PDF build files on 2026-10-18; see pdf-build-script-license-scope.json. Preserve the grant/license with those sources. Full standalone recipe/workflow dependency completeness remains unproven; no grant for application/staging files or third-party code.",
+      "progress": {
+        "scoped_native_build_permissions": "OWNER_CONFIRMED_MIT",
+        "scope_file": "docs/dependencies/pdf-build-script-license-scope.json",
+        "standalone_recipe_completeness": "PENDING",
+        "gate_closed": false
+      }
     },
     {
       "id": "RECIPIENT_SOURCE_DELIVERY",
