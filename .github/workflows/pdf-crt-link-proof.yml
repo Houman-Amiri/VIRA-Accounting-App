@@ -21,6 +21,12 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+          trap {
+            $text = ($_ | Format-List * -Force | Out-String)
+            $escaped = $text.Substring(0, [Math]::Min(2500, $text.Length)).Replace('%','%25').Replace("`r",'%0D').Replace("`n",'%0A')
+            Write-Host "::error title=Static CRT probe diagnostic::$escaped"
+            break
+          }
           $out = Join-Path $env:RUNNER_TEMP 'crt-link-probe'
           New-Item -ItemType Directory $out | Out-Null
           $vswhere = "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe"
@@ -85,9 +91,20 @@ jobs:
             log_files = $files; producer_license_entitlement = 'NOT_ESTABLISHED'; actual_native_dll_component_mapping = 'STILL_PENDING'
           }
           $result | ConvertTo-Json -Depth 14 | Set-Content -Encoding utf8 reports/crt-link/probe-evidence.json
+      - name: Preserve failed-probe diagnostics without uploading binaries
+        if: always()
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force reports/crt-link | Out-Null
+          foreach ($name in @('link.log','directives.txt','imports.txt','probe.map','probe.cpp','run.cmd')) {
+            $path = Join-Path "$env:RUNNER_TEMP/crt-link-probe" $name
+            if (Test-Path $path) { Copy-Item $path reports/crt-link/ }
+          }
       - name: Emit bounded evidence, not library binaries
+        if: success()
         run: python scripts/audit_pdf_native_rebuild.py --out reports/crt-link/probe-evidence.json --emit-group 0
       - name: Evidence group 1
+        if: success()
         run: python scripts/audit_pdf_native_rebuild.py --out reports/crt-link/probe-evidence.json --emit-group 1
       - uses: actions/upload-artifact@v4
         if: always()

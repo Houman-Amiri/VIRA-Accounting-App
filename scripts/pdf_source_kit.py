@@ -250,7 +250,9 @@ def verify(kit: Path, expected_manifest_sha256: str | None = None) -> dict:
         if p.stat().st_size != record["size"] or sha_file(p) != record["sha256"]:
             raise ValueError(f"Kit file hash/size mismatch: {name}")
     licensed = kit / "licensed-build-files"
-    tool = checker(licensed)
+    # Never execute code from the directory being inspected. Use only the
+    # verifier's own adjacent trusted checker (recipient must authenticate it).
+    tool = checker(ROOT)
     scope = json.loads((licensed / tool.SCOPE_PATH).read_text(encoding="utf-8"))
     grant = tool.verify(licensed, scope)
     allowed = {"corresponding-source.zip", "README.txt", *(f"evidence/{n}" for n in DOCS),

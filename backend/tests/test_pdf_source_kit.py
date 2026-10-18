@@ -132,3 +132,15 @@ def test_real_extraction_preserves_links_and_scripts(tool, monkeypatch, tmp_path
         raise
     assert (dest / "sources/a/link").is_symlink()
     assert (dest / "sources/a/link").read_bytes() == b"#!/bin/sh\n"
+
+
+def test_inspection_never_executes_checker_from_target_kit(tool, tmp_path):
+    injected = tmp_path / "licensed-build-files/scripts/check_pdf_build_license.py"
+    injected.parent.mkdir(parents=True)
+    injected.write_text("raise RuntimeError('UNTRUSTED CODE EXECUTED')\n")
+    name = injected.relative_to(tmp_path).as_posix()
+    (tmp_path / "kit-manifest.json").write_text(json.dumps({"schema": 1, "distribution_status": tool.BLOCKED,
+        "status": "PRIVATE_REVIEW_KIT_NOT_RECIPIENT_DELIVERY", "files": {
+            name: {"sha256": tool.sha_file(injected), "size": injected.stat().st_size}}}))
+    with pytest.raises(FileNotFoundError):
+        tool.verify(tmp_path)
