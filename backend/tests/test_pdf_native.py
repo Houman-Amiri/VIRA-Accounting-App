@@ -124,6 +124,7 @@ def test_native_fetcher_allows_only_exact_bundled_fonts(monkeypatch):
 
         def write_pdf(self, **kwargs):
             assert "font_config" in kwargs
+            captured["font_configuration"] = kwargs["font_config"]
             if captured.get("fail_font_load"):
                 raise FatalError("missing bundled font")
             return b"mock renderer bytes, never native proof"
@@ -146,6 +147,10 @@ def test_native_fetcher_allows_only_exact_bundled_fonts(monkeypatch):
     for forbidden in ("https://example.invalid/a.ttf", "http://127.0.0.1/", (pdf.FONTS_DIR.parent / "not-a-font.txt").as_uri(), "data:text/plain,not-a-font"):
         with pytest.raises(ValueError, match="Only the bundled"):
             fetch(forbidden)
+
+    injected = object()
+    pdf.render_pdf("proforma.html", context, font_configuration=injected)
+    assert captured["font_configuration"] is injected
 
     captured["fail_font_load"] = True
     with pytest.raises(RuntimeError, match="Bundled PDF fonts"):

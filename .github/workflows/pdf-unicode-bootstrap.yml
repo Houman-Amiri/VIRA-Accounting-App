@@ -1,0 +1,230 @@
+name: Private Unicode native PDF bootstrap and restart proof
+
+on:
+  push:
+    paths: ['.github/workflows/pdf-unicode-bootstrap.yml', 'backend/app/services/pdf_fontconfig.py', 'backend/app/services/pdf.py', 'scripts/pdf_unicode_*.py', 'scripts/pdf_unicode_smoke.ps1', 'backend/tests/test_pdf_unicode_bootstrap.py']
+  pull_request:
+    paths: ['.github/workflows/pdf-unicode-bootstrap.yml', 'backend/app/services/pdf_fontconfig.py', 'backend/app/services/pdf.py', 'scripts/pdf_unicode_*.py', 'scripts/pdf_unicode_smoke.ps1', 'backend/tests/test_pdf_unicode_bootstrap.py']
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: unicode-pdf-bootstrap-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unicode-consumer:
+    runs-on: windows-latest
+    timeout-minutes: 120
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Authenticate the exact prior noticed-source producer and artifact
+        shell: pwsh
+        run: |
+          $pin = Get-Content docs/dependencies/pdf-noticed-archive-build-proof.json -Raw | ConvertFrom-Json
+          $run = gh api "repos/$env:GH_REPO/actions/runs/$($pin.run_id)" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $run.head_sha -ne $pin.head_sha -or $run.path -ne $pin.workflow_path -or $run.conclusion -ne "success") { throw "wrong noticed archive producer" }
+          $expected = @($pin.artifacts | Where-Object name -eq "private-noticed-source-candidate-no-dlls")
+          if ($expected.Count -ne 1) { throw "one pinned source artifact required" }
+          $artifact = gh api "repos/$env:GH_REPO/actions/artifacts/$($expected[0].id)" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $artifact.digest -ne $expected[0].digest -or $artifact.workflow_run.head_sha -ne $pin.head_sha -or $artifact.expired) { throw "source artifact authentication failed" }
+          gh run download $pin.run_id --repo $env:GH_REPO --name "private-noticed-source-candidate-no-dlls" --dir "$env:RUNNER_TEMP/noticed-envelope"
+          if ($LASTEXITCODE -ne 0) { throw "noticed source artifact download failed" }
+      - name: Authenticate downloaded archive, extract exact noticed sources and prepare recipe
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          function Invoke-CheckedPython([string[]]$PythonArgs) {
+            $output = (& python @PythonArgs 2>&1 | Out-String)
+            $code = $LASTEXITCODE
+            Write-Host $output
+            if ($code -ne 0) {
+              $last = $output.Substring([Math]::Max(0, $output.Length - 8000))
+              for ($i = 0; $i -lt $last.Length; $i += 2600) {
+                $part = $last.Substring($i, [Math]::Min(2600, $last.Length - $i))
+                $part = (($part -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A'
+                Write-Output "::error title=Noticed source preparation part ${i}::$part"
+              }
+              throw "noticed source recipient preparation failed"
+            }
+            return $output
+          }
+          New-Item -ItemType Directory -Force reports/local-source | Out-Null
+          $kit = "$env:RUNNER_TEMP/noticed-envelope/modified-source-kit"
+          $pin = Get-Content docs/dependencies/pdf-noticed-archive-build-proof.json -Raw | ConvertFrom-Json
+          $hash = $pin.source_package_receipt_at_packaging_time.modified_kit_manifest_sha256
+          $transferred = Get-Content "$env:RUNNER_TEMP/noticed-envelope/modified-kit-receipt.json" -Raw | ConvertFrom-Json
+          if ($transferred.modified_kit_manifest_sha256 -ne $hash -or $transferred.modified_archive_sha256 -ne $pin.source_archive.sha256) { throw "transferred pins differ from trusted producer job" }
+          $receipt = Invoke-CheckedPython -PythonArgs @('-I', '-S', 'scripts/pdf_source_kit.py', '--verify-modified', $kit, '--expected-manifest-sha256', $hash, '--extract-sources', "$env:RUNNER_TEMP/preferred")
+          [IO.File]::WriteAllText("$pwd/reports/local-source/noticed-kit-receipt.json", $receipt)
+          $baseHash = ($receipt | ConvertFrom-Json).original_kit_manifest_sha256
+          $original = Invoke-CheckedPython -PythonArgs @('-I', '-S', 'scripts/pdf_source_kit.py', '--verify', "$kit/original-kit", '--expected-manifest-sha256', $baseHash)
+          [IO.File]::WriteAllText("$pwd/reports/local-source/kit-receipt.json", $original)
+          # Build/inspect outside the authenticated archive envelope; do not pollute it with caches.
+          Copy-Item "$kit/original-kit/licensed-build-files" "$env:RUNNER_TEMP/build-recipe" -Recurse
+          $null = Invoke-CheckedPython -PythonArgs @('-I', '-S', "$env:RUNNER_TEMP/build-recipe/scripts/prepare_pdf_local_sources.py", '--kit', "$kit/original-kit", '--expected-manifest-sha256', $baseHash, '--sources', "$env:RUNNER_TEMP/preferred", '--out', "$env:RUNNER_TEMP/local-overlay", '--allow-modified')
+          Copy-Item "$env:RUNNER_TEMP/local-overlay/local-source-*.json" reports/local-source/
+          @'
+          import hashlib,json,os,pathlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP']);kit=root/'noticed-envelope/modified-source-kit'
+          record=json.load(open(kit/'modification-record.json'));prep=json.load(open('reports/local-source/local-source-preparation.json'))
+          assert record['archive_variant']=='INLINE_NOTICE_PENDING_FRESH_BUILD_V1'
+          for n,t in record['archive_source_trees'].items():
+              assert prep['packages'][n]['patched_source_files']==t['source_entries'] and prep['packages'][n]['patched_source_tree_sha256']==t['tree_sha256']
+          source=root/'preferred'/record['modified_member'];data=source.read_bytes()
+          assert hashlib.sha256(data).hexdigest()==record['after_sha256']
+          assert data.startswith(b'/* VIRA modification notice - 2026-10-19\n')
+          report={'package':'pango','file':source.relative_to(root/'preferred/sources/pango').as_posix(),'before_sha256':record['before_sha256'],'after_sha256':record['after_sha256'],'expected_runtime_version':record['expected_pango_version'],'original_archive_modified':False,'new_corresponding_source_archive_prepared':True,'modified_source_file':data.decode('utf-8')}
+          pathlib.Path('reports/local-source/explicit-pango-edit.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8',newline='\n')
+          pathlib.Path('reports/local-source/noticed-modification-record.json').write_bytes((kit/'modification-record.json').read_bytes())
+          '@ | python -I -S -
+          if ($LASTEXITCODE -ne 0) { throw "noticed archive/prepared tree correspondence failed" }
+      - name: Compile all target libraries from local preferred trees with binary caches disabled
+        shell: pwsh
+        run: |
+          Set-Location "$env:RUNNER_TEMP/build-recipe"
+          & pwsh -NoProfile -File ./scripts/rebuild_pdf_native.ps1 -WorkDir "$env:RUNNER_TEMP/local-native-work" -OverlayPorts "$env:RUNNER_TEMP/local-overlay"
+          if ($LASTEXITCODE -ne 0) { throw "local preferred-source native compilation failed" }
+      - name: Verify twenty actual build trees, twenty-one DLL origins, and executed modified LGPL function
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          python -m venv "$env:RUNNER_TEMP/native-inspector"
+          if ($LASTEXITCODE -ne 0) { throw "inspector environment failed" }
+          $python = "$env:RUNNER_TEMP/native-inspector/Scripts/python.exe"
+          & $python -m pip install --no-deps "https://files.pythonhosted.org/packages/54/16/12b82f791c7f50ddec566873d5bdd245baa1491bac11d15ffb98aecc8f8b/pefile-2024.8.26-py3-none-any.whl#sha256=76f8b485dcd3b1bb8166f1128d395fa3d87af26360c2358fb75b80019b957c6f"
+          if ($LASTEXITCODE -ne 0) { throw "hash-pinned inspector installation failed" }
+          & $python -B "$env:RUNNER_TEMP/build-recipe/scripts/audit_pdf_native_rebuild.py" --sidecar "$env:RUNNER_TEMP/build-recipe" --work "$env:RUNNER_TEMP/local-native-work" --reference "$env:RUNNER_TEMP/local-overlay/local-source-reference.json" --out reports/local-source/verified-local-rebuild.json
+          if ($LASTEXITCODE -ne 0) { throw "native trees/closure/origins audit failed" }
+          python -I -S "$env:RUNNER_TEMP/build-recipe/scripts/prepare_pdf_local_sources.py" --check-inputs "$env:RUNNER_TEMP/local-overlay/local-source-preparation.json"
+          if ($LASTEXITCODE -ne 0) { throw "input source kit mutated during compilation" }
+          @'
+          import ctypes,json,os,pathlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'],'local-native-work','installed','x64-vira-pdf','bin')
+          with os.add_dll_directory(str(root)):
+            p=ctypes.CDLL(str(root/'pango-1.0-0.dll'))
+            p.pango_version_string.argtypes=[];p.pango_version_string.restype=ctypes.c_char_p
+            actual=p.pango_version_string().decode('ascii')
+          expected=json.load(open('reports/local-source/explicit-pango-edit.json'))['expected_runtime_version']
+          assert actual==expected,(actual,expected)
+          out=pathlib.Path('reports/local-source/verified-local-rebuild.json');x=json.loads(out.read_text())
+          prep=json.load(open('reports/local-source/local-source-preparation.json'));assert prep['changed_packages']==['pango']
+          x['local_source_preparation']=prep;x['explicit_edit']=json.load(open('reports/local-source/explicit-pango-edit.json'));x['kit_receipt']=json.load(open('reports/local-source/kit-receipt.json'))
+          x.update(local_preferred_source_replay='SUCCESS',actual_pango_version_string=actual,changed_packages=['pango'],original_source_tree_count=19,explicitly_modified_source_tree_count=1,input_source_trees_unchanged_during_compilation=True,original_archive_modified=False,new_corresponding_source_archive_prepared=True)
+          rec=json.load(open('reports/local-source/noticed-modification-record.json'))
+          assert x['preferred_source_trees']==rec['archive_source_trees']
+          paths=list(pathlib.Path(os.environ['RUNNER_TEMP'],'local-native-work/vcpkg/buildtrees/pango/src').glob('*/pango/pango-utils.c'));assert len(paths)==1
+          compiled=paths[0].read_bytes();assert compiled==x['explicit_edit']['modified_source_file'].encode('utf-8')
+          assert compiled.startswith(b'/* VIRA modification notice - 2026-10-19\n')
+          x.update(compiled_from_noticed_archive=True,inline_change_date_notice_present_in_compiled_source=True,noticed_source_archive_sha256=rec['modified_archive_sha256'],noticed_source_file_sha256=rec['after_sha256'],noticed_source_kit_receipt=json.load(open('reports/local-source/noticed-kit-receipt.json')))
+          out.write_text(json.dumps(x,indent=2)+'\n',encoding='utf-8',newline='\n')
+          '@ | & $python -I -S -
+          if ($LASTEXITCODE -ne 0) { throw "executed modified Pango proof failed" }
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Prepare locked application only AFTER the standalone native build and audit
+        shell: pwsh
+        run: |
+          uv sync --frozen --all-extras
+          if ($LASTEXITCODE -ne 0) { throw "locked application dependencies failed" }
+          pnpm --dir frontend install --frozen-lockfile
+          if ($LASTEXITCODE -ne 0) { throw "frontend dependencies failed" }
+          pnpm --dir frontend build
+          if ($LASTEXITCODE -ne 0) { throw "production SPA failed" }
+      - name: Real Unicode profile, TEMP, memory Fontconfig and restart in relocated production CPython
+        shell: pwsh
+        run: |
+          $candidate = "$env:RUNNER_TEMP/local-source-consumer-candidate"
+          uv run python scripts/prepare_pdf_consumer_candidate.py --work "$env:RUNNER_TEMP/local-native-work" --reference "$env:RUNNER_TEMP/local-overlay/local-source-reference.json" --native-proof reports/local-source/verified-local-rebuild.json --out $candidate
+          if ($LASTEXITCODE -ne 0) { throw "fresh Unicode consumer handoff failed" }
+          $output = (& pwsh -NoProfile -File scripts/pdf_unicode_smoke.ps1 -Candidate $candidate 2>&1 | Out-String)
+          $code = $LASTEXITCODE
+          Write-Host $output
+          New-Item -ItemType Directory -Force reports/local-consumer | Out-Null
+          $output | Set-Content -Encoding utf8 reports/local-consumer/unicode.log
+          if ($code -ne 0) {
+            $last = $output.Substring([Math]::Max(0, $output.Length - 8000))
+            for ($i = 0; $i -lt $last.Length; $i += 2600) {
+              $part = $last.Substring($i, [Math]::Min(2600, $last.Length - $i))
+              $part = (($part -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A'
+              Write-Output "::error title=Unicode bootstrap failure part ${i}::$part"
+            }
+            throw "Unicode private PDF proof failed"
+          }
+      - name: Bind Unicode PDFs, restarted process, DLLs and archive to this fresh build
+        shell: pwsh
+        run: |
+          @'
+          import hashlib,json,pathlib
+          x=json.load(open('reports/local-source/verified-local-rebuild.json'));cases={}
+          expected=set(x['dlls'])
+          for name in ('first-process','restarted-process'):
+              reports=pathlib.Path('reports/unicode-pdf')/name
+              c=json.load(open(reports/'bundled-proof.json'));w=c['worker'];inv=json.load(open(reports/'runtime-inventory.json'))
+              assert c['dll_count']==len(w['loaded_dlls'])==21 and set(w['loaded_dlls'])==expected
+              assert set(inv['dlls'])==expected and all(d['sha256']==x['dlls'][n]['sha256'] for n,d in inv['dlls'].items())
+              assert inv['native_audit_sha256']==hashlib.sha256(pathlib.Path('reports/local-source/verified-local-rebuild.json').read_bytes()).hexdigest()
+              assert w['fontconfig_mode']=='EXPLICIT_UTF8_MEMORY_NO_SYSTEM_FONTS' and w['fontconfig_file'] is None
+              assert w['reused_state']==(name=='restarted-process')
+              assert all(not v.isascii() and ' ' in v for v in [w['python'],w['unicode_temp'],w['unicode_state'],w['localappdata'],w['working_directory']])
+              assert all(d['system_fonts']==0 and d['font_temp_cleaned'] for d in w['font_documents'].values())
+              assert w['pango_version_string']=='1.58.0-vira-local-source'
+              assert c['documents']['single-page']['pages']==1 and c['documents']['multi-page']['pages']==4
+              cases[name]=c
+          assert cases['first-process']['worker']['unicode_state']==cases['restarted-process']['worker']['unicode_state']
+          x.update(private_unicode_bootstrap_pdf='SUCCESS',unicode_cases=cases,native_audit_sha256_bound_to_candidate=inv['native_audit_sha256'],ordinary_native_runtime_enabled=False,installed_user_acceptance=False,production_bootstrap_integration_proven=False)
+          x['not_proven']=['Complete component/CRT rights and recipient review','Durable anonymous source delivery','Ordinary launcher integration/import ordering','Inno/native delta/rollback and installed DLL replacement/EULA','Installed user acceptance','Offline SDK or bitwise native reproduction']
+          pathlib.Path('reports/local-consumer/verified-local-consumer.json').write_text(json.dumps(x,indent=2)+'\n',encoding='utf-8',newline='\n')
+          '@ | python -I -S -
+          if ($LASTEXITCODE -ne 0) { throw "Unicode combined witness failed" }
+      - name: Reverify the exact source envelope after native compilation and rendering
+        shell: pwsh
+        run: |
+          $hash = (Get-Content reports/local-source/noticed-kit-receipt.json -Raw | ConvertFrom-Json).modified_kit_manifest_sha256
+          python -I -S scripts/pdf_source_kit.py --verify-modified "$env:RUNNER_TEMP/noticed-envelope/modified-source-kit" --expected-manifest-sha256 $hash
+          if ($LASTEXITCODE -ne 0) { throw "authenticated noticed source envelope changed" }
+      - name: Consumer evidence group zero
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/local-consumer/verified-local-consumer.json --emit-group 0
+      - name: Consumer evidence group one
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/local-consumer/verified-local-consumer.json --emit-group 1
+      - name: Preserve bounded diagnostics and recipes, never compiled binaries
+        if: always()
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force reports/local-source | Out-Null
+          foreach ($file in @("rebuild-plan.json", "rebuild-result.json", "DO_NOT_DISTRIBUTE.txt", "build.log")) {
+            $source = Join-Path "$env:RUNNER_TEMP/local-native-work" $file
+            if (Test-Path $source) { Copy-Item $source reports/local-source/ }
+          }
+          $trees = "$env:RUNNER_TEMP/local-native-work/vcpkg/buildtrees"
+          if (Test-Path $trees) {
+            $tail = Get-ChildItem $trees -Recurse -File | Where-Object { $_.Extension -in @('.log', '.txt') -and $_.FullName -notmatch '[\\/]src[\\/]' } | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 10 | ForEach-Object { "FILE: $($_.FullName)"; Get-Content $_.FullName -Tail 30 }
+            $tail | Set-Content -Encoding utf8 reports/local-source/diagnostic-tail.txt
+            $text = (($tail -join "`n") -replace '%','%25') -replace "`n",'%0A'
+            Write-Output "::notice title=Local source build diagnostic::$text"
+          }
+          if (Test-Path "$env:RUNNER_TEMP/local-overlay") { Copy-Item "$env:RUNNER_TEMP/local-overlay" reports/local-source/recipes -Recurse }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: private-unicode-bootstrap-build-pdf-evidence-no-dlls
+          path: |
+            reports/local-source/
+            reports/local-consumer/
+            reports/unicode-pdf/
+          retention-days: 90
+          if-no-files-found: error

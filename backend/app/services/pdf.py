@@ -42,7 +42,11 @@ def render_html(
     return template.render(**context, **font_urls)
 
 
-def render_pdf(template_name: str, context: dict[str, Any]) -> bytes:
+def render_pdf(
+    template_name: str, context: dict[str, Any], *, font_configuration: Any | None = None
+) -> bytes:
+    # Explicit injection for private Unicode bootstrap QA; normal callers retain
+    # their existing native configuration. No runtime is auto-enabled or shipped.
     html = render_html(template_name, context, inline_fonts=False)
     try:
         from weasyprint import HTML, URLFetcher  # type: ignore[import-untyped]
@@ -75,7 +79,7 @@ def render_pdf(template_name: str, context: dict[str, Any]) -> bytes:
     )
     try:
         return HTML(string=html, base_url=str(TEMPLATES_DIR), url_fetcher=fetcher).write_pdf(
-            font_config=FontConfiguration()
+            font_config=FontConfiguration() if font_configuration is None else font_configuration
         )
     except FatalURLFetchingError as exc:
         # WeasyPrint's fatal resource errors inherit BaseException. Normalize
