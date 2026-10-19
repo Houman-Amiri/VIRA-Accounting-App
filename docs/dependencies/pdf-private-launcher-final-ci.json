@@ -1,0 +1,177 @@
+{
+  "schema": 1,
+  "role": "VALIDATED_CODE_AND_POLICY_SNAPSHOT_NOT_RELEASE_OR_INSTALLED_ACCEPTANCE",
+  "verified_at_utc": "2026-10-19T01:08:50.027876+00:00",
+  "validated_head_sha": "f0fc401a78b90f25a23d00b1a040f1a00aa62ee3",
+  "native_launcher_run_id": 39182480848,
+  "native_launcher_head_sha": "81180987bd1a44e18697829d4d3e2704ff577f1f",
+  "native_runtime_files_unchanged_since_producer": [
+    ".github/workflows/pdf-private-launcher.yml",
+    "scripts/pdf_private_launcher.py",
+    "scripts/pdf_launcher_smoke.ps1",
+    "scripts/pdf_unicode_probe.py",
+    "scripts/pdf_unicode_smoke.ps1",
+    "scripts/pdf_unicode_process_manifest.ps1",
+    "backend/app/services/pdf.py",
+    "backend/app/services/pdf_fontconfig.py",
+    "scripts/stage_app_payload.ps1",
+    "scripts/start_vira.cmd",
+    "scripts/start_vira.ps1",
+    "scripts/start_vira.bat"
+  ],
+  "local_backend_tests": 670,
+  "focused_pdf_tests": 312,
+  "local_failures": 0,
+  "local_skips": 0,
+  "mypy_source_files": 85,
+  "licensed_build_files": 14,
+  "runs": [
+    {
+      "run_id": 39183163132,
+      "name": "CI",
+      "head_sha": "f0fc401a78b90f25a23d00b1a040f1a00aa62ee3",
+      "run_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39183163132",
+      "workflow_path": ".github/workflows/ci.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "id": 117840037354,
+          "name": "Frontend \u2014 lint, types, contract, tests, build",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "f0fc401a78b90f25a23d00b1a040f1a00aa62ee3",
+          "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39183163132/job/117840037354",
+          "started_at": "2026-10-19T00:58:24Z",
+          "completed_at": "2026-10-19T00:59:07Z"
+        },
+        {
+          "id": 117840037460,
+          "name": "OpenAPI contract is in sync",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "f0fc401a78b90f25a23d00b1a040f1a00aa62ee3",
+          "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39183163132/job/117840037460",
+          "started_at": "2026-10-19T00:58:25Z",
+          "completed_at": "2026-10-19T00:58:50Z"
+        },
+        {
+          "id": 117840037527,
+          "name": "Windows-native smoke (SQLite paths, venv, build)",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "f0fc401a78b90f25a23d00b1a040f1a00aa62ee3",
+          "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39183163132/job/117840037527",
+          "started_at": "2026-10-19T00:58:25Z",
+          "completed_at": "2026-10-19T01:07:40Z"
+        },
+        {
+          "id": 117840037534,
+          "name": "Backend \u2014 lint, type, security, tests",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "f0fc401a78b90f25a23d00b1a040f1a00aa62ee3",
+          "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39183163132/job/117840037534",
+          "started_at": "2026-10-19T00:58:25Z",
+          "completed_at": "2026-10-19T01:00:17Z"
+        },
+        {
+          "id": 117840037654,
+          "name": "Playwright e2e (native processes)",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "f0fc401a78b90f25a23d00b1a040f1a00aa62ee3",
+          "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39183163132/job/117840037654",
+          "started_at": "2026-10-19T00:58:25Z",
+          "completed_at": "2026-10-19T01:00:28Z"
+        }
+      ]
+    },
+    {
+      "run_id": 39183163134,
+      "name": "Prepare private native PDF license materials",
+      "head_sha": "f0fc401a78b90f25a23d00b1a040f1a00aa62ee3",
+      "run_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39183163134",
+      "workflow_path": ".github/workflows/pdf-license-proof.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "id": 117840037313,
+          "name": "licenses",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "f0fc401a78b90f25a23d00b1a040f1a00aa62ee3",
+          "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39183163134/job/117840037313",
+          "started_at": "2026-10-19T00:58:24Z",
+          "completed_at": "2026-10-19T00:58:57Z"
+        }
+      ]
+    },
+    {
+      "run_id": 39183163147,
+      "name": "Assemble and inspect private native source kit",
+      "head_sha": "f0fc401a78b90f25a23d00b1a040f1a00aa62ee3",
+      "run_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39183163147",
+      "workflow_path": ".github/workflows/pdf-source-kit.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "id": 117840037366,
+          "name": "kit",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "f0fc401a78b90f25a23d00b1a040f1a00aa62ee3",
+          "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39183163147/job/117840037366",
+          "started_at": "2026-10-19T00:58:25Z",
+          "completed_at": "2026-10-19T00:59:24Z"
+        }
+      ]
+    },
+    {
+      "run_id": 39183163195,
+      "name": "Private complete modified native source review kit",
+      "head_sha": "f0fc401a78b90f25a23d00b1a040f1a00aa62ee3",
+      "run_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39183163195",
+      "workflow_path": ".github/workflows/pdf-modified-source-kit.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "id": 117840037531,
+          "name": "assemble",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "f0fc401a78b90f25a23d00b1a040f1a00aa62ee3",
+          "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39183163195/job/117840037531",
+          "started_at": "2026-10-19T00:58:25Z",
+          "completed_at": "2026-10-19T01:00:29Z"
+        },
+        {
+          "id": 117840514026,
+          "name": "windows-recipient",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "f0fc401a78b90f25a23d00b1a040f1a00aa62ee3",
+          "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39183163195/job/117840514026",
+          "started_at": "2026-10-19T01:00:31Z",
+          "completed_at": "2026-10-19T01:01:33Z"
+        }
+      ]
+    }
+  ],
+  "all_six_gates_open": true,
+  "sdk_dll_count": 27,
+  "new_source21_launcher_pair_proven": false,
+  "http_app_startup_proven": false,
+  "ordinary_launcher_changed": false,
+  "installed_acceptance": false,
+  "application_license_changed": false,
+  "release_authorized": false,
+  "following_commit_scope": "Record this authenticated snapshot and update report only; not a new native producer."
+}
