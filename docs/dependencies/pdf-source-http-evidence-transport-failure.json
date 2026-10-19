@@ -1,0 +1,303 @@
+{
+  "schema": 1,
+  "run_id": 39220310210,
+  "head_sha": "f479f7050106db570bc059c1f38ec9deee4f0573",
+  "conclusion": "failure",
+  "source_job": {
+    "id": 117955321811,
+    "run_id": 39220310210,
+    "workflow_name": "Private noticed-source no-site HTTP PDF proof",
+    "head_branch": "arena/aee91951-vira-accounting-app",
+    "run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/runs/39220310210",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOVJAq0c8AAAAbdq9f0w",
+    "head_sha": "f479f7050106db570bc059c1f38ec9deee4f0573",
+    "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/jobs/117955321811",
+    "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39220310210/job/117955321811",
+    "status": "completed",
+    "conclusion": "failure",
+    "created_at": "2026-10-19T08:09:38Z",
+    "started_at": "2026-10-19T08:09:41Z",
+    "completed_at": "2026-10-19T08:57:51Z",
+    "name": "source-http-consumer",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-10-19T08:09:43Z",
+        "completed_at": "2026-10-19T08:09:47Z"
+      },
+      {
+        "name": "Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-10-19T08:09:47Z",
+        "completed_at": "2026-10-19T08:09:54Z"
+      },
+      {
+        "name": "Authenticate the exact prior noticed-source producer and artifact",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-10-19T08:09:54Z",
+        "completed_at": "2026-10-19T08:10:08Z"
+      },
+      {
+        "name": "Authenticate downloaded archive, extract exact noticed sources and prepare recipe",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-10-19T08:10:08Z",
+        "completed_at": "2026-10-19T08:11:27Z"
+      },
+      {
+        "name": "Compile all target libraries from local preferred trees with binary caches disabled",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-10-19T08:11:27Z",
+        "completed_at": "2026-10-19T08:54:01Z"
+      },
+      {
+        "name": "Verify twenty actual build trees, twenty-one DLL origins, and executed modified LGPL function",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-10-19T08:54:01Z",
+        "completed_at": "2026-10-19T08:54:31Z"
+      },
+      {
+        "name": "Run astral-sh/setup-uv@v5",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-10-19T08:54:31Z",
+        "completed_at": "2026-10-19T08:54:35Z"
+      },
+      {
+        "name": "Run pnpm/action-setup@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-10-19T08:54:35Z",
+        "completed_at": "2026-10-19T08:54:39Z"
+      },
+      {
+        "name": "Run actions/setup-node@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9,
+        "started_at": "2026-10-19T08:54:39Z",
+        "completed_at": "2026-10-19T08:54:54Z"
+      },
+      {
+        "name": "Prepare locked application only AFTER the standalone native build and audit",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 10,
+        "started_at": "2026-10-19T08:54:54Z",
+        "completed_at": "2026-10-19T08:55:35Z"
+      },
+      {
+        "name": "Fresh no-site source HTTP launcher, real route PDFs and restart",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11,
+        "started_at": "2026-10-19T08:55:35Z",
+        "completed_at": "2026-10-19T08:57:00Z"
+      },
+      {
+        "name": "Bind this fresh noticed-source compilation to both actual HTTP processes",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 12,
+        "started_at": "2026-10-19T08:57:00Z",
+        "completed_at": "2026-10-19T08:57:01Z"
+      },
+      {
+        "name": "Reverify the exact source envelope after native compilation and rendering",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 13,
+        "started_at": "2026-10-19T08:57:01Z",
+        "completed_at": "2026-10-19T08:57:26Z"
+      },
+      {
+        "name": "Source HTTP evidence group 0",
+        "status": "completed",
+        "conclusion": "failure",
+        "number": 14,
+        "started_at": "2026-10-19T08:57:26Z",
+        "completed_at": "2026-10-19T08:57:27Z"
+      },
+      {
+        "name": "Source HTTP evidence group 1",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 15,
+        "started_at": "2026-10-19T08:57:27Z",
+        "completed_at": "2026-10-19T08:57:27Z"
+      },
+      {
+        "name": "Source HTTP evidence group 2",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 16,
+        "started_at": "2026-10-19T08:57:27Z",
+        "completed_at": "2026-10-19T08:57:27Z"
+      },
+      {
+        "name": "Source HTTP evidence group 3",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 17,
+        "started_at": "2026-10-19T08:57:27Z",
+        "completed_at": "2026-10-19T08:57:27Z"
+      },
+      {
+        "name": "Preserve bounded diagnostics and recipes, never compiled binaries",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 18,
+        "started_at": "2026-10-19T08:57:27Z",
+        "completed_at": "2026-10-19T08:57:29Z"
+      },
+      {
+        "name": "Run actions/upload-artifact@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 19,
+        "started_at": "2026-10-19T08:57:29Z",
+        "completed_at": "2026-10-19T08:57:31Z"
+      },
+      {
+        "name": "Post Run actions/setup-node@v4",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 35,
+        "started_at": "2026-10-19T08:57:31Z",
+        "completed_at": "2026-10-19T08:57:31Z"
+      },
+      {
+        "name": "Post Run pnpm/action-setup@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 36,
+        "started_at": "2026-10-19T08:57:31Z",
+        "completed_at": "2026-10-19T08:57:31Z"
+      },
+      {
+        "name": "Post Run astral-sh/setup-uv@v5",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 37,
+        "started_at": "2026-10-19T08:57:31Z",
+        "completed_at": "2026-10-19T08:57:31Z"
+      },
+      {
+        "name": "Post Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 38,
+        "started_at": "2026-10-19T08:57:31Z",
+        "completed_at": "2026-10-19T08:57:34Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 39,
+        "started_at": "2026-10-19T08:57:34Z",
+        "completed_at": "2026-10-19T08:57:34Z"
+      }
+    ],
+    "check_run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/check-runs/117955321811",
+    "labels": [
+      "windows-latest"
+    ],
+    "runner_id": 1000001566,
+    "runner_name": "GitHub Actions 1000001566",
+    "runner_group_id": 0,
+    "runner_group_name": "GitHub Actions"
+  },
+  "annotations": [
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/f479f7050106db570bc059c1f38ec9deee4f0573/.github",
+      "start_line": 2,
+      "start_column": null,
+      "end_line": 2,
+      "end_column": null,
+      "annotation_level": "warning",
+      "title": "",
+      "message": "Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4, astral-sh/setup-uv@v5, pnpm/action-setup@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/f479f7050106db570bc059c1f38ec9deee4f0573/.github",
+      "start_line": 24,
+      "start_column": null,
+      "end_line": 24,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Local source build diagnostic",
+      "message": "FILE: D:\\a\\_temp\\local-native-work\\vcpkg\\buildtrees\\pango\\stdout-x64-vira-pdf.log\n-- Found Python version '3.14.7 at D:/a/_temp/local-native-work/vcpkg/downloads/tools/python/python-3.14.7-x64/python.exe'\n-- Using meson: D:/a/_temp/local-native-work/vcpkg/downloads/tools/meson-1.9.0-633807/meson.py\n-- Using cached msys2-mingw-w64-x86_64-pkgconf-1~3.0.7-1-any.pkg.tar.zst\n-- Using cached msys2-msys2-runtime-3.6.10-4-x86_64.pkg.tar.zst\n-- Using msys root at D:/a/_temp/local-native-work/vcpkg/downloads/tools/msys2/d5586eb050429df1\n-- Configuring x64-vira-pdf-rel\n-- Getting CMake variables for x64-vira-pdf\n-- Loading CMake variables from D:/a/_temp/local-native-work/vcpkg/buildtrees/pango/cmake-get-vars_C_CXX-x64-vira-pdf.cmake.log\n-- Configuring x64-vira-pdf-rel done\n-- Package x64-vira-pdf-rel\n-- Fixing pkgconfig file: D:/a/_temp/local-native-work/vcpkg/packages/pango_x64-vira-pdf/lib/pkgconfig/pango.pc\n-- Fixing pkgconfig file: D:/a/_temp/local-native-work/vcpkg/packages/pango_x64-vira-pdf/lib/pkgconfig/pangocairo.pc\n-- Fixing pkgconfig file: D:/a/_temp/local-native-work/vcpkg/packages/pango_x64-vira-pdf/lib/pkgconfig/pangofc.pc\n-- Fixing pkgconfig file: D:/a/_temp/local-native-work/vcpkg/packages/pango_x64-vira-pdf/lib/pkgconfig/pangoft2.pc\n-- Fixing pkgconfig file: D:/a/_temp/local-native-work/vcpkg/packages/pango_x64-vira-pdf/lib/pkgconfig/pangoot.pc\n-- Fixing pkgconfig file: D:/a/_temp/local-native-work/vcpkg/packages/pango_x64-vira-pdf/lib/pkgconfig/pangowin32.pc\n-- Installing: D:/a/_temp/local-native-work/vcpkg/packages/pango_x64-vira-pdf/share/pango/copyright\n-- Performing post-build validation\nFILE: D:\\a\\_temp\\local-native-work\\vcpkg\\buildtrees\\pango\\copy-tool-dependencies-9-err.log\nFILE: D:\\a\\_temp\\local-native-work\\vcpkg\\buildtrees\\pango\\copy-tool-dependencies-9-out.log\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\glib-2.0-0.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\iconv-2.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\intl-8.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\pcre2-8.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\gobject-2.0-0.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\ffi-8.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\gio-2.0-0.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\gmodule-2.0-0.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\z.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\fribidi-0.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\harfbuzz.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\freetype.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\bz2.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\libpng16.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\brotlidec.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\brotlicommon.dll\nFILE: D:\\a\\_temp\\local-native-work\\vcpkg\\buildtrees\\pango\\copy-tool-dependencies-9-copied-files.log\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\glib-2.0-0.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\iconv-2.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\intl-8.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\pcre2-8.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\gobject-2.0-0.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\ffi-8.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\gio-2.0-0.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\gmodule-2.0-0.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\z.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\fribidi-0.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\harfbuzz.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\freetype.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\bz2.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\libpng16.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\brotlidec.dll\nD:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/f479f7050106db570bc059c1f38ec9deee4f0573/.github",
+      "start_line": 20,
+      "start_column": null,
+      "end_line": 20,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "",
+      "message": "Process completed with exit code 1.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/f479f7050106db570bc059c1f38ec9deee4f0573/.github",
+      "start_line": 12,
+      "start_column": null,
+      "end_line": 12,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Source HTTP witness digest",
+      "message": "{\"bytes\": 1004740, \"sha256\": \"0a9d0ec88d020f9ae13755fc8f31d32d4635a92f2f9bf1b2d6faf1c4a786631d\"}",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/f479f7050106db570bc059c1f38ec9deee4f0573/.github",
+      "start_line": 274,
+      "start_column": null,
+      "end_line": 274,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Private pre-import launcher proof",
+      "message": "{\"schema\": 1, \"role\": \"PRIVATE_NOTICED_SOURCE_HTTP_LAUNCHER_NOT_DISTRIBUTION\", \"pid\": 9620, \"no_site\": 1, \"isolated\": 1, \"utf8_mode\": 1, \"windows_acp\": 65001, \"app_and_weasyprint_absent_before_entry\": true, \"inventory_sha256\": \"2bbf33be3a82a4fa3558d73e64a9f09868ccd4658294e122bac1158201ccd5bd\", \"payload_manifest_sha256\": \"22ce036182afe743df3b1adc1a6c1d63f4802e6ccf70da3bf2f842b1d2f76f7d\", \"bootstrap_temp\": \"D:\\\\a\\\\_temp\\\\vira-launcher-d11ddceedaa84751a504e0758b086d7d\\\\\\u06a9\\u0627\\u0631\\u0628\\u0631 \\u0641\\u0627\\u0631\\u0633\\u06cc & Local AppData\\\\\\u067e\\u0648\\u0634\\u0647 \\u0645\\u0648\\u0642\\u062a \\u0631\\u0627\\u0647\\u200c\\u0627\\u0646\\u062f\\u0627\\u0632\", \"libffi\": \"D:\\\\a\\\\_temp\\\\vira-launcher-d11ddceedaa84751a504e0758b086d7d\\\\VIRA \\u0631\\u0627\\u0647\\u200c\\u0627\\u0646\\u062f\\u0627\\u0632 & \\u0645\\u0633\\u06cc\\u0631 \\u0628\\u0627 \\u0641\\u0627\\u0635\\u0644\\u0647\\\\native\\\\pdf\\\\bin\\\\ffi-8.dll\", \"dll_count\": 21, \"release_authorized\": false, \"ordinary_launcher_changed\": false, \"new_source_build_proven\": false, \"target_mode\": \"PRIVATE_HTTP_QA\", \"source_audit_sha256\": \"ec8fc96e7d7e7ba77eb0b2d0831d18c725734f868084944f3757f5509a8da900\", \"source_audit_bound\": true, \"target_completed\": true}",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/f479f7050106db570bc059c1f38ec9deee4f0573/.github",
+      "start_line": 211,
+      "start_column": null,
+      "end_line": 211,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Private pre-import launcher proof",
+      "message": "{\"schema\": 1, \"role\": \"PRIVATE_NOTICED_SOURCE_HTTP_LAUNCHER_NOT_DISTRIBUTION\", \"pid\": 3484, \"no_site\": 1, \"isolated\": 1, \"utf8_mode\": 1, \"windows_acp\": 65001, \"app_and_weasyprint_absent_before_entry\": true, \"inventory_sha256\": \"2bbf33be3a82a4fa3558d73e64a9f09868ccd4658294e122bac1158201ccd5bd\", \"payload_manifest_sha256\": \"22ce036182afe743df3b1adc1a6c1d63f4802e6ccf70da3bf2f842b1d2f76f7d\", \"bootstrap_temp\": \"D:\\\\a\\\\_temp\\\\vira-launcher-d11ddceedaa84751a504e0758b086d7d\\\\\\u06a9\\u0627\\u0631\\u0628\\u0631 \\u0641\\u0627\\u0631\\u0633\\u06cc & Local AppData\\\\\\u067e\\u0648\\u0634\\u0647 \\u0645\\u0648\\u0642\\u062a \\u0631\\u0627\\u0647\\u200c\\u0627\\u0646\\u062f\\u0627\\u0632\", \"libffi\": \"D:\\\\a\\\\_temp\\\\vira-launcher-d11ddceedaa84751a504e0758b086d7d\\\\VIRA \\u0631\\u0627\\u0647\\u200c\\u0627\\u0646\\u062f\\u0627\\u0632 & \\u0645\\u0633\\u06cc\\u0631 \\u0628\\u0627 \\u0641\\u0627\\u0635\\u0644\\u0647\\\\native\\\\pdf\\\\bin\\\\ffi-8.dll\", \"dll_count\": 21, \"release_authorized\": false, \"ordinary_launcher_changed\": false, \"new_source_build_proven\": false, \"target_mode\": \"PRIVATE_HTTP_QA\", \"source_audit_sha256\": \"ec8fc96e7d7e7ba77eb0b2d0831d18c725734f868084944f3757f5509a8da900\", \"source_audit_bound\": true, \"target_completed\": true}",
+      "raw_details": ""
+    }
+  ],
+  "classification": "Compilation, actual source HTTP PDFs, binding and source-envelope reverification succeeded; annotation transport group0 FAILED. This is NOT an overall-successful workflow.",
+  "correction": "Project validated inventory binding fields into inline witness; retain byte-hashed full inventories in artifact, retain all audit/HTTP fields, keep the32-chunk cap unchanged. Add actual upstream-volume regression. Rebuild and rerun end-to-end, never relabel failure.",
+  "release_authorized": false
+}

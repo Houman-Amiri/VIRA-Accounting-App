@@ -12,6 +12,21 @@ from pathlib import Path
 from pdf_private_launcher import SOURCE_VERSION, validate_source_inventory
 
 
+def compact_inventory(inventory: dict) -> dict:
+    """Validated binding fields only; full inventory remains in the artifact.
+
+    Repeating upstream copyright/receipt text twice can exceed Actions annotation
+    limits. This is a declared projection, NOT the byte-hashed full inventory.
+    """
+    result = {k: inventory[k] for k in ('origin', 'private_consumption_only',
+        'modified_build_is_distribution_candidate', 'source_archive', 'binary_cache',
+        'distribution_status', 'native_audit_sha256', 'expected_pango_version_string', 'preload_dlls')}
+    result['dlls'] = {n: {k: v[k] for k in ('sha256', 'source_package')} for n, v in inventory['dlls'].items()}
+    result['source_packages'] = {n: {k: v[k] for k in ('patched_source_tree_sha256', 'patched_source_files')}
+                                 for n, v in inventory['source_packages'].items()}
+    return result
+
+
 def bind(audit_path: Path, reports: Path) -> dict:
     raw = audit_path.read_bytes()
     audit = json.loads(raw)
@@ -40,7 +55,7 @@ def bind(audit_path: Path, reports: Path) -> dict:
                 raise ValueError('Actual source HTTP PDF pagination differs')
         if len(c['documents']) != 4 or len(w['font_documents']) != 4:
             raise ValueError('Four inspected HTTP PDFs per process required')
-        cases[name] = {'launcher': p, 'http_pdf': c, 'inventory': inv}
+        cases[name] = {'launcher': p, 'http_pdf': c, 'inventory': compact_inventory(inv)}
     a, b = [cases[k] for k in ('first-process', 'restarted-process')]
     if (a['launcher']['pid'] == b['launcher']['pid']
             or any(a['launcher'][k] != b['launcher'][k] for k in ('inventory_sha256', 'payload_manifest_sha256', 'libffi', 'source_audit_sha256'))
@@ -52,7 +67,9 @@ def bind(audit_path: Path, reports: Path) -> dict:
         raise ValueError('Actual source HTTP negative controls missing')
     return {'schema': 1, 'role': 'PRIVATE_NOTICED_SOURCE_BUILD_AND_REAL_HTTP_NOT_DISTRIBUTION',
             'native_audit': audit, 'native_audit_sha256': digest, 'source_http_cases': cases,
-            'negative_controls': negatives, 'source21_http_pair_proven': True,
+            'negative_controls': negatives,
+            'inventory_representation': 'VALIDATED_BINDING_PROJECTION_FULL_BYTE_HASHED_INVENTORY_IN_ARTIFACT',
+            'source21_http_pair_proven': True,
             'new_source_build_proven': True, 'http_app_startup_proven': True,
             'stock_sdk_used_in_source_job': False, 'font_adapter_is_production_default': False,
             'ordinary_launcher_enabled': False, 'installed_user_acceptance': False,
