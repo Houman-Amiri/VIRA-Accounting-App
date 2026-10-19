@@ -1,0 +1,128 @@
+name: Private real HTTP Unicode PDF startup (stock SDK, not installed/source proof)
+
+on:
+  push:
+    paths: ['.github/workflows/pdf-private-http.yml', 'scripts/pdf_private_http_probe.py', 'scripts/pdf_http_verify.py', 'scripts/pdf_private_launcher.py', 'scripts/pdf_launcher_smoke.ps1', 'backend/tests/test_pdf_private_http.py']
+  pull_request:
+    paths: ['.github/workflows/pdf-private-http.yml', 'scripts/pdf_private_http_probe.py', 'scripts/pdf_http_verify.py', 'scripts/pdf_private_launcher.py', 'scripts/pdf_launcher_smoke.ps1', 'backend/tests/test_pdf_private_http.py']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: private-pdf-http-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  launcher:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Locked app and separately pinned SDK, no native-source claim
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force reports/private-http | Out-Null
+          Start-Transcript -Path reports/private-http/setup.log
+          uv sync --frozen --all-extras
+          if ($LASTEXITCODE -ne 0) { throw "App dependency setup failed" }
+          pnpm --dir frontend install --frozen-lockfile
+          if ($LASTEXITCODE -ne 0) { throw "SPA dependency setup failed" }
+          pnpm --dir frontend build
+          if ($LASTEXITCODE -ne 0) { throw "SPA build failed" }
+          & ./scripts/prepare_pdf_native_fixture.ps1
+          if ($LASTEXITCODE -ne 0) { throw "Pinned SDK fixture failed" }
+          Stop-Transcript
+      - name: Consume fixture environment only after GITHUB_ENV step boundary
+        shell: pwsh
+        run: |
+          Start-Transcript -Path reports/private-http/closure.log
+          if (-not $env:VIRA_PDF_UPSTREAM_ARCHIVE) { throw "Fixture archive was not exported by the prior step" }
+          uv run python scripts/pdf_runtime_inventory.py --archive "$env:VIRA_PDF_UPSTREAM_ARCHIVE" --out-dir "$env:RUNNER_TEMP/launcher-sdk-candidate"
+          if ($LASTEXITCODE -ne 0) { throw "SDK closure failed" }
+          Stop-Transcript
+      - name: Real app factory, loopback HTTP, auth/CSRF, parallel PDFs and fresh restart
+        shell: pwsh
+        run: |
+          $output = (& pwsh -NoProfile -File scripts/pdf_launcher_smoke.ps1 -Candidate "$env:RUNNER_TEMP/launcher-sdk-candidate" -HttpProof 2>&1 | Out-String)
+          $code = $LASTEXITCODE
+          Write-Host $output
+          New-Item -ItemType Directory -Force reports/private-http | Out-Null
+          $output | Set-Content -Encoding utf8 reports/private-http/driver.log
+          if ($code -ne 0) {
+            $tail = $output.Substring([Math]::Max(0, $output.Length - 8000))
+            for ($i = 0; $i -lt $tail.Length; $i += 2400) {
+              $part = $tail.Substring($i, [Math]::Min(2400, $tail.Length - $i))
+              $part = (($part -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A'
+              Write-Output "::error title=Private launcher failure part ${i}::$part"
+            }
+            throw "Private launcher proof failed"
+          }
+      - name: Bind real HTTP proof and external PDF inspection
+        shell: pwsh
+        run: |
+          @'
+          import base64,hashlib,json,pathlib,zlib
+          root=pathlib.Path('reports/private-http')
+          cases={}
+          for name in ('first-process','restarted-process'):
+              folder=root/name
+              p=json.loads((folder/'launcher-proof.json').read_text(encoding='utf-8'))
+              c=json.loads((folder/'http-bundled-proof.json').read_text(encoding='utf-8'))
+              assert p['target_mode']=='PRIVATE_HTTP_QA' and p['target_completed']
+              assert p['no_site']==p['isolated']==p['utf8_mode']==1 and p['windows_acp']==65001
+              assert p['app_and_weasyprint_absent_before_entry']
+              assert c['dll_count']==len(c['worker']['loaded_dlls'])==27
+              assert c['worker']['pid']==p['pid']
+              assert c['worker']['reused_state']==(name=='restarted-process')
+              assert c['worker']['http']['graceful_shutdown']
+              assert len(c['documents'])==4 and len(c['worker']['font_documents'])==4
+              cases[name]={'launcher':p,'http_pdf':c}
+          a,b=[cases[n] for n in ('first-process','restarted-process')]
+          assert a['launcher']['pid']!=b['launcher']['pid']
+          assert all(a['launcher'][k]==b['launcher'][k] for k in ('inventory_sha256','payload_manifest_sha256','libffi','bootstrap_temp'))
+          assert a['http_pdf']['worker']['database']==b['http_pdf']['worker']['database']
+          assert a['http_pdf']['worker']['http']['fixture_ids']==b['http_pdf']['worker']['http']['fixture_ids']
+          negatives=json.loads((root/'negative-controls.json').read_text(encoding='utf-8-sig'))
+          assert set(negatives)=={'missing-no-site','early-ctypes','wrong-inventory-digest'}
+          assert all(n['rejected'] and n['exit_code']!=0 for n in negatives.values())
+          x={'schema':1,'role':'PRIVATE_STOCK_SDK_HTTP_STARTUP_NOT_INSTALLED_OR_SOURCE21','http_app_startup_proven':True,'new_source_build_proven':False,'ordinary_launcher_enabled':False,'font_adapter_is_production_default':False,'installed_user_acceptance':False,'release_authorized':False,'cases':cases,'negative_controls':negatives}
+          raw=(json.dumps(x,indent=2)+'\n').encode('utf-8')
+          (root/'combined-http-proof.json').write_bytes(raw)
+          data=base64.b64encode(zlib.compress(raw,9)).decode('ascii')
+          parts=[data[i:i+2300] for i in range(0,len(data),2300)]
+          for i,part in enumerate(parts):
+              print('::notice title=Private HTTP evidence::'+json.dumps({'part':i,'total':len(parts),'data':part}))
+          print('::notice title=Private HTTP witness digest::'+json.dumps({'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)}))
+          '@ | python -I -S -
+          if ($LASTEXITCODE -ne 0) { throw "HTTP binding failed" }
+      - name: Expose bounded setup diagnostics without changing failure status
+        if: failure()
+        shell: pwsh
+        run: |
+          $logs = Get-ChildItem reports/private-http -File -Filter *.log -ErrorAction SilentlyContinue
+          foreach ($log in $logs) {
+            $text = (Get-Content $log.FullName -Tail 80) -join "`n"
+            $tail = $text.Substring([Math]::Max(0, $text.Length - 8000))
+            for ($i = 0; $i -lt $tail.Length; $i += 2400) {
+              $part = $tail.Substring($i, [Math]::Min(2400, $tail.Length - $i))
+              $part = (($part -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A'
+              Write-Output "::error title=Launcher setup diagnostic $($log.Name) part ${i}::$part"
+            }
+          }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: private-real-http-pdf-evidence-no-app-db-dlls-not-source-proof
+          path: reports/private-http/
+          retention-days: 90
+          if-no-files-found: error

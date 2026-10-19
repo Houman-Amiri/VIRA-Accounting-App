@@ -1,6 +1,6 @@
 # Private stock-SDK pre-import launcher QA; NOT ordinary startup or MIT build recipe.
 [CmdletBinding()]
-param([Parameter(Mandatory = $true)][string]$Candidate)
+param([Parameter(Mandatory = $true)][string]$Candidate, [switch]$HttpProof)
 $ErrorActionPreference = "Stop"
 if (-not $IsWindows -or $env:GITHUB_ACTIONS -ne "true") { throw "Private Windows CI only" }
 $repo = (Get-Location).Path
@@ -31,14 +31,18 @@ Get-ChildItem (Join-Path $app "app/assets/fonts") -Filter *.ttf -File | ForEach-
 $python = Join-Path $app "python/python.exe"
 $entry = Join-Path $app "scripts/pdf_private_launcher.py"
 $previous = $env:LOCALAPPDATA
-$reports = Join-Path $repo "reports/private-launcher"
+$previousPassword = $env:VIRA_PRIVATE_HTTP_PASSWORD
+$reportName = if ($HttpProof) { "private-http" } else { "private-launcher" }
+$reports = Join-Path $repo "reports/$reportName"
 New-Item -ItemType Directory -Force $reports | Out-Null
 try {
     $env:LOCALAPPDATA = $profile
+    if ($HttpProof) { $env:VIRA_PRIVATE_HTTP_PASSWORD = [guid]::NewGuid().ToString("N") + [guid]::NewGuid().ToString("N") }
     Push-Location -LiteralPath $cwd
     try {
         $common = @("--app-root", $app, "--contexts", $contexts, "--state-root", $state,
                     "--inventory-sha256", $inventoryHash, "--payload-manifest-sha256", $baselineHash)
+        if ($HttpProof) { $common += "--http-proof" }
         $negativeArgs = $common + @("--out-dir", (Join-Path $reports "rejected"))
         $negative = @{}
         foreach ($case in @("missing-no-site", "early-ctypes", "wrong-inventory-digest")) {
@@ -67,9 +71,10 @@ try {
             & $python -I -S -B -X utf8 $entry @probeArgs
             if ($LASTEXITCODE -ne 0) { throw "Private launcher failed: $case" }
             Copy-Item (Join-Path $native "runtime-inventory.json") (Join-Path $out "runtime-inventory.json")
-            & uv run --project $repo python (Join-Path $repo "scripts/pdf_payload_verify.py") --app-root $app --reports $out
+            $verifier = if ($HttpProof) { "scripts/pdf_http_verify.py" } else { "scripts/pdf_payload_verify.py" }
+            & uv run --project $repo python (Join-Path $repo $verifier) --app-root $app --reports $out
             if ($LASTEXITCODE -ne 0) { throw "PDF/font/baseline verification failed: $case" }
         }
     } finally { Pop-Location }
-} finally { $env:LOCALAPPDATA = $previous }
-Write-Host "PASS: private pre-import launcher with isolated/no-site CPython, stock SDK only; NOT source/installed/HTTP/production acceptance"
+} finally { $env:LOCALAPPDATA = $previous; $env:VIRA_PRIVATE_HTTP_PASSWORD = $previousPassword }
+Write-Host "PASS: private pre-import launcher with isolated/no-site CPython, stock SDK only; HTTP only when explicitly selected; NOT source/installed/production acceptance"

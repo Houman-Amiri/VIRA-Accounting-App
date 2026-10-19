@@ -1,7 +1,7 @@
 """Private CI-only pre-import launcher; NOT the installed application launcher.
 
 Standard library until payload verification completes. This phase supports ONLY
-stock-SDK preflight, not a new source-build claim. No installer, HTTP service,
+stock-SDK preflight, not a new source-build claim. No installer or ordinary HTTP service,
 release authorization, site customization, shell evaluation or WeasyPrint patch.
 Outside the explicitly scoped native-build MIT grant.
 """
@@ -75,7 +75,7 @@ def member(root: Path, relative: str) -> Path:
     return resolved
 
 
-def validate_payload(root: Path, manifest_digest: str, inventory_digest: str) -> dict:
+def validate_payload(root: Path, manifest_digest: str, inventory_digest: str, *, http_proof: bool = False) -> dict:
     baseline = read_json(root / "install_manifest.json", manifest_digest)
     paths = set()
     for entry in baseline["files"]:
@@ -88,7 +88,8 @@ def validate_payload(root: Path, manifest_digest: str, inventory_digest: str) ->
         file = member(root, relative)
         if file.stat().st_size != entry["size"] or sha256(file) != entry["sha256"]:
             raise ValueError(f"Baseline file changed: {relative}")
-    if not paths >= REQUIRED:
+    required = REQUIRED | ({"scripts/pdf_private_http_probe.py", "app/main.py", "scripts/migrate_vira.py", "backend/alembic.ini"} if http_proof else set())
+    if not paths >= required:
         raise ValueError("Required bootstrap files absent from baseline")
     if read_json(root / "version.json")["version"] != "0.0.0-private-unicode-proof":
         raise ValueError("Not a private staged payload")
@@ -124,6 +125,7 @@ def main() -> None:
     parser.add_argument("--inventory-sha256", required=True)
     parser.add_argument("--payload-manifest-sha256", required=True)
     parser.add_argument("--reuse-state", action="store_true")
+    parser.add_argument("--http-proof", action="store_true", help="Fixed private HTTP QA worker, never ordinary startup")
     args = parser.parse_args()
     root = args.app_root.resolve(strict=True)
     runner = Path(os.environ["RUNNER_TEMP"]).resolve(strict=True)
@@ -132,7 +134,7 @@ def main() -> None:
     if (sys.version_info[:2] != (3, 11) or Path(sys.executable).resolve() != root / "python/python.exe"
             or Path(sys.base_prefix).resolve() != root / "python"):
         raise ValueError("Only the private bundled CPython 3.11 may launch")
-    inventory = validate_payload(root, args.payload_manifest_sha256, args.inventory_sha256)
+    inventory = validate_payload(root, args.payload_manifest_sha256, args.inventory_sha256, http_proof=args.http_proof)
     profile = Path(os.environ["LOCALAPPDATA"]).resolve(strict=True)
     state = args.state_root.resolve()
     if (not profile.is_relative_to(runner) or profile == runner or not state.is_relative_to(profile)
@@ -185,7 +187,8 @@ def main() -> None:
                      "new_source_build_proven": False}
         if not pre_entry["app_and_weasyprint_absent_before_entry"]:
             raise ValueError("Application imported during bootstrap")
-        target = member(root, "scripts/pdf_unicode_probe.py")
+        pre_entry["target_mode"] = "PRIVATE_HTTP_QA" if args.http_proof else "PRIVATE_UNICODE_PDF_QA"
+        target = member(root, "scripts/pdf_private_http_probe.py" if args.http_proof else "scripts/pdf_unicode_probe.py")
         sys.argv = [str(target), "--app-root", str(root), "--contexts", str(args.contexts),
                     "--state-root", str(state), "--out-dir", str(args.out_dir)]
         if args.reuse_state:
