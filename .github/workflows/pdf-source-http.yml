@@ -2,9 +2,9 @@ name: Private noticed-source no-site HTTP PDF proof
 
 on:
   push:
-    paths: ['.github/workflows/pdf-source-http.yml', 'scripts/pdf_source_http_bind.py', 'backend/tests/test_pdf_source_http.py']
+    paths: ['.github/workflows/pdf-source-http.yml', 'scripts/pdf_source_http_bind.py', 'backend/tests/test_pdf_source_http.py', 'scripts/pdf_private_launcher.py', 'scripts/pdf_private_http_probe.py', 'scripts/pdf_http_verify.py', 'scripts/pdf_launcher_smoke.ps1', 'scripts/prepare_pdf_consumer_candidate.py']
   pull_request:
-    paths: ['.github/workflows/pdf-source-http.yml', 'scripts/pdf_source_http_bind.py', 'backend/tests/test_pdf_source_http.py']
+    paths: ['.github/workflows/pdf-source-http.yml', 'scripts/pdf_source_http_bind.py', 'backend/tests/test_pdf_source_http.py', 'scripts/pdf_private_launcher.py', 'scripts/pdf_private_http_probe.py', 'scripts/pdf_http_verify.py', 'scripts/pdf_launcher_smoke.ps1', 'scripts/prepare_pdf_consumer_candidate.py']
 
 permissions:
   contents: read

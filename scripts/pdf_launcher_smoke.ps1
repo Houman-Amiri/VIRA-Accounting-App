@@ -1,4 +1,4 @@
-# Private stock-SDK pre-import launcher QA; NOT ordinary startup or MIT build recipe.
+# Private stock-SDK or audit-bound source HTTP pre-import launcher QA; NOT ordinary startup or MIT build recipe.
 [CmdletBinding()]
 param([Parameter(Mandatory = $true)][string]$Candidate, [switch]$HttpProof, [string]$SourceAudit)
 $ErrorActionPreference = "Stop"
@@ -83,4 +83,4 @@ try {
         }
     } finally { Pop-Location }
 } finally { $env:LOCALAPPDATA = $previous; $env:VIRA_PRIVATE_HTTP_PASSWORD = $previousPassword }
-Write-Host "PASS: private pre-import launcher with isolated/no-site CPython, stock SDK only; HTTP only when explicitly selected; NOT source/installed/production acceptance"
+Write-Host "PASS: private isolated/no-site launch and explicit HTTP QA; build provenance requires the separate audit binder; NOT installed/production/legal acceptance"
