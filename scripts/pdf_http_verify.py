@@ -10,9 +10,11 @@ from pdf_native_smoke import DIGITS, inspect_pdf
 from pdf_runtime_inventory import BLOCKED
 
 
-def verify(root: Path, reports: Path, source_audit_digest: str | None = None) -> dict:
+def verify(root: Path, reports: Path, source_audit_digest: str | None = None, app_owned: bool = False) -> dict:
     worker = json.loads((reports / 'http-worker-proof.json').read_text(encoding='utf-8'))
     role = 'PRIVATE_NOTICED_SOURCE_REAL_HTTP_NOT_INSTALLED_ACCEPTANCE' if source_audit_digest else 'PRIVATE_STOCK_SDK_REAL_HTTP_NOT_INSTALLED_ACCEPTANCE'
+    if app_owned:
+        role = 'PRIVATE_APP_OWNED_SOURCE_HTTP_NOT_INSTALLED_ACCEPTANCE' if source_audit_digest else 'PRIVATE_APP_OWNED_SDK_HTTP_NOT_INSTALLED_ACCEPTANCE'
     if worker['role'] != role:
         raise ValueError('Wrong HTTP evidence role')
     if not worker['isolated'] == worker['no_site'] == worker['utf8_mode'] == 1 or worker['windows_acp'] != 65001:
@@ -21,7 +23,7 @@ def verify(root: Path, reports: Path, source_audit_digest: str | None = None) ->
         raise ValueError('Private HTTP must not acquire production/source approval')
     http = worker['http']
     if (http['transport'] != 'REAL_TCP_LOOPBACK_NOT_ASGI_TRANSPORT'
-            or worker['font_adapter_scope'] != 'PROCESS_LOCAL_QA_INJECTION_NOT_PRODUCTION_DEFAULT'
+            or worker['font_adapter_scope'] != ('APPLICATION_OWNED_FACTORY_POLICY_NOT_DEFAULT' if app_owned else 'PROCESS_LOCAL_QA_INJECTION_NOT_PRODUCTION_DEFAULT')
             or worker['migration_status'] != 'migrated' or http['peak_concurrent_documents'] not in (1, 2) or http['parallel_http_requests'] != 2
             or http['ready']['status'] != 'ready' or not http['ready']['alembic_revision']):
         raise ValueError('Real startup/migration/concurrency evidence missing')
@@ -32,6 +34,15 @@ def verify(root: Path, reports: Path, source_audit_digest: str | None = None) ->
             raise ValueError('Missing real HTTP control: ' + flag)
     if not worker['development_dependencies_absent']:
         raise ValueError('Inspection packages leaked into app')
+    if app_owned:
+        d = worker['app_owned_dispatch']
+        if (d['mode'] != 'PRIVATE_EXPLICIT_FONTCONFIG' or d['renderer_module'] != 'app.services.pdf_rendering'
+                or d['callables_unchanged'] is not True or d['qa_renderer_replacement_used'] is not False
+                or d['configuration_factory_supplied_by_qa'] is not False or not d['cache_root_empty']
+                or d['diagnostics'] != 'PASSIVE_PLAIN_VALUE_LOG_RECORDS_NOT_CONFIG_OBJECTS'):
+            raise ValueError('Application-owned dispatch was not used unchanged')
+        if any(not v['cache_temp_cleaned'] for v in worker['font_documents']):
+            raise ValueError('Owned per-document cache leaked')
     inventory = json.loads((root / 'native/pdf/runtime-inventory.json').read_text(encoding='utf-8'))
     count = 21 if source_audit_digest else 27
     if source_audit_digest:
@@ -80,8 +91,9 @@ def main():
     parser.add_argument('--app-root', type=Path, required=True)
     parser.add_argument('--reports', type=Path, required=True)
     parser.add_argument("--source-audit-sha256")
+    parser.add_argument("--app-owned-fonts", action="store_true")
     args = parser.parse_args()
-    result = verify(args.app_root, args.reports, args.source_audit_sha256)
+    result = verify(args.app_root, args.reports, args.source_audit_sha256, args.app_owned_fonts)
     (args.reports / 'http-bundled-proof.json').write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
     print('PASS: inspected real HTTP bytes, embedded Vazirmatn, native origin, baseline and cleanup')
 

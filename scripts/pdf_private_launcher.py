@@ -125,7 +125,9 @@ def validate_source_inventory(inventory: dict, audit: dict, digest: str) -> None
             raise ValueError("Source tree differs from compiled audit")
 
 
-def validate_payload(root: Path, manifest_digest: str, inventory_digest: str, *, http_proof: bool = False, source_audit_digest: str | None = None) -> dict:
+def validate_payload(root: Path, manifest_digest: str, inventory_digest: str, *, http_proof: bool = False, source_audit_digest: str | None = None, app_owned: bool = False) -> dict:
+    if app_owned and not http_proof:
+        raise ValueError("App-owned mode requires explicit private HTTP target")
     baseline = read_json(root / "install_manifest.json", manifest_digest)
     paths = set()
     for entry in baseline["files"]:
@@ -139,6 +141,8 @@ def validate_payload(root: Path, manifest_digest: str, inventory_digest: str, *,
         if file.stat().st_size != entry["size"] or sha256(file) != entry["sha256"]:
             raise ValueError(f"Baseline file changed: {relative}")
     required = REQUIRED | ({"scripts/pdf_private_http_probe.py", "app/main.py", "scripts/migrate_vira.py", "backend/alembic.ini"} if http_proof else set())
+    if app_owned:
+        required.add("app/services/pdf_rendering.py")
     if source_audit_digest is not None:
         if not http_proof:
             raise ValueError("Source mode requires explicit private HTTP target")
@@ -185,7 +189,10 @@ def main() -> None:
     parser.add_argument("--reuse-state", action="store_true")
     parser.add_argument("--http-proof", action="store_true", help="Fixed private HTTP QA worker, never ordinary startup")
     parser.add_argument("--source-audit-sha256", help="Explicit external noticed-source audit digest; HTTP QA only")
+    parser.add_argument("--app-owned-fonts", action="store_true")
     args = parser.parse_args()
+    if args.app_owned_fonts and not args.http_proof:
+        raise ValueError("App-owned mode requires explicit private HTTP target")
     root = args.app_root.resolve(strict=True)
     runner = Path(os.environ["RUNNER_TEMP"]).resolve(strict=True)
     if not root.is_relative_to(runner) or root == runner:
@@ -193,7 +200,7 @@ def main() -> None:
     if (sys.version_info[:2] != (3, 11) or Path(sys.executable).resolve() != root / "python/python.exe"
             or Path(sys.base_prefix).resolve() != root / "python"):
         raise ValueError("Only the private bundled CPython 3.11 may launch")
-    inventory = validate_payload(root, args.payload_manifest_sha256, args.inventory_sha256, http_proof=args.http_proof, source_audit_digest=args.source_audit_sha256)
+    inventory = validate_payload(root, args.payload_manifest_sha256, args.inventory_sha256, http_proof=args.http_proof, source_audit_digest=args.source_audit_sha256, app_owned=args.app_owned_fonts)
     profile = Path(os.environ["LOCALAPPDATA"]).resolve(strict=True)
     state = args.state_root.resolve()
     if (not profile.is_relative_to(runner) or profile == runner or not state.is_relative_to(profile)
@@ -252,11 +259,15 @@ def main() -> None:
         pre_entry["source_audit_bound"] = args.source_audit_sha256 is not None
         if args.source_audit_sha256:
             pre_entry["role"] = "PRIVATE_NOTICED_SOURCE_HTTP_LAUNCHER_NOT_DISTRIBUTION"
+        if args.app_owned_fonts:
+            pre_entry["target_mode"] = "PRIVATE_APP_OWNED_HTTP"
         target = member(root, "scripts/pdf_private_http_probe.py" if args.http_proof else "scripts/pdf_unicode_probe.py")
         sys.argv = [str(target), "--app-root", str(root), "--contexts", str(args.contexts),
                     "--state-root", str(state), "--out-dir", str(args.out_dir)]
         if args.source_audit_sha256:
             sys.argv += ["--source-audit-sha256", args.source_audit_sha256]
+        if args.app_owned_fonts:
+            sys.argv.append("--app-owned-fonts")
         if args.reuse_state:
             sys.argv.append("--reuse-state")
         runpy.run_path(str(target), run_name="__main__")

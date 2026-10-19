@@ -11,6 +11,7 @@ import concurrent.futures
 import hashlib
 import importlib.util
 import json
+import logging
 import os
 import runpy
 import secrets
@@ -139,6 +140,71 @@ class FontAudit:
                 self.active -= 1
 
 
+class OwnedFontObserver(logging.Handler):
+    """Passive plain-value event collector. Never replaces a rendering callable."""
+    def __init__(self, root, temp, cache):
+        super().__init__()
+        self.root, self.temp, self.cache = root, temp, cache
+        self.records, self.errors = [], []
+        self.active_ids, self.seen = set(), set()
+        self.peak = 0
+
+    def emit(self, record):
+        event = getattr(record, 'pdf_document', None)
+        if not isinstance(event, dict):
+            return
+        key, action = event.get('id'), event.get('event')
+        if action == 'started':
+            if not isinstance(key, str) or key in self.seen:
+                self.errors.append('Duplicate/missing lifecycle ID')
+            self.seen.add(key)
+            self.active_ids.add(key)
+            self.peak = max(self.peak, len(self.active_ids))
+        elif action in ('completed', 'failed'):
+            if key not in self.active_ids:
+                self.errors.append('Completion without matching start')
+            self.active_ids.discard(key)
+            if action == 'completed':
+                self.records.append(dict(event))
+            else:
+                self.errors.append('Application-owned render failed')
+                if record.exc_info:
+                    import traceback
+                    # Traceback only, no frame locals/context/cookies.
+                    traceback.print_exception(*record.exc_info)
+        else:
+            self.errors.append('Unknown lifecycle event')
+
+    def verify(self):
+        expected = sorted(hashlib.sha256((self.root / 'app/assets/fonts' / f'Vazirmatn-{w}.ttf').read_bytes()).hexdigest() for w in ('Regular', 'Bold'))
+        if self.errors or self.active_ids or len(self.records) != len(self.seen) or len(self.records) != 4:
+            raise ValueError('Application-owned lifecycle events missing or failed')
+        for value in self.records:
+            folder = Path(value['font_folder'])
+            cache = Path(value['cache_folder'])
+            if (folder.parent.resolve() != self.temp or str(folder).isascii()
+                    or cache.parent.resolve() != self.cache or cache.exists() or folder.exists()
+                    or not value['cache_temp_cleaned'] or not value['font_temp_cleaned']
+                    or value['font_sha256'] != expected or value['system_fonts'] != 0
+                    or value['preferred_encoding'].lower().replace('_', '-') != 'utf-8'):
+                raise ValueError('Application-owned fonts/cache/UTF-8 cleanup invalid')
+
+
+def owned_fingerprint(root):
+    from inspect import unwrap
+
+    from app.services import pdf, pdf_fontconfig, pdf_rendering
+
+    values = {'render_pdf': pdf.render_pdf,
+              'private_font_configuration': pdf_fontconfig.private_font_configuration,
+              'renderer_call': pdf_rendering.PdfRenderer.__call__}
+    paths = {'render_pdf': 'pdf.py', 'private_font_configuration': 'pdf_fontconfig.py', 'renderer_call': 'pdf_rendering.py'}
+    for name, function in values.items():
+        if Path(unwrap(function).__code__.co_filename).resolve() != root / 'app/services' / paths[name]:
+            raise ValueError('Foreign/replaced application PDF implementation')
+    return values
+
+
 def checked(response, status):
     if response.status_code != status:
         # Do not dump login bodies, cookies, credentials or arbitrary response text.
@@ -261,6 +327,7 @@ def main():
         parser.add_argument('--' + key, type=Path, required=True)
     parser.add_argument('--reuse-state', action='store_true')
     parser.add_argument('--source-audit-sha256')
+    parser.add_argument('--app-owned-fonts', action='store_true')
     args = parser.parse_args()
     root = args.app_root.resolve(strict=True)
     if Path(sys.executable).resolve() != root / 'python/python.exe' or Path(sys.base_prefix).resolve() != root / 'python':
@@ -298,16 +365,49 @@ def main():
                 seed_owner_user(session, password=password)
         finally:
             seed_db.dispose()
-        original = pdf.render_pdf
-        audit = FontAudit(root, temp, state / 'حافظه قلم HTTP', original, private_font_configuration)
-        pdf.render_pdf = audit
-        try:
+        dispatch = None
+        if args.app_owned_fonts:
             from app.main import create_app
+            from app.services.pdf_rendering import PdfRenderer, PrivatePdfPolicy
 
-            app = create_app(settings)
-            http = exercise_http(app, state, args.out_dir, password, args.reuse_state, audit)
-        finally:
-            pdf.render_pdf = original
+            fingerprints = owned_fingerprint(root)
+            cache = state / 'حافظه قلم متعلق به برنامه'
+            audit = OwnedFontObserver(root, temp, cache)
+            logger = logging.getLogger('app.services.pdf_rendering')
+            level, disabled = logger.level, logger.disabled
+            logger.disabled = False  # migration fileConfig may disable pre-existing loggers
+            logger.setLevel(logging.INFO)
+            logger.addHandler(audit)
+            try:
+                app = create_app(settings, private_pdf_policy=PrivatePdfPolicy(cache))
+                renderer = app.state.pdf_renderer
+                if type(renderer) is not PdfRenderer or renderer.mode != 'PRIVATE_EXPLICIT_FONTCONFIG':
+                    raise ValueError('Factory did not select its own private PDF service')
+                http = exercise_http(app, state, args.out_dir, password, args.reuse_state, audit)
+                audit.verify()
+                after = owned_fingerprint(root)
+                if any(after[k] is not v for k, v in fingerprints.items()) or app.state.pdf_renderer is not renderer:
+                    raise ValueError('Application PDF implementation was replaced during HTTP')
+                dispatch = {'mode': renderer.mode, 'renderer_module': type(renderer).__module__,
+                            'callables_unchanged': True, 'qa_renderer_replacement_used': False,
+                            'configuration_factory_supplied_by_qa': False,
+                            'diagnostics': 'PASSIVE_PLAIN_VALUE_LOG_RECORDS_NOT_CONFIG_OBJECTS',
+                            'cache_root': str(cache), 'cache_root_empty': not any(cache.iterdir())}
+            finally:
+                logger.removeHandler(audit)
+                logger.setLevel(level)
+                logger.disabled = disabled
+        else:
+            original = pdf.render_pdf
+            audit = FontAudit(root, temp, state / 'حافظه قلم HTTP', original, private_font_configuration)
+            pdf.render_pdf = audit
+            try:
+                from app.main import create_app
+
+                app = create_app(settings)
+                http = exercise_http(app, state, args.out_dir, password, args.reuse_state, audit)
+            finally:
+                pdf.render_pdf = original
         inventory = json.loads((root / 'native/pdf/runtime-inventory.json').read_text())
         loaded, version = native_state(root, inventory)
         source = args.source_audit_sha256 is not None
@@ -330,6 +430,11 @@ def main():
         result['source_audit_bound'] = source
         if source:
             result['role'] = 'PRIVATE_NOTICED_SOURCE_REAL_HTTP_NOT_INSTALLED_ACCEPTANCE'
+        if args.app_owned_fonts:
+            result['role'] = ('PRIVATE_APP_OWNED_SOURCE_HTTP_NOT_INSTALLED_ACCEPTANCE' if source else
+                              'PRIVATE_APP_OWNED_SDK_HTTP_NOT_INSTALLED_ACCEPTANCE')
+            result['font_adapter_scope'] = 'APPLICATION_OWNED_FACTORY_POLICY_NOT_DEFAULT'
+            result['app_owned_dispatch'] = dispatch
         (args.out_dir / 'http-worker-proof.json').write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
         print('PASS: real private HTTP startup, authenticated PDF, parallel document cleanup and graceful shutdown')
 

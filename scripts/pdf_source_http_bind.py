@@ -27,7 +27,7 @@ def compact_inventory(inventory: dict) -> dict:
     return result
 
 
-def bind(audit_path: Path, reports: Path) -> dict:
+def bind(audit_path: Path, reports: Path, *, app_owned: bool = False) -> dict:
     raw = audit_path.read_bytes()
     audit = json.loads(raw)
     digest = hashlib.sha256(raw).hexdigest()
@@ -42,7 +42,7 @@ def bind(audit_path: Path, reports: Path) -> dict:
         if (p['role'] != 'PRIVATE_NOTICED_SOURCE_HTTP_LAUNCHER_NOT_DISTRIBUTION'
                 or p['source_audit_sha256'] != digest or w['source_audit_sha256'] != digest
                 or not p['source_audit_bound'] or not w['source_audit_bound']
-                or p['target_mode'] != 'PRIVATE_HTTP_QA' or not p['target_completed']
+                or p['target_mode'] != ('PRIVATE_APP_OWNED_HTTP' if app_owned else 'PRIVATE_HTTP_QA') or not p['target_completed']
                 or p['no_site'] != 1 or p['isolated'] != 1 or p['utf8_mode'] != 1
                 or p['windows_acp'] != 65001 or not p['app_and_weasyprint_absent_before_entry']
                 or p['pid'] != w['pid'] or w['reused_state'] != (name == 'restarted-process')
@@ -65,7 +65,7 @@ def bind(audit_path: Path, reports: Path) -> dict:
     negatives = json.loads((reports / 'negative-controls.json').read_text(encoding='utf-8-sig'))
     if set(negatives) != {'missing-no-site', 'early-ctypes', 'wrong-inventory-digest'} or not all(v['rejected'] and v['exit_code'] != 0 for v in negatives.values()):
         raise ValueError('Actual source HTTP negative controls missing')
-    return {'schema': 1, 'role': 'PRIVATE_NOTICED_SOURCE_BUILD_AND_REAL_HTTP_NOT_DISTRIBUTION',
+    return {'schema': 1, 'role': ('PRIVATE_NOTICED_SOURCE_APP_OWNED_HTTP_NOT_DISTRIBUTION' if app_owned else 'PRIVATE_NOTICED_SOURCE_BUILD_AND_REAL_HTTP_NOT_DISTRIBUTION'),
             'native_audit': audit, 'native_audit_sha256': digest, 'source_http_cases': cases,
             'negative_controls': negatives,
             'inventory_representation': 'VALIDATED_BINDING_PROJECTION_FULL_BYTE_HASHED_INVENTORY_IN_ARTIFACT',

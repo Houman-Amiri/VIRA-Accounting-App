@@ -2,9 +2,9 @@ name: Private noticed-source no-site HTTP PDF proof
 
 on:
   push:
-    paths: ['.github/workflows/pdf-source-http.yml', 'scripts/pdf_source_http_bind.py', 'backend/tests/test_pdf_source_http.py', 'scripts/pdf_private_launcher.py', 'scripts/pdf_private_http_probe.py', 'scripts/pdf_http_verify.py', 'scripts/pdf_launcher_smoke.ps1', 'scripts/prepare_pdf_consumer_candidate.py']
+    paths: ['.github/workflows/pdf-source-http.yml', 'scripts/pdf_source_http_bind.py', 'backend/tests/test_pdf_source_http.py', 'scripts/pdf_private_launcher.py', 'scripts/pdf_private_http_probe.py', 'scripts/pdf_http_verify.py', 'scripts/pdf_launcher_smoke.ps1', 'scripts/prepare_pdf_consumer_candidate.py', 'scripts/pdf_owned_http_bind.py', 'backend/app/services/pdf_rendering.py', 'backend/app/main.py', 'backend/app/api/operations.py', 'backend/tests/test_pdf_owned_http.py']
   pull_request:
-    paths: ['.github/workflows/pdf-source-http.yml', 'scripts/pdf_source_http_bind.py', 'backend/tests/test_pdf_source_http.py', 'scripts/pdf_private_launcher.py', 'scripts/pdf_private_http_probe.py', 'scripts/pdf_http_verify.py', 'scripts/pdf_launcher_smoke.ps1', 'scripts/prepare_pdf_consumer_candidate.py']
+    paths: ['.github/workflows/pdf-source-http.yml', 'scripts/pdf_source_http_bind.py', 'backend/tests/test_pdf_source_http.py', 'scripts/pdf_private_launcher.py', 'scripts/pdf_private_http_probe.py', 'scripts/pdf_http_verify.py', 'scripts/pdf_launcher_smoke.ps1', 'scripts/prepare_pdf_consumer_candidate.py', 'scripts/pdf_owned_http_bind.py', 'backend/app/services/pdf_rendering.py', 'backend/app/main.py', 'backend/app/api/operations.py', 'backend/tests/test_pdf_owned_http.py']
 
 permissions:
   contents: read
@@ -295,6 +295,39 @@ jobs:
         run: python scripts/audit_pdf_native_rebuild.py --out reports/source-http/verified-source-http.json --emit-group 2
       - name: Source HTTP evidence group 3
         run: python scripts/audit_pdf_native_rebuild.py --out reports/source-http/verified-source-http.json --emit-group 3
+      - name: Application-owned source HTTP without replacing rendering callables
+        shell: pwsh
+        run: |
+          $output = (& pwsh -NoProfile -File scripts/pdf_launcher_smoke.ps1 -Candidate "$env:RUNNER_TEMP/source-http-candidate" -HttpProof -AppOwnedFonts -SourceAudit "$pwd/reports/local-source/verified-local-rebuild.json" 2>&1 | Out-String)
+          $code = $LASTEXITCODE
+          New-Item -ItemType Directory -Force reports/source-owned-http | Out-Null
+          $output | Set-Content -Encoding utf8 reports/source-owned-http/driver.log
+          Write-Host $output
+          if ($code -ne 0) {
+            $last=$output.Substring([Math]::Max(0,$output.Length-14000))
+            for ($i=0; $i -lt $last.Length; $i+=2400) {
+              $part=$last.Substring($i,[Math]::Min(2400,$last.Length-$i))
+              $part=(($part -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A'
+              Write-Output "::error title=App-owned source HTTP failure ${i}::$part"
+            }
+            throw "App-owned source HTTP failed"
+          }
+      - name: Bind fresh source audit to application-owned HTTP
+        run: python scripts/pdf_owned_http_bind.py --reports reports/source-owned-http --source-audit reports/local-source/verified-local-rebuild.json
+      - name: App-owned source evidence group 0
+        run: python scripts/pdf_owned_http_bind.py --reports reports/source-owned-http --emit-group 0
+      - name: App-owned source evidence group 1
+        run: python scripts/pdf_owned_http_bind.py --reports reports/source-owned-http --emit-group 1
+      - name: App-owned source evidence group 2
+        run: python scripts/pdf_owned_http_bind.py --reports reports/source-owned-http --emit-group 2
+      - name: App-owned source evidence group 3
+        run: python scripts/pdf_owned_http_bind.py --reports reports/source-owned-http --emit-group 3
+      - name: Reverify noticed envelope after application-owned source HTTP
+        shell: pwsh
+        run: |
+          $hash = (Get-Content reports/local-source/noticed-kit-receipt.json -Raw | ConvertFrom-Json).modified_kit_manifest_sha256
+          python -I -S scripts/pdf_source_kit.py --verify-modified "$env:RUNNER_TEMP/noticed-envelope/modified-source-kit" --expected-manifest-sha256 $hash
+          if ($LASTEXITCODE -ne 0) { throw "Noticed envelope changed during app-owned HTTP" }
       - name: Preserve bounded diagnostics and recipes, never compiled binaries
         if: always()
         shell: pwsh
@@ -319,5 +352,6 @@ jobs:
           path: |
             reports/local-source/
             reports/source-http/
+            reports/source-owned-http/
           retention-days: 90
           if-no-files-found: error

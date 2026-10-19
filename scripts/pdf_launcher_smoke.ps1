@@ -1,8 +1,9 @@
 # Private stock-SDK or audit-bound source HTTP pre-import launcher QA; NOT ordinary startup or MIT build recipe.
 [CmdletBinding()]
-param([Parameter(Mandatory = $true)][string]$Candidate, [switch]$HttpProof, [string]$SourceAudit)
+param([Parameter(Mandatory = $true)][string]$Candidate, [switch]$HttpProof, [string]$SourceAudit, [switch]$AppOwnedFonts)
 $ErrorActionPreference = "Stop"
 if (-not $IsWindows -or $env:GITHUB_ACTIONS -ne "true") { throw "Private Windows CI only" }
+if ($AppOwnedFonts -and -not $HttpProof) { throw "App-owned mode requires HTTP proof" }
 $repo = (Get-Location).Path
 if ($SourceAudit -and -not $HttpProof) { throw "Source audit requires explicit HTTP QA" }
 $sourceHash = if ($SourceAudit) { (Get-FileHash -Algorithm SHA256 $SourceAudit).Hash.ToLowerInvariant() } else { "" }
@@ -36,6 +37,7 @@ $entry = Join-Path $app "scripts/pdf_private_launcher.py"
 $previous = $env:LOCALAPPDATA
 $previousPassword = $env:VIRA_PRIVATE_HTTP_PASSWORD
 $reportName = if ($SourceAudit) { "source-http" } elseif ($HttpProof) { "private-http" } else { "private-launcher" }
+if ($AppOwnedFonts) { $reportName = if ($SourceAudit) { "source-owned-http" } else { "app-owned-http" } }
 $reports = Join-Path $repo "reports/$reportName"
 New-Item -ItemType Directory -Force $reports | Out-Null
 try {
@@ -46,6 +48,7 @@ try {
         $common = @("--app-root", $app, "--contexts", $contexts, "--state-root", $state,
                     "--inventory-sha256", $inventoryHash, "--payload-manifest-sha256", $baselineHash)
         if ($HttpProof) { $common += "--http-proof" }
+        if ($AppOwnedFonts) { $common += "--app-owned-fonts" }
         if ($SourceAudit) { $common += @("--source-audit-sha256", $sourceHash) }
         $negativeArgs = $common + @("--out-dir", (Join-Path $reports "rejected"))
         $negative = @{}
@@ -77,6 +80,7 @@ try {
             Copy-Item (Join-Path $native "runtime-inventory.json") (Join-Path $out "runtime-inventory.json")
             $verifier = if ($HttpProof) { "scripts/pdf_http_verify.py" } else { "scripts/pdf_payload_verify.py" }
             $verifyArgs = @()
+            if ($AppOwnedFonts) { $verifyArgs += "--app-owned-fonts" }
             if ($SourceAudit) { $verifyArgs += @("--source-audit-sha256", $sourceHash) }
             & uv run --project $repo python (Join-Path $repo $verifier) --app-root $app --reports $out @verifyArgs
             if ($LASTEXITCODE -ne 0) { throw "PDF/font/baseline verification failed: $case" }
