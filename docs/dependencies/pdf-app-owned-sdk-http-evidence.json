@@ -1,0 +1,613 @@
+{
+  "schema": 1,
+  "new_source_build_proven": false,
+  "source21_http_pair_proven": false,
+  "font_adapter_is_production_default": false,
+  "ordinary_launcher_enabled": false,
+  "installed_user_acceptance": false,
+  "release_authorized": false,
+  "negative_controls": {
+    "wrong-inventory-digest": {
+      "exit_code": 1,
+      "expected_error": "Independent digest mismatch",
+      "rejected": true
+    },
+    "missing-no-site": {
+      "exit_code": 1,
+      "expected_error": "requires -I -S -B -X utf8",
+      "rejected": true
+    },
+    "early-ctypes": {
+      "exit_code": 1,
+      "expected_error": "Sensitive module imported before private bootstrap",
+      "rejected": true
+    }
+  },
+  "role": "PRIVATE_SDK_APP_OWNED_HTTP_NOT_SOURCE_OR_INSTALLED_PROOF",
+  "cases": {
+    "first-process": {
+      "launcher": {
+        "schema": 1,
+        "role": "PRIVATE_STOCK_SDK_LAUNCHER_NOT_SOURCE_BUILD",
+        "pid": 2804,
+        "no_site": 1,
+        "isolated": 1,
+        "utf8_mode": 1,
+        "windows_acp": 65001,
+        "app_and_weasyprint_absent_before_entry": true,
+        "inventory_sha256": "f4bb6abb158a2655b47d1baeb6d78cc4b4371ff50b8cb974315ab892181fa98a",
+        "payload_manifest_sha256": "c0045768ed74c3750a58eb35a841bceda979f2bef4e89629262fbb692d14200f",
+        "bootstrap_temp": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\\u067e\u0648\u0634\u0647 \u0645\u0648\u0642\u062a \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632",
+        "libffi": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libffi-8.dll",
+        "dll_count": 27,
+        "release_authorized": false,
+        "ordinary_launcher_changed": false,
+        "new_source_build_proven": false,
+        "target_mode": "PRIVATE_APP_OWNED_HTTP",
+        "source_audit_sha256": null,
+        "source_audit_bound": false,
+        "target_completed": true
+      },
+      "http_pdf": {
+        "worker": {
+          "schema": 1,
+          "role": "PRIVATE_APP_OWNED_SDK_HTTP_NOT_INSTALLED_ACCEPTANCE",
+          "pid": 2804,
+          "python": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\python\\python.exe",
+          "isolated": 1,
+          "no_site": 1,
+          "utf8_mode": 1,
+          "windows_acp": 65001,
+          "state": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645",
+          "database": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u062f\u0627\u062f\u0647 \u0622\u0632\u0645\u0627\u06cc\u0634\u06cc HTTP\\data\\\u062e\u0635\u0648\u0635\u06cc.sqlite3",
+          "temp": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u0642\u0644\u0645 \u0645\u0648\u0642\u062a HTTP",
+          "reused_state": false,
+          "migration_status": "migrated",
+          "font_adapter_scope": "APPLICATION_OWNED_FACTORY_POLICY_NOT_DEFAULT",
+          "font_documents": [
+            {
+              "event": "completed",
+              "id": "c97ae091645142f99455478a050bb7c7",
+              "font_folder": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u0642\u0644\u0645 \u0645\u0648\u0642\u062a HTTP\\weasyprint-esvz0045",
+              "font_sha256": [
+                "b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56",
+                "f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723"
+              ],
+              "system_fonts": 0,
+              "preferred_encoding": "utf-8",
+              "cache_folder": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u062d\u0627\u0641\u0638\u0647 \u0642\u0644\u0645 \u0645\u062a\u0639\u0644\u0642 \u0628\u0647 \u0628\u0631\u0646\u0627\u0645\u0647\\document-kl_n9ewi",
+              "cache_temp_cleaned": true,
+              "font_temp_cleaned": true
+            },
+            {
+              "event": "completed",
+              "id": "9129efeb27ff421d9d697fc63c5db2a8",
+              "font_folder": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u0642\u0644\u0645 \u0645\u0648\u0642\u062a HTTP\\weasyprint-qdhlsyg0",
+              "font_sha256": [
+                "b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56",
+                "f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723"
+              ],
+              "system_fonts": 0,
+              "preferred_encoding": "utf-8",
+              "cache_folder": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u062d\u0627\u0641\u0638\u0647 \u0642\u0644\u0645 \u0645\u062a\u0639\u0644\u0642 \u0628\u0647 \u0628\u0631\u0646\u0627\u0645\u0647\\document-074rlyjq",
+              "cache_temp_cleaned": true,
+              "font_temp_cleaned": true
+            },
+            {
+              "event": "completed",
+              "id": "a766127f770d4302a0fbacec22f3fa6d",
+              "font_folder": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u0642\u0644\u0645 \u0645\u0648\u0642\u062a HTTP\\weasyprint-hecqwgrr",
+              "font_sha256": [
+                "b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56",
+                "f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723"
+              ],
+              "system_fonts": 0,
+              "preferred_encoding": "utf-8",
+              "cache_folder": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u062d\u0627\u0641\u0638\u0647 \u0642\u0644\u0645 \u0645\u062a\u0639\u0644\u0642 \u0628\u0647 \u0628\u0631\u0646\u0627\u0645\u0647\\document-1m4ymxqo",
+              "cache_temp_cleaned": true,
+              "font_temp_cleaned": true
+            },
+            {
+              "event": "completed",
+              "id": "c57931a68ba6483682ac5e4668dcb2f7",
+              "font_folder": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u0642\u0644\u0645 \u0645\u0648\u0642\u062a HTTP\\weasyprint-3to0c219",
+              "font_sha256": [
+                "b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56",
+                "f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723"
+              ],
+              "system_fonts": 0,
+              "preferred_encoding": "utf-8",
+              "cache_folder": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u062d\u0627\u0641\u0638\u0647 \u0642\u0644\u0645 \u0645\u062a\u0639\u0644\u0642 \u0628\u0647 \u0628\u0631\u0646\u0627\u0645\u0647\\document-570281wn",
+              "cache_temp_cleaned": true,
+              "font_temp_cleaned": true
+            }
+          ],
+          "loaded_dlls": {
+            "libbrotlicommon.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libbrotlicommon.dll",
+            "libbrotlidec.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libbrotlidec.dll",
+            "libbz2-1.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libbz2-1.dll",
+            "libdatrie-1.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libdatrie-1.dll",
+            "libexpat-1.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libexpat-1.dll",
+            "libffi-8.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libffi-8.dll",
+            "libfontconfig-1.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libfontconfig-1.dll",
+            "libfreetype-6.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libfreetype-6.dll",
+            "libfribidi-0.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libfribidi-0.dll",
+            "libgcc_s_seh-1.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libgcc_s_seh-1.dll",
+            "libgio-2.0-0.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libgio-2.0-0.dll",
+            "libglib-2.0-0.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libglib-2.0-0.dll",
+            "libgmodule-2.0-0.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libgmodule-2.0-0.dll",
+            "libgobject-2.0-0.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libgobject-2.0-0.dll",
+            "libgraphite2.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libgraphite2.dll",
+            "libharfbuzz-0.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libharfbuzz-0.dll",
+            "libharfbuzz-subset-0.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libharfbuzz-subset-0.dll",
+            "libiconv-2.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libiconv-2.dll",
+            "libintl-8.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libintl-8.dll",
+            "libpango-1.0-0.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libpango-1.0-0.dll",
+            "libpangoft2-1.0-0.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libpangoft2-1.0-0.dll",
+            "libpcre2-8-0.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libpcre2-8-0.dll",
+            "libpng16-16.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libpng16-16.dll",
+            "libstdc++-6.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libstdc++-6.dll",
+            "libthai-0.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libthai-0.dll",
+            "libwinpthread-1.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libwinpthread-1.dll",
+            "zlib1.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\zlib1.dll"
+          },
+          "pango_version": "1.58.2",
+          "development_dependencies_absent": true,
+          "http": {
+            "transport": "REAL_TCP_LOOPBACK_NOT_ASGI_TRANSPORT",
+            "lifespan_started": true,
+            "graceful_shutdown": true,
+            "live": {
+              "status": "alive"
+            },
+            "ready": {
+              "status": "ready",
+              "sqlite_version": "3.53.1",
+              "pragmas": {
+                "foreign_keys": "1",
+                "journal_mode": "wal",
+                "synchronous": "1",
+                "busy_timeout": "5000"
+              },
+              "alembic_revision": "0006_item_catalog",
+              "invariants": {
+                "integrity_check": "ok",
+                "foreign_key_violations": 0,
+                "total_debits": 0,
+                "total_credits": 0,
+                "balanced": true
+              },
+              "receipt_storage_writable": true,
+              "scheduler": {
+                "enabled": false,
+                "running": false,
+                "jobs": 0
+              }
+            },
+            "compiled_spa_served": true,
+            "production_openapi_route": true,
+            "unauthorized_pdf_rejected": true,
+            "wrong_login_rejected": true,
+            "missing_csrf_rejected": true,
+            "authenticated_owner_session": true,
+            "route_context_from_sqlite": true,
+            "fixture_ids": {
+              "single-page": "01a153e4-96cd-7cf1-affe-592104ca90f3",
+              "multi-page": "01a153e4-96dc-7245-9c73-1865d4ae7777"
+            },
+            "parallel_http_requests": 2,
+            "peak_concurrent_documents": 1,
+            "existing_db_session_serialization_preserved": true,
+            "documents": {
+              "single-page": {
+                "status": 200,
+                "content_type": "application/pdf",
+                "bytes": 18994,
+                "sha256": "48300f19db9906187d3c724d4c602a4f60065f11cb0227bbeff868f1afd04ce4"
+              },
+              "multi-page": {
+                "status": 200,
+                "content_type": "application/pdf",
+                "bytes": 30064,
+                "sha256": "e7497898a48549b43d47fbfcd9db87a9d3eaf44c976160e3e20769b120cc1ab4"
+              },
+              "parallel-single-page": {
+                "status": 200,
+                "content_type": "application/pdf",
+                "bytes": 18994,
+                "sha256": "48300f19db9906187d3c724d4c602a4f60065f11cb0227bbeff868f1afd04ce4"
+              },
+              "parallel-multi-page": {
+                "status": 200,
+                "content_type": "application/pdf",
+                "bytes": 30064,
+                "sha256": "e7497898a48549b43d47fbfcd9db87a9d3eaf44c976160e3e20769b120cc1ab4"
+              }
+            }
+          },
+          "new_source_build_proven": false,
+          "ordinary_launcher_changed": false,
+          "installed_acceptance": false,
+          "release_authorized": false,
+          "source_audit_sha256": null,
+          "source_audit_bound": false,
+          "app_owned_dispatch": {
+            "mode": "PRIVATE_EXPLICIT_FONTCONFIG",
+            "renderer_module": "app.services.pdf_rendering",
+            "callables_unchanged": true,
+            "qa_renderer_replacement_used": false,
+            "configuration_factory_supplied_by_qa": false,
+            "diagnostics": "PASSIVE_PLAIN_VALUE_LOG_RECORDS_NOT_CONFIG_OBJECTS",
+            "cache_root": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u062d\u0627\u0641\u0638\u0647 \u0642\u0644\u0645 \u0645\u062a\u0639\u0644\u0642 \u0628\u0647 \u0628\u0631\u0646\u0627\u0645\u0647",
+            "cache_root_empty": true
+          }
+        },
+        "dll_count": 27,
+        "documents": {
+          "single-page": {
+            "pages": 1,
+            "sha256": "48300f19db9906187d3c724d4c602a4f60065f11cb0227bbeff868f1afd04ce4",
+            "bytes": 18994,
+            "fonts": [
+              {
+                "name": "/GMIUCZ+Vazirmatn-Bold",
+                "weight": 700,
+                "digits": "\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9"
+              },
+              {
+                "name": "/RFZBDK+Vazirmatn",
+                "weight": 400,
+                "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+              }
+            ]
+          },
+          "multi-page": {
+            "pages": 4,
+            "sha256": "e7497898a48549b43d47fbfcd9db87a9d3eaf44c976160e3e20769b120cc1ab4",
+            "bytes": 30064,
+            "fonts": [
+              {
+                "name": "/GMIUCZ+Vazirmatn-Bold",
+                "weight": 700,
+                "digits": "\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9"
+              },
+              {
+                "name": "/RFZBDK+Vazirmatn",
+                "weight": 400,
+                "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+              }
+            ]
+          },
+          "parallel-single-page": {
+            "pages": 1,
+            "sha256": "48300f19db9906187d3c724d4c602a4f60065f11cb0227bbeff868f1afd04ce4",
+            "bytes": 18994,
+            "fonts": [
+              {
+                "name": "/GMIUCZ+Vazirmatn-Bold",
+                "weight": 700,
+                "digits": "\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9"
+              },
+              {
+                "name": "/RFZBDK+Vazirmatn",
+                "weight": 400,
+                "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+              }
+            ]
+          },
+          "parallel-multi-page": {
+            "pages": 4,
+            "sha256": "e7497898a48549b43d47fbfcd9db87a9d3eaf44c976160e3e20769b120cc1ab4",
+            "bytes": 30064,
+            "fonts": [
+              {
+                "name": "/GMIUCZ+Vazirmatn-Bold",
+                "weight": 700,
+                "digits": "\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9"
+              },
+              {
+                "name": "/RFZBDK+Vazirmatn",
+                "weight": 400,
+                "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "restarted-process": {
+      "launcher": {
+        "schema": 1,
+        "role": "PRIVATE_STOCK_SDK_LAUNCHER_NOT_SOURCE_BUILD",
+        "pid": 2332,
+        "no_site": 1,
+        "isolated": 1,
+        "utf8_mode": 1,
+        "windows_acp": 65001,
+        "app_and_weasyprint_absent_before_entry": true,
+        "inventory_sha256": "f4bb6abb158a2655b47d1baeb6d78cc4b4371ff50b8cb974315ab892181fa98a",
+        "payload_manifest_sha256": "c0045768ed74c3750a58eb35a841bceda979f2bef4e89629262fbb692d14200f",
+        "bootstrap_temp": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\\u067e\u0648\u0634\u0647 \u0645\u0648\u0642\u062a \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632",
+        "libffi": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libffi-8.dll",
+        "dll_count": 27,
+        "release_authorized": false,
+        "ordinary_launcher_changed": false,
+        "new_source_build_proven": false,
+        "target_mode": "PRIVATE_APP_OWNED_HTTP",
+        "source_audit_sha256": null,
+        "source_audit_bound": false,
+        "target_completed": true
+      },
+      "http_pdf": {
+        "worker": {
+          "schema": 1,
+          "role": "PRIVATE_APP_OWNED_SDK_HTTP_NOT_INSTALLED_ACCEPTANCE",
+          "pid": 2332,
+          "python": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\python\\python.exe",
+          "isolated": 1,
+          "no_site": 1,
+          "utf8_mode": 1,
+          "windows_acp": 65001,
+          "state": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645",
+          "database": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u062f\u0627\u062f\u0647 \u0622\u0632\u0645\u0627\u06cc\u0634\u06cc HTTP\\data\\\u062e\u0635\u0648\u0635\u06cc.sqlite3",
+          "temp": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u0642\u0644\u0645 \u0645\u0648\u0642\u062a HTTP",
+          "reused_state": true,
+          "migration_status": "migrated",
+          "font_adapter_scope": "APPLICATION_OWNED_FACTORY_POLICY_NOT_DEFAULT",
+          "font_documents": [
+            {
+              "event": "completed",
+              "id": "ff4c1c7c57be4c31863d32e23e43b3eb",
+              "font_folder": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u0642\u0644\u0645 \u0645\u0648\u0642\u062a HTTP\\weasyprint-s8nsql56",
+              "font_sha256": [
+                "b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56",
+                "f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723"
+              ],
+              "system_fonts": 0,
+              "preferred_encoding": "utf-8",
+              "cache_folder": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u062d\u0627\u0641\u0638\u0647 \u0642\u0644\u0645 \u0645\u062a\u0639\u0644\u0642 \u0628\u0647 \u0628\u0631\u0646\u0627\u0645\u0647\\document-k5_jh984",
+              "cache_temp_cleaned": true,
+              "font_temp_cleaned": true
+            },
+            {
+              "event": "completed",
+              "id": "16f6c4078825427982ce294654ef9c81",
+              "font_folder": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u0642\u0644\u0645 \u0645\u0648\u0642\u062a HTTP\\weasyprint-s5h8shzh",
+              "font_sha256": [
+                "b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56",
+                "f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723"
+              ],
+              "system_fonts": 0,
+              "preferred_encoding": "utf-8",
+              "cache_folder": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u062d\u0627\u0641\u0638\u0647 \u0642\u0644\u0645 \u0645\u062a\u0639\u0644\u0642 \u0628\u0647 \u0628\u0631\u0646\u0627\u0645\u0647\\document-nln4astx",
+              "cache_temp_cleaned": true,
+              "font_temp_cleaned": true
+            },
+            {
+              "event": "completed",
+              "id": "d6680668427841a585dd27f851ecf95b",
+              "font_folder": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u0642\u0644\u0645 \u0645\u0648\u0642\u062a HTTP\\weasyprint-1buoeorq",
+              "font_sha256": [
+                "b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56",
+                "f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723"
+              ],
+              "system_fonts": 0,
+              "preferred_encoding": "utf-8",
+              "cache_folder": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u062d\u0627\u0641\u0638\u0647 \u0642\u0644\u0645 \u0645\u062a\u0639\u0644\u0642 \u0628\u0647 \u0628\u0631\u0646\u0627\u0645\u0647\\document-1bgl4isj",
+              "cache_temp_cleaned": true,
+              "font_temp_cleaned": true
+            },
+            {
+              "event": "completed",
+              "id": "979021357ae04452acfa9f9eb691a150",
+              "font_folder": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u0642\u0644\u0645 \u0645\u0648\u0642\u062a HTTP\\weasyprint-havh9y44",
+              "font_sha256": [
+                "b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56",
+                "f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723"
+              ],
+              "system_fonts": 0,
+              "preferred_encoding": "utf-8",
+              "cache_folder": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u062d\u0627\u0641\u0638\u0647 \u0642\u0644\u0645 \u0645\u062a\u0639\u0644\u0642 \u0628\u0647 \u0628\u0631\u0646\u0627\u0645\u0647\\document-33jtxe70",
+              "cache_temp_cleaned": true,
+              "font_temp_cleaned": true
+            }
+          ],
+          "loaded_dlls": {
+            "libbrotlicommon.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libbrotlicommon.dll",
+            "libbrotlidec.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libbrotlidec.dll",
+            "libbz2-1.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libbz2-1.dll",
+            "libdatrie-1.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libdatrie-1.dll",
+            "libexpat-1.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libexpat-1.dll",
+            "libffi-8.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libffi-8.dll",
+            "libfontconfig-1.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libfontconfig-1.dll",
+            "libfreetype-6.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libfreetype-6.dll",
+            "libfribidi-0.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libfribidi-0.dll",
+            "libgcc_s_seh-1.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libgcc_s_seh-1.dll",
+            "libgio-2.0-0.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libgio-2.0-0.dll",
+            "libglib-2.0-0.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libglib-2.0-0.dll",
+            "libgmodule-2.0-0.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libgmodule-2.0-0.dll",
+            "libgobject-2.0-0.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libgobject-2.0-0.dll",
+            "libgraphite2.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libgraphite2.dll",
+            "libharfbuzz-0.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libharfbuzz-0.dll",
+            "libharfbuzz-subset-0.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libharfbuzz-subset-0.dll",
+            "libiconv-2.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libiconv-2.dll",
+            "libintl-8.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libintl-8.dll",
+            "libpango-1.0-0.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libpango-1.0-0.dll",
+            "libpangoft2-1.0-0.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libpangoft2-1.0-0.dll",
+            "libpcre2-8-0.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libpcre2-8-0.dll",
+            "libpng16-16.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libpng16-16.dll",
+            "libstdc++-6.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libstdc++-6.dll",
+            "libthai-0.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libthai-0.dll",
+            "libwinpthread-1.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\libwinpthread-1.dll",
+            "zlib1.dll": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\native\\pdf\\bin\\zlib1.dll"
+          },
+          "pango_version": "1.58.2",
+          "development_dependencies_absent": true,
+          "http": {
+            "transport": "REAL_TCP_LOOPBACK_NOT_ASGI_TRANSPORT",
+            "lifespan_started": true,
+            "graceful_shutdown": true,
+            "live": {
+              "status": "alive"
+            },
+            "ready": {
+              "status": "ready",
+              "sqlite_version": "3.53.1",
+              "pragmas": {
+                "foreign_keys": "1",
+                "journal_mode": "wal",
+                "synchronous": "1",
+                "busy_timeout": "5000"
+              },
+              "alembic_revision": "0006_item_catalog",
+              "invariants": {
+                "integrity_check": "ok",
+                "foreign_key_violations": 0,
+                "total_debits": 0,
+                "total_credits": 0,
+                "balanced": true
+              },
+              "receipt_storage_writable": true,
+              "scheduler": {
+                "enabled": false,
+                "running": false,
+                "jobs": 0
+              }
+            },
+            "compiled_spa_served": true,
+            "production_openapi_route": true,
+            "unauthorized_pdf_rejected": true,
+            "wrong_login_rejected": true,
+            "missing_csrf_rejected": true,
+            "authenticated_owner_session": true,
+            "route_context_from_sqlite": true,
+            "fixture_ids": {
+              "single-page": "01a153e4-96cd-7cf1-affe-592104ca90f3",
+              "multi-page": "01a153e4-96dc-7245-9c73-1865d4ae7777"
+            },
+            "parallel_http_requests": 2,
+            "peak_concurrent_documents": 1,
+            "existing_db_session_serialization_preserved": true,
+            "documents": {
+              "single-page": {
+                "status": 200,
+                "content_type": "application/pdf",
+                "bytes": 18994,
+                "sha256": "48300f19db9906187d3c724d4c602a4f60065f11cb0227bbeff868f1afd04ce4"
+              },
+              "multi-page": {
+                "status": 200,
+                "content_type": "application/pdf",
+                "bytes": 30064,
+                "sha256": "e7497898a48549b43d47fbfcd9db87a9d3eaf44c976160e3e20769b120cc1ab4"
+              },
+              "parallel-single-page": {
+                "status": 200,
+                "content_type": "application/pdf",
+                "bytes": 18994,
+                "sha256": "48300f19db9906187d3c724d4c602a4f60065f11cb0227bbeff868f1afd04ce4"
+              },
+              "parallel-multi-page": {
+                "status": 200,
+                "content_type": "application/pdf",
+                "bytes": 30064,
+                "sha256": "e7497898a48549b43d47fbfcd9db87a9d3eaf44c976160e3e20769b120cc1ab4"
+              }
+            }
+          },
+          "new_source_build_proven": false,
+          "ordinary_launcher_changed": false,
+          "installed_acceptance": false,
+          "release_authorized": false,
+          "source_audit_sha256": null,
+          "source_audit_bound": false,
+          "app_owned_dispatch": {
+            "mode": "PRIVATE_EXPLICIT_FONTCONFIG",
+            "renderer_module": "app.services.pdf_rendering",
+            "callables_unchanged": true,
+            "qa_renderer_replacement_used": false,
+            "configuration_factory_supplied_by_qa": false,
+            "diagnostics": "PASSIVE_PLAIN_VALUE_LOG_RECORDS_NOT_CONFIG_OBJECTS",
+            "cache_root": "D:\\a\\_temp\\vira-launcher-8bfa15770f1c4bb6b618a1eff2f650f2\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u062d\u0627\u0641\u0638\u0647 \u0642\u0644\u0645 \u0645\u062a\u0639\u0644\u0642 \u0628\u0647 \u0628\u0631\u0646\u0627\u0645\u0647",
+            "cache_root_empty": true
+          }
+        },
+        "dll_count": 27,
+        "documents": {
+          "single-page": {
+            "pages": 1,
+            "sha256": "48300f19db9906187d3c724d4c602a4f60065f11cb0227bbeff868f1afd04ce4",
+            "bytes": 18994,
+            "fonts": [
+              {
+                "name": "/GMIUCZ+Vazirmatn-Bold",
+                "weight": 700,
+                "digits": "\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9"
+              },
+              {
+                "name": "/RFZBDK+Vazirmatn",
+                "weight": 400,
+                "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+              }
+            ]
+          },
+          "multi-page": {
+            "pages": 4,
+            "sha256": "e7497898a48549b43d47fbfcd9db87a9d3eaf44c976160e3e20769b120cc1ab4",
+            "bytes": 30064,
+            "fonts": [
+              {
+                "name": "/GMIUCZ+Vazirmatn-Bold",
+                "weight": 700,
+                "digits": "\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9"
+              },
+              {
+                "name": "/RFZBDK+Vazirmatn",
+                "weight": 400,
+                "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+              }
+            ]
+          },
+          "parallel-single-page": {
+            "pages": 1,
+            "sha256": "48300f19db9906187d3c724d4c602a4f60065f11cb0227bbeff868f1afd04ce4",
+            "bytes": 18994,
+            "fonts": [
+              {
+                "name": "/GMIUCZ+Vazirmatn-Bold",
+                "weight": 700,
+                "digits": "\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9"
+              },
+              {
+                "name": "/RFZBDK+Vazirmatn",
+                "weight": 400,
+                "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+              }
+            ]
+          },
+          "parallel-multi-page": {
+            "pages": 4,
+            "sha256": "e7497898a48549b43d47fbfcd9db87a9d3eaf44c976160e3e20769b120cc1ab4",
+            "bytes": 30064,
+            "fonts": [
+              {
+                "name": "/GMIUCZ+Vazirmatn-Bold",
+                "weight": 700,
+                "digits": "\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9"
+              },
+              {
+                "name": "/RFZBDK+Vazirmatn",
+                "weight": 400,
+                "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "app_owned_dispatch_proven": true,
+  "http_app_startup_proven": true,
+  "qa_renderer_replacement_used": false,
+  "configuration_factory_supplied_by_qa": false
+}

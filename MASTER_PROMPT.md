@@ -894,3 +894,33 @@ No installed launcher/staging/Inno/updater/version/tag/release/business-data cha
 normal font selection remains legacy, no expanded application/QA license grant.
 [Report](docs/reports/pdf-app-owned-preparation-fa.md),
 [limited local evidence](docs/dependencies/pdf-app-owned-preparation-evidence.json).
+
+### Private application-owned Windows HTTP — 2026-10-19, not ordinary/default startup
+
+SDK 39243690293 SUCCESS:27 DLL/Pango1.58.2. Separate fresh-source 39243690330
+SUCCESS: authenticated noticed archive/cold20-tree21-DLL build, executed modified
+Pango1.58.0-vira-local-source, legacy QA regression THEN distinct app-owned HTTP.
+Each owned lane has2 fresh PIDs/same SQLite+IDs,8 actual1/4-A4 route PDFs, normal
+factory/lifespan/TCP/login/CSRF/compiled SPA/OpenAPI and graceful shutdown.16 actual
+owned PDFs total, never include regression PDFs or relabel historical witnesses.
+Vazirmatn400/700,30 Regular/ten Persian Bold digits, TTF SHA, zero active system
+fonts, independent font AND cache cleanup; private ACP65001/no-site and3 actual
+negative guards. Parallel clients, observed document/native peak1, locking unchanged.
+
+Factory selects its typed PrivatePdfPolicy/PdfRenderer: NO render_pdf replacement,
+NO QA configuration factory. Callable identity/source fingerprints unchanged,
+contextmanager source via inspect.unwrap. Passive plain-value lifecycle logging
+has no native pointers/config objects/customer context; capture config restored.
+Keep actual SDK worker failure39242791845 (missing active property), exact traceback
+and new active-count regression; no success from incomplete first process. Full
+rerun passes.17 guards+2 synthetic source+2 recorded-witness controls;766 backend,
+Ruff/Mypy86/Bandit existing gate/MIT14 pass. Frozen old evidence unchanged.
+
+[Report](docs/reports/pdf-app-owned-http-fa.md),
+[SDK proof](docs/dependencies/pdf-app-owned-sdk-http-proof.json),
+[source proof](docs/dependencies/pdf-app-owned-source-http-proof.json).
+All six gates OPEN, policy/review progress synchronized, MIT only explicit14 build
+files not app/QA. Still private caller/modified PE interpreter, not ordinary
+production bootstrap, installed/visual acceptance, signing/minimum OS, Inno/native
+delta/rollback, EULA/CRT or durable anonymous delivery. Default remains legacy;
+no ordinary launcher/staging/version/tag/release/userdata/math change.

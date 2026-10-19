@@ -1350,3 +1350,24 @@ Windows HTTP و source21 با policy متعلق به app هنوز **اثبات�
 شش گیت باز؛ default قلم، نصب/launcher/staging/Inno/updater/نسخه/tag/release/دادهٔ
 واقعی تغییر نکردند. MIT شامل app/service/QA جدید نیست.
 [گزارش](docs/reports/pdf-app-owned-preparation-fa.md)، [شاهد محدود محلی](docs/dependencies/pdf-app-owned-preparation-evidence.json).
+
+### HTTP واقعی Windows با قلم متعلق به app — ۲۰۲۶-۱۰-۱۹؛ نه default نصب
+
+SDK `39243690293` با۲۷ DLL/Pango1.58.2 موفق؛ سورس مستقل `39243690330` نیز
+پس از archive احرازشده/کامپایل سرد۲۰درخت۲۱DLL و function تغییرکردهٔ Pango موفق.
+مسیر regression قدیمی جدا و سپس app-owned بدون جایگزینی render_pdf/تحویل
+configuration factory از QA اجرا شد. هویت callable/محل تعریف با unwrap ثابت؛
+observer فقط دادهٔ سادهٔ lifecycle را می‌خواند، نه native object یا رفتار renderer.
+هر مسیر دو process، DB/ID ثابت،۸ PDF واقعی۱/۴صفحه‌ای؛ مجموع۱۶ app-owned، نه PDFهای
+regression/شاهد قدیمی. factory/lifespan/TCP/login/CSRF/SQLite/SPA/OpenAPI، وزیرمتن
+۴۰۰/۷۰۰ و۳۰/۱۰رقم، TTF SHA، صفر قلم سیستم، cleanup font/cache و سه negative واقعی
+موفق‌اند. client موازی اما peak واقعی۱؛ قفل/محاسبه عوض نشده. envelope بعد از owned
+دوباره احراز شد؛ callback ctypes منشأ FFI سورس را ثابت نمی‌کند.
+
+شکست واقعی worker در39242791845 (نبود active) حفظ و با regression/بازاجرای کامل
+اصلاح شد.۱۷ guard،۲ schema synthetic و۲ کنترل شاهد؛۷۶۶ بک‌اند، Ruff/Mypy۸۶/Bandit
+و MIT۱۴ موفق. [گزارش](docs/reports/pdf-app-owned-http-fa.md)، [proof SDK](docs/dependencies/pdf-app-owned-sdk-http-proof.json)،
+[proof سورس](docs/dependencies/pdf-app-owned-source-http-proof.json). شش گیت باز؛
+policy/review همگام، MIT نه app/QA. این هنوز caller خصوصی/interpreter با manifest
+تغییرکرده است، نه startup عادی/نصب/امضا/minOS/EULA/CRT/تحویل عمومی/پذیرش نصب.
+default legacy و launcher/staging/Inno/updater/نسخه/tag/release/داده/محاسبه تغییر نکردند.

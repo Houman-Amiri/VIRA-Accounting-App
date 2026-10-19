@@ -1,0 +1,1160 @@
+{
+  "schema": 1,
+  "role": "IMPLEMENTATION_CHECKPOINT_AND_LEGACY_REGRESSIONS_NOT_FINAL_DOCS_COMMIT_CI",
+  "runs": [
+    {
+      "run_id": 39243690469,
+      "head_sha": "66e3b8d575be879b574ec1c0c3328e74b23b7ce2",
+      "workflow_path": ".github/workflows/ci.yml",
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39243690469",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 118030525540,
+          "run_id": 39243690469,
+          "workflow_name": "CI",
+          "head_branch": "arena/aee91951-vira-accounting-app",
+          "run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/runs/39243690469",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOVJAq0c8AAAAbeyrkZA",
+          "head_sha": "66e3b8d575be879b574ec1c0c3328e74b23b7ce2",
+          "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/jobs/118030525540",
+          "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39243690469/job/118030525540",
+          "status": "completed",
+          "conclusion": "success",
+          "created_at": "2026-10-19T11:18:58Z",
+          "started_at": "2026-10-19T11:19:02Z",
+          "completed_at": "2026-10-19T11:21:06Z",
+          "name": "Backend \u2014 lint, type, security, tests",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "started_at": "2026-10-19T11:19:03Z",
+              "completed_at": "2026-10-19T11:19:04Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "started_at": "2026-10-19T11:19:04Z",
+              "completed_at": "2026-10-19T11:19:06Z"
+            },
+            {
+              "name": "Install uv",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "started_at": "2026-10-19T11:19:06Z",
+              "completed_at": "2026-10-19T11:19:08Z"
+            },
+            {
+              "name": "Sync dependencies (lockfile check)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "started_at": "2026-10-19T11:19:08Z",
+              "completed_at": "2026-10-19T11:19:10Z"
+            },
+            {
+              "name": "Ruff (lint)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "started_at": "2026-10-19T11:19:10Z",
+              "completed_at": "2026-10-19T11:19:11Z"
+            },
+            {
+              "name": "Mypy (types)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6,
+              "started_at": "2026-10-19T11:19:11Z",
+              "completed_at": "2026-10-19T11:19:37Z"
+            },
+            {
+              "name": "Bandit (security)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7,
+              "started_at": "2026-10-19T11:19:37Z",
+              "completed_at": "2026-10-19T11:19:39Z"
+            },
+            {
+              "name": "pip-audit (dependencies)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8,
+              "started_at": "2026-10-19T11:19:39Z",
+              "completed_at": "2026-10-19T11:19:42Z"
+            },
+            {
+              "name": "Fresh SQLite + migrations",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9,
+              "started_at": "2026-10-19T11:19:42Z",
+              "completed_at": "2026-10-19T11:19:44Z"
+            },
+            {
+              "name": "Pytest + Hypothesis invariants",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10,
+              "started_at": "2026-10-19T11:19:44Z",
+              "completed_at": "2026-10-19T11:21:02Z"
+            },
+            {
+              "name": "Upload test report",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11,
+              "started_at": "2026-10-19T11:21:02Z",
+              "completed_at": "2026-10-19T11:21:03Z"
+            },
+            {
+              "name": "Post Install uv",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 21,
+              "started_at": "2026-10-19T11:21:03Z",
+              "completed_at": "2026-10-19T11:21:03Z"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 22,
+              "started_at": "2026-10-19T11:21:03Z",
+              "completed_at": "2026-10-19T11:21:04Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 23,
+              "started_at": "2026-10-19T11:21:04Z",
+              "completed_at": "2026-10-19T11:21:04Z"
+            }
+          ],
+          "check_run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/check-runs/118030525540",
+          "labels": [
+            "ubuntu-latest"
+          ],
+          "runner_id": 1000001613,
+          "runner_name": "GitHub Actions 1000001613",
+          "runner_group_id": 0,
+          "runner_group_name": "GitHub Actions"
+        },
+        {
+          "id": 118030525705,
+          "run_id": 39243690469,
+          "workflow_name": "CI",
+          "head_branch": "arena/aee91951-vira-accounting-app",
+          "run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/runs/39243690469",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOVJAq0c8AAAAbeyrlCQ",
+          "head_sha": "66e3b8d575be879b574ec1c0c3328e74b23b7ce2",
+          "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/jobs/118030525705",
+          "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39243690469/job/118030525705",
+          "status": "completed",
+          "conclusion": "success",
+          "created_at": "2026-10-19T11:18:58Z",
+          "started_at": "2026-10-19T11:19:01Z",
+          "completed_at": "2026-10-19T11:20:04Z",
+          "name": "Frontend \u2014 lint, types, contract, tests, build",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "started_at": "2026-10-19T11:19:02Z",
+              "completed_at": "2026-10-19T11:19:03Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "started_at": "2026-10-19T11:19:03Z",
+              "completed_at": "2026-10-19T11:19:04Z"
+            },
+            {
+              "name": "Run pnpm/action-setup@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "started_at": "2026-10-19T11:19:04Z",
+              "completed_at": "2026-10-19T11:19:05Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "started_at": "2026-10-19T11:19:05Z",
+              "completed_at": "2026-10-19T11:19:08Z"
+            },
+            {
+              "name": "Install (frozen lockfile \u2014 fails on drift)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "started_at": "2026-10-19T11:19:08Z",
+              "completed_at": "2026-10-19T11:19:10Z"
+            },
+            {
+              "name": "Prettier",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6,
+              "started_at": "2026-10-19T11:19:10Z",
+              "completed_at": "2026-10-19T11:19:13Z"
+            },
+            {
+              "name": "ESLint",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7,
+              "started_at": "2026-10-19T11:19:13Z",
+              "completed_at": "2026-10-19T11:19:16Z"
+            },
+            {
+              "name": "TypeScript",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8,
+              "started_at": "2026-10-19T11:19:16Z",
+              "completed_at": "2026-10-19T11:19:23Z"
+            },
+            {
+              "name": "npm audit (critical gate; 1 accepted dev-only high is documented)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9,
+              "started_at": "2026-10-19T11:19:23Z",
+              "completed_at": "2026-10-19T11:19:25Z"
+            },
+            {
+              "name": "Vitest",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10,
+              "started_at": "2026-10-19T11:19:25Z",
+              "completed_at": "2026-10-19T11:19:40Z"
+            },
+            {
+              "name": "Build",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11,
+              "started_at": "2026-10-19T11:19:40Z",
+              "completed_at": "2026-10-19T11:20:00Z"
+            },
+            {
+              "name": "Upload reports",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12,
+              "started_at": "2026-10-19T11:20:00Z",
+              "completed_at": "2026-10-19T11:20:01Z"
+            },
+            {
+              "name": "Upload SPA build",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13,
+              "started_at": "2026-10-19T11:20:01Z",
+              "completed_at": "2026-10-19T11:20:02Z"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 24,
+              "started_at": "2026-10-19T11:20:02Z",
+              "completed_at": "2026-10-19T11:20:02Z"
+            },
+            {
+              "name": "Post Run pnpm/action-setup@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 25,
+              "started_at": "2026-10-19T11:20:02Z",
+              "completed_at": "2026-10-19T11:20:02Z"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 26,
+              "started_at": "2026-10-19T11:20:02Z",
+              "completed_at": "2026-10-19T11:20:03Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 27,
+              "started_at": "2026-10-19T11:20:03Z",
+              "completed_at": "2026-10-19T11:20:03Z"
+            }
+          ],
+          "check_run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/check-runs/118030525705",
+          "labels": [
+            "ubuntu-latest"
+          ],
+          "runner_id": 1000001612,
+          "runner_name": "GitHub Actions 1000001612",
+          "runner_group_id": 0,
+          "runner_group_name": "GitHub Actions"
+        },
+        {
+          "id": 118030525739,
+          "run_id": 39243690469,
+          "workflow_name": "CI",
+          "head_branch": "arena/aee91951-vira-accounting-app",
+          "run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/runs/39243690469",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOVJAq0c8AAAAbeyrlKw",
+          "head_sha": "66e3b8d575be879b574ec1c0c3328e74b23b7ce2",
+          "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/jobs/118030525739",
+          "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39243690469/job/118030525739",
+          "status": "completed",
+          "conclusion": "success",
+          "created_at": "2026-10-19T11:18:58Z",
+          "started_at": "2026-10-19T11:19:01Z",
+          "completed_at": "2026-10-19T11:26:12Z",
+          "name": "Windows-native smoke (SQLite paths, venv, build)",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "started_at": "2026-10-19T11:19:02Z",
+              "completed_at": "2026-10-19T11:19:04Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "started_at": "2026-10-19T11:19:04Z",
+              "completed_at": "2026-10-19T11:19:09Z"
+            },
+            {
+              "name": "Run astral-sh/setup-uv@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "started_at": "2026-10-19T11:19:09Z",
+              "completed_at": "2026-10-19T11:19:13Z"
+            },
+            {
+              "name": "Run pnpm/action-setup@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "started_at": "2026-10-19T11:19:13Z",
+              "completed_at": "2026-10-19T11:19:16Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "started_at": "2026-10-19T11:19:16Z",
+              "completed_at": "2026-10-19T11:19:29Z"
+            },
+            {
+              "name": "Parse PowerShell release scripts",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6,
+              "started_at": "2026-10-19T11:19:29Z",
+              "completed_at": "2026-10-19T11:19:29Z"
+            },
+            {
+              "name": "Backend deps + migrations + tests (native Windows)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7,
+              "started_at": "2026-10-19T11:19:29Z",
+              "completed_at": "2026-10-19T11:21:13Z"
+            },
+            {
+              "name": "Prepare hash-pinned native PDF fixture (test-only, no system GTK)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8,
+              "started_at": "2026-10-19T11:21:13Z",
+              "completed_at": "2026-10-19T11:21:15Z"
+            },
+            {
+              "name": "Strict real PDF and embedded Vazirmatn (native Windows)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9,
+              "started_at": "2026-10-19T11:21:15Z",
+              "completed_at": "2026-10-19T11:21:21Z"
+            },
+            {
+              "name": "Upload synthetic native PDF evidence (no DLL binaries)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10,
+              "started_at": "2026-10-19T11:21:21Z",
+              "completed_at": "2026-10-19T11:21:22Z"
+            },
+            {
+              "name": "Frontend install + build (native Windows)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11,
+              "started_at": "2026-10-19T11:21:22Z",
+              "completed_at": "2026-10-19T11:21:44Z"
+            },
+            {
+              "name": "Private bundled CPython PDF and minimal native closure proof",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12,
+              "started_at": "2026-10-19T11:21:44Z",
+              "completed_at": "2026-10-19T11:22:03Z"
+            },
+            {
+              "name": "Upload private bundled PDF audit (no app, interpreter or native binaries)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13,
+              "started_at": "2026-10-19T11:22:03Z",
+              "completed_at": "2026-10-19T11:22:05Z"
+            },
+            {
+              "name": "Real in-app delta apply and rollback (isolated Windows, current-code fixtures)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 14,
+              "started_at": "2026-10-19T11:22:05Z",
+              "completed_at": "2026-10-19T11:23:13Z"
+            },
+            {
+              "name": "Public 1.0.10 real schema migration and compiled-helper database rollback",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 15,
+              "started_at": "2026-10-19T11:23:13Z",
+              "completed_at": "2026-10-19T11:26:06Z"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 27,
+              "started_at": "2026-10-19T11:26:06Z",
+              "completed_at": "2026-10-19T11:26:07Z"
+            },
+            {
+              "name": "Post Run pnpm/action-setup@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 28,
+              "started_at": "2026-10-19T11:26:07Z",
+              "completed_at": "2026-10-19T11:26:07Z"
+            },
+            {
+              "name": "Post Run astral-sh/setup-uv@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 29,
+              "started_at": "2026-10-19T11:26:07Z",
+              "completed_at": "2026-10-19T11:26:07Z"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 30,
+              "started_at": "2026-10-19T11:26:07Z",
+              "completed_at": "2026-10-19T11:26:09Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 31,
+              "started_at": "2026-10-19T11:26:09Z",
+              "completed_at": "2026-10-19T11:26:09Z"
+            }
+          ],
+          "check_run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/check-runs/118030525739",
+          "labels": [
+            "windows-latest"
+          ],
+          "runner_id": 1000001611,
+          "runner_name": "GitHub Actions 1000001611",
+          "runner_group_id": 0,
+          "runner_group_name": "GitHub Actions"
+        },
+        {
+          "id": 118030525821,
+          "run_id": 39243690469,
+          "workflow_name": "CI",
+          "head_branch": "arena/aee91951-vira-accounting-app",
+          "run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/runs/39243690469",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOVJAq0c8AAAAbeyrlfQ",
+          "head_sha": "66e3b8d575be879b574ec1c0c3328e74b23b7ce2",
+          "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/jobs/118030525821",
+          "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39243690469/job/118030525821",
+          "status": "completed",
+          "conclusion": "success",
+          "created_at": "2026-10-19T11:18:58Z",
+          "started_at": "2026-10-19T11:19:01Z",
+          "completed_at": "2026-10-19T11:19:22Z",
+          "name": "OpenAPI contract is in sync",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "started_at": "2026-10-19T11:19:02Z",
+              "completed_at": "2026-10-19T11:19:06Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "started_at": "2026-10-19T11:19:06Z",
+              "completed_at": "2026-10-19T11:19:07Z"
+            },
+            {
+              "name": "Run astral-sh/setup-uv@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "started_at": "2026-10-19T11:19:07Z",
+              "completed_at": "2026-10-19T11:19:09Z"
+            },
+            {
+              "name": "Run pnpm/action-setup@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "started_at": "2026-10-19T11:19:09Z",
+              "completed_at": "2026-10-19T11:19:10Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "started_at": "2026-10-19T11:19:10Z",
+              "completed_at": "2026-10-19T11:19:12Z"
+            },
+            {
+              "name": "Run uv sync --frozen --all-extras",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6,
+              "started_at": "2026-10-19T11:19:12Z",
+              "completed_at": "2026-10-19T11:19:14Z"
+            },
+            {
+              "name": "Run pnpm install --frozen-lockfile",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7,
+              "started_at": "2026-10-19T11:19:14Z",
+              "completed_at": "2026-10-19T11:19:16Z"
+            },
+            {
+              "name": "Regenerate schema from a live FastAPI app (temp SQLite)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8,
+              "started_at": "2026-10-19T11:19:16Z",
+              "completed_at": "2026-10-19T11:19:19Z"
+            },
+            {
+              "name": "Generated types must be committed (reviewable in GitHub Web)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9,
+              "started_at": "2026-10-19T11:19:19Z",
+              "completed_at": "2026-10-19T11:19:19Z"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 15,
+              "started_at": "2026-10-19T11:19:19Z",
+              "completed_at": "2026-10-19T11:19:19Z"
+            },
+            {
+              "name": "Post Run pnpm/action-setup@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 16,
+              "started_at": "2026-10-19T11:19:19Z",
+              "completed_at": "2026-10-19T11:19:19Z"
+            },
+            {
+              "name": "Post Run astral-sh/setup-uv@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 17,
+              "started_at": "2026-10-19T11:19:19Z",
+              "completed_at": "2026-10-19T11:19:19Z"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 18,
+              "started_at": "2026-10-19T11:19:19Z",
+              "completed_at": "2026-10-19T11:19:19Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19,
+              "started_at": "2026-10-19T11:19:19Z",
+              "completed_at": "2026-10-19T11:19:19Z"
+            }
+          ],
+          "check_run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/check-runs/118030525821",
+          "labels": [
+            "ubuntu-latest"
+          ],
+          "runner_id": 1000001614,
+          "runner_name": "GitHub Actions 1000001614",
+          "runner_group_id": 0,
+          "runner_group_name": "GitHub Actions"
+        },
+        {
+          "id": 118030526215,
+          "run_id": 39243690469,
+          "workflow_name": "CI",
+          "head_branch": "arena/aee91951-vira-accounting-app",
+          "run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/runs/39243690469",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOVJAq0c8AAAAbeyrnBw",
+          "head_sha": "66e3b8d575be879b574ec1c0c3328e74b23b7ce2",
+          "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/jobs/118030526215",
+          "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39243690469/job/118030526215",
+          "status": "completed",
+          "conclusion": "success",
+          "created_at": "2026-10-19T11:18:58Z",
+          "started_at": "2026-10-19T11:19:01Z",
+          "completed_at": "2026-10-19T11:21:03Z",
+          "name": "Playwright e2e (native processes)",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "started_at": "2026-10-19T11:19:02Z",
+              "completed_at": "2026-10-19T11:19:03Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "started_at": "2026-10-19T11:19:03Z",
+              "completed_at": "2026-10-19T11:19:04Z"
+            },
+            {
+              "name": "Run astral-sh/setup-uv@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "started_at": "2026-10-19T11:19:04Z",
+              "completed_at": "2026-10-19T11:19:06Z"
+            },
+            {
+              "name": "Run pnpm/action-setup@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "started_at": "2026-10-19T11:19:06Z",
+              "completed_at": "2026-10-19T11:19:07Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "started_at": "2026-10-19T11:19:07Z",
+              "completed_at": "2026-10-19T11:19:10Z"
+            },
+            {
+              "name": "Run uv sync --frozen --all-extras",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6,
+              "started_at": "2026-10-19T11:19:10Z",
+              "completed_at": "2026-10-19T11:19:13Z"
+            },
+            {
+              "name": "Run pnpm install --frozen-lockfile",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7,
+              "started_at": "2026-10-19T11:19:13Z",
+              "completed_at": "2026-10-19T11:19:15Z"
+            },
+            {
+              "name": "Migrations for the e2e database",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8,
+              "started_at": "2026-10-19T11:19:15Z",
+              "completed_at": "2026-10-19T11:19:17Z"
+            },
+            {
+              "name": "Seed charts + owner user for e2e",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9,
+              "started_at": "2026-10-19T11:19:17Z",
+              "completed_at": "2026-10-19T11:19:18Z"
+            },
+            {
+              "name": "Install Chromium",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10,
+              "started_at": "2026-10-19T11:19:18Z",
+              "completed_at": "2026-10-19T11:19:38Z"
+            },
+            {
+              "name": "Playwright smoke (backend + Vite dev launched natively)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11,
+              "started_at": "2026-10-19T11:19:38Z",
+              "completed_at": "2026-10-19T11:21:00Z"
+            },
+            {
+              "name": "Publish e2e failure to annotations (log access is restricted)",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 12,
+              "started_at": "2026-10-19T11:21:00Z",
+              "completed_at": "2026-10-19T11:21:00Z"
+            },
+            {
+              "name": "Upload Playwright report",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 13,
+              "started_at": "2026-10-19T11:21:00Z",
+              "completed_at": "2026-10-19T11:21:00Z"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 23,
+              "started_at": "2026-10-19T11:21:00Z",
+              "completed_at": "2026-10-19T11:21:00Z"
+            },
+            {
+              "name": "Post Run pnpm/action-setup@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 24,
+              "started_at": "2026-10-19T11:21:00Z",
+              "completed_at": "2026-10-19T11:21:00Z"
+            },
+            {
+              "name": "Post Run astral-sh/setup-uv@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 25,
+              "started_at": "2026-10-19T11:21:00Z",
+              "completed_at": "2026-10-19T11:21:01Z"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 26,
+              "started_at": "2026-10-19T11:21:01Z",
+              "completed_at": "2026-10-19T11:21:01Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 27,
+              "started_at": "2026-10-19T11:21:01Z",
+              "completed_at": "2026-10-19T11:21:01Z"
+            }
+          ],
+          "check_run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/check-runs/118030526215",
+          "labels": [
+            "ubuntu-latest"
+          ],
+          "runner_id": 1000001615,
+          "runner_name": "GitHub Actions 1000001615",
+          "runner_group_id": 0,
+          "runner_group_name": "GitHub Actions"
+        }
+      ]
+    },
+    {
+      "run_id": 39243690181,
+      "head_sha": "66e3b8d575be879b574ec1c0c3328e74b23b7ce2",
+      "workflow_path": ".github/workflows/pdf-private-http.yml",
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39243690181",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 118030331488,
+          "run_id": 39243690181,
+          "workflow_name": "Private real HTTP Unicode PDF startup (stock SDK, not installed/source proof)",
+          "head_branch": "arena/aee91951-vira-accounting-app",
+          "run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/runs/39243690181",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOVJAq0c8AAAAbeyfuYA",
+          "head_sha": "66e3b8d575be879b574ec1c0c3328e74b23b7ce2",
+          "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/jobs/118030331488",
+          "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39243690181/job/118030331488",
+          "status": "completed",
+          "conclusion": "success",
+          "created_at": "2026-10-19T11:18:28Z",
+          "started_at": "2026-10-19T11:18:31Z",
+          "completed_at": "2026-10-19T11:20:59Z",
+          "name": "launcher",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "started_at": "2026-10-19T11:18:32Z",
+              "completed_at": "2026-10-19T11:18:33Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "started_at": "2026-10-19T11:18:33Z",
+              "completed_at": "2026-10-19T11:18:40Z"
+            },
+            {
+              "name": "Run astral-sh/setup-uv@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "started_at": "2026-10-19T11:18:40Z",
+              "completed_at": "2026-10-19T11:18:44Z"
+            },
+            {
+              "name": "Run pnpm/action-setup@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "started_at": "2026-10-19T11:18:44Z",
+              "completed_at": "2026-10-19T11:18:48Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "started_at": "2026-10-19T11:18:48Z",
+              "completed_at": "2026-10-19T11:19:01Z"
+            },
+            {
+              "name": "Locked app and separately pinned SDK, no native-source claim",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6,
+              "started_at": "2026-10-19T11:19:01Z",
+              "completed_at": "2026-10-19T11:19:37Z"
+            },
+            {
+              "name": "Consume fixture environment only after GITHUB_ENV step boundary",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7,
+              "started_at": "2026-10-19T11:19:37Z",
+              "completed_at": "2026-10-19T11:19:38Z"
+            },
+            {
+              "name": "Real app factory, loopback HTTP, auth/CSRF, parallel PDFs and fresh restart",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8,
+              "started_at": "2026-10-19T11:19:38Z",
+              "completed_at": "2026-10-19T11:20:51Z"
+            },
+            {
+              "name": "Bind real HTTP proof and external PDF inspection",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9,
+              "started_at": "2026-10-19T11:20:51Z",
+              "completed_at": "2026-10-19T11:20:51Z"
+            },
+            {
+              "name": "Expose bounded setup diagnostics without changing failure status",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 10,
+              "started_at": "2026-10-19T11:20:51Z",
+              "completed_at": "2026-10-19T11:20:51Z"
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11,
+              "started_at": "2026-10-19T11:20:51Z",
+              "completed_at": "2026-10-19T11:20:52Z"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19,
+              "started_at": "2026-10-19T11:20:52Z",
+              "completed_at": "2026-10-19T11:20:52Z"
+            },
+            {
+              "name": "Post Run pnpm/action-setup@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 20,
+              "started_at": "2026-10-19T11:20:52Z",
+              "completed_at": "2026-10-19T11:20:53Z"
+            },
+            {
+              "name": "Post Run astral-sh/setup-uv@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 21,
+              "started_at": "2026-10-19T11:20:53Z",
+              "completed_at": "2026-10-19T11:20:53Z"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 22,
+              "started_at": "2026-10-19T11:20:53Z",
+              "completed_at": "2026-10-19T11:20:55Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 23,
+              "started_at": "2026-10-19T11:20:55Z",
+              "completed_at": "2026-10-19T11:20:55Z"
+            }
+          ],
+          "check_run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/check-runs/118030331488",
+          "labels": [
+            "windows-latest"
+          ],
+          "runner_id": 1000001609,
+          "runner_name": "GitHub Actions 1000001609",
+          "runner_group_id": 0,
+          "runner_group_name": "GitHub Actions"
+        }
+      ]
+    },
+    {
+      "run_id": 39242791685,
+      "head_sha": "fb331f599ab0abfd3b9756194754b3beced5c72d",
+      "workflow_path": ".github/workflows/pdf-private-launcher.yml",
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39242791685",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 118027388693,
+          "run_id": 39242791685,
+          "workflow_name": "Private pre-import Unicode PDF launcher (stock SDK, not source proof)",
+          "head_branch": "arena/aee91951-vira-accounting-app",
+          "run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/runs/39242791685",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOVJAq0c8AAAAbevsHFQ",
+          "head_sha": "fb331f599ab0abfd3b9756194754b3beced5c72d",
+          "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/jobs/118027388693",
+          "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39242791685/job/118027388693",
+          "status": "completed",
+          "conclusion": "success",
+          "created_at": "2026-10-19T11:11:07Z",
+          "started_at": "2026-10-19T11:11:10Z",
+          "completed_at": "2026-10-19T11:13:53Z",
+          "name": "launcher",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "started_at": "2026-10-19T11:11:11Z",
+              "completed_at": "2026-10-19T11:11:13Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "started_at": "2026-10-19T11:11:13Z",
+              "completed_at": "2026-10-19T11:11:19Z"
+            },
+            {
+              "name": "Run astral-sh/setup-uv@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "started_at": "2026-10-19T11:11:19Z",
+              "completed_at": "2026-10-19T11:11:23Z"
+            },
+            {
+              "name": "Run pnpm/action-setup@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "started_at": "2026-10-19T11:11:23Z",
+              "completed_at": "2026-10-19T11:11:28Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "started_at": "2026-10-19T11:11:28Z",
+              "completed_at": "2026-10-19T11:11:44Z"
+            },
+            {
+              "name": "Locked app and separately pinned SDK, no native-source claim",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6,
+              "started_at": "2026-10-19T11:11:44Z",
+              "completed_at": "2026-10-19T11:12:26Z"
+            },
+            {
+              "name": "Consume fixture environment only after GITHUB_ENV step boundary",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7,
+              "started_at": "2026-10-19T11:12:26Z",
+              "completed_at": "2026-10-19T11:12:27Z"
+            },
+            {
+              "name": "Fresh isolated/no-site launcher, negative guards, real PDFs and restart",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8,
+              "started_at": "2026-10-19T11:12:27Z",
+              "completed_at": "2026-10-19T11:13:44Z"
+            },
+            {
+              "name": "Bind completed launcher and native PDF evidence (not a source build)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9,
+              "started_at": "2026-10-19T11:13:44Z",
+              "completed_at": "2026-10-19T11:13:45Z"
+            },
+            {
+              "name": "Expose bounded setup diagnostics without changing failure status",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 10,
+              "started_at": "2026-10-19T11:13:45Z",
+              "completed_at": "2026-10-19T11:13:45Z"
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11,
+              "started_at": "2026-10-19T11:13:45Z",
+              "completed_at": "2026-10-19T11:13:45Z"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19,
+              "started_at": "2026-10-19T11:13:45Z",
+              "completed_at": "2026-10-19T11:13:46Z"
+            },
+            {
+              "name": "Post Run pnpm/action-setup@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 20,
+              "started_at": "2026-10-19T11:13:46Z",
+              "completed_at": "2026-10-19T11:13:46Z"
+            },
+            {
+              "name": "Post Run astral-sh/setup-uv@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 21,
+              "started_at": "2026-10-19T11:13:46Z",
+              "completed_at": "2026-10-19T11:13:46Z"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 22,
+              "started_at": "2026-10-19T11:13:46Z",
+              "completed_at": "2026-10-19T11:13:48Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 23,
+              "started_at": "2026-10-19T11:13:48Z",
+              "completed_at": "2026-10-19T11:13:48Z"
+            }
+          ],
+          "check_run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/check-runs/118027388693",
+          "labels": [
+            "windows-latest"
+          ],
+          "runner_id": 1000001606,
+          "runner_name": "GitHub Actions 1000001606",
+          "runner_group_id": 0,
+          "runner_group_name": "GitHub Actions"
+        }
+      ]
+    }
+  ],
+  "verified_at_utc": "2026-10-19T12:14:36.127210+00:00",
+  "superseded_source_run": {
+    "run_id": 39242791683,
+    "head_sha": "fb331f599ab0abfd3b9756194754b3beced5c72d",
+    "conclusion": "cancelled",
+    "is_success_or_new_source_proof": false
+  },
+  "sdk_app_owned_run_id": 39243690293,
+  "fresh_source_app_owned_run_id": 39243690330,
+  "release_authorized": false,
+  "installed_user_acceptance": false
+}

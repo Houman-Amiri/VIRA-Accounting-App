@@ -325,10 +325,16 @@
         "private_source21_http_proof": "docs/dependencies/pdf-source-http-proof.json",
         "private_source21_native_audit_sha256": "9cdb03d862df1ead6f19c30f77f469abc98173cd6b4d1580113700523087e568",
         "private_app_owned_font_dispatch_prepared": true,
-        "private_app_owned_font_dispatch_scope": "FACTORY_ONLY_TYPED_POLICY_NO_QA_RENDERER_MONKEYPATCH_DEFAULT_LEGACY",
-        "private_app_owned_font_dispatch_windows_http_proven": false,
-        "private_source21_app_owned_http_pair_proven": false,
-        "private_app_owned_font_dispatch_report": "docs/reports/pdf-app-owned-preparation-fa.md"
+        "private_app_owned_font_dispatch_scope": "VERIFIED_PRIVATE_FACTORY_POLICY_NO_QA_RENDERER_REPLACEMENT_NOT_ORDINARY_STARTUP",
+        "private_app_owned_font_dispatch_windows_http_proven": true,
+        "private_source21_app_owned_http_pair_proven": true,
+        "private_app_owned_font_dispatch_report": "docs/reports/pdf-app-owned-http-fa.md",
+        "private_app_owned_font_dispatch_preparation_report": "docs/reports/pdf-app-owned-preparation-fa.md",
+        "private_app_owned_sdk_http_proof": "docs/dependencies/pdf-app-owned-sdk-http-proof.json",
+        "private_app_owned_sdk_http_run_id": 39243690293,
+        "private_app_owned_source_http_proof": "docs/dependencies/pdf-app-owned-source-http-proof.json",
+        "private_app_owned_source_http_run_id": 39243690330,
+        "private_app_owned_source_native_audit_sha256": "447f7c3ca3635f44a859fbc993cb4aa4f3120f06f6af1c692080a2c86b7485b8"
       }
     }
   ]

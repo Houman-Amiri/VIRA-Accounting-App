@@ -7,6 +7,21 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Private app-owned Windows HTTP PDF (no release/default switch)
+- Separate SDK39243690293/27DLL and fresh source39243690330/20trees21DLL success:
+  exact noticed archive/cold build/audit, executed modified Pango, normal factory
+  on TCP/auth/CSRF/SQLite/SPA and restart.8 owned PDFs per lane,16 total1/4A4;
+  Vazirmatn400/700,30 Regular/ten Persian Bold digits, TTF hashes/zero system fonts.
+- Application PdfRenderer/typed policy owns config/cache, NO QA renderer replacement
+  or configuration factory. Passive plain-value lifecycle events and callable
+  fingerprints; per-document font+cache cleanup, no pointers/context in log records.
+- Preserve failed worker active-count postcondition39242791845; direct regression
+  and full successful rerun, unchanged guards. Source legacy QA regression separate;
+  post-owned envelope reverified, no relabelled old source proof or FFI callback claim.
+ 17 guards+2 synthetic source+2 native witness tests;766 backend, Mypy86 etc pass.
+- All six gates OPEN; MIT14 unchanged. Default legacy/ordinary launcher/staging/
+  Inno/updater/version/tag/release/data/math unchanged, no installed acceptance.
+
 ### App-owned PDF dispatch preparation (private opt-in, no release)
 - Application-owned PdfRenderer/immutable path-only PrivatePdfPolicy, per-app factory
   selection and real proforma route dispatch. Default remains exact legacy call;

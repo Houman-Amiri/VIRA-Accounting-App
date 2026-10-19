@@ -1,0 +1,244 @@
+{
+  "schema": 1,
+  "role": "PRIVATE_SDK_APP_OWNED_HTTP_NOT_SOURCE_OR_INSTALLED_PROOF",
+  "run_id": 39243690293,
+  "head_sha": "66e3b8d575be879b574ec1c0c3328e74b23b7ce2",
+  "workflow_path": ".github/workflows/pdf-app-owned-http.yml",
+  "run_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39243690293",
+  "conclusion": "success",
+  "job_id": 118030332960,
+  "jobs": [
+    {
+      "id": 118030332960,
+      "run_id": 39243690293,
+      "workflow_name": "Private application-owned HTTP PDF (stock SDK, not source proof)",
+      "head_branch": "arena/aee91951-vira-accounting-app",
+      "run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/runs/39243690293",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVJAq0c8AAAAbeyf0IA",
+      "head_sha": "66e3b8d575be879b574ec1c0c3328e74b23b7ce2",
+      "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/jobs/118030332960",
+      "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39243690293/job/118030332960",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-19T11:18:28Z",
+      "started_at": "2026-10-19T11:18:31Z",
+      "completed_at": "2026-10-19T11:21:33Z",
+      "name": "launcher",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-19T11:18:32Z",
+          "completed_at": "2026-10-19T11:18:34Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-19T11:18:34Z",
+          "completed_at": "2026-10-19T11:18:43Z"
+        },
+        {
+          "name": "Run astral-sh/setup-uv@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-19T11:18:43Z",
+          "completed_at": "2026-10-19T11:18:49Z"
+        },
+        {
+          "name": "Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-19T11:18:49Z",
+          "completed_at": "2026-10-19T11:18:56Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-19T11:18:56Z",
+          "completed_at": "2026-10-19T11:19:11Z"
+        },
+        {
+          "name": "Locked app and separately pinned SDK, no native-source claim",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-19T11:19:11Z",
+          "completed_at": "2026-10-19T11:19:54Z"
+        },
+        {
+          "name": "Consume fixture environment only after GITHUB_ENV step boundary",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-19T11:19:54Z",
+          "completed_at": "2026-10-19T11:19:55Z"
+        },
+        {
+          "name": "Real app factory, loopback HTTP, auth/CSRF, parallel PDFs and fresh restart",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-19T11:19:55Z",
+          "completed_at": "2026-10-19T11:21:22Z"
+        },
+        {
+          "name": "Bind application-owned HTTP proof, never QA replacement",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-19T11:21:22Z",
+          "completed_at": "2026-10-19T11:21:22Z"
+        },
+        {
+          "name": "App-owned SDK evidence group 0",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-10-19T11:21:22Z",
+          "completed_at": "2026-10-19T11:21:22Z"
+        },
+        {
+          "name": "App-owned SDK evidence group 1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-10-19T11:21:22Z",
+          "completed_at": "2026-10-19T11:21:23Z"
+        },
+        {
+          "name": "App-owned SDK evidence group 2",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-19T11:21:23Z",
+          "completed_at": "2026-10-19T11:21:23Z"
+        },
+        {
+          "name": "App-owned SDK evidence group 3",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-19T11:21:23Z",
+          "completed_at": "2026-10-19T11:21:24Z"
+        },
+        {
+          "name": "Expose bounded setup diagnostics without changing failure status",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 14,
+          "started_at": "2026-10-19T11:21:24Z",
+          "completed_at": "2026-10-19T11:21:24Z"
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-10-19T11:21:24Z",
+          "completed_at": "2026-10-19T11:21:25Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 27,
+          "started_at": "2026-10-19T11:21:25Z",
+          "completed_at": "2026-10-19T11:21:25Z"
+        },
+        {
+          "name": "Post Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 28,
+          "started_at": "2026-10-19T11:21:25Z",
+          "completed_at": "2026-10-19T11:21:26Z"
+        },
+        {
+          "name": "Post Run astral-sh/setup-uv@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 29,
+          "started_at": "2026-10-19T11:21:26Z",
+          "completed_at": "2026-10-19T11:21:26Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 30,
+          "started_at": "2026-10-19T11:21:26Z",
+          "completed_at": "2026-10-19T11:21:28Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 31,
+          "started_at": "2026-10-19T11:21:28Z",
+          "completed_at": "2026-10-19T11:21:28Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/check-runs/118030332960",
+      "labels": [
+        "windows-latest"
+      ],
+      "runner_id": 1000001610,
+      "runner_name": "GitHub Actions 1000001610",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    }
+  ],
+  "artifact": {
+    "id": 12182607402,
+    "node_id": "MDg6QXJ0aWZhY3QxMjE4MjYwNzQwMg==",
+    "name": "private-app-owned-sdk-http-no-app-db-dlls-not-source-proof",
+    "size_in_bytes": 205016,
+    "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/artifacts/12182607402",
+    "archive_download_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/artifacts/12182607402/zip",
+    "expired": false,
+    "digest": "sha256:2113fa66904c2e64e91d29afab3d6750ae67f065f7b796cdf06cc220e8f005fe",
+    "created_at": "2026-10-19T11:21:25Z",
+    "updated_at": "2026-10-19T11:21:25Z",
+    "expires_at": "2027-01-17T11:18:28Z",
+    "workflow_run": {
+      "id": 39243690293,
+      "repository_id": 1418734289,
+      "head_repository_id": 1418734289,
+      "head_branch": "arena/aee91951-vira-accounting-app",
+      "head_sha": "66e3b8d575be879b574ec1c0c3328e74b23b7ce2"
+    }
+  },
+  "verified_at_utc": "2026-10-19T11:22:01.895164+00:00",
+  "witness": {
+    "path": "docs/dependencies/pdf-app-owned-sdk-http-evidence.json",
+    "bytes": 43918,
+    "sha256": "43c6783a9881c9313a1ff4ddb6b5e594400de36a3b1473fad2ab78e3035e5270",
+    "authenticated_annotation_parts": 2,
+    "authentication": "API_JOB_CHECK_ANNOTATIONS_AND_ARTIFACT_METADATA_NOT_DOWNLOADED_ZIP"
+  },
+  "dll_count": 27,
+  "source_tree_count": null,
+  "app_owned_dispatch_proven": true,
+  "native_windows_http_app_owned_proven": true,
+  "source21_app_owned_http_pair_proven": false,
+  "new_source_build_proven": false,
+  "ordinary_production_http_startup_proven": false,
+  "qa_renderer_replacement_used": false,
+  "configuration_factory_supplied_by_qa": false,
+  "font_adapter_is_production_default": false,
+  "installed_user_acceptance": false,
+  "release_authorized": false,
+  "application_license_changed": false,
+  "licensed_build_files": 14,
+  "all_six_gates_open": true,
+  "prior_evidence_relabelled": false
+}
