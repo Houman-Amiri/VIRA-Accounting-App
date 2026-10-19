@@ -149,4 +149,26 @@ bootstrap خصوصی اکنون یک EXE با manifest تغییرکرده هم �
 اجرای بعدی **39176130737 / 152203e** واقعاً از gate ممیزی و بک‌اند گذشت.
 [رکورد و پیگیری](../dependencies/pdf-unicode-bootstrap-dependency-audit-failure.json).
 
-<!-- FINAL_CI_RESULT_PENDING -->
+### کنترل نهایی snapshot کد و policy
+
+**[CI 39178648399 / cc6c996](https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39178648399)**
+با هر **پنج job موفق** بسته شد؛ مجموعهٔ بک‌اندِ این snapshot شامل **۶۲۶ تست** است.
+فرانت‌اند، شش سناریوی مرورگر، قرارداد API، native smoke ویندوز و دو مسیر rollback
+موجود هم موفق‌اند؛ این rollbackهای قبلی، شاهدِ native update/rollback جدید نیستند.
+
+پس از تغییر صرفاً مستندیِ progress گیت‌ها، سه بررسی مرتبط هم مستقل موفق شدند:
+
+- کیت سورس: **39178648394**؛
+- مواد مجوز خصوصی: **39178648381**؛
+- کیت تغییرات سورس و recipient ویندوز: **39178648364**، هر دو job.
+
+[رکورد احرازشدهٔ کنترل‌ها](../dependencies/pdf-unicode-bootstrap-final-ci.json).
+Release workflow همین snapshot **skipped** است. کد runtime دقیقاً همان snapshot
+تولیدکنندهٔ شاهد **fa68e2a** باقی است؛ کنترل `git diff` برای شش فایل workflow/
+worker/adapter/driver این برابری را تأیید کرد. این پیگیری نهایی فقط گزارش و metadata
+است و شاهدهای تاریخی یا source archive را بازنویسی نمی‌کند.
+
+**DoD این مرحلهٔ خصوصی اثبات شد و مرحله در همین مرز متوقف است.** هیچ‌یک از شش
+گیت حقوقی/تحویل/تولید/نصب بسته نشده، نصب کاربر دست‌نخورده و هیچ نسخه/tag/release
+جدیدی ایجاد نشده است. پیش از هر ادغام عادی، minimum-OS، notices/امضای CPython،
+bootstrap راه‌انداز و native delta/rollback باید جدا بررسی و مجاز شوند.
