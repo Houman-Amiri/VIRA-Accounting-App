@@ -199,3 +199,24 @@ def test_synthetic_missing_binding_is_rejected(synthetic_bound, fault):
     file.write_text(json.dumps(p))
     with pytest.raises(ValueError):
         script('pdf_bootstrap_sdk_bind').bind(synthetic_bound)
+
+
+def test_recorded_native_bootstrap_witness_matches_authenticated_digest(tmp_path):
+    """Recorded-proof integrity check, not a fresh native run inside pytest."""
+    raw = (ROOT/'docs/dependencies/pdf-bootstrap-sdk-http-evidence.json').read_bytes()
+    proof = json.loads((ROOT/'docs/dependencies/pdf-bootstrap-sdk-http-proof.json').read_text())
+    assert proof['run_id'] == 39286484245
+    assert proof['head_sha'] == 'd5e5f57c55d38bbb24f6df04634c846c901e54a9'
+    assert proof['run_conclusion'] == proof['job_conclusion'] == 'success'
+    assert proof['authenticated_annotation_parts'] == 2
+    assert len(raw) == proof['witness_bytes'] == 45583
+    assert hashlib.sha256(raw).hexdigest() == proof['witness_sha256'] == 'ac0aa31d6854c541bbaba6be52e3865da9d1a4d77f25b84cab2a77a97857813d'
+    assert proof['artifact_zip_independently_downloaded_or_hashed'] is False
+    witness = json.loads(raw)
+    for name, case in witness['cases'].items():
+        folder = tmp_path/name
+        folder.mkdir()
+        for key, filename in [('launcher', 'launcher-proof.json'), ('http_pdf', 'http-bundled-proof.json')]:
+            (folder/filename).write_text(json.dumps(case[key]))
+    (tmp_path/'negative-controls.json').write_text(json.dumps(witness['negative_controls']))
+    assert script('pdf_bootstrap_sdk_bind').bind(tmp_path) == witness

@@ -49,3 +49,6 @@ installer/Output/
 # Browser test artifacts
 /frontend/test-results/
 /frontend/playwright-report/
+
+# Local development/evidence scratch (durable proofs live in docs/dependencies)
+.cache/

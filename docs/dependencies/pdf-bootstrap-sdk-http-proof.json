@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "role": "AUTHENTICATED_APP_BOOTSTRAP_SDK_HTTP_PROVENANCE_NOT_DISTRIBUTION",
+  "verified_at_utc": "2026-10-19T16:46:06.094404+00:00",
+  "run_id": 39286484245,
+  "head_sha": "d5e5f57c55d38bbb24f6df04634c846c901e54a9",
+  "run_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39286484245",
+  "workflow_path": ".github/workflows/pdf-bootstrap-sdk.yml",
+  "run_conclusion": "success",
+  "job_id": 118174226710,
+  "check_run_id": 118174226710,
+  "job_conclusion": "success",
+  "authenticated_annotation_parts": 2,
+  "witness_sha256": "ac0aa31d6854c541bbaba6be52e3865da9d1a4d77f25b84cab2a77a97857813d",
+  "witness_bytes": 45583,
+  "artifact_metadata": {
+    "id": 12204790607,
+    "node_id": "MDg6QXJ0aWZhY3QxMjIwNDc5MDYwNw==",
+    "name": "private-app-bootstrap-sdk-http-no-app-db-dlls-not-source-proof",
+    "size_in_bytes": 205792,
+    "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/artifacts/12204790607",
+    "archive_download_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/artifacts/12204790607/zip",
+    "expired": false,
+    "digest": "sha256:9ecc51d3dc824fa560fad748010d01192b62be359837b1847f0eae2e4e4ffd08",
+    "created_at": "2026-10-19T16:36:47Z",
+    "updated_at": "2026-10-19T16:36:47Z",
+    "expires_at": "2027-01-17T16:34:09Z",
+    "workflow_run": {
+      "id": 39286484245,
+      "repository_id": 1418734289,
+      "head_repository_id": 1418734289,
+      "head_branch": "arena/aee91951-vira-accounting-app",
+      "head_sha": "d5e5f57c55d38bbb24f6df04634c846c901e54a9"
+    }
+  },
+  "artifact_zip_independently_downloaded_or_hashed": false,
+  "source21_activation_proven": false,
+  "installed_user_acceptance": false,
+  "release_authorized": false,
+  "repository_hash_format": "GIT_CANONICAL_BYTES_NOT_CLAIMED_STAGED_CRLF_BYTES",
+  "repository_implementation_sha256": {
+    "backend/app/private_pdf_bootstrap.py": "aa609c9a6e5943f393f66548a783332935cb4769dc4cac088f0f2010c3c6ae23",
+    "scripts/pdf_bootstrap_http_entry.py": "35604e8d64a871793b661ee9f7a72cfe347b87417704d32051b46eac12b0c2ce",
+    "scripts/pdf_bootstrap_sdk_smoke.ps1": "ee3869bc348ba815c9b48a9554d4b32baad003d4e1f1b3fee5af2bc706004341",
+    "scripts/pdf_bootstrap_sdk_bind.py": "e4d94588d08194cf86fd7606b531cb10b44606bfa6b0793f29c2477e26948dd0"
+  }
+}

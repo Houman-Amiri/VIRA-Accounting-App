@@ -1,0 +1,589 @@
+{
+  "schema": 1,
+  "role": "IMPLEMENTATION_CHECKPOINT_CI_AND_LOCAL_TESTS_NOT_FINAL_DOCS_COMMIT",
+  "verified_at_utc": "2026-10-19T16:49:58.469351+00:00",
+  "run": {
+    "conclusion": "success",
+    "databaseId": 39286501715,
+    "headSha": "d5e5f57c55d38bbb24f6df04634c846c901e54a9",
+    "jobs": [
+      {
+        "completedAt": "2026-10-19T16:36:23Z",
+        "conclusion": "success",
+        "databaseId": 118174304961,
+        "name": "Backend \u2014 lint, type, security, tests",
+        "startedAt": "2026-10-19T16:34:20Z",
+        "status": "completed",
+        "steps": [
+          {
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/checkout@v4",
+            "number": 2,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Install uv",
+            "number": 3,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Sync dependencies (lockfile check)",
+            "number": 4,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Ruff (lint)",
+            "number": 5,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Mypy (types)",
+            "number": 6,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Bandit (security)",
+            "number": 7,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "pip-audit (dependencies)",
+            "number": 8,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Fresh SQLite + migrations",
+            "number": 9,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Pytest + Hypothesis invariants",
+            "number": 10,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Upload test report",
+            "number": 11,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Install uv",
+            "number": 21,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v4",
+            "number": 22,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 23,
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39286501715/job/118174304961"
+      },
+      {
+        "completedAt": "2026-10-19T16:36:23Z",
+        "conclusion": "success",
+        "databaseId": 118174305024,
+        "name": "Windows-native smoke (SQLite paths, venv, build)",
+        "startedAt": "2026-10-19T16:34:20Z",
+        "status": "completed",
+        "steps": [
+          {
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/checkout@v4",
+            "number": 2,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run astral-sh/setup-uv@v5",
+            "number": 3,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run pnpm/action-setup@v4",
+            "number": 4,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/setup-node@v4",
+            "number": 5,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Parse PowerShell release scripts",
+            "number": 6,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Backend deps + migrations + tests (native Windows)",
+            "number": 7,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Prepare hash-pinned native PDF fixture (test-only, no system GTK)",
+            "number": 8,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Strict real PDF and embedded Vazirmatn (native Windows)",
+            "number": 9,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Upload synthetic native PDF evidence (no DLL binaries)",
+            "number": 10,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Frontend install + build (native Windows)",
+            "number": 11,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Private bundled CPython PDF and minimal native closure proof",
+            "number": 12,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Upload private bundled PDF audit (no app, interpreter or native binaries)",
+            "number": 13,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Real in-app delta apply and rollback (isolated Windows, current-code fixtures)",
+            "number": 14,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Public 1.0.10 real schema migration and compiled-helper database rollback",
+            "number": 15,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/setup-node@v4",
+            "number": 27,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run pnpm/action-setup@v4",
+            "number": 28,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run astral-sh/setup-uv@v5",
+            "number": 29,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v4",
+            "number": 30,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 31,
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39286501715/job/118174305024"
+      },
+      {
+        "completedAt": "2026-10-19T16:36:23Z",
+        "conclusion": "success",
+        "databaseId": 118174305031,
+        "name": "OpenAPI contract is in sync",
+        "startedAt": "2026-10-19T16:34:19Z",
+        "status": "completed",
+        "steps": [
+          {
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/checkout@v4",
+            "number": 2,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run astral-sh/setup-uv@v5",
+            "number": 3,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run pnpm/action-setup@v4",
+            "number": 4,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/setup-node@v4",
+            "number": 5,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run uv sync --frozen --all-extras",
+            "number": 6,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run pnpm install --frozen-lockfile",
+            "number": 7,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Regenerate schema from a live FastAPI app (temp SQLite)",
+            "number": 8,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Generated types must be committed (reviewable in GitHub Web)",
+            "number": 9,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/setup-node@v4",
+            "number": 15,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run pnpm/action-setup@v4",
+            "number": 16,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run astral-sh/setup-uv@v5",
+            "number": 17,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v4",
+            "number": 18,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 19,
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39286501715/job/118174305031"
+      },
+      {
+        "completedAt": "2026-10-19T16:36:23Z",
+        "conclusion": "success",
+        "databaseId": 118174305064,
+        "name": "Frontend \u2014 lint, types, contract, tests, build",
+        "startedAt": "2026-10-19T16:34:20Z",
+        "status": "completed",
+        "steps": [
+          {
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/checkout@v4",
+            "number": 2,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run pnpm/action-setup@v4",
+            "number": 3,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/setup-node@v4",
+            "number": 4,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Install (frozen lockfile \u2014 fails on drift)",
+            "number": 5,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Prettier",
+            "number": 6,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "ESLint",
+            "number": 7,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "TypeScript",
+            "number": 8,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "npm audit (critical gate; 1 accepted dev-only high is documented)",
+            "number": 9,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Vitest",
+            "number": 10,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Build",
+            "number": 11,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Upload reports",
+            "number": 12,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Upload SPA build",
+            "number": 13,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/setup-node@v4",
+            "number": 24,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run pnpm/action-setup@v4",
+            "number": 25,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v4",
+            "number": 26,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 27,
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39286501715/job/118174305064"
+      },
+      {
+        "completedAt": "2026-10-19T16:36:23Z",
+        "conclusion": "success",
+        "databaseId": 118174305157,
+        "name": "Playwright e2e (native processes)",
+        "startedAt": "2026-10-19T16:34:20Z",
+        "status": "completed",
+        "steps": [
+          {
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/checkout@v4",
+            "number": 2,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run astral-sh/setup-uv@v5",
+            "number": 3,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run pnpm/action-setup@v4",
+            "number": 4,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/setup-node@v4",
+            "number": 5,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run uv sync --frozen --all-extras",
+            "number": 6,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run pnpm install --frozen-lockfile",
+            "number": 7,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Migrations for the e2e database",
+            "number": 8,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Seed charts + owner user for e2e",
+            "number": 9,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Install Chromium",
+            "number": 10,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Playwright smoke (backend + Vite dev launched natively)",
+            "number": 11,
+            "status": "completed"
+          },
+          {
+            "conclusion": "skipped",
+            "name": "Publish e2e failure to annotations (log access is restricted)",
+            "number": 12,
+            "status": "completed"
+          },
+          {
+            "conclusion": "skipped",
+            "name": "Upload Playwright report",
+            "number": 13,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/setup-node@v4",
+            "number": 23,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run pnpm/action-setup@v4",
+            "number": 24,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run astral-sh/setup-uv@v5",
+            "number": 25,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v4",
+            "number": 26,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 27,
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39286501715/job/118174305157"
+      }
+    ],
+    "name": "CI",
+    "status": "completed",
+    "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39286501715"
+  },
+  "local_tests": {
+    "passed": 881,
+    "skipped": 0,
+    "errors": 0,
+    "failures": 0,
+    "duration_seconds_display": 92.58,
+    "junit_suite_started_at_utc": "2026-10-19T16:46:41.187714+00:00"
+  },
+  "new_synthetic_activation_controls": 20,
+  "recorded_native_witness_controls": 1,
+  "static_checks": {
+    "ruff": "PASS",
+    "mypy": "PASS",
+    "mypy_source_files": 87,
+    "bandit_existing_gate": "PASS",
+    "mit_files": 14
+  },
+  "native_run": 39286484245,
+  "source21_activation_proven": false,
+  "release_authorized": false,
+  "installed_acceptance": false
+}

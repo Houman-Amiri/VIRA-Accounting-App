@@ -7,6 +7,18 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Private app-owned SDK bootstrap activation and HTTP (not source21/installed)
+- Explicit application context owns complete preflight/revalidation, absolute SDK
+  CFFI pin before ctypes/app, ACP/native origin/lifetime and env/path/TEMP restore.
+  Read-only plan APIs unchanged; fresh workspace, never cached approval or QA hook.
+- New private fixed entry/driver/workflow, authenticated app code before execution;
+  normal factory/renderer plus prior HTTP QA worker, no renderer/config replacement.
+  Windows39286484245/d5e5f57 SUCCESS;2 fresh PIDs/same DB,8 new actual PDFs,Vazirmatn/
+  digits/TTF hashes/zero system fonts/font-cache-bootstrap cleanup;4 actual negatives.
+- 20 synthetic+1 recorded-proof controls;881 backend PASS, Mypy87 etc/MIT14 PASS.
+  Source21 explicitly unsupported here; all6 gates OPEN. No default/installed
+  launcher/stager selection/factory/version/release/data/math or license expansion.
+
 ### Application-owned private bootstrap preflight preparation (no activation)
 - Stdlib-only read-only private SDK27 path/hash plan verifier inside app: complete
   manifest coverage, no extra code/DLLs, canonical/alias/link/PE/inventory checks.

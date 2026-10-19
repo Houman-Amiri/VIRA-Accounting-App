@@ -1399,3 +1399,36 @@ installed data/pricing/Inno/updater change. Unchanged stager copies new module a
 ordinary app source but no launcher selects it; whole-app/QA license NOT changed.
 [Report](docs/reports/pdf-bootstrap-preparation-fa.md),
 [limited evidence](docs/dependencies/pdf-bootstrap-preparation-evidence.json).
+
+### Private app-owned SDK bootstrap activation/HTTP — 2026-10-19
+
+Explicit activate_private_sdk(plan) in app now owns full revalidation/preload/
+ACP65001/native origin/handle lifetime/env-path-TEMP restore. Read-only verifier
+APIs unchanged, no cached-snapshot bypass, no QA/config callback. First third-party
+CFFI absolute SDK libffi before ctypes/app; native pointers never yielded. Runtime
+scope does NOT unload modules/OS DLLs; fresh process required. Per-process fresh
+bootstrap workspace separate from persistent private HTTP DB; freshness not weakened.
+
+Distinct entry authenticates app module BEFORE execution, delegates native setup
+to app then runs fixed prior app-owned HTTP worker. QA still orchestrates migration/
+factory/server/fixtures; NOT ordinary startup. Existing launchers/cold-source lane
+unchanged. Windows39286484245/d5e5f57 SUCCESS/job118174226710/artifact12204790607;
+45583B witness SHAac0aa31d6854c541bbaba6be52e3865da9d1a4d77f25b84cab2a77a97857813d,
+2 authenticated annotation parts, no independent ZIP download/hash claim. PIDs2352/
+9096, same DB/IDs,8 NEW actual1/4A4 PDFs,Vazirmatn400/700,30/10 digits,two TTF hashes,
+zero system fonts,27 mapped DLL/Pango1.58.2,font+cache+bootstrap temp cleanup and
+settings restore.4 actual negatives incl unmanifested Python. Peak1,locks unchanged.
+
+20 synthetic activation/binder/exception controls+1 recorded-witness control;
+881 backend PASS92.58s/no skips,Ruff/Mypy87/Bandit current gate/MIT14 PASS. Exact
+implementation CI39286501715 all5 SUCCESS. Final witness/docs commit checked separately.
+[Report](docs/reports/pdf-bootstrap-sdk-http-fa.md),
+[proof](docs/dependencies/pdf-bootstrap-sdk-http-proof.json),
+[checkpoint](docs/dependencies/pdf-bootstrap-sdk-checkpoint-ci.json).
+
+Source21 still explicitly unsupported by this plan/context; prior source evidence
+NOT this activation proof. No new cold build, ordinary launcher/stager selection/
+factory/route/settings/version/tag/release/installed userdata/math change. New files
+copied as normal sources by unchanged stager, never auto-selected. All6 gates OPEN;
+MIT14 only, signing/minOS/CRT/EULA/durable delivery/native Inno-delta-rollback and
+installed acceptance remain unproven. Cooperative hashes NOT signatures/ACL/TOCTOU.
