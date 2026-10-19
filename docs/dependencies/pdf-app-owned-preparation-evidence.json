@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "role": "LOCAL_APP_OWNED_DISPATCH_PREPARATION_NOT_NATIVE_HTTP_OR_INSTALLED_PROOF",
+  "verified_at_utc": "2026-10-19T10:28:27.487052+00:00",
+  "parent_head_sha": "a1f60112930ac9b59316f4c58db793753cb5a86b",
+  "files_sha256": {
+    "backend/app/services/pdf_rendering.py": "4c342b7cc83423b779828b960dae342f1e0d53c1e8fd3f5969d3ac8efb3b418e",
+    "backend/app/main.py": "3c5202e8e218897395ac5a1872eac4f872d1fed7a1c9814b91e63ea6d4d7bfe9",
+    "backend/app/api/operations.py": "7603b8c1ab9e7f4014014589e20e33436c46ec3f4956e6717e059e883165fdb3",
+    "backend/tests/test_pdf_rendering.py": "8977bf7414e00138972f9a6f0aca82dea2349ce14572026b6d07298a0ebefa94"
+  },
+  "local_pytest": {
+    "tests": 745,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "reported_seconds": 90.13,
+    "junit_sha256": "89cac442e828803e8aab066f45f6695976d23b65717a0eea3754db5a62165a91",
+    "test_document_bytes": "SYNTHETIC_INVALID_PDFS_NOT_NATIVE_EVIDENCE"
+  },
+  "new_focused_tests": 22,
+  "mypy_source_files": 86,
+  "ruff": "PASS",
+  "bandit_existing_medium_high_gate": "PASS",
+  "licensed_build_files": 14,
+  "application_license_changed": false,
+  "ordinary_font_mode": "LEGACY_DEFAULT",
+  "private_selection": "create_app(settings, private_pdf_policy=PrivatePdfPolicy(absolute_cache_root))",
+  "environment_or_http_opt_in_added": false,
+  "settings_field_added": false,
+  "native_windows_http_app_owned_proven": false,
+  "source21_app_owned_http_pair_proven": false,
+  "new_source_build_proven": false,
+  "installed_user_acceptance": false,
+  "release_authorized": false,
+  "all_six_gates_open": true,
+  "prior_native_proof_path": "docs/dependencies/pdf-source-http-proof.json",
+  "prior_native_proof_scope": "FROZEN_OLD_QA_INJECTION_NOT_PROOF_OF_NEW_APPLICATION_OWNED_DISPATCH"
+}

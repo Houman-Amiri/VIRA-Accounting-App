@@ -305,7 +305,12 @@
         "private_source21_real_http_scope": "VERIFIED_PRIVATE_NO_SITE_REAL_FACTORY_WITH_PROCESS_LOCAL_QA_FONT_ADAPTER_NOT_ORDINARY_STARTUP",
         "private_source21_http_run_id": 39226693623,
         "private_source21_http_proof": "docs/dependencies/pdf-source-http-proof.json",
-        "private_source21_native_audit_sha256": "9cdb03d862df1ead6f19c30f77f469abc98173cd6b4d1580113700523087e568"
+        "private_source21_native_audit_sha256": "9cdb03d862df1ead6f19c30f77f469abc98173cd6b4d1580113700523087e568",
+        "private_app_owned_font_dispatch_prepared": true,
+        "private_app_owned_font_dispatch_scope": "FACTORY_ONLY_TYPED_POLICY_NO_QA_RENDERER_MONKEYPATCH_DEFAULT_LEGACY",
+        "private_app_owned_font_dispatch_windows_http_proven": false,
+        "private_source21_app_owned_http_pair_proven": false,
+        "private_app_owned_font_dispatch_report": "docs/reports/pdf-app-owned-preparation-fa.md"
       }
     }
   ],

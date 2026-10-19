@@ -871,3 +871,26 @@ PRIVATE/process-local QA font adapter only. Not normal production startup,
 installed acceptance, signing/minimum OS, native Inno/delta/rollback, EULA or CRT
 rights. All six gates OPEN; scoped MIT14 unchanged and not HTTP/QA/app code.
 No installed/ordinary launcher/staging/version/tag/release/data/math change.
+
+### App-owned PDF dispatch PREPARATION — 2026-10-19, not native wiring proof
+
+Add stdlib-only `PdfRenderer` and immutable path-only `PrivatePdfPolicy`. Factory
+keyword-only policy selects a per-app renderer; actual proforma route dispatches
+through Request.app.state. Default None remains exact legacy render_pdf call,
+no new setting/env/HTTP/UI opt-in and no installed launcher selects private mode.
+Private mode owns per-document cache/config lifecycle in application code, no QA
+renderer monkeypatch or caller-supplied configuration factory. Reject ambiguous
+paths/symlinks and non-PDF output; fail cleanup before returning, never retry default.
+Preserve existing self-contained HTML/CSP fallback, template/context/math/DB locks.
+Factory/route DO change; pdf.py/pdf_fontconfig.py and native bootstrap do NOT.
+
+22 synthetic/lifecycle/ASGI route/import controls;745 backend PASS (90.13s), no skips,
+Ruff/Mypy86/Bandit existing gate/MIT14 PASS. OpenAPI modes identical. These tests use
+explicit FAKE bytes, not native/real-TCP/embedded-font proof. Prior source21 witness
+frozen, not relabelled as proof of new wiring. App-owned Windows HTTP/source21 pair
+still FALSE/PENDING: next private native proof must use this policy WITHOUT replacing
+renderer with QA FontAudit. Both policy/review snapshots synchronized, six gates OPEN.
+No installed launcher/staging/Inno/updater/version/tag/release/business-data change;
+normal font selection remains legacy, no expanded application/QA license grant.
+[Report](docs/reports/pdf-app-owned-preparation-fa.md),
+[limited local evidence](docs/dependencies/pdf-app-owned-preparation-evidence.json).

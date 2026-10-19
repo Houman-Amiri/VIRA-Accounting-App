@@ -1330,3 +1330,23 @@ synthetic و۲ کنترل شاهد واقعی؛۷۲۳ بک‌اند موفق. [�
 [proof](docs/dependencies/pdf-source-http-proof.json). هر شش گیت باز، MIT همان۱۴فایل
 native-build و نه QA/HTTP/کل app؛ default عادی/نصب/Inno/updater/داده/محاسبات/نسخه/
 tag/release تغییر نکردند. پذیرش نصب و حقوق CRT/EULA/تحویل پایدار نتیجه گرفته نمی‌شوند.
+
+### آماده‌سازی PDF متعلق به app — ۲۰۲۶-۱۰-۱۹؛ نه proof جدید Windows
+
+service جدید `PdfRenderer` و `PrivatePdfPolicy` تغییرناپذیرِ فقط‌مسیر؛ factory با
+keyword خصوصی، renderer همان app را انتخاب می‌کند و route از Request.app.state
+استفاده می‌کند. default بدون policy دقیقاً legacy است؛ setting/env/HTTP/UI برای
+فعال‌سازی اضافه نشده و launcher نصب‌شده mode خصوصی را انتخاب نمی‌کند. در انتخاب
+خصوصی، عمر cache/config هر سند در خود app مدیریت می‌شود، بدون monkeypatchِ QA یا
+configuration factory ورودی. خطا/interrupt/cleanup نباید بایت موفق برگردانند؛
+خروجی غیرPDF رد می‌شود و fallback HTML/CSP عادی، context/math/قفل DB حفظ شده‌اند.
+factory/route تغییر دارند؛ pdf.py/pdf_fontconfig.py و bootstrap native تغییر ندارند.
+
+۲۲ کنترل synthetic/ASGI/import؛ **۷۴۵ بک‌اند** بدون skip، Ruff/Mypy۸۶/Bandit و
+MIT۱۴ موفق. OpenAPI دو mode یکسان است. این آزمون‌ها عمداً fake هستند، نه اجرای
+native/TCP/قلم در Windows؛ شاهد source21 قدیمی برای wiring جدید بازنام‌گذاری نشد.
+Windows HTTP و source21 با policy متعلق به app هنوز **اثبات‌نشده** است؛ آزمون بعدی
+باید بدون جایگزینی renderer با FontAudit اجرا شود. policy/review هم‌زمان به‌روز،
+شش گیت باز؛ default قلم، نصب/launcher/staging/Inno/updater/نسخه/tag/release/دادهٔ
+واقعی تغییر نکردند. MIT شامل app/service/QA جدید نیست.
+[گزارش](docs/reports/pdf-app-owned-preparation-fa.md)، [شاهد محدود محلی](docs/dependencies/pdf-app-owned-preparation-evidence.json).

@@ -7,6 +7,18 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### App-owned PDF dispatch preparation (private opt-in, no release)
+- Application-owned PdfRenderer/immutable path-only PrivatePdfPolicy, per-app factory
+  selection and real proforma route dispatch. Default remains exact legacy call;
+  no new env/setting/HTTP/UI switch, native bootstrap or installed launcher change.
+- Per-document explicit config/cache lifecycle, strict cleanup before return,
+  path/symlink/type/output guards; no default retry or QA renderer monkeypatch.
+  Preserve printable HTML/CSP fallback, template/context/math/DB locking.
+- 22 new synthetic service/ASGI/import controls;745 backend pass, Ruff/Mypy86/
+  Bandit existing gate/MIT14. No native Windows/real-TCP/font or new source proof
+  claimed for this wiring; old native witnesses unchanged. Six gates OPEN and
+  policy/review snapshots synchronized. No new license grant/tag/release/data change.
+
 ### Private noticed-source real HTTP pairing (no release)
 - 39226693623 / b04440e SUCCESS: authenticate noticed archive, cold20-tree build with
   caches disabled, independent21-DLL audit and executed modified Pango1.58.0-vira-local-source,

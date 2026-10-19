@@ -50,6 +50,7 @@ from .api.errors import install_error_handlers
 from .config import Settings, load_settings
 from .db import Database
 from .security.session import SessionManager
+from .services.pdf_rendering import PdfRenderer, PrivatePdfPolicy
 from .services.scheduler import SchedulerManager
 
 log = logging.getLogger(__name__)
@@ -76,7 +77,10 @@ def spa_static_dir(module_file: Path | None = None) -> Path | None:
     return None
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None, *, private_pdf_policy: PrivatePdfPolicy | None = None
+) -> FastAPI:
+    renderer = PdfRenderer(private_pdf_policy)
     settings = settings or load_settings()
     # Structured logging with mandatory sensitive-field redaction (Phase 5 §9).
     from .security.redact import install_structlog
@@ -120,6 +124,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         docs_url="/api/docs",
         openapi_url="/api/openapi.json",
     )
+    app.state.pdf_renderer = renderer
     app.state.settings = settings
     app.state.database = database
     app.state.session_manager = session_manager

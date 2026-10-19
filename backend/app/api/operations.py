@@ -10,7 +10,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
@@ -513,6 +513,7 @@ def update_order(
 @orders.get("/{order_id}/proforma.pdf")
 def proforma_pdf(
     order_id: str,
+    request: Request,
     session: Annotated[Session, Depends(get_db)],
     _user: Annotated[object, Depends(require_roles(*READ_ROLES))],
 ) -> Response:
@@ -521,7 +522,7 @@ def proforma_pdf(
     WeasyPrint needs native Pango/Fontconfig/HarfBuzz; when it is missing (e.g. a dev box) the
     same HTML is returned so the browser's «چاپ → ذخیره به‌عنوان PDF» still works.
     """
-    from ..services.pdf import PRINTABLE_HTML_CSP, render_html, render_pdf
+    from ..services.pdf import PRINTABLE_HTML_CSP, render_html
 
     service = OperationsService(session)
     order = service.get_order(order_id)
@@ -553,7 +554,7 @@ def proforma_pdf(
     }
     headers = {"Content-Disposition": f'inline; filename="proforma-{read.order_number}.pdf"'}
     try:
-        return Response(content=render_pdf("proforma.html", context), media_type="application/pdf",
+        return Response(content=request.app.state.pdf_renderer("proforma.html", context), media_type="application/pdf",
                         headers=headers)
     except Exception:  # noqa: BLE001 - no WeasyPrint/native libs → printable HTML
         return Response(content=render_html("proforma.html", context), media_type="text/html",
