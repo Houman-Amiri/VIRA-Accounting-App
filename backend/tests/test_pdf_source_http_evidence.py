@@ -97,3 +97,6 @@ def test_recorded_source_route_fonts_restart_and_open_gates_are_not_sdk_or_insta
     policy = json.loads((DEP / 'pdf-runtime-license-policy.json').read_text())
     assert len(policy['open_gates']) == 6
     assert all(g['progress']['gate_closed'] is False for g in policy['open_gates'])
+
+    review = json.loads((DEP / 'pdf-runtime-license-review.json').read_text())
+    assert review['open_gates'] == policy['open_gates']

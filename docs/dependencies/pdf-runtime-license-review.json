@@ -314,12 +314,16 @@
         "private_pre_import_launcher": "VERIFIED_ISOLATED_NO_SITE_STOCK_SDK_27_DLLS_NOT_SOURCE21_PAIR_OR_HTTP_STARTUP",
         "private_pre_import_launcher_proof": "docs/dependencies/pdf-private-launcher-proof.json",
         "private_pre_import_launcher_run_id": 39182480848,
-        "private_launcher_with_fresh_source21_dlls_proven": false,
+        "private_launcher_with_fresh_source21_dlls_proven": true,
         "private_launcher_http_startup_proven": true,
         "private_launcher_http_startup_scope": "CI_LOOPBACK_ACTUAL_FACTORY_WITH_PROCESS_LOCAL_FONT_ADAPTER_NOT_NORMAL_STARTUP",
         "private_http_proof": "docs/dependencies/pdf-private-http-proof.json",
         "private_http_run_id": 39215968473,
-        "ordinary_production_http_startup_proven": false
+        "ordinary_production_http_startup_proven": false,
+        "private_source21_real_http_scope": "VERIFIED_PRIVATE_NO_SITE_REAL_FACTORY_WITH_PROCESS_LOCAL_QA_FONT_ADAPTER_NOT_ORDINARY_STARTUP",
+        "private_source21_http_run_id": 39226693623,
+        "private_source21_http_proof": "docs/dependencies/pdf-source-http-proof.json",
+        "private_source21_native_audit_sha256": "9cdb03d862df1ead6f19c30f77f469abc98173cd6b4d1580113700523087e568"
       }
     }
   ]

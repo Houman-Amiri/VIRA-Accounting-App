@@ -20,6 +20,8 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
   regression, explicit validated inventory projection/full raw inventories retained.
   Same32-part cap; complete cold native/HTTP pipeline rerun, no relabelled failure.
   26 guards/9 synthetic binding-volume/2 actual witness tests;723 backend pass.
+  Preserve actual kit snapshot-consistency failures; synchronize review/policy
+  private progress with a failing-before/pass-after parity assertion, not weaker gates.
 - All six gates OPEN; MIT scope14 unchanged. No ordinary launcher/staging/Inno/
   updater/version/tag/release/data/math change or installed acceptance.
 

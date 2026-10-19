@@ -1,0 +1,240 @@
+{
+  "schema": 1,
+  "role": "PRESERVED_POLICY_REVIEW_PROGRESS_SNAPSHOT_MISMATCH_NOT_NATIVE_BUILD_FAILURE",
+  "native_source_http_run_id": 39226693623,
+  "failed_head_sha": "4d6de7ffe3026554d6ea7339c536fd8db832297a",
+  "prior_review_sha256": "6bb467554222052af917b10244e36a5335268b051bfb77e66e8cc8c018c46ff5",
+  "policy_sha256": "e6e5c7f5ba48cc65233ad19ea2ace4ade8349d4049af6c9f093e7ede85cd7372",
+  "reproduction": "New parity assertion FAILS before correction: review.open_gates differs from policy.open_gates only in PRODUCTION_BOOTSTRAP_UPDATES_AND_ACCEPTANCE private source21 progress. Existing source-kit verifier correctly requires exact snapshot equality.",
+  "correction": "Synchronize review.open_gates from policy, retain every other field, six gates OPEN, source-kit verifier and licensed14 scripts unchanged. Repeat all triggered checks.",
+  "runs": [
+    {
+      "run_id": 39233483154,
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39233483154",
+      "workflow_path": ".github/workflows/pdf-source-kit.yml",
+      "conclusion": "failure",
+      "jobs": [
+        {
+          "id": 117996840374,
+          "run_id": 39233483154,
+          "workflow_name": "Assemble and inspect private native source kit",
+          "head_branch": "arena/aee91951-vira-accounting-app",
+          "run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/runs/39233483154",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOVJAq0c8AAAAbeSjltg",
+          "head_sha": "4d6de7ffe3026554d6ea7339c536fd8db832297a",
+          "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/jobs/117996840374",
+          "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39233483154/job/117996840374",
+          "status": "completed",
+          "conclusion": "failure",
+          "created_at": "2026-10-19T09:53:57Z",
+          "started_at": "2026-10-19T09:53:59Z",
+          "completed_at": "2026-10-19T09:54:17Z",
+          "name": "kit",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "started_at": "2026-10-19T09:54:00Z",
+              "completed_at": "2026-10-19T09:54:01Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "started_at": "2026-10-19T09:54:01Z",
+              "completed_at": "2026-10-19T09:54:02Z"
+            },
+            {
+              "name": "Fetch only the exact successful original source producer",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "started_at": "2026-10-19T09:54:02Z",
+              "completed_at": "2026-10-19T09:54:05Z"
+            },
+            {
+              "name": "Assemble with standard library only; no app dependencies installed",
+              "status": "completed",
+              "conclusion": "failure",
+              "number": 4,
+              "started_at": "2026-10-19T09:54:05Z",
+              "completed_at": "2026-10-19T09:54:16Z"
+            },
+            {
+              "name": "Recipient-style isolated verification and actual safe source extraction",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 5,
+              "started_at": "2026-10-19T09:54:16Z",
+              "completed_at": "2026-10-19T09:54:16Z"
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 6,
+              "started_at": "2026-10-19T09:54:16Z",
+              "completed_at": "2026-10-19T09:54:16Z"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12,
+              "started_at": "2026-10-19T09:54:16Z",
+              "completed_at": "2026-10-19T09:54:16Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13,
+              "started_at": "2026-10-19T09:54:16Z",
+              "completed_at": "2026-10-19T09:54:16Z"
+            }
+          ],
+          "check_run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/check-runs/117996840374",
+          "labels": [
+            "ubuntu-latest"
+          ],
+          "runner_id": 1000001574,
+          "runner_name": "GitHub Actions 1000001574",
+          "runner_group_id": 0,
+          "runner_group_name": "GitHub Actions"
+        }
+      ]
+    },
+    {
+      "run_id": 39233483239,
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39233483239",
+      "workflow_path": ".github/workflows/pdf-modified-source-kit.yml",
+      "conclusion": "failure",
+      "jobs": [
+        {
+          "id": 117996841164,
+          "run_id": 39233483239,
+          "workflow_name": "Private complete modified native source review kit",
+          "head_branch": "arena/aee91951-vira-accounting-app",
+          "run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/runs/39233483239",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOVJAq0c8AAAAbeSjozA",
+          "head_sha": "4d6de7ffe3026554d6ea7339c536fd8db832297a",
+          "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/jobs/117996841164",
+          "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39233483239/job/117996841164",
+          "status": "completed",
+          "conclusion": "failure",
+          "created_at": "2026-10-19T09:53:57Z",
+          "started_at": "2026-10-19T09:54:00Z",
+          "completed_at": "2026-10-19T09:54:49Z",
+          "name": "assemble",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "started_at": "2026-10-19T09:54:26Z",
+              "completed_at": "2026-10-19T09:54:27Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "started_at": "2026-10-19T09:54:27Z",
+              "completed_at": "2026-10-19T09:54:28Z"
+            },
+            {
+              "name": "Authenticate original source and actual modified-build PDF producer",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "started_at": "2026-10-19T09:54:28Z",
+              "completed_at": "2026-10-19T09:54:35Z"
+            },
+            {
+              "name": "Assemble immutable original kit then full modified-source review envelope",
+              "status": "completed",
+              "conclusion": "failure",
+              "number": 4,
+              "started_at": "2026-10-19T09:54:35Z",
+              "completed_at": "2026-10-19T09:54:46Z"
+            },
+            {
+              "name": "Authenticated recipient extraction and independent actual twenty-tree rehash",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 5,
+              "started_at": "2026-10-19T09:54:46Z",
+              "completed_at": "2026-10-19T09:54:46Z"
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 6,
+              "started_at": "2026-10-19T09:54:46Z",
+              "completed_at": "2026-10-19T09:54:46Z"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12,
+              "started_at": "2026-10-19T09:54:46Z",
+              "completed_at": "2026-10-19T09:54:46Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13,
+              "started_at": "2026-10-19T09:54:46Z",
+              "completed_at": "2026-10-19T09:54:46Z"
+            }
+          ],
+          "check_run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/check-runs/117996841164",
+          "labels": [
+            "ubuntu-latest"
+          ],
+          "runner_id": 1000001576,
+          "runner_name": "GitHub Actions 1000001576",
+          "runner_group_id": 0,
+          "runner_group_name": "GitHub Actions"
+        },
+        {
+          "id": 117997195102,
+          "run_id": 39233483239,
+          "workflow_name": "Private complete modified native source review kit",
+          "head_branch": "arena/aee91951-vira-accounting-app",
+          "run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/runs/39233483239",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOVJAq0c8AAAAbeS5PXg",
+          "head_sha": "4d6de7ffe3026554d6ea7339c536fd8db832297a",
+          "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/jobs/117997195102",
+          "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39233483239/job/117997195102",
+          "status": "completed",
+          "conclusion": "skipped",
+          "created_at": "2026-10-19T09:54:49Z",
+          "started_at": "2026-10-19T09:54:49Z",
+          "completed_at": "2026-10-19T09:54:49Z",
+          "name": "windows-recipient",
+          "steps": [],
+          "check_run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/check-runs/117997195102",
+          "labels": [
+            "windows-latest"
+          ],
+          "runner_id": null,
+          "runner_name": null,
+          "runner_group_id": null,
+          "runner_group_name": null
+        }
+      ]
+    }
+  ],
+  "release_authorized": false
+}

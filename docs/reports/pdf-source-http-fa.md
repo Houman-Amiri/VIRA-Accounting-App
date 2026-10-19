@@ -125,6 +125,17 @@ smoke. CI عادی و هر دو regression خصوصی SDK در f479 نیز مو�
 ثبت نهایی، CI همان head هم جدا بررسی می‌شود. Source/runtime frozen در b044 است؛
 commit نهایی فقط شاهد، آزمون شاهد، گزارش/plan و progress خصوصی policy را می‌افزاید.
 
+## کنترل همگامی snapshot حقوقی در CI نهایی
+
+کیت‌های source در `39233483154` و `39233483239 / 4d6de7f` به‌درستی شکست خوردند:
+progress خصوصی source21 در policy به‌روز شده بود، ولی snapshot متناظر در review
+قدیمی مانده بود. verifier قدیمی برابری کامل `open_gates` این دو را لازم می‌داند؛
+این کنترل شل نشد و هیچ script از grant۱۴فایلی تغییر نکرد. assertion برابری، قبل
+از اصلاح عمداً شکست خورد؛ سپس فقط snapshot پیشرفت review همگام شد و شش گیت
+باز/تمام متن notices، SHAها و انتخاب‌های حقوقی بدون تغییر باقی ماندند. [رسید شکست](../dependencies/pdf-source-http-policy-review-failure.json)
+حفظ شد. این خطای بسته‌بندی metadata بود، نه شکست اجرای source/HTTP موفق b044؛
+همهٔ CIهای فعالِ commit اصلاحی دوباره تا نتیجهٔ واقعی بررسی می‌شوند.
+
 ## مواردی که با این مرحله بسته نمی‌شوند
 
 هر شش گیت حقوقی/CRT/recipient toolchain/source delivery/نصب و پذیرش باز می‌مانند؛
