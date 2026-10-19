@@ -166,3 +166,15 @@ runpy.run_path({str(ROOT / 'scripts/pdf_private_launcher.py')!r},run_name='modul
 assert not any(n == p or n.startswith(p+'.') for n in sys.modules for p in ('app','cffi','ctypes','weasyprint','uvicorn'))
 '''
     subprocess.run([sys.executable, "-I", "-S", "-B", "-X", "utf8", "-c", code], check=True)
+
+
+def test_fixture_export_is_consumed_only_in_a_later_workflow_step():
+    import yaml
+
+    workflow = yaml.safe_load((ROOT / '.github/workflows/pdf-private-launcher.yml').read_text())
+    steps = workflow['jobs']['launcher']['steps']
+    producer = [i for i, s in enumerate(steps) if 'prepare_pdf_native_fixture.ps1' in s.get('run', '')]
+    consumer = [i for i, s in enumerate(steps) if 'scripts/pdf_runtime_inventory.py' in s.get('run', '')]
+    assert len(producer) == len(consumer) == 1 and producer[0] < consumer[0]
+    assert '$env:VIRA_PDF_UPSTREAM_ARCHIVE' in steps[consumer[0]]['run']
+    assert 'if (-not $env:VIRA_PDF_UPSTREAM_ARCHIVE)' in steps[consumer[0]]['run']
