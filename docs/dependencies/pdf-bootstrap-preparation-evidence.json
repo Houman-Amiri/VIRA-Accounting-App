@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "role": "APPLICATION_OWNED_PRIVATE_BOOTSTRAP_PREFLIGHT_PREPARATION_NOT_NATIVE_PROOF",
+  "verified_at_utc": "2026-10-19T12:59:08.356105+00:00",
+  "prior_completed_checkpoint": "b09dbb3b392a2fdc26901138125aba1f5f800546",
+  "source_files_sha256": {
+    "backend/app/private_pdf_bootstrap.py": "d49b7b538d990ded9620192011e40b4d0719d09713918e25af671bdc757e5b6a",
+    "backend/tests/test_pdf_bootstrap_preparation.py": "8dfaf3d4a0e6cc16607e3ab4a1fcd71cee1b424d0ad991c414a62eb72a5da5f5"
+  },
+  "runtime_scope": "READ_ONLY_STDLIB_PRIVATE_SDK27_PLAN_ONLY",
+  "synthetic_test_count": 94,
+  "backend_tests": {
+    "passed": 860,
+    "skipped": 0,
+    "failures": 0,
+    "errors": 0,
+    "duration_seconds_display": 88.67
+  },
+  "static_checks": {
+    "ruff": "PASS",
+    "mypy": "PASS",
+    "mypy_source_files": 87,
+    "bandit_existing_medium_high_gate": "PASS",
+    "scoped_mit_files": 14
+  },
+  "fresh_isolated_stdlib_import_and_synthetic_verifier": "PASS",
+  "simulated_windows_process_guards": "PASS_SIMULATION_ONLY",
+  "real_windows_preflight_proven": false,
+  "native_activation_implemented": false,
+  "native_load_or_server_started_by_preflight": false,
+  "source21_supported_by_new_plan": false,
+  "new_native_pdf_proof": false,
+  "historical_native_witnesses_relabelled": false,
+  "ordinary_launcher_changed": false,
+  "staging_script_changed": false,
+  "application_factory_changed": false,
+  "installed_user_acceptance": false,
+  "data_or_pricing_math_changed": false,
+  "all_six_gates_remain_open": true,
+  "application_license_changed": false,
+  "release_authorized": false,
+  "limitations": [
+    "CALLER_SUPPLIED_DIGEST_IS_CONTINUITY_NOT_SIGNATURE",
+    "READ_ONLY_SNAPSHOT_NOT_ACTIVATION_CAPABILITY",
+    "REVERIFY_REQUIRED_BEFORE_FUTURE_NATIVE_LOADING",
+    "NO_ACL_HARDLINK_JUNCTION_OR_TOCTOU_SECURITY_PROOF",
+    "PRIVATE_MODIFIED_PYTHON_RECEIPT_NOT_ACTIVATED_ACP_PROOF",
+    "NO_COLD_SOURCE_BUILD_OR_NATIVE_HTTP_RUN_IN_THIS_PHASE",
+    "NEW_MODULE_COPIED_AS_ORDINARY_APP_FILE_BY_UNCHANGED_STAGER_BUT_NOT_SELECTED"
+  ]
+}

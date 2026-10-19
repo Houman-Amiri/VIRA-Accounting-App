@@ -316,7 +316,14 @@
         "private_app_owned_sdk_http_run_id": 39243690293,
         "private_app_owned_source_http_proof": "docs/dependencies/pdf-app-owned-source-http-proof.json",
         "private_app_owned_source_http_run_id": 39243690330,
-        "private_app_owned_source_native_audit_sha256": "447f7c3ca3635f44a859fbc993cb4aa4f3120f06f6af1c692080a2c86b7485b8"
+        "private_app_owned_source_native_audit_sha256": "447f7c3ca3635f44a859fbc993cb4aa4f3120f06f6af1c692080a2c86b7485b8",
+        "private_app_bootstrap_preflight_prepared": true,
+        "private_app_bootstrap_preflight_scope": "READ_ONLY_STDLIB_SDK27_PLAN_NOT_NATIVE_ACTIVATION",
+        "private_app_bootstrap_preflight_evidence": "docs/dependencies/pdf-bootstrap-preparation-evidence.json",
+        "private_app_bootstrap_preflight_report": "docs/reports/pdf-bootstrap-preparation-fa.md",
+        "private_app_bootstrap_real_windows_preflight_proven": false,
+        "private_app_bootstrap_native_activation_implemented": false,
+        "private_app_bootstrap_source21_supported": false
       }
     }
   ],

@@ -7,6 +7,17 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Application-owned private bootstrap preflight preparation (no activation)
+- Stdlib-only read-only private SDK27 path/hash plan verifier inside app: complete
+  manifest coverage, no extra code/DLLs, canonical/alias/link/PE/inventory checks.
+  Guard future private process/import/code/interpreter/profile order; no QA import.
+- No native loading/env mutation/factory wiring/server/migration. Frozen snapshot
+  is not a signature/activation ticket; source21 explicitly unsupported here.
+  Historical Windows/font/source witnesses unchanged, not new preflight proof.
+- 94 synthetic/isolated/guard controls;860 backend PASS/no skips, Mypy87 etc PASS.
+  All6 gates OPEN/MIT14 unchanged; no ordinary launcher/stager selection/version/
+  release/installed/userdata/math change; new module is not automatically activated.
+
 ### Private app-owned Windows HTTP PDF (no release/default switch)
 - Separate SDK39243690293/27DLL and fresh source39243690330/20trees21DLL success:
   exact noticed archive/cold build/audit, executed modified Pango, normal factory

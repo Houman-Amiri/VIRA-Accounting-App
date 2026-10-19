@@ -1371,3 +1371,31 @@ regression/شاهد قدیمی. factory/lifespan/TCP/login/CSRF/SQLite/SPA/OpenA
 policy/review همگام، MIT نه app/QA. این هنوز caller خصوصی/interpreter با manifest
 تغییرکرده است، نه startup عادی/نصب/امضا/minOS/EULA/CRT/تحویل عمومی/پذیرش نصب.
 default legacy و launcher/staging/Inno/updater/نسخه/tag/release/داده/محاسبه تغییر نکردند.
+
+### Application-owned private bootstrap preflight PREPARATION — 2026-10-19
+
+New stdlib-only app/private_pdf_bootstrap.py owns a READ-ONLY SDK27 plan verifier,
+not an activator/installed entry. Frozen path/hash plan + immutable plain-data
+snapshot; independent baseline/inventory hashes, exact full-file coverage (reject
+unmanifested Python/native), canonical Windows/POSIX members/case aliases,
+symlink/reparse rejection, required app/font members, private version/modified-PE
+receipt and exact separately pinned 27-DLL SDK/preload. Source21 explicitly NOT
+supported by this plan; historical SDK/source HTTP witnesses remain frozen.
+
+Private prepare guard checks Windows CI, bundled3.11/-I-S-B-Xutf8, sensitive-module
+absence, app package/code/interpreter origins and disjoint runner-owned Unicode
+profile/state/CWD. Verification does NOT load DLL/CFFI/ctypes, set env/sys.path,
+create directories, migrate DB, select factory or start server. Snapshot is not an
+activation capability/signature or ACL/hardlink/TOCTOU/actual NTFS junction proof.
+Future activator must revalidate and separately prove ACP/native/module origin.
+
+94 synthetic/read-only/import/guard controls,860 backend PASS88.67s/no skips,
+Ruff/Mypy87/Bandit existing gate/MIT14 PASS. Fresh isolated stdlib import AND
+synthetic verification tested; Windows process flags/paths are SIMULATED only.
+No real Windows preflight/native activation/new PDF/cold-source claim this phase.
+Policy/review preparation flags synchronized; ALL SIX GATES OPEN. No ordinary
+launcher, stage script, factory/route, settings/env opt-in, release/tag/version,
+installed data/pricing/Inno/updater change. Unchanged stager copies new module as
+ordinary app source but no launcher selects it; whole-app/QA license NOT changed.
+[Report](docs/reports/pdf-bootstrap-preparation-fa.md),
+[limited evidence](docs/dependencies/pdf-bootstrap-preparation-evidence.json).
