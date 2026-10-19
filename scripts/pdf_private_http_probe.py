@@ -94,6 +94,8 @@ class FontAudit:
     """Per-document configuration injection, not a production renderer change."""
     def __init__(self, root, temp, cache, render, configuration):
         self.root, self.temp, self.cache = root, temp, cache
+        # The existing adapter deliberately requires an already-created cache.
+        cache.mkdir(parents=True, exist_ok=True)
         self.render, self.configuration = render, configuration
         self.records = []
         self.lock = threading.Lock()
@@ -126,6 +128,12 @@ class FontAudit:
                                      'system_fonts': 0, 'font_temp_cleaned': True,
                                      'lines': len(context['order']['lines'])})
             return data
+        except Exception:
+            # The real route deliberately catches native failures for HTML fallback.
+            # Preserve only a traceback (no locals/credentials/context) in CI stderr.
+            import traceback
+            traceback.print_exc()
+            raise
         finally:
             with self.lock:
                 self.active -= 1

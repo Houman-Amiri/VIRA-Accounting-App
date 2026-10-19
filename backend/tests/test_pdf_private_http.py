@@ -204,3 +204,12 @@ def test_old_native_witness_bytes_are_immutable():
     p = json.loads((ROOT / 'docs/dependencies/pdf-private-launcher-proof.json').read_text())
     assert hashlib.sha256((ROOT / p['witness']['path']).read_bytes()).hexdigest() == p['witness']['sha256']
     assert p['http_app_startup_proven'] is False  # historical proof is NOT relabelled
+
+
+def test_auditor_creates_cache_required_by_existing_adapter(tmp_path):
+    from app.services.pdf_fontconfig import configuration_xml
+
+    cache = tmp_path / 'حافظه قلم HTTP'
+    assert not cache.exists()
+    http.FontAudit(tmp_path, tmp_path, cache, None, None)
+    assert cache.is_dir() and b'fontconfig' in configuration_xml(cache)
