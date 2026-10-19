@@ -31,6 +31,8 @@ jobs:
       - name: Locked app and separately pinned SDK, no native-source claim
         shell: pwsh
         run: |
+          New-Item -ItemType Directory -Force reports/private-launcher | Out-Null
+          Start-Transcript -Path reports/private-launcher/setup.log
           uv sync --frozen --all-extras
           if ($LASTEXITCODE -ne 0) { throw "App dependency setup failed" }
           pnpm --dir frontend install --frozen-lockfile
@@ -39,8 +41,15 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "SPA build failed" }
           & ./scripts/prepare_pdf_native_fixture.ps1
           if ($LASTEXITCODE -ne 0) { throw "Pinned SDK fixture failed" }
+          Stop-Transcript
+      - name: Consume fixture environment only after GITHUB_ENV step boundary
+        shell: pwsh
+        run: |
+          Start-Transcript -Path reports/private-launcher/closure.log
+          if (-not $env:VIRA_PDF_UPSTREAM_ARCHIVE) { throw "Fixture archive was not exported by the prior step" }
           uv run python scripts/pdf_runtime_inventory.py --archive "$env:VIRA_PDF_UPSTREAM_ARCHIVE" --out-dir "$env:RUNNER_TEMP/launcher-sdk-candidate"
           if ($LASTEXITCODE -ne 0) { throw "SDK closure failed" }
+          Stop-Transcript
       - name: Fresh isolated/no-site launcher, negative guards, real PDFs and restart
         shell: pwsh
         run: |
@@ -96,6 +105,20 @@ jobs:
           print('::notice title=Private launcher witness digest::'+json.dumps({'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)}))
           '@ | python -I -S -
           if ($LASTEXITCODE -ne 0) { throw "Launcher binding failed" }
+      - name: Expose bounded setup diagnostics without changing failure status
+        if: failure()
+        shell: pwsh
+        run: |
+          $logs = Get-ChildItem reports/private-launcher -File -Filter *.log -ErrorAction SilentlyContinue
+          foreach ($log in $logs) {
+            $text = (Get-Content $log.FullName -Tail 80) -join "`n"
+            $tail = $text.Substring([Math]::Max(0, $text.Length - 8000))
+            for ($i = 0; $i -lt $tail.Length; $i += 2400) {
+              $part = $tail.Substring($i, [Math]::Min(2400, $tail.Length - $i))
+              $part = (($part -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A'
+              Write-Output "::error title=Launcher setup diagnostic $($log.Name) part ${i}::$part"
+            }
+          }
       - uses: actions/upload-artifact@v4
         if: always()
         with:
