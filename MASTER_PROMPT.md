@@ -842,3 +842,32 @@ pairing, normal production startup or installed-user acceptance. Existing proofs
 immutable. No installer/normal launcher/staging/updater/version/tag/release/data/
 math change, no request for user testing. All six gates remain OPEN. MIT still
 only explicit14 native-build files; no new launcher/QA/application license grant.
+
+### Private source-built real HTTP pairing — 2026-10-19, NOT distribution or normal startup
+
+**39226693623 / b04440e SUCCESS**: separately authenticated noticed archive → cold build
+from20 preferred source trees (binary caches disabled) → independent21-DLL audit
+→ private no-site launcher → real factory/lifespan/Uvicorn TCP/auth/CSRF/SQLite
+→ eight inspected1/4-A4 HTTP route PDFs and fresh-process restart with same DB/IDs.
+Executed modified Pango `1.58.0-vira-local-source`; all21 actual loaded origins
+and hashes bound to this run's native audit. Prior SDK27/1.58.2 and old source
+proofs unchanged; SDK preflight is separate, never compilation provenance.
+Vazirmatn400/700,30 Regular/ten Persian Bold digits, ACP65001, SHA-matched TTFs,
+zero system fonts and per-document cleanup. Parallel clients, observed native
+peak=1; no DB locking/math or throughput claim.
+Source closure pins `ffi-8.dll`; bundled CPython `_ctypes` may use its distinct
+`libffi-8.dll`. No alias/rename or source-FFI callback claim.
+
+Keep failed39220310210/f479f70: all physical/binding/reverification steps passed,
+annotation transport failed; original stderr unavailable (log-host EOF). Actual
+upstream-volume regression exposes oversized repeated inventory metadata. Explicit
+validated projection preserves every binding field/full raw inventory in artifact,
+unchanged32-part limit; fixed pipeline repeats entire cold build/HTTP successfully.
+26 guards +9 synthetic binder/volume tests +2 actual-witness controls;723 backend
+pass. Fake/historical-schema tests are never fresh compilation evidence.
+[Report](docs/reports/pdf-source-http-fa.md), [proof](docs/dependencies/pdf-source-http-proof.json).
+
+PRIVATE/process-local QA font adapter only. Not normal production startup,
+installed acceptance, signing/minimum OS, native Inno/delta/rollback, EULA or CRT
+rights. All six gates OPEN; scoped MIT14 unchanged and not HTTP/QA/app code.
+No installed/ordinary launcher/staging/version/tag/release/data/math change.

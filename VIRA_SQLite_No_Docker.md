@@ -1309,3 +1309,24 @@ production یا source21 pairing. اولین تلاش HTML داد و رد شد؛
 موفق. [گزارش](docs/reports/pdf-private-http-fa.md)، [proof](docs/dependencies/pdf-private-http-proof.json). شش گیت باز، grant همان MIT۱۴ فایل native-build؛
 نه شامل worker/launcher/QA یا کل app. نصب/راه‌انداز عادی/staging/Inno/updater/داده/
 محاسبات/نسخه/tag/release تغییر نکرده‌اند؛ درخواست تست/نصب کاربر نداریم.
+
+### جفت‌کردن HTTP واقعی و سورسِ اعلان‌دار، فقط CI خصوصی — ۲۰۲۶-۱۰-۱۹
+
+**39226693623 / b04440e موفق**: archive احرازشده → کامپایل تازهٔ۲۰ درخت با binary cache
+خاموش → audit مستقل۲۱ DLL → launcher بدون site → factory/lifespan/Uvicorn و
+TCP/auth/CSRF/SQLite واقعی. دو PID، DB و IDهای یکسان، هشت PDF واقعی۱/۴صفحه‌ای،
+وزیرمتن۴۰۰/۷۰۰،۳۰ رقم Regular/۱۰ فارسی Bold، ACP65001، hash TTF، صفر قلم سیستم
+و پاک‌سازی هر سند؛ نسخهٔ function واقعی Pango=`1.58.0-vira-local-source`.
+SDK۲۷/1.58.2 و شاهدهای قدیمی مستقل و بدون بازنویسی‌اند؛ preflight SDK منشأ سورس
+نیست. `ffi-8.dll` سورس با `libffi-8.dll` احتمالی CPython یکی فرض نمی‌شود.
+client موازی ولی peak واقعی۱؛ قفل و محاسبه تغییر نکرده و throughput ادعا نمی‌شود.
+
+شکست انتقال شاهد در39220310210/f479 حفظ شد؛ تمام مراحل فیزیکی موفق، ولی workflow
+کلی ناموفق بود. traceback اصلی در دسترس نبود؛ regression حجم واقعی، مشکل حجم
+متن تکراری inventory را نشان داد. projection صریح، تمام فیلدهای binding را نگه
+می‌دارد و inventory کامل در artifact باقی است؛ سقف۳۲بخش/guardها تغییر نکردند.
+اجرای اصلاح‌شده دوباره تمام کامپایل/HTTP را انجام داد و موفق شد.۲۶ کنترل،۹ آزمون
+synthetic و۲ کنترل شاهد واقعی؛۷۲۳ بک‌اند موفق. [گزارش](docs/reports/pdf-source-http-fa.md)،
+[proof](docs/dependencies/pdf-source-http-proof.json). هر شش گیت باز، MIT همان۱۴فایل
+native-build و نه QA/HTTP/کل app؛ default عادی/نصب/Inno/updater/داده/محاسبات/نسخه/
+tag/release تغییر نکردند. پذیرش نصب و حقوق CRT/EULA/تحویل پایدار نتیجه گرفته نمی‌شوند.

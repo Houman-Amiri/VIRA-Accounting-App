@@ -7,6 +7,22 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Private noticed-source real HTTP pairing (no release)
+- 39226693623 / b04440e SUCCESS: authenticate noticed archive, cold20-tree build with
+  caches disabled, independent21-DLL audit and executed modified Pango1.58.0-vira-local-source,
+  bind exact audit to private no-site bootstrap, real TCP factory/auth/CSRF/SQLite.
+- Eight inspected1/4 A4 PDFs across fresh/restarted PIDs, same DB/IDs, Vazirmatn400/700,
+  all30 Regular/ten Persian Bold digits, Unicode/ACP65001, TTF hashes/cleanup.
+  Parallel clients, actual native peak1; locking/math unchanged. SDK27 stays separate.
+- Source ffi-8.dll is not CPython's possibly distinct libffi-8.dll; no aliases or
+  callback source-FFI claim. Process-local QA font injection, not default renderer.
+- Preserve failed annotation transport39220310210, add full upstream-volume
+  regression, explicit validated inventory projection/full raw inventories retained.
+  Same32-part cap; complete cold native/HTTP pipeline rerun, no relabelled failure.
+  26 guards/9 synthetic binding-volume/2 actual witness tests;723 backend pass.
+- All six gates OPEN; MIT scope14 unchanged. No ordinary launcher/staging/Inno/
+  updater/version/tag/release/data/math change or installed acceptance.
+
 ### Private real HTTP PDF startup (no release)
 - Explicit CI-only HTTP target after no-site bootstrap: real migrator, application
   factory, Uvicorn/lifespan on loopback; auth/CSRF rejection, actual cookie login,
