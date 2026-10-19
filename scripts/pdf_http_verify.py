@@ -10,9 +10,10 @@ from pdf_native_smoke import DIGITS, inspect_pdf
 from pdf_runtime_inventory import BLOCKED
 
 
-def verify(root: Path, reports: Path) -> dict:
+def verify(root: Path, reports: Path, source_audit_digest: str | None = None) -> dict:
     worker = json.loads((reports / 'http-worker-proof.json').read_text(encoding='utf-8'))
-    if worker['role'] != 'PRIVATE_STOCK_SDK_REAL_HTTP_NOT_INSTALLED_ACCEPTANCE':
+    role = 'PRIVATE_NOTICED_SOURCE_REAL_HTTP_NOT_INSTALLED_ACCEPTANCE' if source_audit_digest else 'PRIVATE_STOCK_SDK_REAL_HTTP_NOT_INSTALLED_ACCEPTANCE'
+    if worker['role'] != role:
         raise ValueError('Wrong HTTP evidence role')
     if not worker['isolated'] == worker['no_site'] == worker['utf8_mode'] == 1 or worker['windows_acp'] != 65001:
         raise ValueError('HTTP isolation flags/ACP invalid')
@@ -32,7 +33,14 @@ def verify(root: Path, reports: Path) -> dict:
     if not worker['development_dependencies_absent']:
         raise ValueError('Inspection packages leaked into app')
     inventory = json.loads((root / 'native/pdf/runtime-inventory.json').read_text(encoding='utf-8'))
-    if inventory['distribution_status'] != BLOCKED or len(inventory['dlls']) != 27:
+    count = 21 if source_audit_digest else 27
+    if source_audit_digest:
+        from pdf_private_launcher import read_json, validate_source_inventory
+        audit = read_json(root / 'native/pdf/source-audit.json', source_audit_digest)
+        validate_source_inventory(inventory, audit, source_audit_digest)
+        if worker['source_audit_sha256'] != source_audit_digest or worker['pango_version'] != '1.58.0-vira-local-source':
+            raise ValueError('HTTP source execution/audit mismatch')
+    if inventory['distribution_status'] != BLOCKED or len(inventory['dlls']) != count:
         raise ValueError('Only private stock SDK proof supported')
     if set(worker['loaded_dlls']) != set(inventory['dlls']):
         raise ValueError('Not all private SDK libraries actually loaded')
@@ -64,15 +72,16 @@ def verify(root: Path, reports: Path) -> dict:
         documents[name] = inspect_pdf(data, expected_by_weight={400: DIGITS, 700: '۰۱۲۳۴۵۶۷۸۹'}, min_pages=minimum)
         if minimum == 1 and documents[name]['pages'] != 1:
             raise ValueError('Short real-route order must fit one page')
-    return {'worker': worker, 'dll_count': 27, 'documents': documents}
+    return {'worker': worker, 'dll_count': count, 'documents': documents}
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--app-root', type=Path, required=True)
     parser.add_argument('--reports', type=Path, required=True)
+    parser.add_argument("--source-audit-sha256")
     args = parser.parse_args()
-    result = verify(args.app_root, args.reports)
+    result = verify(args.app_root, args.reports, args.source_audit_sha256)
     (args.reports / 'http-bundled-proof.json').write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
     print('PASS: inspected real HTTP bytes, embedded Vazirmatn, native origin, baseline and cleanup')
 

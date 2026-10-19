@@ -247,7 +247,8 @@ def native_state(root, inventory):
         callback = ctypes.CFUNCTYPE(kind, kind)(lambda n: n + 1)
         if callback(value) != 42:
             raise ValueError("HTTP ctypes callback ABI failure")
-    pango = ctypes.CDLL(str(root / 'native/pdf/bin/libpango-1.0-0.dll'))
+    pango_name = 'pango-1.0-0.dll' if inventory.get('origin') == 'LOCAL_PINNED_VCPKG_SOURCE_BUILD' else 'libpango-1.0-0.dll'
+    pango = ctypes.CDLL(str(root / 'native/pdf/bin' / pango_name))
     pango.pango_version_string.restype = ctypes.c_char_p
     return loaded, pango.pango_version_string().decode('ascii')
 
@@ -259,6 +260,7 @@ def main():
     for key in ('app-root', 'contexts', 'state-root', 'out-dir'):
         parser.add_argument('--' + key, type=Path, required=True)
     parser.add_argument('--reuse-state', action='store_true')
+    parser.add_argument('--source-audit-sha256')
     args = parser.parse_args()
     root = args.app_root.resolve(strict=True)
     if Path(sys.executable).resolve() != root / 'python/python.exe' or Path(sys.base_prefix).resolve() != root / 'python':
@@ -306,7 +308,12 @@ def main():
             http = exercise_http(app, state, args.out_dir, password, args.reuse_state, audit)
         finally:
             pdf.render_pdf = original
-        loaded, version = native_state(root, json.loads((root / 'native/pdf/runtime-inventory.json').read_text()))
+        inventory = json.loads((root / 'native/pdf/runtime-inventory.json').read_text())
+        loaded, version = native_state(root, inventory)
+        source = args.source_audit_sha256 is not None
+        expected_version = '1.58.0-vira-local-source' if source else '1.58.2'
+        if version != expected_version:
+            raise ValueError('HTTP executed an unexpected Pango function')
         if any(temp.iterdir()) or audit.active:
             raise ValueError('HTTP temporary resources leaked')
         result = {'schema': 1, 'role': 'PRIVATE_STOCK_SDK_REAL_HTTP_NOT_INSTALLED_ACCEPTANCE',
@@ -319,6 +326,10 @@ def main():
                   'development_dependencies_absent': True, 'http': http,
                   'new_source_build_proven': False, 'ordinary_launcher_changed': False,
                   'installed_acceptance': False, 'release_authorized': False}
+        result['source_audit_sha256'] = args.source_audit_sha256
+        result['source_audit_bound'] = source
+        if source:
+            result['role'] = 'PRIVATE_NOTICED_SOURCE_REAL_HTTP_NOT_INSTALLED_ACCEPTANCE'
         (args.out_dir / 'http-worker-proof.json').write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
         print('PASS: real private HTTP startup, authenticated PDF, parallel document cleanup and graceful shutdown')
 

@@ -1,9 +1,11 @@
 # Private stock-SDK pre-import launcher QA; NOT ordinary startup or MIT build recipe.
 [CmdletBinding()]
-param([Parameter(Mandatory = $true)][string]$Candidate, [switch]$HttpProof)
+param([Parameter(Mandatory = $true)][string]$Candidate, [switch]$HttpProof, [string]$SourceAudit)
 $ErrorActionPreference = "Stop"
 if (-not $IsWindows -or $env:GITHUB_ACTIONS -ne "true") { throw "Private Windows CI only" }
 $repo = (Get-Location).Path
+if ($SourceAudit -and -not $HttpProof) { throw "Source audit requires explicit HTTP QA" }
+$sourceHash = if ($SourceAudit) { (Get-FileHash -Algorithm SHA256 $SourceAudit).Hash.ToLowerInvariant() } else { "" }
 $root = Join-Path $env:RUNNER_TEMP ("vira-launcher-" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory $root | Out-Null
 $staged = Join-Path $root "initial-stage"
@@ -14,6 +16,7 @@ $native = Join-Path $app "native/pdf"
 New-Item -ItemType Directory -Force (Split-Path -Parent $native) | Out-Null
 $inventoryHash = (Get-FileHash -Algorithm SHA256 (Join-Path $Candidate "runtime-inventory.json")).Hash.ToLowerInvariant()
 Copy-Item -Recurse $Candidate $native
+if ($SourceAudit) { Copy-Item $SourceAudit (Join-Path $native "source-audit.json") }
 & ./scripts/pdf_unicode_process_manifest.ps1 -AppRoot $app
 $baselineHash = (Get-FileHash -Algorithm SHA256 (Join-Path $app "install_manifest.json")).Hash.ToLowerInvariant()
 $contexts = Join-Path $root "contexts.json"
@@ -32,7 +35,7 @@ $python = Join-Path $app "python/python.exe"
 $entry = Join-Path $app "scripts/pdf_private_launcher.py"
 $previous = $env:LOCALAPPDATA
 $previousPassword = $env:VIRA_PRIVATE_HTTP_PASSWORD
-$reportName = if ($HttpProof) { "private-http" } else { "private-launcher" }
+$reportName = if ($SourceAudit) { "source-http" } elseif ($HttpProof) { "private-http" } else { "private-launcher" }
 $reports = Join-Path $repo "reports/$reportName"
 New-Item -ItemType Directory -Force $reports | Out-Null
 try {
@@ -43,6 +46,7 @@ try {
         $common = @("--app-root", $app, "--contexts", $contexts, "--state-root", $state,
                     "--inventory-sha256", $inventoryHash, "--payload-manifest-sha256", $baselineHash)
         if ($HttpProof) { $common += "--http-proof" }
+        if ($SourceAudit) { $common += @("--source-audit-sha256", $sourceHash) }
         $negativeArgs = $common + @("--out-dir", (Join-Path $reports "rejected"))
         $negative = @{}
         foreach ($case in @("missing-no-site", "early-ctypes", "wrong-inventory-digest")) {
@@ -72,7 +76,9 @@ try {
             if ($LASTEXITCODE -ne 0) { throw "Private launcher failed: $case" }
             Copy-Item (Join-Path $native "runtime-inventory.json") (Join-Path $out "runtime-inventory.json")
             $verifier = if ($HttpProof) { "scripts/pdf_http_verify.py" } else { "scripts/pdf_payload_verify.py" }
-            & uv run --project $repo python (Join-Path $repo $verifier) --app-root $app --reports $out
+            $verifyArgs = @()
+            if ($SourceAudit) { $verifyArgs += @("--source-audit-sha256", $sourceHash) }
+            & uv run --project $repo python (Join-Path $repo $verifier) --app-root $app --reports $out @verifyArgs
             if ($LASTEXITCODE -ne 0) { throw "PDF/font/baseline verification failed: $case" }
         }
     } finally { Pop-Location }

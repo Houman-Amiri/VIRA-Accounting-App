@@ -1,7 +1,8 @@
 """Private CI-only pre-import launcher; NOT the installed application launcher.
 
 Standard library until payload verification completes. This phase supports ONLY
-stock-SDK preflight, not a new source-build claim. No installer or ordinary HTTP service,
+stock-SDK QA or explicitly audit-bound noticed-source HTTP QA. Validation alone
+does not prove compilation; that claim belongs to the authenticated build workflow. No installer or ordinary HTTP service,
 release authorization, site customization, shell evaluation or WeasyPrint patch.
 Outside the explicitly scoped native-build MIT grant.
 """
@@ -75,7 +76,56 @@ def member(root: Path, relative: str) -> Path:
     return resolved
 
 
-def validate_payload(root: Path, manifest_digest: str, inventory_digest: str, *, http_proof: bool = False) -> dict:
+SOURCE_ARCHIVE = "b1078a6bba74d86565b97694c8ac2afc6adf15c045a843cdbf55cb08f6226fc2"
+SOURCE_MANIFEST = "784c8d196ad0da899e7d6b65d26aff4d4bf9bb00551526692cda9b47c43c2023"
+SOURCE_FILE = "a530b81e21d8799996032c68398651ec802d62017bac88c6c9d3b7cebd89719a"
+SOURCE_VERSION = "1.58.0-vira-local-source"
+
+
+def validate_source_inventory(inventory: dict, audit: dict, digest: str) -> None:
+    """QA continuity, not a signature or stand-alone proof of compilation."""
+    if (inventory.get("origin") != "LOCAL_PINNED_VCPKG_SOURCE_BUILD"
+            or inventory.get("private_consumption_only") is not True
+            or inventory.get("modified_build_is_distribution_candidate") is not False
+            or inventory.get("distribution_status") != BLOCKED
+            or inventory.get("source_archive") is not None
+            or inventory.get("binary_cache") != "DISABLED"
+            or inventory.get("native_audit_sha256") != digest
+            or inventory.get("expected_pango_version_string") != SOURCE_VERSION
+            or inventory.get("preload_dlls") != ["ffi-8.dll"]):
+        raise ValueError("Explicit private source inventory/audit binding required")
+    if (audit.get("native_compilation") != "SUCCESS" or audit.get("local_preferred_source_replay") != "SUCCESS"
+            or audit.get("distribution_status") != BLOCKED
+            or audit.get("actual_pango_version_string") != SOURCE_VERSION
+            or audit.get("application_present") is not False
+            or audit.get("new_corresponding_source_archive_prepared") is not True
+            or audit.get("original_archive_modified") is not False
+            or audit.get("original_source_tree_count") != 19
+            or audit.get("explicitly_modified_source_tree_count") != 1
+            or audit.get("compiled_from_noticed_archive") is not True
+            or audit.get("inline_change_date_notice_present_in_compiled_source") is not True
+            or audit.get("input_source_trees_unchanged_during_compilation") is not True
+            or audit.get("noticed_source_archive_sha256") != SOURCE_ARCHIVE
+            or audit.get("noticed_source_file_sha256") != SOURCE_FILE
+            or audit.get("noticed_source_kit_receipt", {}).get("modified_kit_manifest_sha256") != SOURCE_MANIFEST
+            or audit.get("changed_packages") != ["pango"]
+            or len(audit.get("preferred_source_trees", {})) != 20
+            or len(inventory.get("dlls", {})) != 21 or audit.get("dll_count") != 21
+            or set(inventory["dlls"]) != set(audit.get("dlls", {}))):
+        raise ValueError("Exact noticed-source build witness required")
+    for name, item in inventory["dlls"].items():
+        actual = audit["dlls"][name]
+        if item["sha256"] != actual["sha256"] or item["source_package"] != actual["source_package"]:
+            raise ValueError("Source DLL hash/owner differs from audited build")
+    if set(inventory.get("source_packages", {})) != set(audit["preferred_source_trees"]):
+        raise ValueError("Source package set mismatch")
+    for name, item in inventory["source_packages"].items():
+        actual = audit["preferred_source_trees"][name]
+        if item["patched_source_tree_sha256"] != actual["tree_sha256"] or item["patched_source_files"] != actual["source_entries"]:
+            raise ValueError("Source tree differs from compiled audit")
+
+
+def validate_payload(root: Path, manifest_digest: str, inventory_digest: str, *, http_proof: bool = False, source_audit_digest: str | None = None) -> dict:
     baseline = read_json(root / "install_manifest.json", manifest_digest)
     paths = set()
     for entry in baseline["files"]:
@@ -89,15 +139,22 @@ def validate_payload(root: Path, manifest_digest: str, inventory_digest: str, *,
         if file.stat().st_size != entry["size"] or sha256(file) != entry["sha256"]:
             raise ValueError(f"Baseline file changed: {relative}")
     required = REQUIRED | ({"scripts/pdf_private_http_probe.py", "app/main.py", "scripts/migrate_vira.py", "backend/alembic.ini"} if http_proof else set())
+    if source_audit_digest is not None:
+        if not http_proof:
+            raise ValueError("Source mode requires explicit private HTTP target")
+        required.add("native/pdf/source-audit.json")
     if not paths >= required:
         raise ValueError("Required bootstrap files absent from baseline")
     if read_json(root / "version.json")["version"] != "0.0.0-private-unicode-proof":
         raise ValueError("Not a private staged payload")
     inventory = read_json(root / "native/pdf/runtime-inventory.json", inventory_digest)
-    if (inventory.get("upstream", {}).get("sha256") != SDK_SHA256
-            or inventory.get("distribution_status") != BLOCKED
-            or inventory.get("origin") == "LOCAL_PINNED_VCPKG_SOURCE_BUILD"
-            or len(inventory["dlls"]) != 27):
+    if source_audit_digest is not None:
+        audit = read_json(member(root, "native/pdf/source-audit.json"), source_audit_digest)
+        validate_source_inventory(inventory, audit, source_audit_digest)
+    elif (inventory.get("upstream", {}).get("sha256") != SDK_SHA256
+          or inventory.get("distribution_status") != BLOCKED
+          or inventory.get("origin") == "LOCAL_PINNED_VCPKG_SOURCE_BUILD"
+          or len(inventory["dlls"]) != 27):
         raise ValueError("Only separately pinned 27-DLL stock SDK preflight is supported")
     for name, entry in inventory["dlls"].items():
         if "/" in name or "\\" in name or not name.lower().endswith(".dll"):
@@ -105,7 +162,8 @@ def validate_payload(root: Path, manifest_digest: str, inventory_digest: str, *,
         relative = "native/pdf/bin/" + name
         if relative.casefold() not in paths or sha256(member(root, relative)) != entry["sha256"]:
             raise ValueError("Native inventory/baseline mismatch")
-    if inventory.get("preload_dlls", ["libffi-8.dll"]) != ["libffi-8.dll"] or "libffi-8.dll" not in inventory["dlls"]:
+    preload = "ffi-8.dll" if source_audit_digest is not None else "libffi-8.dll"
+    if inventory.get("preload_dlls", [preload]) != [preload] or preload not in inventory["dlls"]:
         raise ValueError("Unreviewed preload policy")
     pe = read_json(root / "private-utf8-process-manifest.json")
     if (pe.get("private_only") is not True
@@ -126,6 +184,7 @@ def main() -> None:
     parser.add_argument("--payload-manifest-sha256", required=True)
     parser.add_argument("--reuse-state", action="store_true")
     parser.add_argument("--http-proof", action="store_true", help="Fixed private HTTP QA worker, never ordinary startup")
+    parser.add_argument("--source-audit-sha256", help="Explicit external noticed-source audit digest; HTTP QA only")
     args = parser.parse_args()
     root = args.app_root.resolve(strict=True)
     runner = Path(os.environ["RUNNER_TEMP"]).resolve(strict=True)
@@ -134,7 +193,7 @@ def main() -> None:
     if (sys.version_info[:2] != (3, 11) or Path(sys.executable).resolve() != root / "python/python.exe"
             or Path(sys.base_prefix).resolve() != root / "python"):
         raise ValueError("Only the private bundled CPython 3.11 may launch")
-    inventory = validate_payload(root, args.payload_manifest_sha256, args.inventory_sha256, http_proof=args.http_proof)
+    inventory = validate_payload(root, args.payload_manifest_sha256, args.inventory_sha256, http_proof=args.http_proof, source_audit_digest=args.source_audit_sha256)
     profile = Path(os.environ["LOCALAPPDATA"]).resolve(strict=True)
     state = args.state_root.resolve()
     if (not profile.is_relative_to(runner) or profile == runner or not state.is_relative_to(profile)
@@ -159,7 +218,8 @@ def main() -> None:
         # FIRST third-party import: never ctypes/app/WeasyPrint before this pin.
         from cffi import FFI
 
-        pinned = FFI().dlopen(str(native / "libffi-8.dll"), flags=0x1000)
+        preload = "ffi-8.dll" if args.source_audit_sha256 else "libffi-8.dll"
+        pinned = FFI().dlopen(str(native / preload), flags=0x1000)
         import ctypes
         from ctypes import wintypes
 
@@ -172,10 +232,10 @@ def main() -> None:
         kernel.GetModuleFileNameW.argtypes = [wintypes.HMODULE, wintypes.LPWSTR, wintypes.DWORD]
         kernel.GetModuleFileNameW.restype = wintypes.DWORD
         buffer = ctypes.create_unicode_buffer(32768)
-        module = kernel.GetModuleHandleW("libffi-8.dll")
+        module = kernel.GetModuleHandleW(preload)
         if not module or not kernel.GetModuleFileNameW(module, buffer, len(buffer)):
             raise ctypes.WinError(ctypes.get_last_error())
-        if Path(buffer.value).resolve() != native / "libffi-8.dll":
+        if Path(buffer.value).resolve() != native / preload:
             raise ValueError("Foreign libffi loaded before application entry")
         pre_entry = {"schema": 1, "role": "PRIVATE_STOCK_SDK_LAUNCHER_NOT_SOURCE_BUILD",
                      "pid": os.getpid(), "no_site": sys.flags.no_site, "isolated": sys.flags.isolated,
@@ -188,9 +248,15 @@ def main() -> None:
         if not pre_entry["app_and_weasyprint_absent_before_entry"]:
             raise ValueError("Application imported during bootstrap")
         pre_entry["target_mode"] = "PRIVATE_HTTP_QA" if args.http_proof else "PRIVATE_UNICODE_PDF_QA"
+        pre_entry["source_audit_sha256"] = args.source_audit_sha256
+        pre_entry["source_audit_bound"] = args.source_audit_sha256 is not None
+        if args.source_audit_sha256:
+            pre_entry["role"] = "PRIVATE_NOTICED_SOURCE_HTTP_LAUNCHER_NOT_DISTRIBUTION"
         target = member(root, "scripts/pdf_private_http_probe.py" if args.http_proof else "scripts/pdf_unicode_probe.py")
         sys.argv = [str(target), "--app-root", str(root), "--contexts", str(args.contexts),
                     "--state-root", str(state), "--out-dir", str(args.out_dir)]
+        if args.source_audit_sha256:
+            sys.argv += ["--source-audit-sha256", args.source_audit_sha256]
         if args.reuse_state:
             sys.argv.append("--reuse-state")
         runpy.run_path(str(target), run_name="__main__")
