@@ -7,6 +7,19 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Private real HTTP PDF startup (no release)
+- Explicit CI-only HTTP target after no-site bootstrap: real migrator, application
+  factory, Uvicorn/lifespan on loopback; auth/CSRF rejection, actual cookie login,
+  API-created orders, same SQLite IDs on fresh-process restart, graceful shutdown.
+- 39215968473 / 7634e93 SUCCESS: eight actual HTTP PDFs (1/4 A4), Vazirmatn 400/700,
+  30 Regular/ten Persian Bold digits, all27 private STOCK SDK DLLs and strict TTF
+  cleanup. Adapter injection is process-local QA, NOT production default/source21.
+- Two parallel client requests complete; actual render peak=1 with existing DB
+  locking unchanged. Preserve failed HTML attempt; fix missing cache with direct
+  regression, retain strict PDF rejection. 16 added tests, 686 backend pass.
+- No normal launcher/staging/Inno/updater/data/math/version/tag/release change;
+  six legal/source/production gates remain OPEN and MIT scope14 unchanged.
+
 ### Private pre-import no-site launcher (no release)
 - Require isolated/no-site/UTF-8 CPython, verify independent baseline/inventory
   digests and all baseline files before third-party imports, pin full libffi

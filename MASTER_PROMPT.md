@@ -812,3 +812,33 @@ someone controlling both harness and entry. Normal HTTP startup, source21 pairin
 minimum OS/signing/notices, native delta/rollback and deferred installed acceptance
 remain unproven; all six legal/source/production gates OPEN. MIT is still only
 the explicit 14 native-build files, not this launcher/QA or application.
+
+### Private real HTTP startup — 2026-10-19, not ordinary startup or release
+
+39215968473 / 7634e93 SUCCESS: same no-site pre-import bootstrap, then real
+migrator/create_app/Uvicorn on real TCP loopback with lifespan and shutdown.
+Check live/ready/revision/compiled SPA/OpenAPI, reject unauthorized PDF/wrong
+login/missing CSRF, use actual owner cookie and API-created synthetic orders.
+Two fresh PIDs reuse actual SQLite and fixture IDs; four HTTP PDFs per process,
+eight total 1/4 A4 PDFs, Vazirmatn 400/700, 30 Regular digits and ten Persian Bold
+digits in actual route totals. All27 SDK DLLs loaded privately, callbacks valid,
+TTF SHA/system-font exclusion/per-document temp cleanup independently checked.
+
+Two client requests overlap; observed native render peak=1 because the existing
+SQLite BEGIN IMMEDIATE transaction policy is preserved. Never claim two native
+renders/concurrent throughput. Initial barrier inside renderer was incorrect;
+moved to client before sending. Never change DB locking/math to force overlap.
+Initial Windows attempt returned HTML and correctly FAILED; retain receipt.
+Required private cache was missing, add creation/regression and traceback without
+locals, then actual next run passes. Local optional native diagnostic lacks Pango;
+it is NOT Windows evidence. 14 guards/workflow + two witness tests; 686 backend
+pass. Local TCP tests use explicitly fake invalid PDF/static bytes; only actual
+Windows external inspection proves native PDFs and compiled SPA serving.
+
+[Report](docs/reports/pdf-private-http-fa.md),
+[proof](docs/dependencies/pdf-private-http-proof.json).
+Private stock SDK/27 DLLs with PROCESS-LOCAL font-adapter injection, not source21
+pairing, normal production startup or installed-user acceptance. Existing proofs
+immutable. No installer/normal launcher/staging/updater/version/tag/release/data/
+math change, no request for user testing. All six gates remain OPEN. MIT still
+only explicit14 native-build files; no new launcher/QA/application license grant.

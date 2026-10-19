@@ -297,7 +297,11 @@
         "private_pre_import_launcher_proof": "docs/dependencies/pdf-private-launcher-proof.json",
         "private_pre_import_launcher_run_id": 39182480848,
         "private_launcher_with_fresh_source21_dlls_proven": false,
-        "private_launcher_http_startup_proven": false
+        "private_launcher_http_startup_proven": true,
+        "private_launcher_http_startup_scope": "CI_LOOPBACK_ACTUAL_FACTORY_WITH_PROCESS_LOCAL_FONT_ADAPTER_NOT_NORMAL_STARTUP",
+        "private_http_proof": "docs/dependencies/pdf-private-http-proof.json",
+        "private_http_run_id": 39215968473,
+        "ordinary_production_http_startup_proven": false
       }
     }
   ],

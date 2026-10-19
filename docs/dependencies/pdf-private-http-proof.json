@@ -1,0 +1,212 @@
+{
+  "schema": 1,
+  "role": "PRIVATE_STOCK_SDK_HTTP_STARTUP_NOT_INSTALLED_OR_SOURCE21",
+  "run_id": 39215968473,
+  "run_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39215968473",
+  "head_sha": "7634e93e08c901246e7c08fd06777795bae6e7f9",
+  "workflow_path": ".github/workflows/pdf-private-http.yml",
+  "conclusion": "success",
+  "job_id": 117939764052,
+  "job": {
+    "id": 117939764052,
+    "run_id": 39215968473,
+    "workflow_name": "Private real HTTP Unicode PDF startup (stock SDK, not installed/source proof)",
+    "head_branch": "arena/aee91951-vira-accounting-app",
+    "run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/runs/39215968473",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOVJAq0c8AAAAbdcH7VA",
+    "head_sha": "7634e93e08c901246e7c08fd06777795bae6e7f9",
+    "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/jobs/117939764052",
+    "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39215968473/job/117939764052",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-10-19T07:26:12Z",
+    "started_at": "2026-10-19T07:26:15Z",
+    "completed_at": "2026-10-19T07:29:13Z",
+    "name": "launcher",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-10-19T07:26:19Z",
+        "completed_at": "2026-10-19T07:26:21Z"
+      },
+      {
+        "name": "Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-10-19T07:26:21Z",
+        "completed_at": "2026-10-19T07:26:29Z"
+      },
+      {
+        "name": "Run astral-sh/setup-uv@v5",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-10-19T07:26:29Z",
+        "completed_at": "2026-10-19T07:26:34Z"
+      },
+      {
+        "name": "Run pnpm/action-setup@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-10-19T07:26:34Z",
+        "completed_at": "2026-10-19T07:26:38Z"
+      },
+      {
+        "name": "Run actions/setup-node@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-10-19T07:26:38Z",
+        "completed_at": "2026-10-19T07:26:53Z"
+      },
+      {
+        "name": "Locked app and separately pinned SDK, no native-source claim",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-10-19T07:26:53Z",
+        "completed_at": "2026-10-19T07:27:35Z"
+      },
+      {
+        "name": "Consume fixture environment only after GITHUB_ENV step boundary",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-10-19T07:27:35Z",
+        "completed_at": "2026-10-19T07:27:36Z"
+      },
+      {
+        "name": "Real app factory, loopback HTTP, auth/CSRF, parallel PDFs and fresh restart",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-10-19T07:27:36Z",
+        "completed_at": "2026-10-19T07:29:04Z"
+      },
+      {
+        "name": "Bind real HTTP proof and external PDF inspection",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9,
+        "started_at": "2026-10-19T07:29:04Z",
+        "completed_at": "2026-10-19T07:29:04Z"
+      },
+      {
+        "name": "Expose bounded setup diagnostics without changing failure status",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 10,
+        "started_at": "2026-10-19T07:29:04Z",
+        "completed_at": "2026-10-19T07:29:04Z"
+      },
+      {
+        "name": "Run actions/upload-artifact@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11,
+        "started_at": "2026-10-19T07:29:04Z",
+        "completed_at": "2026-10-19T07:29:05Z"
+      },
+      {
+        "name": "Post Run actions/setup-node@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 19,
+        "started_at": "2026-10-19T07:29:05Z",
+        "completed_at": "2026-10-19T07:29:06Z"
+      },
+      {
+        "name": "Post Run pnpm/action-setup@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 20,
+        "started_at": "2026-10-19T07:29:06Z",
+        "completed_at": "2026-10-19T07:29:06Z"
+      },
+      {
+        "name": "Post Run astral-sh/setup-uv@v5",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 21,
+        "started_at": "2026-10-19T07:29:06Z",
+        "completed_at": "2026-10-19T07:29:06Z"
+      },
+      {
+        "name": "Post Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 22,
+        "started_at": "2026-10-19T07:29:06Z",
+        "completed_at": "2026-10-19T07:29:08Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 23,
+        "started_at": "2026-10-19T07:29:08Z",
+        "completed_at": "2026-10-19T07:29:08Z"
+      }
+    ],
+    "check_run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/check-runs/117939764052",
+    "labels": [
+      "windows-latest"
+    ],
+    "runner_id": 1000001528,
+    "runner_name": "GitHub Actions 1000001528",
+    "runner_group_id": 0,
+    "runner_group_name": "GitHub Actions"
+  },
+  "artifact": {
+    "id": 12169508388,
+    "node_id": "MDg6QXJ0aWZhY3QxMjE2OTUwODM4OA==",
+    "name": "private-real-http-pdf-evidence-no-app-db-dlls-not-source-proof",
+    "size_in_bytes": 202449,
+    "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/artifacts/12169508388",
+    "archive_download_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/artifacts/12169508388/zip",
+    "expired": false,
+    "digest": "sha256:906f98e6a67aad054dba3f105a5ac326d108e06537a3bd21f1f4122d4dd91c9a",
+    "created_at": "2026-10-19T07:29:05Z",
+    "updated_at": "2026-10-19T07:29:05Z",
+    "expires_at": "2027-01-17T07:26:12Z",
+    "workflow_run": {
+      "id": 39215968473,
+      "repository_id": 1418734289,
+      "head_repository_id": 1418734289,
+      "head_branch": "arena/aee91951-vira-accounting-app",
+      "head_sha": "7634e93e08c901246e7c08fd06777795bae6e7f9"
+    }
+  },
+  "verified_at_utc": "2026-10-19T07:30:17.177604+00:00",
+  "witness": {
+    "path": "docs/dependencies/pdf-private-http-evidence.json",
+    "bytes": 37611,
+    "sha256": "5d083bc6072a8bdd40b67bb5360f3751879cedffda7f385845353d785056518b",
+    "authenticated_annotation_parts": 2,
+    "inspection": "GITHUB_API_CHECK_ANNOTATIONS_AND_ARTIFACT_METADATA_NOT_DOWNLOADED_ZIP"
+  },
+  "sdk_archive_sha256": "ab1151f210b4e6bb7aa7a79e91a67e8ddb760094c107bfda55241b6aaefe7d53",
+  "dll_count": 27,
+  "http_app_startup_proven": true,
+  "http_scope": "PRIVATE_CI_LOOPBACK_REAL_FACTORY_WITH_PROCESS_LOCAL_FONT_ADAPTER_NOT_NORMAL_STARTUP",
+  "source21_launcher_pair_proven": false,
+  "new_source_build_proven": false,
+  "ordinary_launcher_changed": false,
+  "font_adapter_is_production_default": false,
+  "installed_user_acceptance": false,
+  "release_authorized": false,
+  "application_license_changed": false,
+  "licensed_build_files": 14,
+  "all_six_gates_open": true,
+  "prior_launcher_run_id": 39182480848,
+  "prior_source_run_id": 39175100427,
+  "prior_evidence_relabelled": false,
+  "stock_launcher_regression_run_id": 39215518803,
+  "stock_launcher_regression_conclusion": "success"
+}

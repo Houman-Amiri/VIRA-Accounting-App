@@ -213,3 +213,55 @@ def test_auditor_creates_cache_required_by_existing_adapter(tmp_path):
     assert not cache.exists()
     http.FontAudit(tmp_path, tmp_path, cache, None, None)
     assert cache.is_dir() and b'fontconfig' in configuration_xml(cache)
+
+
+def test_actual_http_witness_is_bound_to_successful_windows_job_not_old_proofs():
+    deps = ROOT / 'docs/dependencies'
+    proof = json.loads((deps / 'pdf-private-http-proof.json').read_text())
+    raw = (ROOT / proof['witness']['path']).read_bytes()
+    assert len(raw) == proof['witness']['bytes'] == 37611
+    assert hashlib.sha256(raw).hexdigest() == proof['witness']['sha256'] == '5d083bc6072a8bdd40b67bb5360f3751879cedffda7f385845353d785056518b'
+    assert proof['run_id'] == 39215968473 and proof['job_id'] == proof['job']['id'] == 117939764052
+    assert proof['conclusion'] == proof['job']['conclusion'] == 'success'
+    assert proof['head_sha'] == proof['job']['head_sha'] == proof['artifact']['workflow_run']['head_sha'] == '7634e93e08c901246e7c08fd06777795bae6e7f9'
+    assert proof['artifact']['id'] == 12169508388
+    assert proof['witness']['authenticated_annotation_parts'] == 2
+    assert proof['http_app_startup_proven'] is True and proof['licensed_build_files'] == 14
+    for key in ('source21_launcher_pair_proven', 'new_source_build_proven', 'ordinary_launcher_changed', 'font_adapter_is_production_default', 'installed_user_acceptance', 'release_authorized', 'application_license_changed', 'prior_evidence_relabelled'):
+        assert proof[key] is False
+    prior = json.loads((deps / 'pdf-private-launcher-proof.json').read_text())
+    assert prior['run_id'] == proof['prior_launcher_run_id'] == 39182480848
+    assert prior['http_app_startup_proven'] is False
+    gates = json.loads((deps / 'pdf-runtime-license-policy.json').read_text())['open_gates']
+    assert len(gates) == 6 and all(g['progress']['gate_closed'] is False for g in gates)
+
+
+def test_actual_http_restart_native_fonts_security_and_serialization_scope():
+    from pathlib import PureWindowsPath
+    x = json.loads((ROOT / 'docs/dependencies/pdf-private-http-evidence.json').read_text())
+    assert x['http_app_startup_proven'] is True and x['font_adapter_is_production_default'] is False
+    a, b = [x['cases'][key] for key in ('first-process', 'restarted-process')]
+    assert a['launcher']['pid'] != b['launcher']['pid']
+    assert a['http_pdf']['worker']['database'] == b['http_pdf']['worker']['database']
+    assert a['http_pdf']['worker']['http']['fixture_ids'] == b['http_pdf']['worker']['http']['fixture_ids']
+    hashes = sorted(hashlib.sha256((ROOT / 'backend/app/assets/fonts' / f'Vazirmatn-{w}.ttf').read_bytes()).hexdigest() for w in ('Regular', 'Bold'))
+    for name, case in x['cases'].items():
+        p, c = case['launcher'], case['http_pdf']
+        w, h = c['worker'], c['worker']['http']
+        assert p['target_mode'] == 'PRIVATE_HTTP_QA' and p['target_completed'] and p['app_and_weasyprint_absent_before_entry']
+        assert p['no_site'] == p['isolated'] == p['utf8_mode'] == 1 and p['windows_acp'] == 65001
+        assert w['reused_state'] == (name == 'restarted-process') and w['pango_version'] == '1.58.2'
+        assert h['transport'] == 'REAL_TCP_LOOPBACK_NOT_ASGI_TRANSPORT'
+        assert h['parallel_http_requests'] == 2 and h['peak_concurrent_documents'] == 1  # observed, not two concurrent native renders
+        assert h['ready']['alembic_revision'] == '0006_item_catalog' and h['ready']['status'] == 'ready'
+        assert all(h[k] is True for k in ('lifespan_started', 'graceful_shutdown', 'compiled_spa_served', 'production_openapi_route', 'unauthorized_pdf_rejected', 'wrong_login_rejected', 'missing_csrf_rejected', 'authenticated_owner_session', 'route_context_from_sqlite'))
+        assert len(w['loaded_dlls']) == c['dll_count'] == 27
+        app = PureWindowsPath(w['python']).parent.parent
+        assert all(PureWindowsPath(v).parent == app / 'native/pdf/bin' for v in w['loaded_dlls'].values())
+        assert len({v['font_folder'] for v in w['font_documents']}) == 4
+        assert all(v['font_temp_cleaned'] and v['system_fonts'] == 0 and v['font_sha256'] == hashes for v in w['font_documents'])
+        for filename, d in c['documents'].items():
+            assert d['pages'] == (4 if 'multi' in filename else 1)
+            assert d['sha256'] == h['documents'][filename]['sha256'] and d['bytes'] == h['documents'][filename]['bytes']
+            assert all(f['digits'] == (http.DIGITS if f['weight'] == 400 else '۰۱۲۳۴۵۶۷۸۹') for f in d['fonts'])
+    assert all(v['rejected'] and v['exit_code'] != 0 for v in x['negative_controls'].values())

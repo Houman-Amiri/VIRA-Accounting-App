@@ -439,3 +439,20 @@ tag/release تغییر نکرده‌اند. این entry فقط CI/private TEMP 
 دفاع ضد‌دست‌کاری مستقل ادعا نمی‌شود. همهٔ شش گیت بازند؛ startup واقعی HTTP، pair
 با سورس‌ساخته‌شده‌ها و native update/rollback هنوز جداگانه باید اثبات شوند. MIT
 همان ۱۴ فایل native build است، نه launcher/QA یا کل app.
+
+### startup واقعی HTTP، فقط در CI خصوصی — ۲۰۲۶-۱۰-۱۹
+
+**39215968473 / 7634e93 موفق**: entry بدون site پیش از import app، سپس migrator،
+create_app و Uvicorn واقعی روی TCP loopback؛ live/ready، SPA ساخته‌شده، OpenAPI،
+رد بدون login/login غلط/CSRF غایب و ورود cookie واقعی. دو process تازه همان DB و
+ID سفارش‌ها را حفظ کردند؛ چهار PDF از route عادی در هر process، مجموع هشت PDF
+۱/۴صفحه‌ای A4، وزیرمتن ۴۰۰/۷۰۰، ۳۰ رقم Regular و ۱۰ رقم فارسی Bold، SHA asset و
+پاک‌سازی سخت‌گیرانه. دو درخواست موازی client موفق؛ render به‌سبب قفل فعلی DB
+سریالی (peak=1) بود و ادعای دو render هم‌زمان نداریم. هیچ قفل/محاسبه‌ای تغییر نکرد.
+
+این شاهد **SDK/۲۷ DLL با font adapter تزریقیِ process QA** است، نه startup عادی/
+production یا source21 pairing. اولین تلاش HTML داد و رد شد؛ نقص cache با regression
+اصلاح و failure حفظ شد. ۱۴ کنترل رفتاری/workflow و دو کنترل شاهد؛ **۶۸۶ بک‌اند**
+موفق. [گزارش](../reports/pdf-private-http-fa.md)، [proof](../dependencies/pdf-private-http-proof.json). شش گیت باز، grant همان MIT۱۴ فایل native-build؛
+نه شامل worker/launcher/QA یا کل app. نصب/راه‌انداز عادی/staging/Inno/updater/داده/
+محاسبات/نسخه/tag/release تغییر نکرده‌اند؛ درخواست تست/نصب کاربر نداریم.
