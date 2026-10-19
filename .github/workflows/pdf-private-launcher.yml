@@ -1,0 +1,105 @@
+name: Private pre-import Unicode PDF launcher (stock SDK, not source proof)
+
+on:
+  push:
+    paths: ['.github/workflows/pdf-private-launcher.yml', 'scripts/pdf_private_launcher.py', 'scripts/pdf_launcher_smoke.ps1', 'backend/tests/test_pdf_private_launcher.py']
+  pull_request:
+    paths: ['.github/workflows/pdf-private-launcher.yml', 'scripts/pdf_private_launcher.py', 'scripts/pdf_launcher_smoke.ps1', 'backend/tests/test_pdf_private_launcher.py']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: private-pdf-launcher-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  launcher:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Locked app and separately pinned SDK, no native-source claim
+        shell: pwsh
+        run: |
+          uv sync --frozen --all-extras
+          if ($LASTEXITCODE -ne 0) { throw "App dependency setup failed" }
+          pnpm --dir frontend install --frozen-lockfile
+          if ($LASTEXITCODE -ne 0) { throw "SPA dependency setup failed" }
+          pnpm --dir frontend build
+          if ($LASTEXITCODE -ne 0) { throw "SPA build failed" }
+          & ./scripts/prepare_pdf_native_fixture.ps1
+          if ($LASTEXITCODE -ne 0) { throw "Pinned SDK fixture failed" }
+          uv run python scripts/pdf_runtime_inventory.py --archive "$env:VIRA_PDF_UPSTREAM_ARCHIVE" --out-dir "$env:RUNNER_TEMP/launcher-sdk-candidate"
+          if ($LASTEXITCODE -ne 0) { throw "SDK closure failed" }
+      - name: Fresh isolated/no-site launcher, negative guards, real PDFs and restart
+        shell: pwsh
+        run: |
+          $output = (& pwsh -NoProfile -File scripts/pdf_launcher_smoke.ps1 -Candidate "$env:RUNNER_TEMP/launcher-sdk-candidate" 2>&1 | Out-String)
+          $code = $LASTEXITCODE
+          Write-Host $output
+          New-Item -ItemType Directory -Force reports/private-launcher | Out-Null
+          $output | Set-Content -Encoding utf8 reports/private-launcher/driver.log
+          if ($code -ne 0) {
+            $tail = $output.Substring([Math]::Max(0, $output.Length - 8000))
+            for ($i = 0; $i -lt $tail.Length; $i += 2400) {
+              $part = $tail.Substring($i, [Math]::Min(2400, $tail.Length - $i))
+              $part = (($part -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A'
+              Write-Output "::error title=Private launcher failure part ${i}::$part"
+            }
+            throw "Private launcher proof failed"
+          }
+      - name: Bind completed launcher and native PDF evidence (not a source build)
+        shell: pwsh
+        run: |
+          @'
+          import base64,hashlib,json,pathlib,zlib
+          root=pathlib.Path('reports/private-launcher')
+          cases={}
+          for name in ('first-process','restarted-process'):
+              folder=root/name
+              p=json.loads((folder/'launcher-proof.json').read_text(encoding='utf-8'))
+              c=json.loads((folder/'bundled-proof.json').read_text(encoding='utf-8'))
+              assert p['role']=='PRIVATE_STOCK_SDK_LAUNCHER_NOT_SOURCE_BUILD'
+              assert p['no_site']==p['isolated']==p['utf8_mode']==1 and p['windows_acp']==65001
+              assert p['app_and_weasyprint_absent_before_entry'] and p['target_completed']
+              assert p['new_source_build_proven'] is p['release_authorized'] is p['ordinary_launcher_changed'] is False
+              assert c['dll_count']==len(c['worker']['loaded_dlls'])==p['dll_count']==27
+              assert c['worker']['reused_state']==(name=='restarted-process')
+              assert c['worker']['windows_active_code_page']==65001
+              assert c['documents']['single-page']['pages']==1 and c['documents']['multi-page']['pages']==4
+              assert all(d['system_fonts']==0 and d['font_temp_cleaned'] for d in c['worker']['font_documents'].values())
+              cases[name]={'launcher':p,'pdf':c}
+          a,b=[cases[n] for n in ('first-process','restarted-process')]
+          assert a['launcher']['pid']!=b['launcher']['pid']
+          assert all(a['launcher'][k]==b['launcher'][k] for k in ('inventory_sha256','payload_manifest_sha256','libffi','bootstrap_temp'))
+          assert a['pdf']['worker']['unicode_state']==b['pdf']['worker']['unicode_state']
+          negatives=json.loads((root/'negative-controls.json').read_text(encoding='utf-8-sig'))
+          assert set(negatives)=={'missing-no-site','early-ctypes','wrong-inventory-digest'}
+          assert all(n['rejected'] and n['exit_code']!=0 for n in negatives.values())
+          x={'schema':1,'private_pre_import_launcher':'SUCCESS','engine_role':'PINNED_STOCK_SDK_NOT_SOURCE_PROVENANCE','new_source_build_proven':False,'ordinary_launcher_enabled':False,'http_app_startup_proven':False,'installed_user_acceptance':False,'release_authorized':False,'cases':cases,'negative_controls':negatives}
+          raw=(json.dumps(x,indent=2)+'\n').encode('utf-8')
+          (root/'combined-proof.json').write_bytes(raw)
+          data=base64.b64encode(zlib.compress(raw,9)).decode('ascii')
+          parts=[data[i:i+2300] for i in range(0,len(data),2300)]
+          for i,part in enumerate(parts):
+              print('::notice title=Private launcher evidence::'+json.dumps({'part':i,'total':len(parts),'data':part}))
+          print('::notice title=Private launcher witness digest::'+json.dumps({'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)}))
+          '@ | python -I -S -
+          if ($LASTEXITCODE -ne 0) { throw "Launcher binding failed" }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: private-pre-import-launcher-pdf-evidence-no-dlls-not-source-proof
+          path: reports/private-launcher/
+          retention-days: 90
+          if-no-files-found: error
