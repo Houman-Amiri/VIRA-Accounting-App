@@ -617,7 +617,7 @@
       }
     ],
     "finding": "Invoke-WebRequest at prepare_pdf_native_fixture.ps1:11 timed out before the launcher. ArtifactService/CreateArtifact separately timed out after its own five attempts. Not a renderer, flag, manifest or font acceptance result.",
-    "action": "Retry failed job on identical commit with exact same pins, commands, assertions and success criteria. Original attempt/job/annotations retained; no test is skipped. First failure cause remains unknown; deterministic GITHUB_ENV defect found in review is separately fixed."
+    "action": "Direct retry was planned but the API returned 403; NOT executed. Next checkpoint 8118098 adds an actual GITHUB_ENV step-order regression. Its independent push-triggered workflow 39182480848 completed successfully; this is not a relabelled rerun."
   },
   "direct_retry_request": {
     "requested_run_id": 39181776992,
@@ -625,5 +625,12 @@
     "api_status": 403,
     "api_message": "Resource not accessible by integration",
     "interpretation": "GitHub App integration cannot request Actions reruns; git fetch/push still work. No credentials requested or stored. Next valid checkpoint adds a regression for GITHUB_ENV step ordering and preserves these authenticated failures; push triggers an independent normal workflow run, not a relabelled rerun."
+  },
+  "subsequent_success": {
+    "run_id": 39182480848,
+    "head_sha": "81180987bd1a44e18697829d4d3e2704ff577f1f",
+    "job_id": 117837988270,
+    "conclusion": "success",
+    "proof": "docs/dependencies/pdf-private-launcher-proof.json"
   }
 }

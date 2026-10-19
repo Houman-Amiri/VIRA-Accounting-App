@@ -7,6 +7,20 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Private pre-import no-site launcher (no release)
+- Require isolated/no-site/UTF-8 CPython, verify independent baseline/inventory
+  digests and all baseline files before third-party imports, pin full libffi
+  path before ctypes/app PDF imports, check ACP and actual native origin.
+- 39182480848 / 8118098 SUCCESS: two fresh PIDs, pinned STOCK SDK/27 DLLs, real
+  1/4 A4 PDFs, Vazirmatn 400/700/all digits, Unicode paths and temp cleanup;
+  three real Windows rejection cases. NOT source21/HTTP/installed acceptance.
+- Preserve setup and transport failures and Actions-rerun 403; lock GITHUB_ENV
+  producer/consumer step ordering. No skipped tests/weaker pins/false rerun.
+  42 guard/workflow + two witness controls; 670 backend tests pass.
+- Ordinary launcher/staging/installer/updater/data/math/version unchanged. All
+  six release/legal/source/installed-production gates remain OPEN; MIT scope14
+  unchanged. No new tag, release or publication permission.
+
 ### Private three-layer Unicode PDF bootstrap (no release)
 - Explicit in-memory Fontconfig plus CPython UTF-8 mode AND Windows process ACP
   65001 via a private modified CPython PE manifest. Record original/modified EXE

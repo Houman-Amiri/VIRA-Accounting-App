@@ -292,7 +292,12 @@
         "private_cpython_pe_manifest_changed": true,
         "original_cpython_manifest_settings_preserved": true,
         "production_cpython_manifest_signing_and_notices_review": "OPEN_NOT_APPROVED",
-        "minimum_supported_windows_review": "OPEN_PRIVATE_ACTIVE_CODE_PAGE_REQUIRES_1903_PLUS_NOT_ALL_WINDOWS_VERSIONS_TESTED"
+        "minimum_supported_windows_review": "OPEN_PRIVATE_ACTIVE_CODE_PAGE_REQUIRES_1903_PLUS_NOT_ALL_WINDOWS_VERSIONS_TESTED",
+        "private_pre_import_launcher": "VERIFIED_ISOLATED_NO_SITE_STOCK_SDK_27_DLLS_NOT_SOURCE21_PAIR_OR_HTTP_STARTUP",
+        "private_pre_import_launcher_proof": "docs/dependencies/pdf-private-launcher-proof.json",
+        "private_pre_import_launcher_run_id": 39182480848,
+        "private_launcher_with_fresh_source21_dlls_proven": false,
+        "private_launcher_http_startup_proven": false
       }
     }
   ],

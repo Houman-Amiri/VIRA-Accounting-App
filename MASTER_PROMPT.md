@@ -784,3 +784,31 @@ OPEN: component/CRT rights, recipient recipe/toolchain review, durable anonymous
 source delivery, installed replacement/EULA, ordinary pre-import bootstrap,
 Inno/native delta/rollback and deferred installed acceptance. No user data/math,
 install, version, tag or release changes; no publication authority inferred.
+
+### Private pre-import no-site launcher — 2026-10-19, no release
+
+39182480848 / 8118098 SUCCESS: stdlib-only entry validates independent baseline
+and inventory digests/all baseline members before third-party imports. Require
+-I -S -B -X utf8, reject early sensitive modules, pin full libffi path BEFORE
+ctypes/application PDF code, verify ACP 65001 and actual loaded origin. Two fresh
+PIDs (1528/3112), same state and baseline, real 1/4 A4 PDFs, Vazirmatn 400/700/all
+30 digits, Unicode app/profile/bootstrap TEMP/worker TEMP/CWD, zero active system
+fonts and strict cleanup. Three actual Windows rejection cases: omitted -S,
+early ctypes, wrong inventory digest. 42 behavioral/workflow controls plus two
+witness controls; 670 backend pass; Ruff/Mypy85/Bandit existing gate/license14.
+
+[Report](docs/reports/pdf-private-launcher-fa.md),
+[proof](docs/dependencies/pdf-private-launcher-proof.json).
+This is separately pinned stock SDK/27 DLLs, NOT new source provenance or proof
+of the NEW launcher with the prior 21 source DLLs. Prior source witness unchanged.
+Setup/GITHUB_ENV defect regression, actual download/artifact timeouts, and direct
+rerun API 403 are preserved; first setup stderr still unknown. No assertion/pin
+weakening, silent failure relabel, advisory ignore, test skip or actual rerun was
+used. Git push of the real regression checkpoint triggered a separate valid run.
+
+Normal start_vira.cmd/staging/HTTP startup/Inno/updater/data/math/version/tags/
+releases unchanged. CI/private TEMP only; not a signing/security boundary against
+someone controlling both harness and entry. Normal HTTP startup, source21 pairing,
+minimum OS/signing/notices, native delta/rollback and deferred installed acceptance
+remain unproven; all six legal/source/production gates OPEN. MIT is still only
+the explicit 14 native-build files, not this launcher/QA or application.

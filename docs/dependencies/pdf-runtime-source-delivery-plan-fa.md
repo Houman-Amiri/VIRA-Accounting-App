@@ -270,3 +270,23 @@ bootstrap خصوصی به مسیر عادی وصل نیست. read-only TTF ≠ A
 hit. هر شش گیت باز: حقوق اجزا/CRT، بازبینی ابزار/کیت، سورس عمومی پایدار، EULA/تعویض
 DLL و bootstrap عمومی/Inno/native delta/rollback/پذیرش نصب‌شده. داده، محاسبات، نصب
 کاربر، version/tag/release تغییر نکرده‌اند؛ انتشار مجاز نشده است.
+
+### راه‌انداز خصوصیِ پیش از import، بدون site — ۲۰۲۶-۱۰-۱۹
+
+**39182480848 / 8118098 موفق**: entry خصوصی stdlib-only با `-I -S -B -X utf8`،
+دو digest مستقل و بررسی تمام baseline، pin مسیر کامل libffi پیش از ctypes/app/
+WeasyPrint، ACP 65001 و دو PID تازه با state مشترک. SDK پین‌شده **۲۷ DLL** دارد؛
+این مرحله **ساخت سورس یا ترکیب launcher جدید با ۲۱ DLL قبلی نیست**. PDF واقعی
+یک/چهارصفحه‌ای A4، وزیرمتن ۴۰۰/۷۰۰، ۳۰ رقم، TEMP فارسی/پاک‌سازی و صفر قلم سیستم
+کنترل شدند. سه negative واقعیِ no-site، import زودهنگام و digest نادرست رد شدند.
+۴۲ کنترل رفتاری/workflow و دو کنترل شاهد اضافه شد؛ مجموع **۶۷۰ بک‌اند** موفق‌اند.
+
+[گزارش](../reports/pdf-private-launcher-fa.md) و [proof](pdf-private-launcher-proof.json). شکست‌های واقعی setup/دانلود/ArtifactService
+و 403 بازاجرای مستقیم ثبت شدند؛ نه failure حذف شد، نه SHA/assertion تضعیف شد.
+پیش‌آزمون SDK جای منشأ سورس نیست و هیچ شاهد تاریخی بازنویسی نشده است.
+
+`start_vira.cmd`، staging عادی، HTTP startup، Inno/updater، داده/محاسبات و نسخه/
+tag/release تغییر نکرده‌اند. این entry فقط CI/private TEMP است؛ امضای تولید یا
+دفاع ضد‌دست‌کاری مستقل ادعا نمی‌شود. همهٔ شش گیت بازند؛ startup واقعی HTTP، pair
+با سورس‌ساخته‌شده‌ها و native update/rollback هنوز جداگانه باید اثبات شوند. MIT
+همان ۱۴ فایل native build است، نه launcher/QA یا کل app.
