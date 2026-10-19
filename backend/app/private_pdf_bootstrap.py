@@ -1,9 +1,8 @@
-"""Stdlib-only private PDF startup PREPARATION, never an installed entry point.
+"""App-owned private PDF preflight and explicit SDK runtime, NOT installed startup.
 
-This module verifies a *plan*, not an activated runtime or legal permission.
-No native loading, environment/sys.path mutation, mkdir, migration or app factory.
-Only the separately pinned SDK is supported here; source21 requires its own future
-binding. Historical Windows proofs do not prove this new preflight. Not MIT14.
+verify/prepare remain read-only stdlib APIs. activate_private_sdk is an explicit
+private Windows-CI context: reverify, pin native/UTF-8, keep loader lifetime, restore
+process settings. No factory/QA imports/default opt-in or source21 support. Not MIT14.
 """
 from __future__ import annotations
 
@@ -12,6 +11,9 @@ import json
 import os
 import re
 import sys
+import tempfile
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any
@@ -254,3 +256,102 @@ def prepare_private_plan(plan: PrivateBootstrapPlan) -> VerifiedPrivatePlan:
                    for p in (profile, plan.payload_root, plan.state_root, Path.cwd()))):
         raise ValueError("Runner-owned disjoint Unicode/spaced private paths required")
     return verify_private_plan(plan)
+
+
+@dataclass(frozen=True, slots=True)
+class PrivateSdkActivation:
+    """Plain diagnostics only; native objects/handles never escape the context."""
+
+    pid: int
+    windows_acp: int
+    libffi: str
+    manifest_sha256: str
+    inventory_sha256: str
+    payload_files: int
+    dll_count: int
+    bootstrap_temp: str
+    role: str = "APP_OWNED_PRIVATE_SDK_ACTIVATION_NOT_INSTALLED"
+
+
+@contextmanager
+def activate_private_sdk(plan: PrivateBootstrapPlan) -> Iterator[PrivateSdkActivation]:
+    """Explicit one-process SDK activation, never accept a cached verification.
+
+    Hold the absolute CFFI preload and DLL-directory handle for the entire body.
+    Restore env/path/TEMP on every exit, not module imports or OS-loaded libraries:
+    another activation requires a fresh process. No settings/QA/config callbacks.
+    A separate fresh bootstrap workspace is required, not a persistent business DB.
+    """
+    verified = prepare_private_plan(plan)
+    # No cached snapshot can bypass the complete check at the loading boundary.
+    verified = verify_private_plan(plan)
+    root, state = plan.payload_root, plan.state_root
+    names = ("PATH", "WEASYPRINT_DLL_DIRECTORIES", "TEMP", "TMP", "FONTCONFIG_FILE", "FONTCONFIG_PATH")
+    previous = {name: os.environ.get(name) for name in names}
+    old_path, old_temp = sys.path[:], tempfile.tempdir
+    created_state = not state.exists()
+    handle = None
+    try:
+        state.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="bootstrap-", dir=state) as directory:
+            os.environ["TEMP"] = os.environ["TMP"] = directory
+            tempfile.tempdir = None
+            if Path(tempfile.gettempdir()).resolve() != Path(directory).resolve():
+                raise ValueError("Private bootstrap TEMP escaped workspace")
+            native = root / "native/pdf/bin"
+            os.environ["WEASYPRINT_DLL_DIRECTORIES"] = str(native)
+            os.environ["PATH"] = str(native) + os.pathsep + (previous["PATH"] or "")
+            sys.path[:0] = [str(root / "site-packages"), str(root)]
+            handle = os.add_dll_directory(str(native))  # type: ignore[attr-defined]
+            # First third-party import, absolute preload BEFORE ctypes/app/WeasyPrint.
+            from cffi import FFI
+
+            pinned = FFI().dlopen(str(verified.preload), flags=0x1000)
+            import ctypes
+            from ctypes import wintypes
+
+            kernel = ctypes.WinDLL("kernel32", use_last_error=True)  # type: ignore[attr-defined]
+            kernel.GetACP.restype = ctypes.c_uint
+            if kernel.GetACP() != 65001:
+                raise ValueError("Private SDK process ACP must be 65001")
+            kernel.GetModuleHandleW.argtypes = [wintypes.LPCWSTR]
+            kernel.GetModuleHandleW.restype = wintypes.HMODULE
+            kernel.GetModuleFileNameW.argtypes = [wintypes.HMODULE, wintypes.LPWSTR, wintypes.DWORD]
+            kernel.GetModuleFileNameW.restype = wintypes.DWORD
+            loaded_preload = None
+            for name, _ in verified.dlls:
+                module = kernel.GetModuleHandleW(name)
+                if not module:
+                    if name == "libffi-8.dll":
+                        raise ValueError("Private SDK preload not mapped")
+                    continue
+                buffer = ctypes.create_unicode_buffer(32768)
+                if not kernel.GetModuleFileNameW(module, buffer, len(buffer)):
+                    raise ctypes.WinError(ctypes.get_last_error())  # type: ignore[attr-defined]
+                if Path(buffer.value).resolve() != native / name:
+                    raise ValueError("Foreign native module before app entry")
+                if name == "libffi-8.dll":
+                    loaded_preload = buffer.value
+            if loaded_preload is None or pinned is None:
+                raise RuntimeError("Private native preload lifetime failure")
+            yield PrivateSdkActivation(os.getpid(), kernel.GetACP(), loaded_preload,
+                                       plan.manifest_sha256, plan.inventory_sha256,
+                                       verified.payload_files, len(verified.dlls), directory)
+            if any(Path(directory).iterdir()):
+                raise ValueError("Private bootstrap temporary files leaked")
+            if pinned is None:
+                raise RuntimeError("Private native preload lost during application body")
+    finally:
+        try:
+            if handle is not None:
+                handle.close()
+        finally:
+            for name, value in previous.items():
+                if value is None:
+                    os.environ.pop(name, None)
+                else:
+                    os.environ[name] = value
+            sys.path[:], tempfile.tempdir = old_path, old_temp
+            if created_state and state.exists():
+                _no_links(state)
+                state.rmdir()  # only this newly-created leaf; never recursive user-state deletion
