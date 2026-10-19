@@ -149,6 +149,10 @@ class OwnedFontObserver(logging.Handler):
         self.active_ids, self.seen = set(), set()
         self.peak = 0
 
+    @property
+    def active(self):
+        return len(self.active_ids)
+
     def emit(self, record):
         event = getattr(record, 'pdf_document', None)
         if not isinstance(event, dict):

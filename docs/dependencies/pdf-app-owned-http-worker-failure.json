@@ -1,0 +1,397 @@
+{
+  "schema": 1,
+  "role": "PRESERVED_FAILED_APP_OWNED_SDK_HTTP_WORKER_POSTCONDITION",
+  "run_id": 39242791845,
+  "head_sha": "fb331f599ab0abfd3b9756194754b3beced5c72d",
+  "workflow_path": ".github/workflows/pdf-app-owned-http.yml",
+  "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39242791845",
+  "conclusion": "failure",
+  "jobs": [
+    {
+      "id": 118027389420,
+      "run_id": 39242791845,
+      "workflow_name": "Private application-owned HTTP PDF (stock SDK, not source proof)",
+      "head_branch": "arena/aee91951-vira-accounting-app",
+      "run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/runs/39242791845",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVJAq0c8AAAAbevsJ7A",
+      "head_sha": "fb331f599ab0abfd3b9756194754b3beced5c72d",
+      "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/jobs/118027389420",
+      "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39242791845/job/118027389420",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-10-19T11:11:07Z",
+      "started_at": "2026-10-19T11:11:10Z",
+      "completed_at": "2026-10-19T11:13:44Z",
+      "name": "launcher",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-19T11:11:11Z",
+          "completed_at": "2026-10-19T11:11:13Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-19T11:11:13Z",
+          "completed_at": "2026-10-19T11:11:19Z"
+        },
+        {
+          "name": "Run astral-sh/setup-uv@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-19T11:11:19Z",
+          "completed_at": "2026-10-19T11:11:23Z"
+        },
+        {
+          "name": "Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-19T11:11:23Z",
+          "completed_at": "2026-10-19T11:11:27Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-19T11:11:27Z",
+          "completed_at": "2026-10-19T11:11:44Z"
+        },
+        {
+          "name": "Locked app and separately pinned SDK, no native-source claim",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-19T11:11:44Z",
+          "completed_at": "2026-10-19T11:12:29Z"
+        },
+        {
+          "name": "Consume fixture environment only after GITHUB_ENV step boundary",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-19T11:12:29Z",
+          "completed_at": "2026-10-19T11:12:30Z"
+        },
+        {
+          "name": "Real app factory, loopback HTTP, auth/CSRF, parallel PDFs and fresh restart",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 8,
+          "started_at": "2026-10-19T11:12:30Z",
+          "completed_at": "2026-10-19T11:13:36Z"
+        },
+        {
+          "name": "Bind application-owned HTTP proof, never QA replacement",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9,
+          "started_at": "2026-10-19T11:13:36Z",
+          "completed_at": "2026-10-19T11:13:36Z"
+        },
+        {
+          "name": "App-owned SDK evidence group 0",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 10,
+          "started_at": "2026-10-19T11:13:36Z",
+          "completed_at": "2026-10-19T11:13:36Z"
+        },
+        {
+          "name": "App-owned SDK evidence group 1",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 11,
+          "started_at": "2026-10-19T11:13:36Z",
+          "completed_at": "2026-10-19T11:13:36Z"
+        },
+        {
+          "name": "App-owned SDK evidence group 2",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 12,
+          "started_at": "2026-10-19T11:13:36Z",
+          "completed_at": "2026-10-19T11:13:36Z"
+        },
+        {
+          "name": "App-owned SDK evidence group 3",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 13,
+          "started_at": "2026-10-19T11:13:36Z",
+          "completed_at": "2026-10-19T11:13:36Z"
+        },
+        {
+          "name": "Expose bounded setup diagnostics without changing failure status",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-10-19T11:13:36Z",
+          "completed_at": "2026-10-19T11:13:36Z"
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-10-19T11:13:36Z",
+          "completed_at": "2026-10-19T11:13:37Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 27,
+          "started_at": "2026-10-19T11:13:37Z",
+          "completed_at": "2026-10-19T11:13:37Z"
+        },
+        {
+          "name": "Post Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 28,
+          "started_at": "2026-10-19T11:13:37Z",
+          "completed_at": "2026-10-19T11:13:37Z"
+        },
+        {
+          "name": "Post Run astral-sh/setup-uv@v5",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 29,
+          "started_at": "2026-10-19T11:13:37Z",
+          "completed_at": "2026-10-19T11:13:37Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 30,
+          "started_at": "2026-10-19T11:13:37Z",
+          "completed_at": "2026-10-19T11:13:39Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 31,
+          "started_at": "2026-10-19T11:13:39Z",
+          "completed_at": "2026-10-19T11:13:39Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/check-runs/118027389420",
+      "labels": [
+        "windows-latest"
+      ],
+      "runner_id": 1000001607,
+      "runner_name": "GitHub Actions 1000001607",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    }
+  ],
+  "annotations": [
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/fb331f599ab0abfd3b9756194754b3beced5c72d/.github",
+      "start_line": 2,
+      "start_column": null,
+      "end_line": 2,
+      "end_column": null,
+      "annotation_level": "warning",
+      "title": "",
+      "message": "Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4, astral-sh/setup-uv@v5, pnpm/action-setup@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/fb331f599ab0abfd3b9756194754b3beced5c72d/.github",
+      "start_line": 182,
+      "start_column": null,
+      "end_line": 182,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "Launcher setup diagnostic wrong-inventory-digest.log part 0",
+      "message": "Traceback (most recent call last):\n  File \"D:\\a\\_temp\\vira-launcher-1f9dae0068a54381be28bfeb938e24b5\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\scripts\\pdf_private_launcher.py\", line 293, in <module>\n    main()\n  File \"D:\\a\\_temp\\vira-launcher-1f9dae0068a54381be28bfeb938e24b5\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\scripts\\pdf_private_launcher.py\", line 203, in main\n    inventory = validate_payload(root, args.payload_manifest_sha256, args.inventory_sha256, http_proof=args.http_proof, source_audit_digest=args.source_audit_sha256, app_owned=args.app_owned_fonts)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\a\\_temp\\vira-launcher-1f9dae0068a54381be28bfeb938e24b5\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\scripts\\pdf_private_launcher.py\", line 154, in validate_payload\n    inventory = read_json(root / \"native/pdf/runtime-inventory.json\", inventory_digest)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\a\\_temp\\vira-launcher-1f9dae0068a54381be28bfeb938e24b5\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\scripts\\pdf_private_launcher.py\", line 59, in read_json\n    raise ValueError(f\"Independent digest mismatch: {path.name}\")\nValueError: Independent digest mismatch: runtime-inventory.json\n",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/fb331f599ab0abfd3b9756194754b3beced5c72d/.github",
+      "start_line": 153,
+      "start_column": null,
+      "end_line": 153,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "Launcher setup diagnostic setup.log part 0",
+      "message": "**********************\nPowerShell transcript start\nStart time: 20261019111145\nUsername: runnervm0xl3a\\runneradmin\nRunAs User: runnervm0xl3a\\runneradmin\nConfiguration Name: \nMachine: runnervm0xl3a (Microsoft Windows NT 10.0.26100.0)\nHost Application: C:\\Program Files\\PowerShell\\7\\pwsh.dll -command . 'D:\\a\\_temp\\f57f8a8e-b310-478f-9901-42c9e184acd2.ps1'\nProcess ID: 2500\nPSVersion: 7.6.6\nPSEdition: Core\nGitCommitId: 7.6.6\nOS: Microsoft Windows 10.0.26100\nPlatform: Win32NT\nPSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0\nPSRemotingProtocolVersion: 2.4\nSerializationVersion: 1.1.0.1\nWSManStackVersion: 3.0\n**********************\nTranscript started, output file is reports/app-owned-http/setup.log\n\n\n\nNative fixture: upstream WeasyPrint v70.0, verified SHA256 ab1151f210b4e6bb7aa7a79e91a67e8ddb760094c107bfda55241b6aaefe7d53\nDLLs: D:\\a\\_temp\\vira-pdf-proof-1dd3718d1aab47c9a11473ef1f827068\\upstream\\onedir\\weasyprint\\_internal; app: D:\\a\\_temp\\vira-pdf-proof-1dd3718d1aab47c9a11473ef1f827068\\VIRA \u0686\u0627\u067e \u0628\u0648\u0645\u06cc; system fonts excluded\n**********************\nPowerShell transcript end\nEnd time: 20261019111229\n**********************",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/fb331f599ab0abfd3b9756194754b3beced5c72d/.github",
+      "start_line": 144,
+      "start_column": null,
+      "end_line": 144,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "Launcher setup diagnostic missing-no-site.log part 0",
+      "message": "Traceback (most recent call last):\n  File \"D:\\a\\_temp\\vira-launcher-1f9dae0068a54381be28bfeb938e24b5\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\scripts\\pdf_private_launcher.py\", line 293, in <module>\n    main()\n  File \"D:\\a\\_temp\\vira-launcher-1f9dae0068a54381be28bfeb938e24b5\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\scripts\\pdf_private_launcher.py\", line 183, in main\n    startup_guards(sys.platform, sys.flags, sys.modules)\n  File \"D:\\a\\_temp\\vira-launcher-1f9dae0068a54381be28bfeb938e24b5\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\scripts\\pdf_private_launcher.py\", line 36, in startup_guards\n    raise RuntimeError(\"Private launcher requires -I -S -B -X utf8\")\nRuntimeError: Private launcher requires -I -S -B -X utf8\n",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/fb331f599ab0abfd3b9756194754b3beced5c72d/.github",
+      "start_line": 131,
+      "start_column": null,
+      "end_line": 131,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "Launcher setup diagnostic early-ctypes.log part 0",
+      "message": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\n  File \"<frozen runpy>\", line 291, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"D:\\a\\_temp\\vira-launcher-1f9dae0068a54381be28bfeb938e24b5\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\scripts\\pdf_private_launcher.py\", line 293, in <module>\n    main()\n  File \"D:\\a\\_temp\\vira-launcher-1f9dae0068a54381be28bfeb938e24b5\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\scripts\\pdf_private_launcher.py\", line 183, in main\n    startup_guards(sys.platform, sys.flags, sys.modules)\n  File \"D:\\a\\_temp\\vira-launcher-1f9dae0068a54381be28bfeb938e24b5\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\scripts\\pdf_private_launcher.py\", line 38, in startup_guards\n    raise RuntimeError(\"Sensitive module imported before private bootstrap\")\nRuntimeError: Sensitive module imported before private bootstrap\n",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/fb331f599ab0abfd3b9756194754b3beced5c72d/.github",
+      "start_line": 112,
+      "start_column": null,
+      "end_line": 112,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "Launcher setup diagnostic driver.log part 4800",
+      "message": "93, in <module>\n    main()\n  File \"D:\\a\\_temp\\vira-launcher-1f9dae0068a54381be28bfeb938e24b5\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\scripts\\pdf_private_launcher.py\", line 273, in main\n    runpy.run_path(str(target), run_name=\"__main__\")\n  File \"<frozen runpy>\", line 291, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"D:\\a\\_temp\\vira-launcher-1f9dae0068a54381be28bfeb938e24b5\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\scripts\\pdf_private_http_probe.py\", line 443, in <module>\n    main()\n  File \"D:\\a\\_temp\\vira-launcher-1f9dae0068a54381be28bfeb938e24b5\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\scripts\\pdf_private_http_probe.py\", line 417, in main\n    if any(temp.iterdir()) or audit.active:\n                              ^^^^^^^^^^^^\nAttributeError: 'OwnedFontObserver' object has no attribute 'active'\nException: D:\\a\\VIRA-Accounting-App\\VIRA-Accounting-App\\scripts\\pdf_launcher_smoke.ps1:79\nLine |\n  79 |  \u2026   if ($LASTEXITCODE -ne 0) { throw \"Private launcher failed: $case\" }\n     |                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n     | Private launcher failed: first-process\n",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/fb331f599ab0abfd3b9756194754b3beced5c72d/.github",
+      "start_line": 78,
+      "start_column": null,
+      "end_line": 78,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "Launcher setup diagnostic driver.log part 2400",
+      "message": "O  [weasyprint.progress] Step 5 - Creating layout - Page 2\nINFO  [weasyprint.progress] Step 5 - Creating layout - Page 3\nINFO  [weasyprint.progress] Step 5 - Creating layout - Page 4\nINFO  [weasyprint.progress] Step 6 - Creating PDF\nINFO  [weasyprint.progress] Step 7 - Adding PDF metadata\nINFO  [app.services.pdf_rendering] private_pdf_lifecycle\nINFO  [httpx] HTTP Request: GET http://127.0.0.1:65172/api/v1/orders/01a153dd-cf5e-7a6b-b352-8d48e69e6051/proforma.pdf \"HTTP/1.1 200 OK\"\nINFO  [app.services.pdf_rendering] private_pdf_lifecycle\nINFO  [weasyprint.progress] Step 1 - Fetching and parsing HTML - HTML string\nINFO  [weasyprint.progress] Step 2 - Fetching and parsing CSS - CSS string\nWARNI [weasyprint] Ignored `unicode-bidi: isolate` at 12:108, property not supported yet.\nINFO  [weasyprint.progress] Step 3 - Applying CSS\nINFO  [weasyprint.progress] Step 4 - Creating formatting structure\nINFO  [weasyprint.progress] Step 5 - Creating layout - Page 1\nINFO  [weasyprint.progress] Step 5 - Creating layout - Page 2\nINFO  [weasyprint.progress] Step 5 - Creating layout - Page 3\nINFO  [weasyprint.progress] Step 5 - Creating layout - Page 4\nINFO  [weasyprint.progress] Step 6 - Creating PDF\nINFO  [weasyprint.progress] Step 7 - Adding PDF metadata\nINFO  [app.services.pdf_rendering] private_pdf_lifecycle\nINFO  [httpx] HTTP Request: GET http://127.0.0.1:65172/api/v1/orders/01a153dd-cf5e-7a6b-b352-8d48e69e6051/proforma.pdf \"HTTP/1.1 200 OK\"\nINFO  [app.services.pdf_rendering] private_pdf_lifecycle\nINFO  [weasyprint.progress] Step 1 - Fetching and parsing HTML - HTML string\nINFO  [weasyprint.progress] Step 2 - Fetching and parsing CSS - CSS string\nWARNI [weasyprint] Ignored `unicode-bidi: isolate` at 12:108, property not supported yet.\nINFO  [weasyprint.progress] Step 3 - Applying CSS\nINFO  [weasyprint.progress] Step 4 - Creating formatting structure\nINFO  [weasyprint.progress] Step 5 - Creating layout - Page 1\nINFO  [weasyprint.progress] Step 6 - Creating PDF\nINFO  [weasyprint.progress] Step 7 - Adding PDF metadata\nINFO  [app.services.pdf_rendering] private_pdf_lifecycle\nINFO  [httpx] HTTP Request: GET http://127.0.0.1:65172/api/v1/orders/01a153dd-cf4e-7752-8a5c-a4a27f2b24e1/proforma.pdf \"HTTP/1.1 200 OK\"\nTraceback (most recent call last):\n  File \"D:\\a\\_temp\\vira-launcher-1f9dae0068a54381be28bfeb938e24b5\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\scripts\\pdf_private_launcher.py\", line 2",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/fb331f599ab0abfd3b9756194754b3beced5c72d/.github",
+      "start_line": 49,
+      "start_column": null,
+      "end_line": 49,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "Launcher setup diagnostic driver.log part 0",
+      "message": "INFO  [httpx] HTTP Request: POST http://127.0.0.1:65172/api/v1/orders \"HTTP/1.1 403 Forbidden\"\nINFO  [httpx] HTTP Request: POST http://127.0.0.1:65172/api/v1/orders \"HTTP/1.1 201 Created\"\nINFO  [httpx] HTTP Request: POST http://127.0.0.1:65172/api/v1/orders \"HTTP/1.1 201 Created\"\nINFO  [httpx] HTTP Request: GET http://127.0.0.1:65172/api/v1/orders/01a153dd-cf4e-7752-8a5c-a4a27f2b24e1 \"HTTP/1.1 200 OK\"\nINFO  [httpx] HTTP Request: GET http://127.0.0.1:65172/api/v1/orders/01a153dd-cf5e-7a6b-b352-8d48e69e6051 \"HTTP/1.1 200 OK\"\nINFO  [app.services.pdf_rendering] private_pdf_lifecycle\nFontconfig error: Cannot load default config file: File not found: D:\\a\\_temp\\vira-launcher-1f9dae0068a54381be28bfeb938e24b5\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u062a\u0646\u0638\u06cc\u0645 \u0646\u0627\u0645\u0648\u062c\u0648\u062f fonts.conf\nINFO  [weasyprint.progress] Step 2 - Fetching and parsing CSS - CSS string\nINFO  [weasyprint.progress] Step 2 - Fetching and parsing CSS - CSS string\nINFO  [weasyprint.progress] Step 2 - Fetching and parsing CSS - CSS string\nFontconfig error: Cannot load default config file: File not found: D:\\a\\_temp\\vira-launcher-1f9dae0068a54381be28bfeb938e24b5\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u062a\u0646\u0638\u06cc\u0645 \u0646\u0627\u0645\u0648\u062c\u0648\u062f fonts.conf\nINFO  [weasyprint.progress] Step 1 - Fetching and parsing HTML - HTML string\nINFO  [weasyprint.progress] Step 2 - Fetching and parsing CSS - CSS string\nWARNI [weasyprint] Ignored `unicode-bidi: isolate` at 12:108, property not supported yet.\nINFO  [weasyprint.progress] Step 3 - Applying CSS\nINFO  [weasyprint.progress] Step 4 - Creating formatting structure\nINFO  [weasyprint.progress] Step 5 - Creating layout - Page 1\nINFO  [weasyprint.progress] Step 6 - Creating PDF\nINFO  [weasyprint.progress] Step 7 - Adding PDF metadata\nINFO  [app.services.pdf_rendering] private_pdf_lifecycle\nINFO  [httpx] HTTP Request: GET http://127.0.0.1:65172/api/v1/orders/01a153dd-cf4e-7752-8a5c-a4a27f2b24e1/proforma.pdf \"HTTP/1.1 200 OK\"\nINFO  [app.services.pdf_rendering] private_pdf_lifecycle\nINFO  [weasyprint.progress] Step 1 - Fetching and parsing HTML - HTML string\nINFO  [weasyprint.progress] Step 2 - Fetching and parsing CSS - CSS string\nWARNI [weasyprint] Ignored `unicode-bidi: isolate` at 12:108, property not supported yet.\nINFO  [weasyprint.progress] Step 3 - Applying CSS\nINFO  [weasyprint.progress] Step 4 - Creating formatting structure\nINFO  [weasyprint.progress] Step 5 - Creating layout - Page 1\nINF",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/fb331f599ab0abfd3b9756194754b3beced5c72d/.github",
+      "start_line": 24,
+      "start_column": null,
+      "end_line": 24,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "Launcher setup diagnostic closure.log part 0",
+      "message": "**********************\nPowerShell transcript start\nStart time: 20261019111229\nUsername: runnervm0xl3a\\runneradmin\nRunAs User: runnervm0xl3a\\runneradmin\nConfiguration Name: \nMachine: runnervm0xl3a (Microsoft Windows NT 10.0.26100.0)\nHost Application: C:\\Program Files\\PowerShell\\7\\pwsh.dll -command . 'D:\\a\\_temp\\612a42f4-aee8-4fe7-be10-64a1d42a578b.ps1'\nProcess ID: 560\nPSVersion: 7.6.6\nPSEdition: Core\nGitCommitId: 7.6.6\nOS: Microsoft Windows 10.0.26100\nPlatform: Win32NT\nPSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0\nPSRemotingProtocolVersion: 2.4\nSerializationVersion: 1.1.0.1\nWSManStackVersion: 3.0\n**********************\nTranscript started, output file is reports/app-owned-http/closure.log\n\n**********************\nPowerShell transcript end\nEnd time: 20261019111230\n**********************",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/fb331f599ab0abfd3b9756194754b3beced5c72d/.github",
+      "start_line": 342,
+      "start_column": null,
+      "end_line": 342,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "",
+      "message": "Process completed with exit code 1.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/fb331f599ab0abfd3b9756194754b3beced5c72d/.github",
+      "start_line": 324,
+      "start_column": null,
+      "end_line": 324,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "Private launcher failure part 7200",
+      "message": " in _run_code\r\n  File \"D:\\a\\_temp\\vira-launcher-1f9dae0068a54381be28bfeb938e24b5\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\scripts\\pdf_private_http_probe.py\", line 443, in <module>\r\n    main()\r\n  File \"D:\\a\\_temp\\vira-launcher-1f9dae0068a54381be28bfeb938e24b5\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\scripts\\pdf_private_http_probe.py\", line 417, in main\r\n    if any(temp.iterdir()) or audit.active:\r\n                              ^^^^^^^^^^^^\r\nAttributeError: 'OwnedFontObserver' object has no attribute 'active'\r\nException: D:\\a\\VIRA-Accounting-App\\VIRA-Accounting-App\\scripts\\pdf_launcher_smoke.ps1:79\r\nLine |\r\n  79 |  \u2026   if ($LASTEXITCODE -ne 0) { throw \"Private launcher failed: $case\" }\r\n     |                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n     | Private launcher failed: first-process\r\n",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/fb331f599ab0abfd3b9756194754b3beced5c72d/.github",
+      "start_line": 290,
+      "start_column": null,
+      "end_line": 290,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "Private launcher failure part 4800",
+      "message": "65172/api/v1/orders/01a153dd-cf5e-7a6b-b352-8d48e69e6051/proforma.pdf \"HTTP/1.1 200 OK\"\r\nINFO  [app.services.pdf_rendering] private_pdf_lifecycle\r\nINFO  [weasyprint.progress] Step 1 - Fetching and parsing HTML - HTML string\r\nINFO  [weasyprint.progress] Step 2 - Fetching and parsing CSS - CSS string\r\nWARNI [weasyprint] Ignored `unicode-bidi: isolate` at 12:108, property not supported yet.\r\nINFO  [weasyprint.progress] Step 3 - Applying CSS\r\nINFO  [weasyprint.progress] Step 4 - Creating formatting structure\r\nINFO  [weasyprint.progress] Step 5 - Creating layout - Page 1\r\nINFO  [weasyprint.progress] Step 5 - Creating layout - Page 2\r\nINFO  [weasyprint.progress] Step 5 - Creating layout - Page 3\r\nINFO  [weasyprint.progress] Step 5 - Creating layout - Page 4\r\nINFO  [weasyprint.progress] Step 6 - Creating PDF\r\nINFO  [weasyprint.progress] Step 7 - Adding PDF metadata\r\nINFO  [app.services.pdf_rendering] private_pdf_lifecycle\r\nINFO  [httpx] HTTP Request: GET http://127.0.0.1:65172/api/v1/orders/01a153dd-cf5e-7a6b-b352-8d48e69e6051/proforma.pdf \"HTTP/1.1 200 OK\"\r\nINFO  [app.services.pdf_rendering] private_pdf_lifecycle\r\nINFO  [weasyprint.progress] Step 1 - Fetching and parsing HTML - HTML string\r\nINFO  [weasyprint.progress] Step 2 - Fetching and parsing CSS - CSS string\r\nWARNI [weasyprint] Ignored `unicode-bidi: isolate` at 12:108, property not supported yet.\r\nINFO  [weasyprint.progress] Step 3 - Applying CSS\r\nINFO  [weasyprint.progress] Step 4 - Creating formatting structure\r\nINFO  [weasyprint.progress] Step 5 - Creating layout - Page 1\r\nINFO  [weasyprint.progress] Step 6 - Creating PDF\r\nINFO  [weasyprint.progress] Step 7 - Adding PDF metadata\r\nINFO  [app.services.pdf_rendering] private_pdf_lifecycle\r\nINFO  [httpx] HTTP Request: GET http://127.0.0.1:65172/api/v1/orders/01a153dd-cf4e-7752-8a5c-a4a27f2b24e1/proforma.pdf \"HTTP/1.1 200 OK\"\r\nTraceback (most recent call last):\r\n  File \"D:\\a\\_temp\\vira-launcher-1f9dae0068a54381be28bfeb938e24b5\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\scripts\\pdf_private_launcher.py\", line 293, in <module>\r\n    main()\r\n  File \"D:\\a\\_temp\\vira-launcher-1f9dae0068a54381be28bfeb938e24b5\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\scripts\\pdf_private_launcher.py\", line 273, in main\r\n    runpy.run_path(str(target), run_name=\"__main__\")\r\n  File \"<frozen runpy>\", line 291, in run_path\r\n  File \"<frozen runpy>\", line 98, in _run_module_code\r\n  File \"<frozen runpy>\", line 88,",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/fb331f599ab0abfd3b9756194754b3beced5c72d/.github",
+      "start_line": 259,
+      "start_column": null,
+      "end_line": 259,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "Private launcher failure part 2400",
+      "message": "quest: GET http://127.0.0.1:65172/api/v1/orders/01a153dd-cf5e-7a6b-b352-8d48e69e6051 \"HTTP/1.1 200 OK\"\r\nINFO  [app.services.pdf_rendering] private_pdf_lifecycle\r\nFontconfig error: Cannot load default config file: File not found: D:\\a\\_temp\\vira-launcher-1f9dae0068a54381be28bfeb938e24b5\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u062a\u0646\u0638\u06cc\u0645 \u0646\u0627\u0645\u0648\u062c\u0648\u062f fonts.conf\r\nINFO  [weasyprint.progress] Step 2 - Fetching and parsing CSS - CSS string\r\nINFO  [weasyprint.progress] Step 2 - Fetching and parsing CSS - CSS string\r\nINFO  [weasyprint.progress] Step 2 - Fetching and parsing CSS - CSS string\r\nFontconfig error: Cannot load default config file: File not found: D:\\a\\_temp\\vira-launcher-1f9dae0068a54381be28bfeb938e24b5\\\u06a9\u0627\u0631\u0628\u0631 \u0641\u0627\u0631\u0633\u06cc & Local AppData\\VIRA\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u062a\u0646\u0638\u06cc\u0645 \u0646\u0627\u0645\u0648\u062c\u0648\u062f fonts.conf\r\nINFO  [weasyprint.progress] Step 1 - Fetching and parsing HTML - HTML string\r\nINFO  [weasyprint.progress] Step 2 - Fetching and parsing CSS - CSS string\r\nWARNI [weasyprint] Ignored `unicode-bidi: isolate` at 12:108, property not supported yet.\r\nINFO  [weasyprint.progress] Step 3 - Applying CSS\r\nINFO  [weasyprint.progress] Step 4 - Creating formatting structure\r\nINFO  [weasyprint.progress] Step 5 - Creating layout - Page 1\r\nINFO  [weasyprint.progress] Step 6 - Creating PDF\r\nINFO  [weasyprint.progress] Step 7 - Adding PDF metadata\r\nINFO  [app.services.pdf_rendering] private_pdf_lifecycle\r\nINFO  [httpx] HTTP Request: GET http://127.0.0.1:65172/api/v1/orders/01a153dd-cf4e-7752-8a5c-a4a27f2b24e1/proforma.pdf \"HTTP/1.1 200 OK\"\r\nINFO  [app.services.pdf_rendering] private_pdf_lifecycle\r\nINFO  [weasyprint.progress] Step 1 - Fetching and parsing HTML - HTML string\r\nINFO  [weasyprint.progress] Step 2 - Fetching and parsing CSS - CSS string\r\nWARNI [weasyprint] Ignored `unicode-bidi: isolate` at 12:108, property not supported yet.\r\nINFO  [weasyprint.progress] Step 3 - Applying CSS\r\nINFO  [weasyprint.progress] Step 4 - Creating formatting structure\r\nINFO  [weasyprint.progress] Step 5 - Creating layout - Page 1\r\nINFO  [weasyprint.progress] Step 5 - Creating layout - Page 2\r\nINFO  [weasyprint.progress] Step 5 - Creating layout - Page 3\r\nINFO  [weasyprint.progress] Step 5 - Creating layout - Page 4\r\nINFO  [weasyprint.progress] Step 6 - Creating PDF\r\nINFO  [weasyprint.progress] Step 7 - Adding PDF metadata\r\nINFO  [app.services.pdf_rendering] private_pdf_lifecycle\r\nINFO  [httpx] HTTP Request: GET http://127.0.0.1:",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/fb331f599ab0abfd3b9756194754b3beced5c72d/.github",
+      "start_line": 237,
+      "start_column": null,
+      "end_line": 237,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "Private launcher failure part 0",
+      "message": "A\\\u062a\u0646\u0638\u06cc\u0645 \u0642\u0644\u0645\\\u062f\u0627\u062f\u0647 \u0622\u0632\u0645\u0627\u06cc\u0634\u06cc HTTP\\data\\\u062e\u0635\u0648\u0635\u06cc.sqlite3\r\nINFO  [alembic.runtime.migration] Context impl SQLiteImpl.\r\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\r\nINFO  [alembic.runtime.migration] Running upgrade  -> 0001_initial, initial schema \u2014 STRICT tables, ledger CHECKs, immutability triggers\r\nINFO  [alembic.runtime.migration] Running upgrade 0001_initial -> 0002_persistence, persistence hardening \u2014 idempotency, reconciliation sessions, snapshots, search\r\nINFO  [alembic.runtime.migration] Running upgrade 0002_persistence -> 0003_security, security hardening \u2014 recovery codes, API keys, envelope credentials, webhooks, security audit\r\nINFO  [alembic.runtime.migration] Running upgrade 0003_security -> 0004_operations, operations domain \u2014 warehouse, suppliers, orders, production (MASTER_PROMPT \u00a73)\r\nINFO  [alembic.runtime.migration] Running upgrade 0004_operations -> 0005_pricing_settings, Shared pricing constants; no existing prices or operations are rewritten.\r\nINFO  [alembic.runtime.migration] Running upgrade 0005_pricing_settings -> 0006_item_catalog, Persisted item types/units; preserve all operations and scaled integer values.\r\nINFO  [app.main] SQLite pragmas verified: {'foreign_keys': '1', 'journal_mode': 'wal', 'synchronous': '1', 'busy_timeout': '5000'}\r\nINFO  [httpx] HTTP Request: GET http://127.0.0.1:65172/api/v1/health/live \"HTTP/1.1 200 OK\"\r\nINFO  [httpx] HTTP Request: GET http://127.0.0.1:65172/api/v1/health/ready \"HTTP/1.1 200 OK\"\r\nINFO  [httpx] HTTP Request: GET http://127.0.0.1:65172/ \"HTTP/1.1 200 OK\"\r\nINFO  [httpx] HTTP Request: GET http://127.0.0.1:65172/api/openapi.json \"HTTP/1.1 200 OK\"\r\nINFO  [httpx] HTTP Request: GET http://127.0.0.1:65172/api/v1/orders/not-an-order/proforma.pdf \"HTTP/1.1 401 Unauthorized\"\r\nINFO  [httpx] HTTP Request: POST http://127.0.0.1:65172/api/v1/auth/login \"HTTP/1.1 401 Unauthorized\"\r\nINFO  [httpx] HTTP Request: POST http://127.0.0.1:65172/api/v1/auth/login \"HTTP/1.1 200 OK\"\r\nINFO  [httpx] HTTP Request: POST http://127.0.0.1:65172/api/v1/orders \"HTTP/1.1 403 Forbidden\"\r\nINFO  [httpx] HTTP Request: POST http://127.0.0.1:65172/api/v1/orders \"HTTP/1.1 201 Created\"\r\nINFO  [httpx] HTTP Request: POST http://127.0.0.1:65172/api/v1/orders \"HTTP/1.1 201 Created\"\r\nINFO  [httpx] HTTP Request: GET http://127.0.0.1:65172/api/v1/orders/01a153dd-cf4e-7752-8a5c-a4a27f2b24e1 \"HTTP/1.1 200 OK\"\r\nINFO  [httpx] HTTP Re",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/fb331f599ab0abfd3b9756194754b3beced5c72d/.github",
+      "start_line": 22,
+      "start_column": null,
+      "end_line": 22,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "PDF native inventory chunk",
+      "message": "{\"part\": 1, \"total\": 2, \"data\": \"Fl7Lhky+x/3iWMjVk7lISJ+dXLypc3cKDRZf1QQa6A9sWhAFuZrkL4pIcIHYhy+I8IuLqevbKahIA83Z4ljJ+4viz8/+0gdC/HmS9HD9iCvu9XCDqFcYjcvBJamIVKLnwQTlwCWvyZBy3McUE2MGLDcGWTCOGZG9MpATc+vcIPp5A3A9eY43Flu2q/kbqHtuq4PVyWvJTvLLB4+nrq9f/lhcQu+LAmK/KkpdLV6+eFOM6X84wiJCB1V91K7IXX0QV6jh4ox33AxXZxhq4NZZydEENIlzrZQAAwllyjYzKYyOiSwqJaXLLpjsTH9EGI8ha/f4LKytTHxUMnHX2vOcoDyQTedPC3zyANnnO8m7Czbc7C5Ikb7LP1+SULdwn1B3DFfNrM6w2u2J5TTbP13AtK8xFf+A7j3ZLmDYVz0O7+PO3uYr5isbrmcp8iodG5BoTl5oJkHmCIGLHLPWOmYHyhrOspBBMEnXzpFVGLQRzgjvnU3GCa7DivH6rRR8+BW0pxKNx3Dq8PzUD7I4t5kA2L3raNrFAcwPgoF5zfiRcORXP4jH0WRxXaDfYFz8UDfFi7Kq/ntStt2cE805G3KosEaw7KNTgjNvPDPcSC+DpL9R+KT7nVJkgAID71hk0O839EllqwP69Z39spmQv4vzPko5eCghDtIht4kKD9jZazlZI8MYen82dLSoMGpIDDBmyWwkV9A5YaRiWSfNFID22UbFlQweePA5Z5LVmFaMZ23ukK8nDDXYZb89XPeJpnxdGeH37xkcRGq081YMhTLylLTiDLI2MiuQUQEiZ4lnqzyA5ciSzUEGlfuDCRkGj95ESBiSWDFpbguajwY0y3T279qtNlhLf/JQzBZIf9y2s8XLqqePOdlAGMPFHD0ZTzZ/Msmb4JlMEFV0VjLJHZfKaWBKaydcQMcZV9Zjjro/LoSMDyVYXPF7Jrbw+/Tg9+Cl/oWYfCDP3YivPDnLfb5rsru3D4vfHW4CX81DsXMB1+SSC86iZ86D42T4OJcNMJ5A28g9kqGURCCakiE4bbzN/XfbKCuzkcas0xbaomAVFMxP+RI+GCDlEVJ/izmeLs/nU5yolQOQuwW7+FkSghw8nwtDfldOvv559LNRV8cNLjlhcPf+Ve5bVRXf4TjQexSC8fMDDuUg7Ggkl8NIB/ZHxfYnSGuRHffgbUzZCq8ZcpdUUlkCA2GlhyRYyFKkJDVHGYl4mMU1EsnmQmoN4ZBrn2ebufcUQcLe3Pdz3w3EY/Kck3LuE0SMzjxKaUSfNmIs6qzBcAcmOBddTEgC44NjAoEK2sCWHpqwnbs/WLz6eca3sZolquTqCywPqfbDWFNvqfh5umODJyWeHk7qC0T8svPqoLjKqrzoTVv0aU5UoL9f5hJTcdHwfpiVVSqmTX2CE5hEPGd3+vzlKxepPv9YmciKKvMZ1RPKrs/TLF7UkF5c5GzuT6vZUTkpEk5xQiVjie3fSGHQ/33rRdkW9Gpd3ypOoaGprM7OG/rxsk/F9Rdu/qkt6tM+G/R8jKh9bM/f4OoGUg/Oigl05QleN3hR3cFbIE1z0bOrEWh3i8s+QhePkS6vaurwLXWw3xwb64bEa1pPUv+2l59vcAzUpwb/OyubXu39+r//AyPl4Tw=\"}",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/fb331f599ab0abfd3b9756194754b3beced5c72d/.github",
+      "start_line": 21,
+      "start_column": null,
+      "end_line": 21,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "PDF native inventory chunk",
+      "message": "{\"part\": 0, \"total\": 2, \"data\": \"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\"}",
+      "raw_details": ""
+    }
+  ],
+  "observed_traceback": "AttributeError: 'OwnedFontObserver' object has no attribute 'active'",
+  "classification": "Four HTTP PDF responses logged before the shared worker postcondition FAILED; no complete external inspection/restart proof. Not a successful workflow or accepted native witness.",
+  "correction": "Expose active as len(active_ids) for the same shared cleanup guard, add zero/active/completed regression; no PDF/native/bootstrap control weakened.",
+  "release_authorized": false
+}

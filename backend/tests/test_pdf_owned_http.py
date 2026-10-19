@@ -74,7 +74,7 @@ def test_passive_observer_never_replaces_renderer_and_rejects_incomplete_events(
     for event in [{'event':'started','id':'one'}, {'event':'failed','id':'one'}]:
         record = logging.makeLogRecord({'pdf_document':event})
         observer.handle(record)
-    assert observer.peak == 1 and not observer.active_ids and observer.errors
+    assert observer.peak == 1 and observer.active == 0 and not observer.active_ids and observer.errors
     assert pdf.render_pdf is before
     # verify fails before touching font assets because the lifecycle is incomplete.
     with pytest.raises((ValueError, FileNotFoundError)):
@@ -162,3 +162,13 @@ def test_fingerprint_checks_app_source_through_contextmanager_wrapper(monkeypatc
     monkeypatch.setattr(pdf, 'render_pdf', lambda *a, **k: b'FAKE')
     with pytest.raises(ValueError, match='Foreign/replaced'):
         worker.owned_fingerprint(ROOT/'backend')
+
+
+def test_passive_active_count_matches_shared_worker_postcondition(monkeypatch, tmp_path):
+    worker = script('pdf_private_http_probe', monkeypatch)
+    observer = worker.OwnedFontObserver(tmp_path, tmp_path, tmp_path)
+    assert observer.active == 0
+    observer.handle(logging.makeLogRecord({'pdf_document': {'event':'started','id':'doc'}}))
+    assert observer.active == 1
+    observer.handle(logging.makeLogRecord({'pdf_document': {'event':'completed','id':'doc'}}))
+    assert observer.active == 0
