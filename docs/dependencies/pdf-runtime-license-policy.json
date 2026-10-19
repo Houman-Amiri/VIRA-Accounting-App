@@ -323,7 +323,8 @@
         "private_app_bootstrap_preflight_report": "docs/reports/pdf-bootstrap-preparation-fa.md",
         "private_app_bootstrap_real_windows_preflight_proven": false,
         "private_app_bootstrap_native_activation_implemented": false,
-        "private_app_bootstrap_source21_supported": false
+        "private_app_bootstrap_source21_supported": false,
+        "private_app_bootstrap_preflight_local_verified_at_utc": "2026-10-19T13:04:33.875958+00:00"
       }
     }
   ],

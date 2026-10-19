@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "role": "APPLICATION_OWNED_PRIVATE_BOOTSTRAP_PREFLIGHT_PREPARATION_NOT_NATIVE_PROOF",
-  "verified_at_utc": "2026-10-19T12:59:08.356105+00:00",
+  "verified_at_utc": "2026-10-19T13:04:33.875958+00:00",
   "prior_completed_checkpoint": "b09dbb3b392a2fdc26901138125aba1f5f800546",
   "source_files_sha256": {
     "backend/app/private_pdf_bootstrap.py": "d49b7b538d990ded9620192011e40b4d0719d09713918e25af671bdc757e5b6a",
@@ -14,7 +14,9 @@
     "skipped": 0,
     "failures": 0,
     "errors": 0,
-    "duration_seconds_display": 88.67
+    "duration_seconds_display": 88.67,
+    "junit_suite_started_at_utc": "2026-10-19T12:59:47.775502+00:00",
+    "junit_suite_duration_seconds": 88.573
   },
   "static_checks": {
     "ruff": "PASS",
