@@ -2,7 +2,7 @@
 
 verify/prepare remain read-only stdlib APIs. activate_private_sdk is an explicit
 private Windows-CI context: reverify, pin native/UTF-8, keep loader lifetime, restore
-process settings. No factory/QA imports/default opt-in or source21 support. Not MIT14.
+process settings. No factory/QA imports/default opt-in; source mode requires its independent audit. Not MIT14.
 """
 from __future__ import annotations
 
@@ -101,6 +101,56 @@ def _member(root: Path, relative: object) -> Path:
     return candidate
 
 
+SOURCE_ARCHIVE = "b1078a6bba74d86565b97694c8ac2afc6adf15c045a843cdbf55cb08f6226fc2"
+SOURCE_MANIFEST = "784c8d196ad0da899e7d6b65d26aff4d4bf9bb00551526692cda9b47c43c2023"
+SOURCE_FILE = "a530b81e21d8799996032c68398651ec802d62017bac88c6c9d3b7cebd89719a"
+SOURCE_VERSION = "1.58.0-vira-local-source"
+
+
+def validate_private_source_inventory(inventory: dict[str, Any], audit: dict[str, Any], digest: str) -> None:
+    """App-owned audit continuity, NOT an independent compilation/signature proof."""
+    if (inventory.get("origin") != "LOCAL_PINNED_VCPKG_SOURCE_BUILD"
+            or inventory.get("private_consumption_only") is not True
+            or inventory.get("modified_build_is_distribution_candidate") is not False
+            or inventory.get("distribution_status") != BLOCKED
+            or inventory.get("source_archive") is not None
+            or inventory.get("binary_cache") != "DISABLED"
+            or inventory.get("native_audit_sha256") != digest
+            or inventory.get("expected_pango_version_string") != SOURCE_VERSION
+            or inventory.get("preload_dlls") != ["ffi-8.dll"]):
+        raise ValueError("Explicit private source inventory/audit binding required")
+    if (audit.get("native_compilation") != "SUCCESS" or audit.get("local_preferred_source_replay") != "SUCCESS"
+            or audit.get("distribution_status") != BLOCKED
+            or audit.get("actual_pango_version_string") != SOURCE_VERSION
+            or audit.get("application_present") is not False
+            or audit.get("new_corresponding_source_archive_prepared") is not True
+            or audit.get("original_archive_modified") is not False
+            or audit.get("original_source_tree_count") != 19
+            or audit.get("explicitly_modified_source_tree_count") != 1
+            or audit.get("compiled_from_noticed_archive") is not True
+            or audit.get("inline_change_date_notice_present_in_compiled_source") is not True
+            or audit.get("input_source_trees_unchanged_during_compilation") is not True
+            or audit.get("noticed_source_archive_sha256") != SOURCE_ARCHIVE
+            or audit.get("noticed_source_file_sha256") != SOURCE_FILE
+            or audit.get("noticed_source_kit_receipt", {}).get("modified_kit_manifest_sha256") != SOURCE_MANIFEST
+            or audit.get("changed_packages") != ["pango"]
+            or len(audit.get("preferred_source_trees", {})) != 20
+            or len(inventory.get("dlls", {})) != 21 or audit.get("dll_count") != 21
+            or set(inventory["dlls"]) != set(audit.get("dlls", {}))):
+        raise ValueError("Exact noticed-source build witness required")
+    for name, item in inventory["dlls"].items():
+        actual = audit["dlls"][name]
+        if item["sha256"] != actual["sha256"] or item["source_package"] != actual["source_package"]:
+            raise ValueError("Source DLL hash/owner differs from audited build")
+    if set(inventory.get("source_packages", {})) != set(audit["preferred_source_trees"]):
+        raise ValueError("Source package set mismatch")
+    for name, item in inventory["source_packages"].items():
+        actual = audit["preferred_source_trees"][name]
+        if item["patched_source_tree_sha256"] != actual["tree_sha256"] or item["patched_source_files"] != actual["source_entries"]:
+            raise ValueError("Source tree differs from compiled audit")
+
+
+
 @dataclass(frozen=True, slots=True)
 class PrivateBootstrapPlan:
     """Explicit data only; digests come from the caller, never local recomputation."""
@@ -109,12 +159,15 @@ class PrivateBootstrapPlan:
     state_root: Path
     manifest_sha256: str
     inventory_sha256: str
+    source_audit_sha256: str | None = None
 
     def __post_init__(self) -> None:
         _absolute(self.payload_root)
         _absolute(self.state_root)
         _digest(self.manifest_sha256)
         _digest(self.inventory_sha256)
+        if self.source_audit_sha256 is not None:
+            _digest(self.source_audit_sha256)
         if (self.state_root.is_relative_to(self.payload_root)
                 or self.payload_root.is_relative_to(self.state_root)):
             raise ValueError("Private state and payload must be disjoint")
@@ -183,14 +236,23 @@ def verify_private_plan(plan: PrivateBootstrapPlan) -> VerifiedPrivatePlan:
         raise ValueError("Private staged version required; no installed runtime activation")
     inventory = _read(root / "native/pdf/runtime-inventory.json", plan.inventory_sha256)
     dlls = inventory.get("dlls")
-    upstream = inventory.get("upstream")
-    if (inventory.get("origin") == "LOCAL_PINNED_VCPKG_SOURCE_BUILD"
-            or not isinstance(upstream, dict) or upstream.get("sha256") != SDK_SHA256
-            or inventory.get("distribution_status") != BLOCKED
-            or not isinstance(dlls, dict) or len(dlls) != 27
-            or inventory.get("preload_dlls", ["libffi-8.dll"]) != ["libffi-8.dll"]
-            or "libffi-8.dll" not in dlls):
-        raise ValueError("Only private pinned 27-DLL SDK supported; source21 is not accepted")
+    source = plan.source_audit_sha256 is not None
+    preload = "ffi-8.dll" if source else "libffi-8.dll"
+    if source:
+        audit = _read(_member(root, "native/pdf/source-audit.json"), plan.source_audit_sha256)
+        assert plan.source_audit_sha256 is not None
+        validate_private_source_inventory(inventory, audit, plan.source_audit_sha256)
+    else:
+        upstream = inventory.get("upstream")
+        if (inventory.get("origin") == "LOCAL_PINNED_VCPKG_SOURCE_BUILD"
+                or not isinstance(upstream, dict) or upstream.get("sha256") != SDK_SHA256
+                or inventory.get("distribution_status") != BLOCKED
+                or not isinstance(dlls, dict) or len(dlls) != 27
+                or inventory.get("preload_dlls", ["libffi-8.dll"]) != ["libffi-8.dll"]
+                or "libffi-8.dll" not in dlls):
+            raise ValueError("Only private pinned 27-DLL SDK supported; source21 is not accepted")
+    if not isinstance(dlls, dict):
+        raise ValueError("Native DLL inventory object required")
     verified = []
     names = set()
     for name, item in dlls.items():
@@ -214,8 +276,10 @@ def verify_private_plan(plan: PrivateBootstrapPlan) -> VerifiedPrivatePlan:
             or _digest(pe.get("executable_sha256_before")) == _digest(pe.get("executable_sha256_after"))
             or _sha256(root / "python/python.exe") != pe["executable_sha256_after"]):
         raise ValueError("Private modified interpreter receipt required, not activated ACP proof")
-    return VerifiedPrivatePlan(plan, tuple(sorted(verified)), root / "native/pdf/bin/libffi-8.dll",
-                               state / "pdf-cache", len(paths))
+    return VerifiedPrivatePlan(plan, tuple(sorted(verified)), root / "native/pdf/bin" / preload,
+                               state / "pdf-cache", len(paths),
+                               "PRIVATE_SOURCE_PREFLIGHT_ONLY_NO_NATIVE_ACTIVATION" if source
+                               else "PRIVATE_SDK_PREFLIGHT_ONLY_NO_NATIVE_ACTIVATION")
 
 
 def prepare_private_plan(plan: PrivateBootstrapPlan) -> VerifiedPrivatePlan:
@@ -271,10 +335,33 @@ class PrivateSdkActivation:
     dll_count: int
     bootstrap_temp: str
     role: str = "APP_OWNED_PRIVATE_SDK_ACTIVATION_NOT_INSTALLED"
+    source_audit_sha256: str | None = None
 
 
 @contextmanager
 def activate_private_sdk(plan: PrivateBootstrapPlan) -> Iterator[PrivateSdkActivation]:
+    """SDK-only opt-in; never infer source mode or accept a cached snapshot."""
+    if type(plan) is not PrivateBootstrapPlan:
+        raise TypeError("Explicit PrivateBootstrapPlan required")
+    if plan.source_audit_sha256 is not None:
+        raise ValueError("Source plan requires explicit activate_private_source")
+    with _activate_private(plan) as active:
+        yield active
+
+
+@contextmanager
+def activate_private_source(plan: PrivateBootstrapPlan) -> Iterator[PrivateSdkActivation]:
+    """Separate source-only opt-in, exact noticed-build audit required."""
+    if type(plan) is not PrivateBootstrapPlan:
+        raise TypeError("Explicit PrivateBootstrapPlan required")
+    if plan.source_audit_sha256 is None:
+        raise ValueError("Independent source audit digest required")
+    with _activate_private(plan) as active:
+        yield active
+
+
+@contextmanager
+def _activate_private(plan: PrivateBootstrapPlan) -> Iterator[PrivateSdkActivation]:
     """Explicit one-process SDK activation, never accept a cached verification.
 
     Hold the absolute CFFI preload and DLL-directory handle for the entire body.
@@ -322,7 +409,7 @@ def activate_private_sdk(plan: PrivateBootstrapPlan) -> Iterator[PrivateSdkActiv
             for name, _ in verified.dlls:
                 module = kernel.GetModuleHandleW(name)
                 if not module:
-                    if name == "libffi-8.dll":
+                    if name == verified.preload.name:
                         raise ValueError("Private SDK preload not mapped")
                     continue
                 buffer = ctypes.create_unicode_buffer(32768)
@@ -330,13 +417,16 @@ def activate_private_sdk(plan: PrivateBootstrapPlan) -> Iterator[PrivateSdkActiv
                     raise ctypes.WinError(ctypes.get_last_error())  # type: ignore[attr-defined]
                 if Path(buffer.value).resolve() != native / name:
                     raise ValueError("Foreign native module before app entry")
-                if name == "libffi-8.dll":
+                if name == verified.preload.name:
                     loaded_preload = buffer.value
             if loaded_preload is None or pinned is None:
                 raise RuntimeError("Private native preload lifetime failure")
             yield PrivateSdkActivation(os.getpid(), kernel.GetACP(), loaded_preload,
                                        plan.manifest_sha256, plan.inventory_sha256,
-                                       verified.payload_files, len(verified.dlls), directory)
+                                       verified.payload_files, len(verified.dlls), directory,
+                                       "APP_OWNED_PRIVATE_SOURCE_ACTIVATION_NOT_INSTALLED"
+                                       if plan.source_audit_sha256 else "APP_OWNED_PRIVATE_SDK_ACTIVATION_NOT_INSTALLED",
+                                       plan.source_audit_sha256)
             if any(Path(directory).iterdir()):
                 raise ValueError("Private bootstrap temporary files leaked")
             if pinned is None:

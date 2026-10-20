@@ -22,6 +22,7 @@ def main():
         parser.add_argument('--' + key, type=Path, required=True)
     parser.add_argument('--payload-manifest-sha256', required=True)
     parser.add_argument('--inventory-sha256', required=True)
+    parser.add_argument('--source-audit-sha256')
     parser.add_argument('--reuse-state', action='store_true')
     args = parser.parse_args()
     root = args.app_root.resolve(strict=True)
@@ -40,26 +41,30 @@ def main():
         raise ValueError('Application bootstrap code differs before execution')
     bootstrap = runpy.run_path(str(module))
     plan = bootstrap['PrivateBootstrapPlan'](root, args.bootstrap_state_root,
-                                             args.payload_manifest_sha256, args.inventory_sha256)
+                                             args.payload_manifest_sha256, args.inventory_sha256,
+                                             source_audit_sha256=args.source_audit_sha256)
     names = ('PATH', 'TEMP', 'TMP', 'WEASYPRINT_DLL_DIRECTORIES', 'FONTCONFIG_FILE', 'FONTCONFIG_PATH')
     before = {name: os.environ.get(name) for name in names}, sys.path[:], tempfile.tempdir
     old_argv = sys.argv[:]
     try:
-        with bootstrap['activate_private_sdk'](plan) as active:
+        with bootstrap['activate_private_source' if args.source_audit_sha256 else 'activate_private_sdk'](plan) as active:
             if any(n == p or n.startswith(p+'.') for n in sys.modules for p in ('app', 'weasyprint', 'uvicorn')):
                 raise ValueError('Application imported before private SDK entry')
-            parent = {'schema': 1, 'role': 'PRIVATE_APP_BOOTSTRAP_SDK_HTTP_NOT_INSTALLED',
+            parent = {'schema': 1, 'role': ('PRIVATE_APP_BOOTSTRAP_SOURCE_HTTP_NOT_INSTALLED' if args.source_audit_sha256
+                                          else 'PRIVATE_APP_BOOTSTRAP_SDK_HTTP_NOT_INSTALLED'),
                       'pid': os.getpid(), 'no_site': sys.flags.no_site, 'isolated': sys.flags.isolated,
                       'utf8_mode': sys.flags.utf8_mode, 'windows_acp': active.windows_acp,
                       'payload_manifest_sha256': plan.manifest_sha256, 'inventory_sha256': plan.inventory_sha256,
                       'libffi': active.libffi, 'dll_count': active.dll_count,
                       'app_and_weasyprint_absent_before_entry': True, 'activation': asdict(active),
-                      'target_mode': 'PRIVATE_APP_BOOTSTRAP_HTTP', 'source_audit_bound': False,
-                      'source_audit_sha256': None, 'new_source_build_proven': False,
+                      'target_mode': 'PRIVATE_APP_BOOTSTRAP_HTTP', 'source_audit_bound': args.source_audit_sha256 is not None,
+                      'source_audit_sha256': args.source_audit_sha256, 'new_source_build_proven': False,
                       'ordinary_launcher_changed': False, 'release_authorized': False}
             worker = root/'scripts/pdf_private_http_probe.py'
             sys.argv = [str(worker), '--app-root', str(root), '--state-root', str(args.state_root),
                         '--contexts', str(args.contexts), '--out-dir', str(args.out_dir), '--app-owned-fonts']
+            if args.source_audit_sha256:
+                sys.argv += ['--source-audit-sha256', args.source_audit_sha256]
             if args.reuse_state:
                 sys.argv.append('--reuse-state')
             runpy.run_path(str(worker), run_name='__main__')
