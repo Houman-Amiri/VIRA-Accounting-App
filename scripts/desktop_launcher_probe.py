@@ -278,7 +278,12 @@ def main():
             encoding="utf-8-sig"
         ):
             raise ValueError("Invalid launcher rejection reason: " + name)
+        if "; native_imported=0; app_imported=0" not in (reports / (name + ".log")).read_text(
+            encoding="utf-8-sig"
+        ):
+            raise ValueError("Rejected startup imported app/native modules: " + name)
         negatives[name] = {
+            "pre_native_and_pre_app_rejection": True,
             "failure_kind": expected,
             "rejected": True,
             "exit_code": code,

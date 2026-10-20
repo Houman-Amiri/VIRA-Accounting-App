@@ -369,9 +369,13 @@ def main() -> int:
         options["inventory_sha256"],
         source_audit_sha256=options["source_audit_sha256"],
     )
+    # Reject changed payload/source before touching business state, then acquire
+    # the lifetime/update guards BEFORE any native DLL import. Activation still
+    # repeats the full audit at the loading boundary; this is not a cached bypass.
+    boot["prepare_private_plan"](plan)
     with (
-        boot["activate_private_source"](plan) as active,
         state_guard(root, state, boot["_no_links"]),
+        boot["activate_private_source"](plan) as active,
     ):
         launch = state / "launches" / options["launch_id"]
         launch.mkdir(parents=True, exist_ok=False)
@@ -411,5 +415,12 @@ if __name__ == "__main__":
     try:
         raise SystemExit(main())
     except Exception as exc:
-        print("VIRA private desktop startup rejected: " + failure_kind(exc), file=sys.stderr)
+        native = any(n in sys.modules for n in ("ctypes", "_ctypes", "cffi", "_cffi_backend"))
+        app = any(n in sys.modules for n in ("app.main", "uvicorn", "weasyprint"))
+        print(
+            "VIRA private desktop startup rejected: "
+            + failure_kind(exc)
+            + f"; native_imported={int(native)}; app_imported={int(app)}",
+            file=sys.stderr,
+        )
         raise SystemExit(1) from None
