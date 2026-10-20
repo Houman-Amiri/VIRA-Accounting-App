@@ -323,14 +323,20 @@
         "private_app_bootstrap_preflight_report": "docs/reports/pdf-bootstrap-preparation-fa.md",
         "private_app_bootstrap_real_windows_preflight_proven": true,
         "private_app_bootstrap_native_activation_implemented": true,
-        "private_app_bootstrap_source21_supported": false,
+        "private_app_bootstrap_source21_supported": true,
         "private_app_bootstrap_preflight_local_verified_at_utc": "2026-10-19T13:04:33.875958+00:00",
         "private_app_bootstrap_sdk_activation_scope": "PRIVATE_WINDOWS_SDK27_APP_OWNED_CONTEXT_AND_HTTP_NOT_ORDINARY_STARTUP",
         "private_app_bootstrap_sdk_activation_http_proven": true,
         "private_app_bootstrap_sdk_activation_run_id": 39286484245,
         "private_app_bootstrap_sdk_activation_proof": "docs/dependencies/pdf-bootstrap-sdk-http-proof.json",
         "private_app_bootstrap_sdk_activation_report": "docs/reports/pdf-bootstrap-sdk-http-fa.md",
-        "private_app_bootstrap_source21_activation_proven": false
+        "private_app_bootstrap_source21_activation_proven": true,
+        "private_app_bootstrap_source21_activation_scope": "READINESS_PHASE1_PRIVATE_NOTICED_COLD20_TREE21_DLL_APP_OWNED_BOOTSTRAP_HTTP_NOT_ORDINARY_STARTUP",
+        "private_app_bootstrap_source21_activation_run_id": 39388243191,
+        "private_app_bootstrap_source21_activation_proof": "docs/dependencies/pdf-bootstrap-source-http-proof.json",
+        "private_app_bootstrap_source21_activation_report": "docs/reports/readiness-phase1-source-bootstrap-fa.md",
+        "private_app_bootstrap_source21_native_audit_sha256": "7b95ee89d0319570f8a3a7dcd18173dbce2ea5fdc0c524e0276c61a357f4e358",
+        "remaining_readiness_phase1_of6_private_source_bootstrap_completed": true
       }
     }
   ],

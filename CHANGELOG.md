@@ -7,6 +7,19 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Remaining-readiness phase 1/6: app-owned SOURCE bootstrap and HTTP (private)
+- Explicit source-only activation with independent audit digest; app-owned noticed
+  archive/file/manifest,20-tree21-DLL/version/cache binding and source ffi-8.dll pin.
+  SDK/source opt-ins remain distinct, double preflight and lifetime/restore preserved.
+- Windows39388243191/88180ea SUCCESS: actual cold source build, both old regressions,
+  new owned-bootstrap2-PID/same-DB8-PDF HTTP,5 negatives,post-envelope reverify.
+  Vazirmatn/digits/TTF hashes/zero system fonts/font-cache-bootstrap cleanup;peak1.
+- Authenticated119672B/10-part witness,artifact metadata not independent ZIP hash;
+  23 synthetic+1 recorded-proof controls,905 backend PASS,Mypy87 etc/MIT14 PASS.
+- Phase1 of agreed six workstreams complete, five remain. All6 gates OPEN; no
+  default/installed launcher/main/settings/stager selection/release/data/math or
+  expanded application license. Source proof not ordinary/installed acceptance.
+
 ### Private app-owned SDK bootstrap activation and HTTP (not source21/installed)
 - Explicit application context owns complete preflight/revalidation, absolute SDK
   CFFI pin before ctypes/app, ACP/native origin/lifetime and env/path/TEMP restore.

@@ -1432,3 +1432,43 @@ factory/route/settings/version/tag/release/installed userdata/math change. New f
 copied as normal sources by unchanged stager, never auto-selected. All6 gates OPEN;
 MIT14 only, signing/minOS/CRT/EULA/durable delivery/native Inno-delta-rollback and
 installed acceptance remain unproven. Cooperative hashes NOT signatures/ACL/TOCTOU.
+
+### Remaining readiness PHASE 1 OF 6 — 2026-10-20, PRIVATE source bootstrap COMPLETE
+
+Per owner agreement, one complete phase per remaining workstream, not one phase
+per small check. Phase1 includes source implementation, guards, tests, one actual
+cold Windows compilation, all regressions, real owned bootstrap/HTTP and evidence.
+Explicit source-audit SHA in immutable plan + activate_private_source; SDK API
+rejects source and source API rejects missing audit. App owns exact noticed archive/
+file/manifest,20-tree21-DLL hash/owner/version/cache binding, double preflight and
+source ffi-8.dll preload/ACP/origin/lifetime/restore. No app import of QA or renderer/
+configuration factory callback. CPython libffi-8.dll is distinct, no rename/alias or
+source-FFI callback provenance claim. Read-only verifier APIs/default remain intact.
+
+39388243191/88180ea SUCCESS: separate actual SDK preflight then cold source20-tree
+build/cache disabled,21-DLL audit, executed Pango1.58.0-vira-local-source; legacy and
+owned-font regressions followed by distinct app-owned SOURCE BOOTSTRAP mode and
+post-activation noticed-envelope reverify. PIDs6792/8708,same SQLite/IDs,8 NEW actual
+1/4A4 PDFs,Vazirmatn400/700,30/10 digits,two TTF hashes,zero system fonts,all font/cache/
+bootstrap-temp cleanup and env/path/TEMP restore.5 actual negatives including wrong
+source-audit digest. Peak1,parallel clients not parallel native throughput;locks/math
+unchanged. Regression PDFs not counted/relabelled as new bootstrap proofs.
+
+119672B witness SHA3c134b431fe977f2937e84b6139ec3daa19517c407cf5a6de904bdbeb2043a5d,
+10 authenticated same-job annotation parts;artifact12250199759 metadata authenticated,
+ZIP not independently downloaded/hashed. Repository hashes are canonical Git bytes,
+not claimed staged Windows CRLF bytes.23 new synthetic source controls+1 recorded
+witness test;905 backend PASS99.03s/no skips,Ruff/Mypy87/Bandit gate/MIT14 PASS.
+SDK39388243073 and ordinary CI39388243225 all5 SUCCESS at same executable head.
+[Report](docs/reports/readiness-phase1-source-bootstrap-fa.md),
+[proof](docs/dependencies/pdf-bootstrap-source-http-proof.json),
+[checkpoint](docs/dependencies/pdf-bootstrap-source-checkpoint-ci.json).
+
+Five workstreams remain:2 ordinary launcher integration;3 native clean install/
+delta/rollback preserving data;4 final legal/distribution package review (parallel);
+5 deferred actual installed-user tests;6 separately owner-authorized release after
+Persian notes. These workstreams are NOT one-to-one legal gates: ALL SIX GATES OPEN.
+No main/factory/route/settings/installed launcher/stage script/version/tag/release/
+user data/schema/math change. Current stager copies sources but never auto-selects
+this mode. No ordinary-startup, signing/minOS, CRT/EULA/durable-public-source/native
+Inno-delta-rollback/installed acceptance approval; MIT14 only, not whole app/QA.

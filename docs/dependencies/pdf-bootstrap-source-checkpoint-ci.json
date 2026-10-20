@@ -1,0 +1,1113 @@
+{
+  "schema": 1,
+  "role": "READINESS_PHASE1_IMPLEMENTATION_CI_AND_LOCAL_TESTS_NOT_FINAL_DOCS_COMMIT",
+  "verified_at_utc": "2026-10-20T08:36:35.781784+00:00",
+  "head_sha": "88180ea9ad6027c27533b9bd87187ec63c0a3ed3",
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 39388243225,
+      "headSha": "88180ea9ad6027c27533b9bd87187ec63c0a3ed3",
+      "jobs": [
+        {
+          "completedAt": "2026-10-20T07:51:25Z",
+          "conclusion": "success",
+          "databaseId": 118513231227,
+          "name": "Frontend \u2014 lint, types, contract, tests, build",
+          "startedAt": "2026-10-20T07:42:08Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@v4",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run pnpm/action-setup@v4",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/setup-node@v4",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Install (frozen lockfile \u2014 fails on drift)",
+              "number": 5,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Prettier",
+              "number": 6,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "ESLint",
+              "number": 7,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "TypeScript",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "npm audit (critical gate; 1 accepted dev-only high is documented)",
+              "number": 9,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Vitest",
+              "number": 10,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Build",
+              "number": 11,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Upload reports",
+              "number": 12,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Upload SPA build",
+              "number": 13,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/setup-node@v4",
+              "number": 24,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run pnpm/action-setup@v4",
+              "number": 25,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v4",
+              "number": 26,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 27,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39388243225/job/118513231227"
+        },
+        {
+          "completedAt": "2026-10-20T07:51:25Z",
+          "conclusion": "success",
+          "databaseId": 118513231438,
+          "name": "Backend \u2014 lint, type, security, tests",
+          "startedAt": "2026-10-20T07:42:08Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@v4",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Install uv",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Sync dependencies (lockfile check)",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Ruff (lint)",
+              "number": 5,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Mypy (types)",
+              "number": 6,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Bandit (security)",
+              "number": 7,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "pip-audit (dependencies)",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Fresh SQLite + migrations",
+              "number": 9,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Pytest + Hypothesis invariants",
+              "number": 10,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Upload test report",
+              "number": 11,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Install uv",
+              "number": 21,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v4",
+              "number": 22,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 23,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39388243225/job/118513231438"
+        },
+        {
+          "completedAt": "2026-10-20T07:51:25Z",
+          "conclusion": "success",
+          "databaseId": 118513231557,
+          "name": "Playwright e2e (native processes)",
+          "startedAt": "2026-10-20T07:42:08Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@v4",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run astral-sh/setup-uv@v5",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run pnpm/action-setup@v4",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/setup-node@v4",
+              "number": 5,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run uv sync --frozen --all-extras",
+              "number": 6,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run pnpm install --frozen-lockfile",
+              "number": 7,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Migrations for the e2e database",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Seed charts + owner user for e2e",
+              "number": 9,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Install Chromium",
+              "number": 10,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Playwright smoke (backend + Vite dev launched natively)",
+              "number": 11,
+              "status": "completed"
+            },
+            {
+              "conclusion": "skipped",
+              "name": "Publish e2e failure to annotations (log access is restricted)",
+              "number": 12,
+              "status": "completed"
+            },
+            {
+              "conclusion": "skipped",
+              "name": "Upload Playwright report",
+              "number": 13,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/setup-node@v4",
+              "number": 23,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run pnpm/action-setup@v4",
+              "number": 24,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run astral-sh/setup-uv@v5",
+              "number": 25,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v4",
+              "number": 26,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 27,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39388243225/job/118513231557"
+        },
+        {
+          "completedAt": "2026-10-20T07:51:25Z",
+          "conclusion": "success",
+          "databaseId": 118513231683,
+          "name": "OpenAPI contract is in sync",
+          "startedAt": "2026-10-20T07:42:08Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@v4",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run astral-sh/setup-uv@v5",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run pnpm/action-setup@v4",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/setup-node@v4",
+              "number": 5,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run uv sync --frozen --all-extras",
+              "number": 6,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run pnpm install --frozen-lockfile",
+              "number": 7,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Regenerate schema from a live FastAPI app (temp SQLite)",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Generated types must be committed (reviewable in GitHub Web)",
+              "number": 9,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/setup-node@v4",
+              "number": 15,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run pnpm/action-setup@v4",
+              "number": 16,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run astral-sh/setup-uv@v5",
+              "number": 17,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v4",
+              "number": 18,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 19,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39388243225/job/118513231683"
+        },
+        {
+          "completedAt": "2026-10-20T07:51:25Z",
+          "conclusion": "success",
+          "databaseId": 118513231830,
+          "name": "Windows-native smoke (SQLite paths, venv, build)",
+          "startedAt": "2026-10-20T07:42:08Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@v4",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run astral-sh/setup-uv@v5",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run pnpm/action-setup@v4",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/setup-node@v4",
+              "number": 5,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Parse PowerShell release scripts",
+              "number": 6,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Backend deps + migrations + tests (native Windows)",
+              "number": 7,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Prepare hash-pinned native PDF fixture (test-only, no system GTK)",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Strict real PDF and embedded Vazirmatn (native Windows)",
+              "number": 9,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Upload synthetic native PDF evidence (no DLL binaries)",
+              "number": 10,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Frontend install + build (native Windows)",
+              "number": 11,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Private bundled CPython PDF and minimal native closure proof",
+              "number": 12,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Upload private bundled PDF audit (no app, interpreter or native binaries)",
+              "number": 13,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Real in-app delta apply and rollback (isolated Windows, current-code fixtures)",
+              "number": 14,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Public 1.0.10 real schema migration and compiled-helper database rollback",
+              "number": 15,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/setup-node@v4",
+              "number": 27,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run pnpm/action-setup@v4",
+              "number": 28,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run astral-sh/setup-uv@v5",
+              "number": 29,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v4",
+              "number": 30,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 31,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39388243225/job/118513231830"
+        }
+      ],
+      "name": "CI",
+      "status": "completed",
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39388243225"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39388243073,
+      "headSha": "88180ea9ad6027c27533b9bd87187ec63c0a3ed3",
+      "jobs": [
+        {
+          "completedAt": "2026-10-20T07:46:51Z",
+          "conclusion": "success",
+          "databaseId": 118513231427,
+          "name": "launcher",
+          "startedAt": "2026-10-20T07:42:07Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@v4",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run astral-sh/setup-uv@v5",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run pnpm/action-setup@v4",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/setup-node@v4",
+              "number": 5,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Locked app and separately pinned SDK, no native-source claim",
+              "number": 6,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Consume fixture environment only after GITHUB_ENV step boundary",
+              "number": 7,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Real app factory, loopback HTTP, auth/CSRF, parallel PDFs and fresh restart",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Bind application-owned HTTP proof, never QA replacement",
+              "number": 9,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Bootstrap SDK evidence group 0",
+              "number": 10,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Bootstrap SDK evidence group 1",
+              "number": 11,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Bootstrap SDK evidence group 2",
+              "number": 12,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Bootstrap SDK evidence group 3",
+              "number": 13,
+              "status": "completed"
+            },
+            {
+              "conclusion": "skipped",
+              "name": "Expose bounded setup diagnostics without changing failure status",
+              "number": 14,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/upload-artifact@v4",
+              "number": 15,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/setup-node@v4",
+              "number": 27,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run pnpm/action-setup@v4",
+              "number": 28,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run astral-sh/setup-uv@v5",
+              "number": 29,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v4",
+              "number": 30,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 31,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39388243073/job/118513231427"
+        }
+      ],
+      "name": "Private app-owned SDK preflight activation and HTTP (not source21)",
+      "status": "completed",
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39388243073"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 39388243191,
+      "headSha": "88180ea9ad6027c27533b9bd87187ec63c0a3ed3",
+      "jobs": [
+        {
+          "completedAt": "2026-10-20T08:31:30Z",
+          "conclusion": "success",
+          "databaseId": 118513231112,
+          "name": "stock-http-preflight",
+          "startedAt": "2026-10-20T07:42:07Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@v4",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run astral-sh/setup-uv@v5",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run pnpm/action-setup@v4",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/setup-node@v4",
+              "number": 5,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Locked app and separately pinned SDK, no native-source claim",
+              "number": 6,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Consume fixture environment only after GITHUB_ENV step boundary",
+              "number": 7,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Real app factory, loopback HTTP, auth/CSRF, parallel PDFs and fresh restart",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Bind application-owned HTTP proof, never QA replacement",
+              "number": 9,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Bootstrap SDK evidence group 0",
+              "number": 10,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Bootstrap SDK evidence group 1",
+              "number": 11,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Bootstrap SDK evidence group 2",
+              "number": 12,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Bootstrap SDK evidence group 3",
+              "number": 13,
+              "status": "completed"
+            },
+            {
+              "conclusion": "skipped",
+              "name": "Expose bounded setup diagnostics without changing failure status",
+              "number": 14,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/upload-artifact@v4",
+              "number": 15,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/setup-node@v4",
+              "number": 27,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run pnpm/action-setup@v4",
+              "number": 28,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run astral-sh/setup-uv@v5",
+              "number": 29,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v4",
+              "number": 30,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 31,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39388243191/job/118513231112"
+        },
+        {
+          "completedAt": "2026-10-20T08:31:30Z",
+          "conclusion": "success",
+          "databaseId": 118514621733,
+          "name": "source-http-consumer",
+          "startedAt": "2026-10-20T07:45:51Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@v4",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Authenticate the exact prior noticed-source producer and artifact",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Authenticate downloaded archive, extract exact noticed sources and prepare recipe",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Compile all target libraries from local preferred trees with binary caches disabled",
+              "number": 5,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Verify twenty actual build trees, twenty-one DLL origins, and executed modified LGPL function",
+              "number": 6,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run astral-sh/setup-uv@v5",
+              "number": 7,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run pnpm/action-setup@v4",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/setup-node@v4",
+              "number": 9,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Prepare locked application only AFTER the standalone native build and audit",
+              "number": 10,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Fresh no-site source HTTP launcher, real route PDFs and restart",
+              "number": 11,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Bind this fresh noticed-source compilation to both actual HTTP processes",
+              "number": 12,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Reverify the exact source envelope after native compilation and rendering",
+              "number": 13,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Source HTTP evidence group 0",
+              "number": 14,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Source HTTP evidence group 1",
+              "number": 15,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Source HTTP evidence group 2",
+              "number": 16,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Source HTTP evidence group 3",
+              "number": 17,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Application-owned source HTTP without replacing rendering callables",
+              "number": 18,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Bind fresh source audit to application-owned HTTP",
+              "number": 19,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "App-owned source evidence group 0",
+              "number": 20,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "App-owned source evidence group 1",
+              "number": 21,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "App-owned source evidence group 2",
+              "number": 22,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "App-owned source evidence group 3",
+              "number": 23,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Reverify noticed envelope after application-owned source HTTP",
+              "number": 24,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Phase 1 app-owned source preflight and activation with distinct real HTTP processes",
+              "number": 25,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Bind exact fresh source audit to app-owned bootstrap and HTTP",
+              "number": 26,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Phase 1 bootstrap source evidence group 0",
+              "number": 27,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Phase 1 bootstrap source evidence group 1",
+              "number": 28,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Phase 1 bootstrap source evidence group 2",
+              "number": 29,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Phase 1 bootstrap source evidence group 3",
+              "number": 30,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Reverify noticed source envelope after app-owned bootstrap and HTTP",
+              "number": 31,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Preserve bounded diagnostics and recipes, never compiled binaries",
+              "number": 32,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/upload-artifact@v4",
+              "number": 33,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/setup-node@v4",
+              "number": 63,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run pnpm/action-setup@v4",
+              "number": 64,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run astral-sh/setup-uv@v5",
+              "number": 65,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v4",
+              "number": 66,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 67,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39388243191/job/118514621733"
+        }
+      ],
+      "name": "Phase 1 app-owned noticed-source bootstrap and HTTP",
+      "status": "completed",
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39388243191"
+    }
+  ],
+  "local_tests": {
+    "passed": 905,
+    "skipped": 0,
+    "failures": 0,
+    "errors": 0,
+    "duration_seconds_display": 99.03,
+    "junit_suite_started_at_utc": "2026-10-20T08:33:09.601465+00:00"
+  },
+  "new_synthetic_source_controls": 23,
+  "recorded_source_witness_controls": 1,
+  "static_checks": {
+    "ruff": "PASS",
+    "mypy": "PASS",
+    "mypy_source_files": 87,
+    "bandit_existing_gate": "PASS",
+    "mit_files": 14
+  },
+  "phase_completed": "REMAINING_READINESS_PHASE_1_OF_6_PRIVATE_SOURCE_BOOTSTRAP_ONLY",
+  "ordinary_production_startup_proven": false,
+  "installed_user_acceptance": false,
+  "release_authorized": false
+}

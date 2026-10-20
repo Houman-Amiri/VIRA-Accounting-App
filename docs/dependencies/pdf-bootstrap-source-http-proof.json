@@ -1,0 +1,571 @@
+{
+  "schema": 1,
+  "role": "AUTHENTICATED_PHASE1_SOURCE_BOOTSTRAP_HTTP_NOT_DISTRIBUTION",
+  "verified_at_utc": "2026-10-20T08:32:39.244394+00:00",
+  "run_id": 39388243191,
+  "head_sha": "88180ea9ad6027c27533b9bd87187ec63c0a3ed3",
+  "run_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39388243191",
+  "workflow_path": ".github/workflows/pdf-bootstrap-source.yml",
+  "run_conclusion": "success",
+  "jobs": [
+    {
+      "id": 118513231112,
+      "run_id": 39388243191,
+      "workflow_name": "Phase 1 app-owned noticed-source bootstrap and HTTP",
+      "head_branch": "arena/aee91951-vira-accounting-app",
+      "run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/runs/39388243191",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVJAq0c8AAAAbl_BlCA",
+      "head_sha": "88180ea9ad6027c27533b9bd87187ec63c0a3ed3",
+      "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/jobs/118513231112",
+      "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39388243191/job/118513231112",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-20T07:42:05Z",
+      "started_at": "2026-10-20T07:42:07Z",
+      "completed_at": "2026-10-20T07:45:48Z",
+      "name": "stock-http-preflight",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-20T07:42:08Z",
+          "completed_at": "2026-10-20T07:42:09Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-20T07:42:09Z",
+          "completed_at": "2026-10-20T07:42:14Z"
+        },
+        {
+          "name": "Run astral-sh/setup-uv@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-20T07:42:14Z",
+          "completed_at": "2026-10-20T07:42:18Z"
+        },
+        {
+          "name": "Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-20T07:42:18Z",
+          "completed_at": "2026-10-20T07:42:23Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-20T07:42:23Z",
+          "completed_at": "2026-10-20T07:42:38Z"
+        },
+        {
+          "name": "Locked app and separately pinned SDK, no native-source claim",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-20T07:42:38Z",
+          "completed_at": "2026-10-20T07:43:12Z"
+        },
+        {
+          "name": "Consume fixture environment only after GITHUB_ENV step boundary",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-20T07:43:12Z",
+          "completed_at": "2026-10-20T07:43:13Z"
+        },
+        {
+          "name": "Real app factory, loopback HTTP, auth/CSRF, parallel PDFs and fresh restart",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-20T07:43:13Z",
+          "completed_at": "2026-10-20T07:45:40Z"
+        },
+        {
+          "name": "Bind application-owned HTTP proof, never QA replacement",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-20T07:45:40Z",
+          "completed_at": "2026-10-20T07:45:40Z"
+        },
+        {
+          "name": "Bootstrap SDK evidence group 0",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-10-20T07:45:40Z",
+          "completed_at": "2026-10-20T07:45:41Z"
+        },
+        {
+          "name": "Bootstrap SDK evidence group 1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-10-20T07:45:41Z",
+          "completed_at": "2026-10-20T07:45:41Z"
+        },
+        {
+          "name": "Bootstrap SDK evidence group 2",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-20T07:45:41Z",
+          "completed_at": "2026-10-20T07:45:41Z"
+        },
+        {
+          "name": "Bootstrap SDK evidence group 3",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-20T07:45:41Z",
+          "completed_at": "2026-10-20T07:45:42Z"
+        },
+        {
+          "name": "Expose bounded setup diagnostics without changing failure status",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 14,
+          "started_at": "2026-10-20T07:45:42Z",
+          "completed_at": "2026-10-20T07:45:42Z"
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-10-20T07:45:42Z",
+          "completed_at": "2026-10-20T07:45:43Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 27,
+          "started_at": "2026-10-20T07:45:43Z",
+          "completed_at": "2026-10-20T07:45:43Z"
+        },
+        {
+          "name": "Post Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 28,
+          "started_at": "2026-10-20T07:45:43Z",
+          "completed_at": "2026-10-20T07:45:43Z"
+        },
+        {
+          "name": "Post Run astral-sh/setup-uv@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 29,
+          "started_at": "2026-10-20T07:45:43Z",
+          "completed_at": "2026-10-20T07:45:43Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 30,
+          "started_at": "2026-10-20T07:45:43Z",
+          "completed_at": "2026-10-20T07:45:45Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 31,
+          "started_at": "2026-10-20T07:45:45Z",
+          "completed_at": "2026-10-20T07:45:45Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/check-runs/118513231112",
+      "labels": [
+        "windows-latest"
+      ],
+      "runner_id": 1000001660,
+      "runner_name": "GitHub Actions 1000001660",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 118514621733,
+      "run_id": 39388243191,
+      "workflow_name": "Phase 1 app-owned noticed-source bootstrap and HTTP",
+      "head_branch": "arena/aee91951-vira-accounting-app",
+      "run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/runs/39388243191",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVJAq0c8AAAAbmAWdJQ",
+      "head_sha": "88180ea9ad6027c27533b9bd87187ec63c0a3ed3",
+      "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/jobs/118514621733",
+      "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39388243191/job/118514621733",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-20T07:45:49Z",
+      "started_at": "2026-10-20T07:45:51Z",
+      "completed_at": "2026-10-20T08:31:30Z",
+      "name": "source-http-consumer",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-20T07:45:52Z",
+          "completed_at": "2026-10-20T07:45:54Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-20T07:45:54Z",
+          "completed_at": "2026-10-20T07:46:00Z"
+        },
+        {
+          "name": "Authenticate the exact prior noticed-source producer and artifact",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-20T07:46:00Z",
+          "completed_at": "2026-10-20T07:46:14Z"
+        },
+        {
+          "name": "Authenticate downloaded archive, extract exact noticed sources and prepare recipe",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-20T07:46:14Z",
+          "completed_at": "2026-10-20T07:47:16Z"
+        },
+        {
+          "name": "Compile all target libraries from local preferred trees with binary caches disabled",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-20T07:47:16Z",
+          "completed_at": "2026-10-20T08:23:53Z"
+        },
+        {
+          "name": "Verify twenty actual build trees, twenty-one DLL origins, and executed modified LGPL function",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-20T08:23:53Z",
+          "completed_at": "2026-10-20T08:24:15Z"
+        },
+        {
+          "name": "Run astral-sh/setup-uv@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-20T08:24:15Z",
+          "completed_at": "2026-10-20T08:24:18Z"
+        },
+        {
+          "name": "Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-20T08:24:18Z",
+          "completed_at": "2026-10-20T08:24:22Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-20T08:24:22Z",
+          "completed_at": "2026-10-20T08:24:35Z"
+        },
+        {
+          "name": "Prepare locked application only AFTER the standalone native build and audit",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-10-20T08:24:35Z",
+          "completed_at": "2026-10-20T08:25:11Z"
+        },
+        {
+          "name": "Fresh no-site source HTTP launcher, real route PDFs and restart",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-10-20T08:25:11Z",
+          "completed_at": "2026-10-20T08:26:27Z"
+        },
+        {
+          "name": "Bind this fresh noticed-source compilation to both actual HTTP processes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-20T08:26:27Z",
+          "completed_at": "2026-10-20T08:26:28Z"
+        },
+        {
+          "name": "Reverify the exact source envelope after native compilation and rendering",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-20T08:26:28Z",
+          "completed_at": "2026-10-20T08:26:50Z"
+        },
+        {
+          "name": "Source HTTP evidence group 0",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-10-20T08:26:50Z",
+          "completed_at": "2026-10-20T08:26:50Z"
+        },
+        {
+          "name": "Source HTTP evidence group 1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-10-20T08:26:50Z",
+          "completed_at": "2026-10-20T08:26:51Z"
+        },
+        {
+          "name": "Source HTTP evidence group 2",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16,
+          "started_at": "2026-10-20T08:26:51Z",
+          "completed_at": "2026-10-20T08:26:51Z"
+        },
+        {
+          "name": "Source HTTP evidence group 3",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17,
+          "started_at": "2026-10-20T08:26:51Z",
+          "completed_at": "2026-10-20T08:26:52Z"
+        },
+        {
+          "name": "Application-owned source HTTP without replacing rendering callables",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18,
+          "started_at": "2026-10-20T08:26:52Z",
+          "completed_at": "2026-10-20T08:27:52Z"
+        },
+        {
+          "name": "Bind fresh source audit to application-owned HTTP",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19,
+          "started_at": "2026-10-20T08:27:52Z",
+          "completed_at": "2026-10-20T08:27:53Z"
+        },
+        {
+          "name": "App-owned source evidence group 0",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20,
+          "started_at": "2026-10-20T08:27:53Z",
+          "completed_at": "2026-10-20T08:27:53Z"
+        },
+        {
+          "name": "App-owned source evidence group 1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21,
+          "started_at": "2026-10-20T08:27:53Z",
+          "completed_at": "2026-10-20T08:27:53Z"
+        },
+        {
+          "name": "App-owned source evidence group 2",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 22,
+          "started_at": "2026-10-20T08:27:53Z",
+          "completed_at": "2026-10-20T08:27:54Z"
+        },
+        {
+          "name": "App-owned source evidence group 3",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 23,
+          "started_at": "2026-10-20T08:27:54Z",
+          "completed_at": "2026-10-20T08:27:54Z"
+        },
+        {
+          "name": "Reverify noticed envelope after application-owned source HTTP",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 24,
+          "started_at": "2026-10-20T08:27:54Z",
+          "completed_at": "2026-10-20T08:28:15Z"
+        },
+        {
+          "name": "Phase 1 app-owned source preflight and activation with distinct real HTTP processes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 25,
+          "started_at": "2026-10-20T08:28:15Z",
+          "completed_at": "2026-10-20T08:30:44Z"
+        },
+        {
+          "name": "Bind exact fresh source audit to app-owned bootstrap and HTTP",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 26,
+          "started_at": "2026-10-20T08:30:44Z",
+          "completed_at": "2026-10-20T08:30:45Z"
+        },
+        {
+          "name": "Phase 1 bootstrap source evidence group 0",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 27,
+          "started_at": "2026-10-20T08:30:45Z",
+          "completed_at": "2026-10-20T08:30:45Z"
+        },
+        {
+          "name": "Phase 1 bootstrap source evidence group 1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 28,
+          "started_at": "2026-10-20T08:30:45Z",
+          "completed_at": "2026-10-20T08:30:45Z"
+        },
+        {
+          "name": "Phase 1 bootstrap source evidence group 2",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 29,
+          "started_at": "2026-10-20T08:30:45Z",
+          "completed_at": "2026-10-20T08:30:46Z"
+        },
+        {
+          "name": "Phase 1 bootstrap source evidence group 3",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 30,
+          "started_at": "2026-10-20T08:30:46Z",
+          "completed_at": "2026-10-20T08:30:46Z"
+        },
+        {
+          "name": "Reverify noticed source envelope after app-owned bootstrap and HTTP",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 31,
+          "started_at": "2026-10-20T08:30:46Z",
+          "completed_at": "2026-10-20T08:31:09Z"
+        },
+        {
+          "name": "Preserve bounded diagnostics and recipes, never compiled binaries",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 32,
+          "started_at": "2026-10-20T08:31:09Z",
+          "completed_at": "2026-10-20T08:31:11Z"
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 33,
+          "started_at": "2026-10-20T08:31:11Z",
+          "completed_at": "2026-10-20T08:31:13Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 63,
+          "started_at": "2026-10-20T08:31:13Z",
+          "completed_at": "2026-10-20T08:31:13Z"
+        },
+        {
+          "name": "Post Run pnpm/action-setup@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 64,
+          "started_at": "2026-10-20T08:31:13Z",
+          "completed_at": "2026-10-20T08:31:14Z"
+        },
+        {
+          "name": "Post Run astral-sh/setup-uv@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 65,
+          "started_at": "2026-10-20T08:31:14Z",
+          "completed_at": "2026-10-20T08:31:14Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 66,
+          "started_at": "2026-10-20T08:31:14Z",
+          "completed_at": "2026-10-20T08:31:16Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 67,
+          "started_at": "2026-10-20T08:31:16Z",
+          "completed_at": "2026-10-20T08:31:16Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/check-runs/118514621733",
+      "labels": [
+        "windows-latest"
+      ],
+      "runner_id": 1000001667,
+      "runner_name": "GitHub Actions 1000001667",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    }
+  ],
+  "job_id": 118514621733,
+  "check_run_id": 118514621733,
+  "job_conclusion": "success",
+  "authenticated_annotation_parts": 10,
+  "witness_sha256": "3c134b431fe977f2937e84b6139ec3daa19517c407cf5a6de904bdbeb2043a5d",
+  "witness_bytes": 119672,
+  "native_audit_sha256": "7b95ee89d0319570f8a3a7dcd18173dbce2ea5fdc0c524e0276c61a357f4e358",
+  "artifact_metadata": {
+    "id": 12250199759,
+    "node_id": "MDg6QXJ0aWZhY3QxMjI1MDE5OTc1OQ==",
+    "name": "private-phase1-app-bootstrap-source-build-http-no-app-db-dlls",
+    "size_in_bytes": 1652866,
+    "url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/artifacts/12250199759",
+    "archive_download_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/actions/artifacts/12250199759/zip",
+    "expired": false,
+    "digest": "sha256:85da99f8763b472078012b95f77c2cbc2682ad514aabc5b2bc9133bdcb2cca39",
+    "created_at": "2026-10-20T08:31:13Z",
+    "updated_at": "2026-10-20T08:31:13Z",
+    "expires_at": "2027-01-18T07:42:04Z",
+    "workflow_run": {
+      "id": 39388243191,
+      "repository_id": 1418734289,
+      "head_repository_id": 1418734289,
+      "head_branch": "arena/aee91951-vira-accounting-app",
+      "head_sha": "88180ea9ad6027c27533b9bd87187ec63c0a3ed3"
+    }
+  },
+  "artifact_zip_independently_downloaded_or_hashed": false,
+  "repository_hash_format": "GIT_CANONICAL_BYTES_NOT_CLAIMED_STAGED_CRLF_BYTES",
+  "repository_implementation_sha256": {
+    "backend/app/private_pdf_bootstrap.py": "da6093cc7236223e17ceca79ccc58e695215a9b31a76b8f5a055f6ce29dba748",
+    "scripts/pdf_bootstrap_http_entry.py": "f20c46f22d43f9690c6c1b440b8165725177d8481f60a581eb3e58a6d4ab0947",
+    "scripts/pdf_bootstrap_sdk_smoke.ps1": "8993d13d18ed0d881027a36d66f3105c54cb1e039fa12db74dd60571610ff596",
+    "scripts/pdf_bootstrap_sdk_bind.py": "b8ae1bc06ead171ccc88db72574a05affc05cb5f5f21ccbe08648e13b15dc030",
+    ".github/workflows/pdf-bootstrap-source.yml": "77a9198ecb99acb3045195e19ac84d710219ac277a53750728e0792c0633c2f0"
+  },
+  "ordinary_launcher_enabled": false,
+  "installed_user_acceptance": false,
+  "release_authorized": false
+}
