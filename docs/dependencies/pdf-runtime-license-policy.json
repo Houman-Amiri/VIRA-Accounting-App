@@ -337,7 +337,23 @@
         "private_app_bootstrap_source21_activation_report": "docs/reports/readiness-phase1-source-bootstrap-fa.md",
         "private_app_bootstrap_source21_native_audit_sha256": "7b95ee89d0319570f8a3a7dcd18173dbce2ea5fdc0c524e0276c61a357f4e358",
         "remaining_readiness_phase1_of6_private_source_bootstrap_completed": true,
-        "private_app_bootstrap_source21_first_final_ci_failure_record": "docs/dependencies/pdf-bootstrap-source-final-ci-failure.json"
+        "private_app_bootstrap_source21_first_final_ci_failure_record": "docs/dependencies/pdf-bootstrap-source-final-ci-failure.json",
+        "remaining_readiness_phase2_of6_real_cmd_private_source_completed": true,
+        "private_real_cmd_app_owned_startup_proven": true,
+        "private_real_cmd_app_owned_startup_scope": "REAL_START_VIRA_CMD_EXPLICIT_PRIVATE_SOURCE_ONLY_NOT_ORDINARY_DEFAULT_OR_INSTALLED_ACCEPTANCE",
+        "private_real_cmd_source_run_id": 39437161409,
+        "private_real_cmd_source_job_id": 118679715648,
+        "private_real_cmd_source_proof": "docs/dependencies/pdf-desktop-source-http-proof.json",
+        "private_real_cmd_source_report": "docs/reports/readiness-phase2-desktop-startup-fa.md",
+        "private_real_cmd_source_native_audit_sha256": "1b73804a34668b08f4c79af677d17842e4cc02cf10fca53a1f34029a12983630",
+        "private_real_cmd_full_artifact_lossless_recovery_run_id": 39447134103,
+        "private_real_cmd_source_frozen_implementation_head": "f64649eee502d6a29547798e386f5572d3dd5e3c",
+        "private_real_cmd_source_new_pdf_count": 8,
+        "private_real_cmd_source_restart_and_persistent_session_proven": true,
+        "private_real_cmd_prior_driver_failure": "docs/dependencies/pdf-desktop-source-driver-failure.json",
+        "private_real_cmd_prior_logging_failure": "docs/dependencies/pdf-desktop-source-logging-failure.json",
+        "ordinary_default_source_startup_enabled": false,
+        "native_installer_delta_rollback_proven": false
       }
     }
   ],

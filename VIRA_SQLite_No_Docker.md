@@ -1478,3 +1478,66 @@ Windows: test write_text translated canonical LF to CRLF, expected hash unchange
 Exact write_bytes correction;905 local PASS95.02s/no skips; full final CI repeated.
 [Immutable failure receipt](docs/dependencies/pdf-bootstrap-source-final-ci-failure.json).
 Real cold source/bootstrap39388243191 remains successful, not relabelled/rebuilt.
+
+
+### Remaining readiness PHASE 2 OF 6 — 2026-10-20, real CMD private SOURCE integration COMPLETE
+
+The real scripts/start_vira.cmd now has an explicit PRIVATE source candidate mode;
+its ordinary default body is unchanged (Phase1 normalized SHA256
+ a385c16ae8eaf49a61b06f8016fc1b22deaa000bcb3bc01554b9ad8eb0229cf4).
+App-owned desktop_entry owns audit/guards/activation, real migration+idempotent seed,
+persistent secret, real factory+renderer, health-gated optional browser, foreground
+Uvicorn and graceful shutdown. QA is ONLY external process/HTTP client, no injected
+factory/renderer/configuration callback. Bootstrap workspace is fresh per process,
+disjoint from persistent private business state. Lifetime/update locks and reparse/
+marker guards precede native/app import. log_config=None preserves app logging;
+actual TCP synthetic logging regression protects the independently reproduced bug.
+
+Cold Windows39437161409/f64649eee502d6a29547798e386f5572d3dd5e3c SUCCESS, SDK fast
+preflight118677276979 and source118679715648,20 preferred trees/cache disabled,
+21 DLL origins/executed modified Pango/legacy regressions/real CMD/post-CMD source
+envelope ALL SUCCESS. Actual PIDs2360/2380, same private DB/IDs/session/secret,
+first seed6 currencies+22 accounts+1 user and restart all0,8 NEW real HTTP PDFs,
+1/4A4 pages/Vazirmatn400/700/required digits/two TTF hashes/zero system fonts,
+all document/bootstrap cleanup, graceful shutdown/lock release. Parallel clients
+observed native peak1, not parallel native throughput.4 real pre-native/pre-app
+negatives: wrong manifest/source audit, duplicate instance/update lock. Persian,
+space, ! and & paths, readonly source TTFs and actual ACP65001 covered. User-data
+sentinel and update-blocked DB preserved. No installed-user acceptance inferred.
+
+544380B full witness SHA3eb97ba7c340e6d6fdb0326e8412a8d73d22591b28d9ab1727cc961a4b2e89cf.
+Complete native audit1b73804a34668b08f4c79af677d17842e4cc02cf10fca53a1f34029a12983630;
+16 Git-blob implementation hashes frozen at executable f64649e, not staged CRLF hashes.
+Conservative full-inventory budget needed56 parts, capacity now64/eight steps, tested
+losslessly BEFORE native build. GitHub's separate50 annotations/JOB cap still hid
+44 parts after earlier phases consumed quota. Full successful artifact recovered
+without app/native reexecution by39447134103/695ceee,8 independent SUCCESS jobs.
+Each actually downloaded original artifact12277476098 ZIP, verified bytes SHA256
+854f9cfe9f60073a381fb855a65a2c21c5c5d5cf4c0f90ae98c408f90d765888, original same-check
+witness digest/bytes and original frozen binder.56 unique parts from authenticated
+recovery checks reconstructed byte-identically. ZIP hashed on recovery runners,
+NOT downloaded locally. All inventory/license/copyright retained. Extra steps do
+not bypass50/job; use complete artifact or independent jobs.90-day artifact is
+NOT durable public corresponding-source distribution.
+
+Preserved failures:39416463306/c09 missing request parent BEFORE CMD/0 new PDFs;
+39423104695/e3 closed LifecycleFile by default Uvicorn logging -> HTML fallback,
+not PDF. Parents+fast CMD gate and log_config=None fixed without renderer/hash/
+font-policy weakening.39431706305/ba superseded/cancelled during compilation,
+not native success or a third runtime failure.945 backend PASS66.864s/zero skips,
+errors or failures, including26 authenticated witness/binder/default-CMD controls;
+Ruff/Mypy88/Bandit existing gate/MIT14 PASS. Executable-head CI39437161229 all5
+SUCCESS; final docs/evidence checkpoint tracked separately.
+[Report](docs/reports/readiness-phase2-desktop-startup-fa.md),
+[authenticated proof](docs/dependencies/pdf-desktop-source-http-proof.json),
+[full witness](docs/dependencies/pdf-desktop-source-http-evidence.json).
+
+Phase2 complete ONLY within agreed private SOURCE option of REAL CMD, NOT public
+ordinary-default activation. Four workstreams remain:3 selected-path Inno native
+clean install/incremental delta+rollback preserving all data;4 final legal/CRT/EULA/
+notices+durable exact source delivery;5 deferred installed-user data/Excel/visual/
+browser/Ctrl+C/window-close acceptance;6 separately owner-authorized release with
+Persian notes/immutable tag/in-app permission. ALL SIX legal/distribution gates OPEN.
+No Phase3, user-install activation, data/math/UI/schema/version/tag/release change.
+MIT14 only, not whole app/QA/third-party CRT rights. Cooperative controls, not ACL,
+signature or hostile-owner TOCTOU guarantee; stale locks not automatically deleted.

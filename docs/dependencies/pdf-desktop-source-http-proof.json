@@ -1,0 +1,263 @@
+{
+  "schema": 1,
+  "role": "AUTHENTICATED_PHASE2_REAL_CMD_SOURCE_STARTUP_NOT_RELEASE",
+  "workflow_run": {
+    "id": 39437161409,
+    "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39437161409",
+    "head_sha": "f64649eee502d6a29547798e386f5572d3dd5e3c",
+    "path": ".github/workflows/pdf-desktop-source.yml",
+    "event": "push",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-10-20T14:12:36Z",
+    "updated_at": "2026-10-20T15:15:35Z"
+  },
+  "source_job": {
+    "id": 118679715648,
+    "name": "source-http-consumer",
+    "conclusion": "success",
+    "check_run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/check-runs/118679715648",
+    "started_at": "2026-10-20T14:17:44Z",
+    "completed_at": "2026-10-20T15:15:34Z"
+  },
+  "all_jobs": [
+    {
+      "id": 118677276979,
+      "name": "stock-http-preflight",
+      "conclusion": "success"
+    },
+    {
+      "id": 118679715648,
+      "name": "source-http-consumer",
+      "conclusion": "success"
+    }
+  ],
+  "witness": {
+    "path": "docs/dependencies/pdf-desktop-source-http-evidence.json",
+    "sha256": "3eb97ba7c340e6d6fdb0326e8412a8d73d22591b28d9ab1727cc961a4b2e89cf",
+    "bytes": 544380,
+    "annotation_parts": 56,
+    "authentication": "Complete unique parts from eight authenticated recovery checks of the identical independently ZIP-hashed original artifact, reconstructed and matched original native same-check SHA256 and byte count."
+  },
+  "artifact": {
+    "id": 12277476098,
+    "name": "private-phase2-real-cmd-source-startup-no-app-db-dlls",
+    "size_in_bytes": 1968158,
+    "expired": false,
+    "created_at": "2026-10-20T15:15:10Z",
+    "expires_at": "2027-01-18T14:12:37Z",
+    "digest": "sha256:854f9cfe9f60073a381fb855a65a2c21c5c5d5cf4c0f90ae98c408f90d765888"
+  },
+  "artifact_zip_independently_downloaded_or_hashed": true,
+  "local_artifact_zip_downloaded": false,
+  "artifact_zip_download_and_hash_location": "Authenticated recovery workflow jobs, not this workspace",
+  "lossless_recovery": {
+    "workflow_run": {
+      "id": 39447134103,
+      "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39447134103",
+      "head_sha": "695ceee2258841316ca3bc4a3b459e86acc4583b",
+      "path": ".github/workflows/pdf-desktop-evidence-recovery.yml",
+      "conclusion": "success"
+    },
+    "checks": [
+      {
+        "id": 118711916161,
+        "name": "recover (2)",
+        "conclusion": "success",
+        "provenance": {
+          "source_run": 39437161409,
+          "source_job": 118679715648,
+          "source_head": "f64649eee502d6a29547798e386f5572d3dd5e3c",
+          "artifact_id": 12277476098,
+          "downloaded_zip_sha256": "854f9cfe9f60073a381fb855a65a2c21c5c5d5cf4c0f90ae98c408f90d765888",
+          "witness_sha256": "3eb97ba7c340e6d6fdb0326e8412a8d73d22591b28d9ab1727cc961a4b2e89cf",
+          "witness_bytes": 544380,
+          "total_parts": 56,
+          "group": 2,
+          "application_reexecuted": false,
+          "original_binder_revalidated": true
+        }
+      },
+      {
+        "id": 118711916544,
+        "name": "recover (1)",
+        "conclusion": "success",
+        "provenance": {
+          "source_run": 39437161409,
+          "source_job": 118679715648,
+          "source_head": "f64649eee502d6a29547798e386f5572d3dd5e3c",
+          "artifact_id": 12277476098,
+          "downloaded_zip_sha256": "854f9cfe9f60073a381fb855a65a2c21c5c5d5cf4c0f90ae98c408f90d765888",
+          "witness_sha256": "3eb97ba7c340e6d6fdb0326e8412a8d73d22591b28d9ab1727cc961a4b2e89cf",
+          "witness_bytes": 544380,
+          "total_parts": 56,
+          "group": 1,
+          "application_reexecuted": false,
+          "original_binder_revalidated": true
+        }
+      },
+      {
+        "id": 118711916588,
+        "name": "recover (5)",
+        "conclusion": "success",
+        "provenance": {
+          "source_run": 39437161409,
+          "source_job": 118679715648,
+          "source_head": "f64649eee502d6a29547798e386f5572d3dd5e3c",
+          "artifact_id": 12277476098,
+          "downloaded_zip_sha256": "854f9cfe9f60073a381fb855a65a2c21c5c5d5cf4c0f90ae98c408f90d765888",
+          "witness_sha256": "3eb97ba7c340e6d6fdb0326e8412a8d73d22591b28d9ab1727cc961a4b2e89cf",
+          "witness_bytes": 544380,
+          "total_parts": 56,
+          "group": 5,
+          "application_reexecuted": false,
+          "original_binder_revalidated": true
+        }
+      },
+      {
+        "id": 118711916650,
+        "name": "recover (0)",
+        "conclusion": "success",
+        "provenance": {
+          "source_run": 39437161409,
+          "source_job": 118679715648,
+          "source_head": "f64649eee502d6a29547798e386f5572d3dd5e3c",
+          "artifact_id": 12277476098,
+          "downloaded_zip_sha256": "854f9cfe9f60073a381fb855a65a2c21c5c5d5cf4c0f90ae98c408f90d765888",
+          "witness_sha256": "3eb97ba7c340e6d6fdb0326e8412a8d73d22591b28d9ab1727cc961a4b2e89cf",
+          "witness_bytes": 544380,
+          "total_parts": 56,
+          "group": 0,
+          "application_reexecuted": false,
+          "original_binder_revalidated": true
+        }
+      },
+      {
+        "id": 118711916662,
+        "name": "recover (4)",
+        "conclusion": "success",
+        "provenance": {
+          "source_run": 39437161409,
+          "source_job": 118679715648,
+          "source_head": "f64649eee502d6a29547798e386f5572d3dd5e3c",
+          "artifact_id": 12277476098,
+          "downloaded_zip_sha256": "854f9cfe9f60073a381fb855a65a2c21c5c5d5cf4c0f90ae98c408f90d765888",
+          "witness_sha256": "3eb97ba7c340e6d6fdb0326e8412a8d73d22591b28d9ab1727cc961a4b2e89cf",
+          "witness_bytes": 544380,
+          "total_parts": 56,
+          "group": 4,
+          "application_reexecuted": false,
+          "original_binder_revalidated": true
+        }
+      },
+      {
+        "id": 118711916679,
+        "name": "recover (7)",
+        "conclusion": "success",
+        "provenance": {
+          "source_run": 39437161409,
+          "source_job": 118679715648,
+          "source_head": "f64649eee502d6a29547798e386f5572d3dd5e3c",
+          "artifact_id": 12277476098,
+          "downloaded_zip_sha256": "854f9cfe9f60073a381fb855a65a2c21c5c5d5cf4c0f90ae98c408f90d765888",
+          "witness_sha256": "3eb97ba7c340e6d6fdb0326e8412a8d73d22591b28d9ab1727cc961a4b2e89cf",
+          "witness_bytes": 544380,
+          "total_parts": 56,
+          "group": 7,
+          "application_reexecuted": false,
+          "original_binder_revalidated": true
+        }
+      },
+      {
+        "id": 118711917041,
+        "name": "recover (6)",
+        "conclusion": "success",
+        "provenance": {
+          "source_run": 39437161409,
+          "source_job": 118679715648,
+          "source_head": "f64649eee502d6a29547798e386f5572d3dd5e3c",
+          "artifact_id": 12277476098,
+          "downloaded_zip_sha256": "854f9cfe9f60073a381fb855a65a2c21c5c5d5cf4c0f90ae98c408f90d765888",
+          "witness_sha256": "3eb97ba7c340e6d6fdb0326e8412a8d73d22591b28d9ab1727cc961a4b2e89cf",
+          "witness_bytes": 544380,
+          "total_parts": 56,
+          "group": 6,
+          "application_reexecuted": false,
+          "original_binder_revalidated": true
+        }
+      },
+      {
+        "id": 118711917226,
+        "name": "recover (3)",
+        "conclusion": "success",
+        "provenance": {
+          "source_run": 39437161409,
+          "source_job": 118679715648,
+          "source_head": "f64649eee502d6a29547798e386f5572d3dd5e3c",
+          "artifact_id": 12277476098,
+          "downloaded_zip_sha256": "854f9cfe9f60073a381fb855a65a2c21c5c5d5cf4c0f90ae98c408f90d765888",
+          "witness_sha256": "3eb97ba7c340e6d6fdb0326e8412a8d73d22591b28d9ab1727cc961a4b2e89cf",
+          "witness_bytes": 544380,
+          "total_parts": 56,
+          "group": 3,
+          "application_reexecuted": false,
+          "original_binder_revalidated": true
+        }
+      }
+    ],
+    "reason": "Original successful native job exhausted GitHub 50 workflow annotations per job; full original ZIP and original same-check witness SHA/bytes independently matched. No application reexecution."
+  },
+  "artifact_metadata_not_a_downloaded_zip_digest": true,
+  "frozen_implementation_git_blob_sha256": {
+    "backend/app/desktop_entry.py": "343666eb2cda73f8215bef5740f59f70b9131971008d0d11043c4befefc85cb6",
+    "scripts/start_vira.cmd": "63f71e426ae784423dbd5424d4de99719954b4a4256fffd20570b36c3dbc8dc3",
+    "scripts/desktop_launcher_probe.py": "502a0d59e39699119238699377358d4b80a3fc2cad2f37a1ebb9785601119b95",
+    "scripts/desktop_launcher_bind.py": "aeb634e68059ea2b4a1d33f8ca2d582f2ed449a113ef5cbd8e57da73a46f801b",
+    "scripts/desktop_launcher_smoke.ps1": "4dc392b9e5b281c44d0349610eea1d8d68054ad8462a0f51cf97c984d0657dca",
+    ".github/workflows/pdf-desktop-source.yml": "504139fd70cd69e4dbfc210f99f80ad7b21fdb009420ed0fe610350b53569276",
+    "backend/app/private_pdf_bootstrap.py": "da6093cc7236223e17ceca79ccc58e695215a9b31a76b8f5a055f6ce29dba748",
+    "backend/app/services/pdf_rendering.py": "ed00b06fb266164edcc297409146e77076e362e0a4a0221f3be66bb41dc53702",
+    "backend/app/services/pdf_fontconfig.py": "fe0c1a4705eacbe70dc5659b82b28f8d5c8179558099232abbf70b93ba766c92",
+    "backend/app/main.py": "3c5202e8e218897395ac5a1872eac4f872d1fed7a1c9814b91e63ea6d4d7bfe9",
+    "backend/app/config.py": "8f3fe3f1cc676a8bc90a5a38502e1d1058168bd4875bb6aa10dd5af9e34ebc57",
+    "backend/app/seed.py": "32961d7a2627a4c9817d0e987dd7ea2154f2f15987926287d9d82702b0eecf8b",
+    "scripts/migrate_vira.py": "6394ad2dfbce191039db2cf11b6bcbd778633563fbdd969589c726d633c38e6d",
+    "scripts/stage_app_payload.ps1": "964c6b620799f6be881ff026070917b8586ce8a41f1a48c2b80e25e15a09cff9",
+    "scripts/pdf_unicode_process_manifest.ps1": "bbefde55ad66754da936cf433b85a9251fa91f3ed121cbdf99c43736410a2ccd",
+    "scripts/pdf_native_smoke.py": "a67a020ce63d55e57529c9a0db9a07e4670c3bc526424a26c35f2ef65a906f90"
+  },
+  "native_audit_sha256": "1b73804a34668b08f4c79af677d17842e4cc02cf10fca53a1f34029a12983630",
+  "ordinary_default_enabled": false,
+  "installed_user_acceptance": false,
+  "release_authorized": false,
+  "all_six_distribution_gates_still_open": true,
+  "mit_scope_files": 14,
+  "real_cmd_step": {
+    "name": "Phase 2 REAL start_vira.cmd app-owned lifecycle, restart and negative controls",
+    "status": "completed",
+    "conclusion": "success",
+    "number": 32,
+    "started_at": "2026-10-20T15:10:08Z",
+    "completed_at": "2026-10-20T15:14:35Z"
+  },
+  "post_real_cmd_envelope_step": {
+    "name": "Reverify noticed envelope after REAL CMD source processes",
+    "status": "completed",
+    "conclusion": "success",
+    "number": 42,
+    "started_at": "2026-10-20T15:14:40Z",
+    "completed_at": "2026-10-20T15:15:06Z"
+  },
+  "fast_cmd_early_path_step": {
+    "name": "Fast REAL CMD quoted-path and early rejection, NOT native activation",
+    "status": "completed",
+    "conclusion": "success",
+    "number": 9,
+    "started_at": "2026-10-20T14:14:28Z",
+    "completed_at": "2026-10-20T14:15:05Z"
+  },
+  "preserved_prior_failed_attempts": [
+    "docs/dependencies/pdf-desktop-source-driver-failure.json",
+    "docs/dependencies/pdf-desktop-source-logging-failure.json"
+  ]
+}
