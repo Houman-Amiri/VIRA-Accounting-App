@@ -1,0 +1,79 @@
+name: Recover pinned Phase 2 full evidence without native reexecution
+
+on:
+  push:
+    paths: ['.github/workflows/pdf-desktop-evidence-recovery.yml']
+
+permissions:
+  contents: read
+  actions: read
+
+# GitHub retains at most 50 workflow annotations per job, across ALL steps.
+# The original successful native job contains earlier phases too. Recover its
+# exact immutable artifact, never rebuild/execute the application or drop fields.
+# Each independent job emits <=10 notices, including its two provenance records.
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [0, 1, 2, 3, 4, 5, 6, 7]
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      GROUP: ${{ matrix.group }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: f64649eee502d6a29547798e386f5572d3dd5e3c
+      - name: Verify original successful run, ZIP bytes, full witness and original binder
+        shell: bash
+        run: |
+          python - <<'PY'
+          import base64, hashlib, io, json, os, pathlib, runpy, subprocess, zipfile, zlib
+          repo = os.environ['GH_REPO']
+          def api(path):
+              return json.loads(subprocess.check_output(['gh', 'api', f'repos/{repo}/{path}']))
+          run_id, job_id, artifact_id = 39437161409, 118679715648, 12277476098
+          head = 'f64649eee502d6a29547798e386f5572d3dd5e3c'
+          zip_sha = '854f9cfe9f60073a381fb855a65a2c21c5c5d5cf4c0f90ae98c408f90d765888'
+          raw_sha = '3eb97ba7c340e6d6fdb0326e8412a8d73d22591b28d9ab1727cc961a4b2e89cf'
+          run = api(f'actions/runs/{run_id}')
+          jobs = api(f'actions/runs/{run_id}/jobs')['jobs']
+          assert run['conclusion'] == 'success' and run['head_sha'] == head
+          assert run['path'] == '.github/workflows/pdf-desktop-source.yml'
+          assert all(j['conclusion'] == 'success' for j in jobs)
+          assert any(j['id'] == job_id and j['name'] == 'source-http-consumer' for j in jobs)
+          artifact = api(f'actions/artifacts/{artifact_id}')
+          assert artifact['workflow_run']['id'] == run_id and not artifact['expired']
+          assert artifact['name'] == 'private-phase2-real-cmd-source-startup-no-app-db-dlls'
+          assert artifact['digest'] == 'sha256:' + zip_sha
+          archive = subprocess.check_output(['gh', 'api', f'repos/{repo}/actions/artifacts/{artifact_id}/zip'])
+          assert hashlib.sha256(archive).hexdigest() == zip_sha
+          with zipfile.ZipFile(io.BytesIO(archive)) as packet:
+              names = [n for n in packet.namelist() if n.endswith('/verified-desktop-source.json')]
+              assert len(names) == 1
+              raw = packet.read(names[0])
+          assert len(raw) == 544380 and hashlib.sha256(raw).hexdigest() == raw_sha
+          annotations = api(f'check-runs/{job_id}/annotations?per_page=100')
+          original = [json.loads(a['message']) for a in annotations if a['title'] == 'Phase 2 real CMD witness digest']
+          assert original == [{'sha256': raw_sha, 'bytes': len(raw)}]
+          witness = json.loads(raw)
+          audit = pathlib.Path(os.environ['RUNNER_TEMP']) / 'audit.json'
+          audit.write_bytes((json.dumps(witness['native_audit'], indent=2) + '\n').encode())
+          runpy.run_path('scripts/desktop_launcher_bind.py')['validate'](witness, audit)
+          encoded = base64.b64encode(zlib.compress(raw, 9)).decode()
+          parts = [encoded[i:i+3000] for i in range(0, len(encoded), 3000)]
+          assert len(parts) <= 64
+          group = int(os.environ['GROUP'])
+          provenance = dict(source_run=run_id, source_job=job_id, source_head=head,
+              artifact_id=artifact_id, downloaded_zip_sha256=zip_sha,
+              witness_sha256=raw_sha, witness_bytes=len(raw), total_parts=len(parts), group=group,
+              application_reexecuted=False, original_binder_revalidated=True)
+          print('::notice title=Recovered Phase 2 artifact provenance::' + json.dumps(provenance))
+          print('::notice title=Recovered Phase 2 witness digest::' + json.dumps(original[0]))
+          for i in range(group*8, min(len(parts), (group+1)*8)):
+              print('::notice title=Recovered Phase 2 evidence::' + json.dumps(dict(part=i, total=len(parts), data=parts[i])))
+          PY
