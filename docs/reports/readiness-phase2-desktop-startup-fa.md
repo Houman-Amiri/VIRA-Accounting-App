@@ -102,7 +102,9 @@ artifact دارای انقضای ۹۰روزه است؛ توزیع عمومی و 
   replay محلی، اجرای native محلی نیست؛ native از اجرای Windows بالا احراز شده است.
 - Ruff، Mypy روی ۸۸ فایل، Bandit در gate موجود و کنترل MIT محدود به ۱۴ فایل موفق.
 - CI commit اجرایی `39437161229` هر پنج job موفق؛ CI checkpoint نهایی docs/evidence
-  جداگانه ثبت می‌شود. frontend/OpenAPI/Windows/Playwright را از تست backend نتیجه نمی‌گیریم.
+  در [رسید نهایی](../dependencies/pdf-desktop-source-checkpoint-ci.json) ثبت شده: `39448011124`،
+  هر پنج job موفق در `eb7e761`؛ license `39448011002`، source kit `39448011222`
+  و modified kit/recipient `39448011383` نیز همگی موفق. frontend/OpenAPI/Windows/Playwright را از تست backend نتیجه نمی‌گیریم.
 
 مسیر نصب `D:\3D PRINT\VIRA-Accounting`، دادهٔ واقعی، version/tag/release، schema،
 محاسبات و UI دست‌نخورده‌اند. تغییر فقط branch خصوصی SOURCE همان لانچر واقعی است؛

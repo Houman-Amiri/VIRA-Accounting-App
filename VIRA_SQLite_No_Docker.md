@@ -1541,3 +1541,8 @@ Persian notes/immutable tag/in-app permission. ALL SIX legal/distribution gates 
 No Phase3, user-install activation, data/math/UI/schema/version/tag/release change.
 MIT14 only, not whole app/QA/third-party CRT rights. Cooperative controls, not ACL,
 signature or hostile-owner TOCTOU guarantee; stale locks not automatically deleted.
+
+Phase2 docs/evidence checkpoint eb7e761: CI39448011124 all5 SUCCESS; license39448011002,
+source kit39448011222 and modified kit39448011383 (including Windows recipient) ALL
+SUCCESS. [Final checkpoint](docs/dependencies/pdf-desktop-source-checkpoint-ci.json).
+Next checkpoint-only tip CI is observed separately; no new native/source claim.

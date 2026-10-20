@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "role": "PHASE2_FINAL_DOCS_EVIDENCE_CI_CHECKPOINT_NOT_RELEASE",
+  "recorded_at_utc": "2026-10-20T15:35:25.561571+00:00",
+  "checkpoint_head_sha": "eb7e761df74b2473c763f284c02ab34c09b74298",
+  "runs": [
+    {
+      "run": 39448011222,
+      "name": "Assemble and inspect private native source kit",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 118714974567,
+          "name": "kit",
+          "status": "completed",
+          "conclusion": "success",
+          "active": []
+        }
+      ]
+    },
+    {
+      "run": 39448011383,
+      "name": "Private complete modified native source review kit",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 118714979839,
+          "name": "assemble",
+          "status": "completed",
+          "conclusion": "success",
+          "active": []
+        },
+        {
+          "id": 118716184567,
+          "name": "windows-recipient",
+          "status": "completed",
+          "conclusion": "success",
+          "active": []
+        }
+      ]
+    },
+    {
+      "run": 39448011002,
+      "name": "Prepare private native PDF license materials",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 118714972749,
+          "name": "licenses",
+          "status": "completed",
+          "conclusion": "success",
+          "active": []
+        }
+      ]
+    },
+    {
+      "run": 39448011124,
+      "name": "CI",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 118715400561,
+          "name": "Frontend \u2014 lint, types, contract, tests, build",
+          "status": "completed",
+          "conclusion": "success",
+          "active": []
+        },
+        {
+          "id": 118715400646,
+          "name": "Playwright e2e (native processes)",
+          "status": "completed",
+          "conclusion": "success",
+          "active": []
+        },
+        {
+          "id": 118715400945,
+          "name": "OpenAPI contract is in sync",
+          "status": "completed",
+          "conclusion": "success",
+          "active": []
+        },
+        {
+          "id": 118715401187,
+          "name": "Windows-native smoke (SQLite paths, venv, build)",
+          "status": "completed",
+          "conclusion": "success",
+          "active": []
+        },
+        {
+          "id": 118715401432,
+          "name": "Backend \u2014 lint, type, security, tests",
+          "status": "completed",
+          "conclusion": "success",
+          "active": []
+        }
+      ]
+    }
+  ],
+  "local_backend_tests": {
+    "tests": "945",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "time": "66.864"
+  },
+  "local_quality": {
+    "ruff": "PASS",
+    "mypy_source_files": 88,
+    "bandit_existing_gate": "PASS",
+    "limited_mit_file_count": 14
+  },
+  "real_native_source_run_id": 39437161409,
+  "real_native_source_head_sha": "f64649eee502d6a29547798e386f5572d3dd5e3c",
+  "lossless_artifact_recovery_run_id": 39447134103,
+  "frozen_implementation_files_still_byte_identical": true,
+  "frozen_implementation_git_blob_sha256": {
+    "backend/app/desktop_entry.py": "343666eb2cda73f8215bef5740f59f70b9131971008d0d11043c4befefc85cb6",
+    "scripts/start_vira.cmd": "63f71e426ae784423dbd5424d4de99719954b4a4256fffd20570b36c3dbc8dc3",
+    "scripts/desktop_launcher_probe.py": "502a0d59e39699119238699377358d4b80a3fc2cad2f37a1ebb9785601119b95",
+    "scripts/desktop_launcher_bind.py": "aeb634e68059ea2b4a1d33f8ca2d582f2ed449a113ef5cbd8e57da73a46f801b",
+    "scripts/desktop_launcher_smoke.ps1": "4dc392b9e5b281c44d0349610eea1d8d68054ad8462a0f51cf97c984d0657dca",
+    ".github/workflows/pdf-desktop-source.yml": "504139fd70cd69e4dbfc210f99f80ad7b21fdb009420ed0fe610350b53569276",
+    "backend/app/private_pdf_bootstrap.py": "da6093cc7236223e17ceca79ccc58e695215a9b31a76b8f5a055f6ce29dba748",
+    "backend/app/services/pdf_rendering.py": "ed00b06fb266164edcc297409146e77076e362e0a4a0221f3be66bb41dc53702",
+    "backend/app/services/pdf_fontconfig.py": "fe0c1a4705eacbe70dc5659b82b28f8d5c8179558099232abbf70b93ba766c92",
+    "backend/app/main.py": "3c5202e8e218897395ac5a1872eac4f872d1fed7a1c9814b91e63ea6d4d7bfe9",
+    "backend/app/config.py": "8f3fe3f1cc676a8bc90a5a38502e1d1058168bd4875bb6aa10dd5af9e34ebc57",
+    "backend/app/seed.py": "32961d7a2627a4c9817d0e987dd7ea2154f2f15987926287d9d82702b0eecf8b",
+    "scripts/migrate_vira.py": "6394ad2dfbce191039db2cf11b6bcbd778633563fbdd969589c726d633c38e6d",
+    "scripts/stage_app_payload.ps1": "964c6b620799f6be881ff026070917b8586ce8a41f1a48c2b80e25e15a09cff9",
+    "scripts/pdf_unicode_process_manifest.ps1": "bbefde55ad66754da936cf433b85a9251fa91f3ed121cbdf99c43736410a2ccd",
+    "scripts/pdf_native_smoke.py": "a67a020ce63d55e57529c9a0db9a07e4670c3bc526424a26c35f2ef65a906f90"
+  },
+  "ordinary_default_enabled": false,
+  "installed_user_acceptance": false,
+  "all_six_distribution_gates_still_open": true,
+  "release_authorized": false,
+  "next_commit_scope": "Checkpoint and documentation references only; final tip CI observed separately, not self-referentially claimed here."
+}
