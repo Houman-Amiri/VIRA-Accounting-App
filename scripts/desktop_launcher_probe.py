@@ -13,6 +13,7 @@ import sys
 import threading
 import time
 import uuid
+from contextlib import suppress
 from decimal import Decimal
 from pathlib import Path
 
@@ -332,10 +333,33 @@ def main():
                 if code != 0:
                     raise ValueError("Desktop launcher exited nonzero")
             finally:
+                # Preserve only app-owned plain diagnostics, never DB/cookies or
+                # session.secret. A failed PDF must remain a failed PDF, even if
+                # a cooperative stop succeeds during error cleanup.
+                for filename in ("ready.json", "pdf-lifecycles.jsonl", "completed.json"):
+                    diagnostic = folder / filename
+                    if diagnostic.is_file():
+                        (out / filename).write_bytes(diagnostic.read_bytes())
                 if process.poll() is None:
-                    process.kill()
-                    process.wait()
-                    raise RuntimeError("Desktop QA had to force-kill process; not graceful success")
+                    if (folder / "ready.json").is_file():
+                        r = read(folder / "ready.json")
+                        dump(
+                            folder / "stop.json", {"pid": r["pid"], "launch_id": value["launch_id"]}
+                        )
+                        with suppress(subprocess.TimeoutExpired):
+                            process.wait(timeout=30)
+                    if process.poll() is None:
+                        subprocess.run(
+                            ["taskkill", "/PID", str(process.pid), "/T", "/F"],
+                            stdout=log,
+                            stderr=subprocess.STDOUT,
+                            check=False,
+                            timeout=15,
+                        )
+                        process.wait(timeout=15)
+                        raise RuntimeError(
+                            "Desktop QA required forced process-tree cleanup; not success"
+                        )
         completed = read(folder / "completed.json")
         if (
             completed["pid"] != ready["pid"]

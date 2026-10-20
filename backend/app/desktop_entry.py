@@ -260,6 +260,10 @@ def serve(root: Path, state: Path, launch: Path, options: dict[str, Any]) -> dic
                     loop="asyncio",
                     access_log=False,
                     log_level="warning",
+                    # The app already installed its file/lifecycle handlers.
+                    # Uvicorn's default dictConfig closes existing handlers,
+                    # including LifecycleFile, before the first PDF log event.
+                    log_config=None,
                 )
             )
 

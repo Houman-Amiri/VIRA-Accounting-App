@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+
 import httpx
 import pytest
 
@@ -34,6 +36,13 @@ def test_browser_attempt_only_after_actual_tcp_readiness(tmp_path, monkeypatch):
         with httpx.Client(base_url=url, trust_env=False) as http:
             assert http.get("/api/v1/health/live").json() == {"status": "alive"}
             assert http.get("/api/v1/health/ready").json()["status"] == "ready"
+        # Synthetic-only event: actual Uvicorn startup must not close the app's
+        # file handler. Before log_config=None this raises "write to closed file"
+        # and prevents readiness (the native route catches it as HTML fallback).
+        logging.getLogger("app.services.pdf_rendering").info(
+            "synthetic_unit_lifecycle_not_native",
+            extra={"pdf_document": {"event": "started", "id": "SYNTHETIC_UNIT_ONLY"}},
+        )
         opened.append(url)
         return True
 
