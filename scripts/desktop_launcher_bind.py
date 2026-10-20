@@ -148,14 +148,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--reports", type=Path, required=True)
     parser.add_argument("--audit", type=Path)
-    parser.add_argument("--emit-group", type=int, choices=range(4))
+    parser.add_argument("--emit-group", type=int, choices=range(8))
     args = parser.parse_args()
     path = args.reports / "verified-desktop-source.json"
     raw = path.read_bytes()
     if args.emit_group is not None:
         encoded = base64.b64encode(zlib.compress(raw, 9)).decode()
         parts = [encoded[n : n + 3000] for n in range(0, len(encoded), 3000)]
-        if len(parts) > 32:
+        if len(parts) > 64:
             raise ValueError("Refuse truncated real CMD witness")
         for i in range(args.emit_group * 8, min(len(parts), (args.emit_group + 1) * 8)):
             print(

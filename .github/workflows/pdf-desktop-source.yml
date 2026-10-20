@@ -51,6 +51,8 @@ jobs:
           uv run python scripts/pdf_runtime_inventory.py --archive "$env:VIRA_PDF_UPSTREAM_ARCHIVE" --out-dir "$env:RUNNER_TEMP/launcher-sdk-candidate"
           if ($LASTEXITCODE -ne 0) { throw "SDK closure failed" }
           Stop-Transcript
+      - name: Full source-inventory transport budget regression before cold native build
+        run: uv run pytest backend/tests/test_desktop_entry_transport.py -q
       - name: Fast REAL CMD quoted-path and early rejection, NOT native activation
         shell: pwsh
         run: |
@@ -384,6 +386,14 @@ jobs:
         run: python scripts/desktop_launcher_bind.py --reports reports/desktop-source --emit-group 2
       - name: Phase 2 real CMD evidence group 3
         run: python scripts/desktop_launcher_bind.py --reports reports/desktop-source --emit-group 3
+      - name: Phase 2 real CMD evidence group 4
+        run: python scripts/desktop_launcher_bind.py --reports reports/desktop-source --emit-group 4
+      - name: Phase 2 real CMD evidence group 5
+        run: python scripts/desktop_launcher_bind.py --reports reports/desktop-source --emit-group 5
+      - name: Phase 2 real CMD evidence group 6
+        run: python scripts/desktop_launcher_bind.py --reports reports/desktop-source --emit-group 6
+      - name: Phase 2 real CMD evidence group 7
+        run: python scripts/desktop_launcher_bind.py --reports reports/desktop-source --emit-group 7
       - name: Reverify noticed envelope after REAL CMD source processes
         shell: pwsh
         run: |
