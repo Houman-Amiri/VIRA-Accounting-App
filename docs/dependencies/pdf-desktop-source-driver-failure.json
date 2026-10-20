@@ -1,0 +1,297 @@
+{
+  "schema": 1,
+  "role": "PRESERVED_PHASE2_EXTERNAL_DRIVER_FAILURE_NOT_SUCCESS",
+  "run": {
+    "id": 39416463306,
+    "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39416463306",
+    "head_sha": "c09b77d0699064930799765de945083c47be3b5f",
+    "conclusion": "failure"
+  },
+  "source_job": {
+    "id": 118608792169,
+    "name": "source-http-consumer",
+    "conclusion": "failure"
+  },
+  "failure_classification": "QA_REQUEST_DIRECTORY_PARENT_ABSENT_BEFORE_REAL_CMD_INVOKED",
+  "native_compilation_and_prior_regressions": [
+    {
+      "name": "Set up job",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 1,
+      "started_at": "2026-10-20T11:44:46Z",
+      "completed_at": "2026-10-20T11:44:49Z"
+    },
+    {
+      "name": "Run actions/checkout@v4",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 2,
+      "started_at": "2026-10-20T11:44:49Z",
+      "completed_at": "2026-10-20T11:45:03Z"
+    },
+    {
+      "name": "Authenticate the exact prior noticed-source producer and artifact",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 3,
+      "started_at": "2026-10-20T11:45:03Z",
+      "completed_at": "2026-10-20T11:45:37Z"
+    },
+    {
+      "name": "Authenticate downloaded archive, extract exact noticed sources and prepare recipe",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 4,
+      "started_at": "2026-10-20T11:45:37Z",
+      "completed_at": "2026-10-20T11:46:46Z"
+    },
+    {
+      "name": "Compile all target libraries from local preferred trees with binary caches disabled",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 5,
+      "started_at": "2026-10-20T11:46:46Z",
+      "completed_at": "2026-10-20T12:22:23Z"
+    },
+    {
+      "name": "Verify twenty actual build trees, twenty-one DLL origins, and executed modified LGPL function",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 6,
+      "started_at": "2026-10-20T12:22:23Z",
+      "completed_at": "2026-10-20T12:22:46Z"
+    },
+    {
+      "name": "Run astral-sh/setup-uv@v5",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 7,
+      "started_at": "2026-10-20T12:22:46Z",
+      "completed_at": "2026-10-20T12:22:50Z"
+    },
+    {
+      "name": "Run pnpm/action-setup@v4",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 8,
+      "started_at": "2026-10-20T12:22:50Z",
+      "completed_at": "2026-10-20T12:22:53Z"
+    },
+    {
+      "name": "Run actions/setup-node@v4",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 9,
+      "started_at": "2026-10-20T12:22:53Z",
+      "completed_at": "2026-10-20T12:23:27Z"
+    },
+    {
+      "name": "Prepare locked application only AFTER the standalone native build and audit",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 10,
+      "started_at": "2026-10-20T12:23:27Z",
+      "completed_at": "2026-10-20T12:24:20Z"
+    },
+    {
+      "name": "Fresh no-site source HTTP launcher, real route PDFs and restart",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 11,
+      "started_at": "2026-10-20T12:24:20Z",
+      "completed_at": "2026-10-20T12:25:43Z"
+    },
+    {
+      "name": "Bind this fresh noticed-source compilation to both actual HTTP processes",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 12,
+      "started_at": "2026-10-20T12:25:43Z",
+      "completed_at": "2026-10-20T12:25:43Z"
+    },
+    {
+      "name": "Reverify the exact source envelope after native compilation and rendering",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 13,
+      "started_at": "2026-10-20T12:25:43Z",
+      "completed_at": "2026-10-20T12:26:03Z"
+    },
+    {
+      "name": "Source HTTP evidence group 0",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 14,
+      "started_at": "2026-10-20T12:26:03Z",
+      "completed_at": "2026-10-20T12:26:03Z"
+    },
+    {
+      "name": "Source HTTP evidence group 1",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 15,
+      "started_at": "2026-10-20T12:26:03Z",
+      "completed_at": "2026-10-20T12:26:04Z"
+    },
+    {
+      "name": "Source HTTP evidence group 2",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 16,
+      "started_at": "2026-10-20T12:26:04Z",
+      "completed_at": "2026-10-20T12:26:04Z"
+    },
+    {
+      "name": "Source HTTP evidence group 3",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 17,
+      "started_at": "2026-10-20T12:26:04Z",
+      "completed_at": "2026-10-20T12:26:04Z"
+    },
+    {
+      "name": "Application-owned source HTTP without replacing rendering callables",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 18,
+      "started_at": "2026-10-20T12:26:04Z",
+      "completed_at": "2026-10-20T12:27:08Z"
+    },
+    {
+      "name": "Bind fresh source audit to application-owned HTTP",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 19,
+      "started_at": "2026-10-20T12:27:08Z",
+      "completed_at": "2026-10-20T12:27:08Z"
+    },
+    {
+      "name": "App-owned source evidence group 0",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 20,
+      "started_at": "2026-10-20T12:27:08Z",
+      "completed_at": "2026-10-20T12:27:08Z"
+    },
+    {
+      "name": "App-owned source evidence group 1",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 21,
+      "started_at": "2026-10-20T12:27:08Z",
+      "completed_at": "2026-10-20T12:27:09Z"
+    },
+    {
+      "name": "App-owned source evidence group 2",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 22,
+      "started_at": "2026-10-20T12:27:09Z",
+      "completed_at": "2026-10-20T12:27:09Z"
+    },
+    {
+      "name": "App-owned source evidence group 3",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 23,
+      "started_at": "2026-10-20T12:27:09Z",
+      "completed_at": "2026-10-20T12:27:10Z"
+    },
+    {
+      "name": "Reverify noticed envelope after application-owned source HTTP",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 24,
+      "started_at": "2026-10-20T12:27:10Z",
+      "completed_at": "2026-10-20T12:27:29Z"
+    },
+    {
+      "name": "Phase 1 app-owned source preflight and activation with distinct real HTTP processes",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 25,
+      "started_at": "2026-10-20T12:27:29Z",
+      "completed_at": "2026-10-20T12:30:02Z"
+    },
+    {
+      "name": "Bind exact fresh source audit to app-owned bootstrap and HTTP",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 26,
+      "started_at": "2026-10-20T12:30:02Z",
+      "completed_at": "2026-10-20T12:30:02Z"
+    },
+    {
+      "name": "Phase 1 bootstrap source evidence group 0",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 27,
+      "started_at": "2026-10-20T12:30:02Z",
+      "completed_at": "2026-10-20T12:30:03Z"
+    },
+    {
+      "name": "Phase 1 bootstrap source evidence group 1",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 28,
+      "started_at": "2026-10-20T12:30:03Z",
+      "completed_at": "2026-10-20T12:30:03Z"
+    },
+    {
+      "name": "Phase 1 bootstrap source evidence group 2",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 29,
+      "started_at": "2026-10-20T12:30:03Z",
+      "completed_at": "2026-10-20T12:30:03Z"
+    },
+    {
+      "name": "Phase 1 bootstrap source evidence group 3",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 30,
+      "started_at": "2026-10-20T12:30:03Z",
+      "completed_at": "2026-10-20T12:30:04Z"
+    },
+    {
+      "name": "Reverify noticed source envelope after app-owned bootstrap and HTTP",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 31,
+      "started_at": "2026-10-20T12:30:04Z",
+      "completed_at": "2026-10-20T12:30:23Z"
+    }
+  ],
+  "failure_annotations": [
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/c09b77d0699064930799765de945083c47be3b5f/.github",
+      "start_line": 174,
+      "start_column": null,
+      "end_line": 174,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "",
+      "message": "Process completed with exit code 1.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/c09b77d0699064930799765de945083c47be3b5f/.github",
+      "start_line": 134,
+      "start_column": null,
+      "end_line": 134,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "Real CMD failure driver.log 0",
+      "message": " + structlog==26.1.0\n + tenacity==9.2.1\n + threadpoolctl==3.7.0\n + tinycss2==1.5.1\n + tinyhtml5==2.1.0\n + typing-extensions==4.16.0\n + typing-inspection==0.4.4\n + tzdata==2026.5\n + tzlocal==5.4.4\n + urllib3==2.8.0\n + uvicorn==0.54.0\n + watchfiles==1.3.0\n + weasyprint==70.0\n + webencodings==0.6.1\n + websockets==17.2\n + zopfli==0.4.3\n[stage_app_payload] version.json: version=0.0.0-private-unicode-proof commit=c09b77d spa_build=c09b77d\n[build_manifest] 15158 files -> D:\\a\\_temp\\vira-desktop-18d32eb8979c4f34ab9331c6606ada90\\initial-stage\\install_manifest.json\n[stage_app_payload] staged D:\\a\\_temp\\vira-desktop-18d32eb8979c4f34ab9331c6606ada90\\initial-stage\n[build_manifest] 15183 files -> D:\\a\\_temp\\vira-desktop-18d32eb8979c4f34ab9331c6606ada90\\VIRA \u0631\u0627\u0647\u200c\u0627\u0646\u062f\u0627\u0632 ! & \u0645\u0633\u06cc\u0631 \u0628\u0627 \u0641\u0627\u0635\u0644\u0647\\install_manifest.json\nPrivate CPython process manifest embedded; no installer or normal staging changes.\nTraceback (most recent call last):\n  File \"D:\\a\\VIRA-Accounting-App\\VIRA-Accounting-App\\scripts\\desktop_launcher_probe.py\", line 411, in <module>\n    main()\n  File \"D:\\a\\VIRA-Accounting-App\\VIRA-Accounting-App\\scripts\\desktop_launcher_probe.py\", line 230, in main\n    requests.mkdir()\n  File \"C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\Lib\\pathlib.py\", line 1311, in mkdir\n    os.mkdir(self, mode)\nFileNotFoundError: [WinError 3] The system cannot find the path specified: 'D:\\\\a\\\\_temp\\\\vira-desktop-18d32eb8979c4f34ab9331c6606ada90\\\\\\u06a9\\u0627\\u0631\\u0628\\u0631 \\u0641\\u0627\\u0631\\u0633\\u06cc ! & Local AppData\\\\VIRA\\\\desktop requests'\nException: D:\\a\\VIRA-Accounting-App\\VIRA-Accounting-App\\scripts\\desktop_launcher_smoke.ps1:34\nLine |\n  34 |  \u2026 ITCODE -ne 0) { throw \"Real start_vira.cmd source candidate failed\" }\n     |                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n     | Real start_vira.cmd source candidate failed\n",
+      "raw_details": ""
+    }
+  ],
+  "phase2_native_startup_proven": false,
+  "new_phase2_pdf_count": 0,
+  "expected_hashes_relaxed": false,
+  "failing_control_removed": false,
+  "fix": "Create request directory parents in external driver; add fast real-CMD wrong-manifest preflight before cold source build; repeat full native workflow."
+}

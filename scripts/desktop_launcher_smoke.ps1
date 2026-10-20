@@ -1,12 +1,17 @@
 # Private Phase 2: external process/HTTP client; SAME actual installed CMD entry.
 [CmdletBinding()]
 param([Parameter(Mandatory = $true)][string]$Candidate,
-      [Parameter(Mandatory = $true)][string]$SourceAudit)
+      [string]$SourceAudit, [switch]$PreflightOnly)
 $ErrorActionPreference = "Stop"
 if (-not $IsWindows -or $env:GITHUB_ACTIONS -ne "true") { throw "Private Windows CI only" }
+if (-not $SourceAudit -and -not $PreflightOnly) { throw "Independent source audit required" }
 $repo = (Get-Location).Path
 $root = Join-Path $env:RUNNER_TEMP ("vira-desktop-" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory $root | Out-Null
+if ($PreflightOnly) {
+    $SourceAudit = Join-Path $root "dummy-preflight-only-not-source-audit.json"
+    [IO.File]::WriteAllBytes($SourceAudit, [Text.Encoding]::UTF8.GetBytes("{}"))
+}
 $staged = Join-Path $root "initial-stage"
 & ./scripts/stage_app_payload.ps1 -Version "0.0.0-private-unicode-proof" -OutDir $staged
 $app = Join-Path $root "VIRA راه‌انداز ! & مسیر با فاصله"
@@ -24,14 +29,17 @@ $cwd = Join-Path $profile "محل اجرای جدا"
 New-Item -ItemType Directory -Force $cwd | Out-Null
 Get-ChildItem (Join-Path $app "app/assets/fonts") -Filter *.ttf -File | ForEach-Object { $_.IsReadOnly = $true }
 $previous = $env:LOCALAPPDATA
-$reports = Join-Path $repo "reports/desktop-source"
+$reports = Join-Path $repo $(if ($PreflightOnly) { "reports/desktop-path-preflight" } else { "reports/desktop-source" })
+$mode = @()
+if ($PreflightOnly) { $mode += "--preflight-only" }
 New-Item -ItemType Directory -Force $reports | Out-Null
 try {
     $env:LOCALAPPDATA = $profile
     Push-Location -LiteralPath $cwd
     try {
-        & uv run --project $repo python (Join-Path $repo "scripts/desktop_launcher_probe.py") --app-root $app --state-root $state --reports $reports --audit $SourceAudit --manifest-sha256 $baselineHash --inventory-sha256 $inventoryHash
+        & uv run --project $repo python (Join-Path $repo "scripts/desktop_launcher_probe.py") --app-root $app --state-root $state --reports $reports --audit $SourceAudit --manifest-sha256 $baselineHash --inventory-sha256 $inventoryHash @mode
         if ($LASTEXITCODE -ne 0) { throw "Real start_vira.cmd source candidate failed" }
     } finally { Pop-Location }
 } finally { $env:LOCALAPPDATA = $previous }
-Write-Host "PASS: REAL CMD private source candidate; NOT ordinary-default/installed-user/release acceptance"
+if ($PreflightOnly) { Write-Host "PASS: real CMD path/early rejection ONLY; NOT native activation" }
+else { Write-Host "PASS: REAL CMD private source candidate; NOT ordinary-default/installed-user/release acceptance" }

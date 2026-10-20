@@ -221,13 +221,14 @@ def main():
         parser.add_argument("--" + key, type=Path, required=True)
     parser.add_argument("--manifest-sha256", required=True)
     parser.add_argument("--inventory-sha256", required=True)
+    parser.add_argument("--preflight-only", action="store_true")
     args = parser.parse_args()
     if sys.platform != "win32" or os.environ.get("GITHUB_ACTIONS") != "true":
         raise RuntimeError("Private Windows real-launcher QA only")
     root, state, reports = args.app_root, args.state_root, args.reports
     reports.mkdir(parents=True, exist_ok=True)
     requests = state.parent / "desktop requests"
-    requests.mkdir()
+    requests.mkdir(parents=True)
     audit_digest = hashlib.sha256(args.audit.read_bytes()).hexdigest()
     password = secrets.token_urlsafe(40)
     env = dict(os.environ, VIRA_ADMIN_PASSWORD=password)
@@ -291,6 +292,18 @@ def main():
         }
 
     rejected("wrong-manifest", {"manifest_sha256": "0" * 64})
+    if args.preflight_only:
+        if state.exists():
+            raise ValueError("Rejected preflight touched business state")
+        dump(
+            reports / "real-cmd-path-preflight-only.json",
+            {
+                "role": "REAL_CMD_WRONG_MANIFEST_ONLY_NOT_NATIVE_OR_SOURCE_ACTIVATION",
+                "negative_controls": negatives,
+                "native_activation_proven": False,
+            },
+        )
+        return
     rejected("wrong-source-audit", {"source_audit_sha256": "0" * 64})
     if state.exists():
         raise ValueError("Rejected preflight touched business state")
