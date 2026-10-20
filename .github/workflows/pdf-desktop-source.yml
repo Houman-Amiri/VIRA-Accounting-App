@@ -357,13 +357,13 @@ jobs:
       - name: Phase 2 authenticate real CMD process evidence
         run: python scripts/desktop_launcher_bind.py --reports reports/desktop-source --audit reports/local-source/verified-local-rebuild.json
       - name: Phase 2 real CMD evidence group 0
-        run: python scripts/audit_pdf_native_rebuild.py --out reports/desktop-source/verified-desktop-source.json --emit-group 0
+        run: python scripts/desktop_launcher_bind.py --reports reports/desktop-source --emit-group 0
       - name: Phase 2 real CMD evidence group 1
-        run: python scripts/audit_pdf_native_rebuild.py --out reports/desktop-source/verified-desktop-source.json --emit-group 1
+        run: python scripts/desktop_launcher_bind.py --reports reports/desktop-source --emit-group 1
       - name: Phase 2 real CMD evidence group 2
-        run: python scripts/audit_pdf_native_rebuild.py --out reports/desktop-source/verified-desktop-source.json --emit-group 2
+        run: python scripts/desktop_launcher_bind.py --reports reports/desktop-source --emit-group 2
       - name: Phase 2 real CMD evidence group 3
-        run: python scripts/audit_pdf_native_rebuild.py --out reports/desktop-source/verified-desktop-source.json --emit-group 3
+        run: python scripts/desktop_launcher_bind.py --reports reports/desktop-source --emit-group 3
       - name: Reverify noticed envelope after REAL CMD source processes
         shell: pwsh
         run: |

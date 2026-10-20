@@ -48,3 +48,11 @@ def test_browser_attempt_only_after_actual_tcp_readiness(tmp_path, monkeypatch):
     monkeypatch.setattr(basic, "options", options)
     basic.test_linux_actual_migration_seed_tcp_ready_stop_restart(tmp_path, monkeypatch)
     assert len(opened) == 2
+
+
+def test_read_only_audit_then_lifetime_guard_before_native_activation():
+    source = (basic.ROOT / "backend/app/desktop_entry.py").read_text()
+    audit = source.index('boot["prepare_private_plan"](plan)')
+    guard = source.index('state_guard(root, state, boot["_no_links"])', audit)
+    activate = source.index('boot["activate_private_source"](plan)', audit)
+    assert audit < guard < activate

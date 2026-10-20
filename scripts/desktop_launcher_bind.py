@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import json
 import runpy
+import zlib
 from pathlib import Path
 
 
@@ -132,7 +134,10 @@ def validate(result, audit_path):
         "duplicate-instance",
         "update-lock",
     } or any(
-        v["exit_code"] == 0 or not v["rejected"] or not v["ready_receipt_absent"]
+        v["exit_code"] == 0
+        or not v["rejected"]
+        or not v["ready_receipt_absent"]
+        or v["pre_native_and_pre_app_rejection"] is not True
         for v in negatives.values()
     ):
         raise ValueError("Real CMD negative controls missing")
@@ -142,10 +147,24 @@ def validate(result, audit_path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--reports", type=Path, required=True)
-    parser.add_argument("--audit", type=Path, required=True)
+    parser.add_argument("--audit", type=Path)
+    parser.add_argument("--emit-group", type=int, choices=range(4))
     args = parser.parse_args()
     path = args.reports / "verified-desktop-source.json"
     raw = path.read_bytes()
+    if args.emit_group is not None:
+        encoded = base64.b64encode(zlib.compress(raw, 9)).decode()
+        parts = [encoded[n : n + 3000] for n in range(0, len(encoded), 3000)]
+        if len(parts) > 32:
+            raise ValueError("Refuse truncated real CMD witness")
+        for i in range(args.emit_group * 8, min(len(parts), (args.emit_group + 1) * 8)):
+            print(
+                "::notice title=Phase 2 real CMD evidence::"
+                + json.dumps({"part": i, "total": len(parts), "data": parts[i]})
+            )
+        return
+    if args.audit is None:
+        raise ValueError("Independent source audit required")
     validate(json.loads(raw), args.audit)
     print(
         "::notice title=Phase 2 real CMD witness digest::"
