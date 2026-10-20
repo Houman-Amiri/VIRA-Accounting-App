@@ -16,6 +16,8 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
   Vazirmatn/digits/TTF hashes/zero system fonts/font-cache-bootstrap cleanup;peak1.
 - Authenticated119672B/10-part witness,artifact metadata not independent ZIP hash;
   23 synthetic+1 recorded-proof controls,905 backend PASS,Mypy87 etc/MIT14 PASS.
+- Preserve failed final-docs CI39394669426: recorded-audit test Windows CRLF/LF
+  mismatch, corrected exact write_bytes without changing expected digest or skips.
 - Phase1 of agreed six workstreams complete, five remain. All6 gates OPEN; no
   default/installed launcher/main/settings/stager selection/release/data/math or
   expanded application license. Source proof not ordinary/installed acceptance.

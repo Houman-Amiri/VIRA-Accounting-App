@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "role": "READINESS_PHASE1_IMPLEMENTATION_CI_AND_LOCAL_TESTS_NOT_FINAL_DOCS_COMMIT",
-  "verified_at_utc": "2026-10-20T08:36:35.781784+00:00",
+  "verified_at_utc": "2026-10-20T08:43:26.927466+00:00",
   "head_sha": "88180ea9ad6027c27533b9bd87187ec63c0a3ed3",
   "runs": [
     {
@@ -1094,8 +1094,8 @@
     "skipped": 0,
     "failures": 0,
     "errors": 0,
-    "duration_seconds_display": 99.03,
-    "junit_suite_started_at_utc": "2026-10-20T08:33:09.601465+00:00"
+    "duration_seconds_display": 95.02,
+    "junit_suite_started_at_utc": "2026-10-20T08:41:16.917159+00:00"
   },
   "new_synthetic_source_controls": 23,
   "recorded_source_witness_controls": 1,
@@ -1109,5 +1109,17 @@
   "phase_completed": "REMAINING_READINESS_PHASE_1_OF_6_PRIVATE_SOURCE_BOOTSTRAP_ONLY",
   "ordinary_production_startup_proven": false,
   "installed_user_acceptance": false,
-  "release_authorized": false
+  "release_authorized": false,
+  "prior_local_test_runs": [
+    {
+      "passed": 905,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "duration_seconds_display": 95.02,
+      "junit_suite_started_at_utc": "2026-10-20T08:41:16.917159+00:00"
+    }
+  ],
+  "failed_first_final_docs_ci_record": "docs/dependencies/pdf-bootstrap-source-final-ci-failure.json",
+  "recorded_audit_test_uses_exact_utf8_bytes_not_platform_newline": true
 }

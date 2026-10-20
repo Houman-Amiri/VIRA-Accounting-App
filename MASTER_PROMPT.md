@@ -1011,7 +1011,7 @@ unchanged. Regression PDFs not counted/relabelled as new bootstrap proofs.
 10 authenticated same-job annotation parts;artifact12250199759 metadata authenticated,
 ZIP not independently downloaded/hashed. Repository hashes are canonical Git bytes,
 not claimed staged Windows CRLF bytes.23 new synthetic source controls+1 recorded
-witness test;905 backend PASS99.03s/no skips,Ruff/Mypy87/Bandit gate/MIT14 PASS.
+witness test;905 backend PASS95.02s/no skips,Ruff/Mypy87/Bandit gate/MIT14 PASS.
 SDK39388243073 and ordinary CI39388243225 all5 SUCCESS at same executable head.
 [Report](docs/reports/readiness-phase1-source-bootstrap-fa.md),
 [proof](docs/dependencies/pdf-bootstrap-source-http-proof.json),
@@ -1025,3 +1025,9 @@ No main/factory/route/settings/installed launcher/stage script/version/tag/relea
 user data/schema/math change. Current stager copies sources but never auto-selects
 this mode. No ordinary-startup, signing/minOS, CRT/EULA/durable-public-source/native
 Inno-delta-rollback/installed acceptance approval; MIT14 only, not whole app/QA.
+
+Phase1 final-docs CI39394669426/aee483d FAILED only in recorded-audit replay on
+Windows: test write_text translated canonical LF to CRLF, expected hash unchanged.
+Exact write_bytes correction;905 local PASS95.02s/no skips; full final CI repeated.
+[Immutable failure receipt](docs/dependencies/pdf-bootstrap-source-final-ci-failure.json).
+Real cold source/bootstrap39388243191 remains successful, not relabelled/rebuilt.

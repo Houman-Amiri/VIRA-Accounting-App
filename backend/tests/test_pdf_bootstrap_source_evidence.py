@@ -21,7 +21,7 @@ def test_authenticated_phase1_source_bootstrap_witness(tmp_path):
     assert p['artifact_zip_independently_downloaded_or_hashed'] is False
     x = json.loads(raw)
     audit = tmp_path/'audit.json'
-    audit.write_text(json.dumps(x['native_audit'], indent=2)+'\n', encoding='utf-8')
+    audit.write_bytes((json.dumps(x['native_audit'], indent=2)+'\n').encode('utf-8'))
     assert hashlib.sha256(audit.read_bytes()).hexdigest() == p['native_audit_sha256']
     for name, case in x['cases'].items():
         folder = tmp_path/name

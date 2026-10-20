@@ -98,10 +98,22 @@ copyright/receipt حذف شده، نه bindingهای ۲۰ درخت/۲۱ DLL. inv
 ترتیب workflow و pin سورس. یک تست دیگر integrity شاهد واقعیِ ضبط‌شده را می‌سنجد؛
 pytest خودش Native Windows یا cold build تازه تولید نمی‌کند.
 
-**۹۰۵ تست کامل، 99.03 ثانیه، صفر failure/error/skip**. Ruff، Mypy برای ۸۷ فایل،
+**۹۰۵ تست کامل، 95.02 ثانیه، صفر failure/error/skip**. Ruff، Mypy برای ۸۷ فایل،
 گیت موجود Bandit و MIT۱۴ موفق‌اند. SDK مستقلِ همین کد `39388243073` و CI عادی
 `39388243225` با هر پنج job موفق‌اند. [رسید checkpoint و آزمون‌ها](../dependencies/pdf-bootstrap-source-checkpoint-ci.json).
 commit نهاییِ witness/docs نیز جداگانه تا نتیجهٔ CI خودش پیگیری می‌شود.
+
+## شکست نهاییِ حفظ‌شده و اصلاح آن
+
+اجرای CI نهایی `39394669426 / aee483d` **ناموفق** بود؛ چهار job موفق و Windows
+در تست بازخوانی شاهد شکست خورد. [رسید و annotation اصلی](../dependencies/pdf-bootstrap-source-final-ci-failure.json)
+حفظ شده است. بازسازی audit در تست با `write_text` روی Windows، newline را از LF
+به CRLF تبدیل می‌کرد؛ نه فایل native و نه شاهد اصلی تغییر نکرده بودند.
+
+تست اکنون bytes دقیقِ UTF-8/LF را با `write_bytes` می‌نویسد؛ expected digest همان
+`7b95ee89...` مانده است. هیچ skip یا کاهش کنترل نداریم. مجموعهٔ کامل ۹۰۵تایی دوباره
+موفق شد و CI کامل تکرار می‌شود. اجرای واقعی سورس `39388243191` همچنان موفق است؛
+این شکستِ تست را به آن نسبت نمی‌دهیم و اجرای ناموفق CI را موفق بازنام‌گذاری نمی‌کنیم.
 
 ## وضعیت شش بخش توافق‌شده
 

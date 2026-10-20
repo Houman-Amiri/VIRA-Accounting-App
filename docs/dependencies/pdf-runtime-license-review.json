@@ -354,7 +354,8 @@
         "private_app_bootstrap_source21_activation_proof": "docs/dependencies/pdf-bootstrap-source-http-proof.json",
         "private_app_bootstrap_source21_activation_report": "docs/reports/readiness-phase1-source-bootstrap-fa.md",
         "private_app_bootstrap_source21_native_audit_sha256": "7b95ee89d0319570f8a3a7dcd18173dbce2ea5fdc0c524e0276c61a357f4e358",
-        "remaining_readiness_phase1_of6_private_source_bootstrap_completed": true
+        "remaining_readiness_phase1_of6_private_source_bootstrap_completed": true,
+        "private_app_bootstrap_source21_first_final_ci_failure_record": "docs/dependencies/pdf-bootstrap-source-final-ci-failure.json"
       }
     }
   ]
