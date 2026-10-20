@@ -12,6 +12,9 @@ REM    2. .venv\Scripts\python.exe  — dev checkout
 REM    3. python / py -3 on PATH    — fallback
 REM =====================================================================
 setlocal EnableDelayedExpansion
+REM Explicit private source candidate goes through the REAL launcher, before
+REM ordinary data/profile/interpreter/browser side effects. No default opt-in.
+if /i "%~1"=="--private-source-candidate" goto :private_source_candidate
 cd /d "%~dp0"
 title V.I.R.A
 
@@ -107,3 +110,13 @@ echo.
 echo [VIRA] Startup failed — see the messages above and %LOCALAPPDATA%\VIRA\logs\.
 pause
 exit /b 1
+
+:private_source_candidate
+setlocal DisableDelayedExpansion
+if not "%GITHUB_ACTIONS%"=="true" exit /b 1
+if "%~2"=="" exit /b 1
+if not "%~3"=="" exit /b 1
+if not exist "%~dp0python\python.exe" exit /b 1
+set "VIRA_LAUNCHER_ENTRY=START_VIRA_CMD_PRIVATE_SOURCE"
+"%~dp0python\python.exe" -I -S -B -X utf8 "%~dp0app\desktop_entry.py" --private-source-candidate "%~2"
+exit /b %errorlevel%
