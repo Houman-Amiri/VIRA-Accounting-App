@@ -28,7 +28,7 @@ def checked(response, status):
     return response
 
 
-def exercise_http(url, state, out, password, reuse):
+def exercise_http(url, state, out, password, reuse, persistent_session):
     import httpx
 
     manifest = state / "http-fixtures.json"
@@ -44,6 +44,12 @@ def exercise_http(url, state, out, password, reuse):
         spa = checked(client.get("/"), 200)
         if 'name="vira-build"' not in spa.text:
             raise ValueError("Staged compiled SPA is not served by the real factory")
+        if reuse:
+            client.cookies.update(persistent_session)
+            owner = checked(client.get("/api/v1/auth/me"), 200).json()
+            if owner["username"] != "owner":
+                raise ValueError("Existing desktop session was not preserved")
+            client.cookies.clear()
         schema = checked(client.get("/api/openapi.json"), 200).json()
         if "/api/v1/orders/{order_id}/proforma.pdf" not in schema["paths"]:
             raise ValueError("Actual production PDF route missing")
@@ -58,6 +64,8 @@ def exercise_http(url, state, out, password, reuse):
         login = checked(
             client.post("/api/v1/auth/login", json={"username": "owner", "password": password}), 200
         )
+        persistent_session.clear()
+        persistent_session.update(dict(client.cookies))
         if not any("httponly" in v.lower() for v in login.headers.get_list("set-cookie")):
             raise ValueError("Real session cookie was not issued")
         checked(client.post("/api/v1/orders", json={}), 403)
@@ -132,6 +140,7 @@ def exercise_http(url, state, out, password, reuse):
         "wrong_login_rejected": True,
         "missing_csrf_rejected": True,
         "authenticated_owner_session": True,
+        "prior_process_session_accepted_before_new_login": reuse,
         "route_context_from_sqlite": True,
         "fixture_ids": fixtures,
         "parallel_http_requests": 2,
@@ -259,13 +268,29 @@ def main():
                 raise
         if code == 0 or (state / "launches" / value["launch_id"] / "ready.json").exists():
             raise ValueError("Invalid real launcher accepted " + name)
-        negatives[name] = {"rejected": True, "exit_code": code, "ready_receipt_absent": True}
+        expected = {
+            "wrong-manifest": "MANIFEST_DIGEST",
+            "wrong-source-audit": "BOOTSTRAP_DIGEST",
+            "duplicate-instance": "DESKTOP_INSTANCE_LOCK",
+            "update-lock": "UPDATE_LOCK",
+        }[name]
+        if "startup rejected: " + expected not in (reports / (name + ".log")).read_text(
+            encoding="utf-8-sig"
+        ):
+            raise ValueError("Invalid launcher rejection reason: " + name)
+        negatives[name] = {
+            "failure_kind": expected,
+            "rejected": True,
+            "exit_code": code,
+            "ready_receipt_absent": True,
+        }
 
     rejected("wrong-manifest", {"manifest_sha256": "0" * 64})
     rejected("wrong-source-audit", {"source_audit_sha256": "0" * 64})
     if state.exists():
         raise ValueError("Rejected preflight touched business state")
     secret_hash = None
+    persistent_session = {}
     for name, reuse in [("first-process", False), ("restarted-process", True)]:
         out = reports / name
         out.mkdir()
@@ -283,7 +308,7 @@ def main():
                     raise ValueError("Desktop first-run/browser gate differs")
                 if not reuse:
                     rejected("duplicate-instance")
-                http = exercise_http(ready["url"], state, out, password, reuse)
+                http = exercise_http(ready["url"], state, out, password, reuse, persistent_session)
                 dump(folder / "stop.json", {"pid": ready["pid"], "launch_id": value["launch_id"]})
                 code = process.wait(timeout=45)
                 if code != 0:

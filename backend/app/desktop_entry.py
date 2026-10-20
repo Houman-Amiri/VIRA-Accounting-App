@@ -395,9 +395,21 @@ def main() -> int:
     return 0
 
 
+def failure_kind(exc: Exception) -> str:
+    """Bounded diagnostics: never print credentials, SQL params or request data."""
+    if isinstance(exc, FileExistsError) and str(exc.filename).endswith(".desktop.lock"):
+        return "DESKTOP_INSTANCE_LOCK"
+    known = {
+        "Update in progress; candidate startup blocked": "UPDATE_LOCK",
+        "Independent desktop manifest mismatch": "MANIFEST_DIGEST",
+        "Independent digest mismatch": "BOOTSTRAP_DIGEST",
+    }
+    return known.get(str(exc), type(exc).__name__)
+
+
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
     except Exception as exc:
-        print("VIRA private desktop startup rejected: " + type(exc).__name__, file=sys.stderr)
+        print("VIRA private desktop startup rejected: " + failure_kind(exc), file=sys.stderr)
         raise SystemExit(1) from None

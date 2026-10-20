@@ -80,6 +80,7 @@ def validate(result, audit_path):
             or r["browser_opened"]
             or not c["persistent_secret_preserved"]
             or h["transport"] != "REAL_TCP_LOOPBACK_NOT_ASGI_TRANSPORT"
+            or h["prior_process_session_accepted_before_new_login"] is not reuse
             or h["live"] != {"status": "alive"}
             or h["ready"]["status"] != "ready"
             or not h["ready"]["alembic_revision"]
