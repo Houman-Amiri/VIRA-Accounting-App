@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "role": "AUTHENTICATED_LIMITED_PHASE3_REAL_INNO_OPAQUE_FIXTURE_NOT_NATIVE_ACCEPTANCE",
+  "workflow_run": {
+    "id": 39585771427,
+    "head_sha": "e5103ad87af5a07f3af6fb8efd14662f984fc132",
+    "path": ".github/workflows/phase3-native-preflight.yml",
+    "conclusion": "success",
+    "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39585771427"
+  },
+  "job": {
+    "id": 119174150529,
+    "name": "windows-preflight",
+    "conclusion": "success",
+    "check_run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/check-runs/119174150529"
+  },
+  "steps": [
+    {
+      "name": "Set up job",
+      "conclusion": "success"
+    },
+    {
+      "name": "Run actions/checkout@v4",
+      "conclusion": "success"
+    },
+    {
+      "name": "Run astral-sh/setup-uv@v5",
+      "conclusion": "success"
+    },
+    {
+      "name": "Synthetic strict-delta and anchor controls; no native execution claim",
+      "conclusion": "success"
+    },
+    {
+      "name": "Compile BOTH real Inno presets and install/uninstall opaque private fixture",
+      "conclusion": "success"
+    },
+    {
+      "name": "Post Run astral-sh/setup-uv@v5",
+      "conclusion": "success"
+    },
+    {
+      "name": "Post Run actions/checkout@v4",
+      "conclusion": "success"
+    },
+    {
+      "name": "Complete job",
+      "conclusion": "success"
+    }
+  ],
+  "same_check_annotation": {
+    "real_native_delta_rollback_proven": false,
+    "release_authorized": false,
+    "native_runtime_executed": false,
+    "ordinary_and_private_data_preserved": true,
+    "phase3_complete": false,
+    "selected_unicode_space_bang_ampersand_path": true,
+    "existing_private_state_rejected": true,
+    "real_inno_install_uninstall": true,
+    "role": "PHASE3_INNO_MECHANICS_AND_SYNTHETIC_BYTES_ONLY"
+  },
+  "local_focused_tests": 59,
+  "native_source21_installed_or_executed": false,
+  "phase3_complete": false,
+  "all_six_distribution_gates_still_open": true,
+  "release_authorized": false
+}

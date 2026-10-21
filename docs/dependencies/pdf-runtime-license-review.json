@@ -376,7 +376,12 @@
         "private_native_installer_update_work_report": "docs/reports/readiness-phase3-native-install-update-fa.md",
         "private_native_installer_preset_prepared": true,
         "private_native_installer_actual_source21_proven": false,
-        "private_native_delta_rollback_actual_source21_proven": false
+        "private_native_delta_rollback_actual_source21_proven": false,
+        "private_inno_opaque_fixture_install_uninstall_proven": true,
+        "private_inno_limited_proof": "docs/dependencies/phase3-inno-limited-preflight-proof.json",
+        "private_inno_limited_run_id": 39585771427,
+        "private_inno_limited_scope": "REAL_INNO_OPAQUE_TEST_PAYLOAD_NO_SOURCE21_RUNTIME_OR_DELTA_ACCEPTANCE",
+        "inno_compiler_6_7_1_commercial_distribution_entitlement": "OPEN_NOT_INFERRED_FROM_NON_COMMERCIAL_USE_ONLY_BANNER"
       }
     }
   ]

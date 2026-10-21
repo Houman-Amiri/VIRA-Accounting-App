@@ -68,11 +68,26 @@ jobs:
           $before = (Get-FileHash -LiteralPath $ordinary).Hash
           $setup = Join-Path $work 'private/VIRA-Setup-99.30.0.exe'
           $args = @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/CURRENTUSER','/TASKS=""',('/DIR="' + $selected + '"'))
+          # Existing orphaned state without an anchor must not be adopted.
+          $orphan = Join-Path $profile 'VIRA/private-native-installed/state/orphaned-fixture.txt'
+          New-Item -ItemType Directory -Force (Split-Path $orphan) | Out-Null
+          [IO.File]::WriteAllText($orphan, 'OWNED DISPOSABLE OPAQUE TEST STATE')
+          $orphanAttempt = Start-Process -FilePath $setup -ArgumentList $args -Wait -PassThru
+          if ($orphanAttempt.ExitCode -eq 0 -or [IO.File]::ReadAllText($orphan) -ne 'OWNED DISPOSABLE OPAQUE TEST STATE') { throw 'Orphaned private state adopted or modified' }
+          # Delete ONLY the synthetic orphan made immediately above in this fresh runner fixture.
+          Remove-Item -LiteralPath (Join-Path $profile 'VIRA/private-native-installed') -Recurse -Force
           $process = Start-Process -FilePath $setup -ArgumentList $args -Wait -PassThru
           if ($process.ExitCode -ne 0) { throw "Private Inno install exit $($process.ExitCode)" }
           $installedAnchor = Join-Path $profile 'VIRA/private-native-installed/anchor.json'
           if (-not (Test-Path -LiteralPath (Join-Path $selected 'native/pdf/bin/synthetic.dll'))) { throw 'Selected directory was not used' }
           if ((Get-FileHash -LiteralPath $installedAnchor).Hash -ne (Get-FileHash -LiteralPath $anchor).Hash) { throw 'Independent external anchor not copied intact' }
+          $expectedFiles = @(Get-ChildItem -LiteralPath $payload -Recurse -File)
+          $actualFiles = @(Get-ChildItem -LiteralPath $selected -Recurse -File)
+          if ($expectedFiles.Count -ne $actualFiles.Count) { throw 'Inno generated unmanifested files in app payload' }
+          foreach ($file in $expectedFiles) {
+            $relative = [IO.Path]::GetRelativePath($payload,$file.FullName)
+            if ((Get-FileHash -LiteralPath $file.FullName).Hash -ne (Get-FileHash -LiteralPath (Join-Path $selected $relative)).Hash) { throw 'Installed opaque payload bytes differ' }
+          }
           $receipt = Join-Path $profile 'VIRA/private-native-installed/state/receipts/preserve.txt'
           New-Item -ItemType Directory -Force (Split-Path $receipt) | Out-Null
           [IO.File]::WriteAllText($receipt, 'private receipt must survive uninstall')
@@ -81,5 +96,5 @@ jobs:
           $uninstall = Start-Process -FilePath (Join-Path $profile 'VIRA/private-native-installed/uninstaller/unins000.exe') -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
           if ($uninstall.ExitCode -ne 0) { throw 'Private uninstall failed' }
           if (-not (Test-Path -LiteralPath $receipt) -or -not (Test-Path -LiteralPath $installedAnchor) -or (Get-FileHash -LiteralPath $ordinary).Hash -ne $before) { throw 'Data/anchor preservation failed' }
-          $proof = @{role='PHASE3_INNO_MECHANICS_AND_SYNTHETIC_BYTES_ONLY';real_inno_install_uninstall=$true;selected_unicode_space_bang_ampersand_path=$true;ordinary_and_private_data_preserved=$true;existing_private_state_rejected=$true;native_runtime_executed=$false;real_native_delta_rollback_proven=$false;phase3_complete=$false;release_authorized=$false}
+          $proof = @{role='PHASE3_INNO_MECHANICS_AND_SYNTHETIC_BYTES_ONLY';real_inno_install_uninstall=$true;selected_unicode_space_bang_ampersand_path=$true;ordinary_and_private_data_preserved=$true;existing_private_state_rejected=$true;orphaned_state_rejected=$true;payload_has_no_unmanifested_inno_files=$true;native_runtime_executed=$false;real_native_delta_rollback_proven=$false;phase3_complete=$false;release_authorized=$false}
           Write-Host ('::notice title=Phase 3 LIMITED preflight::' + ($proof | ConvertTo-Json -Compress))

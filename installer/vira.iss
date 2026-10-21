@@ -156,7 +156,7 @@ begin
   Result := (GetEnv('GITHUB_ACTIONS') = 'true') and
     (CompareText(GetEnv('LOCALAPPDATA'), '{#PrivateSourceProfile}') = 0) and
     (Pos(Lowercase(AddBackslash(GetEnv('RUNNER_TEMP'))), Lowercase('{#PrivateSourceProfile}')) = 1) and
-    not FileExists('{#PrivateSourceProfile}\VIRA\private-native-installed\anchor.json');
+    not DirExists('{#PrivateSourceProfile}\VIRA\private-native-installed');
 #endif
 end;
 

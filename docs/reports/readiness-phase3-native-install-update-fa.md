@@ -1,109 +1,92 @@
 # فاز ۳ — نصب Inno و delta/rollback بومی
 
-**۲۰۲۶-۱۰-۲۱ — در حال پیاده‌سازی؛ تکمیل نشده است.**
+**۲۰۲۶-۱۰-۲۱ — فعال و ناقص؛ تحویل نهایی فاز انجام نشده است.**
 
 ادامهٔ کار مالک، مجوز همین فاز است، نه انتشار، بستن گیت حقوقی، فعال‌سازی startup
-عمومی یا دست‌زدن به نصب `D:\3D PRINT\VIRA-Accounting`.
+عمومی یا دست‌زدن به نصب `D:\3D PRINT\VIRA-Accounting`. فازهای ۱ و ۲ تحویل شده‌اند؛
+کنترل‌های زیر، فازهای مستقل جدید یا مجوز فاز ۴ نیستند.
 
-## تغییرات جاری و فعال‌نشده در مسیر عمومی
+## تغییرات جاری، بدون فعال‌سازی مسیر عمومی
 
-- preset صریح `PrivateSourceCI` در **همان** `installer/vira.iss`، با AppId و registry
-  مستقل، مسیر انتخابی اجباری، profile موقت محدود به runner و رد نصب مجدد روی anchor
-  موجود. context مستقلِ سه digest بیرون payload نصب می‌شود؛ uninstall خصوصی هیچ داده
-  یا anchor را حذف نمی‌کند و به backup task عمومی دست نمی‌زند. رفتار پیش‌فرض عمومی
-  همچنان CMD قبلی است. preset خصوصی باید روی Windows کامپایل/اجرا و سپس با بستهٔ
-  Source21 واقعی اثبات شود؛ صرف وجود فایل ISS اثبات نصب نیست.
-- `app/private_installed_source.py` یک bridge متعلق به app و فقط خصوصی CI است؛ anchor
-  بیرونی و manifest و bootstrap را کنترل، برای هر اجرا launch/request تازه تولید و
-  **همان `start_vira.cmd --private-source-candidate` واقعی** را فراخوانی می‌کند.
-  migration/factory/renderer از QA گرفته نمی‌شوند. verifier جداگانه فقط‌خواندنی است.
-- branch خصوصی در **همان** `vira_updater.ps1`: فقط با context صریح و GHA، کنترل digest
+- preset صریح `PrivateSourceCI` در **همان** `installer/vira.iss`، با AppId/registry
+  مستقل، profile موقت محدود به runner، مسیر انتخابی خالی و رد state خصوصی موجود.
+  anchor مستقلِ سه digest بیرون payload قرار می‌گیرد. uninstaller تولیدشده نیز بیرون
+  payload کاملاً manifest‌شده است؛ uninstall خصوصی داده/anchor را حذف نمی‌کند و
+  به backup task عمومی دست نمی‌زند. preset عمومی همچنان CMD قبلی را انتخاب می‌کند.
+- bridge متعلق به app، `app/private_installed_source.py`: کنترل anchor بیرونی و
+  bootstrap قبل از اجرا، تولید launch/request تازه و فراخوانی **همان CMD واقعی**
+  با `--private-source-candidate`. quoting خامِ اثبات‌شده و CWD متعلق به profile
+  استفاده می‌شود؛ کنترل Unicode/CWD ضعیف نشده است. verifier جداگانه فقط‌خواندنی است.
+- branch خصوصی در **همان** `vira_updater.ps1`: فقط context صریح و GHA، کنترل digest
   بیرونی manifest قدیمی و تمام بایت‌های runtime، قفل updater مشترک و کپی controller
-  و Python قدیمی بیرون install root؛ بنابراین Python/DLLهای در حال جایگزینی، میزبان
-  transaction نیستند. مسیر عمومی و allowlist عمومی native تغییر نکرده‌اند.
-- controller stdlib خصوصی `scripts/private_source_update.py`: کنترل hash خارجی ZIP و
+  و Python قدیمی بیرون install root؛ میزبان transaction در میان فایل‌های جایگزین‌شونده
+  قرار نمی‌گیرد. مسیر عمومی و allowlist عمومی native تغییر نکرده‌اند.
+- controller stdlib خصوصی `scripts/private_source_update.py`: hash خارجی ZIP و
   manifestها، رد traversal/Windows aliases/reparse/duplicate/case collision، سقف بایت،
-  تطبیق دقیق عملیات با فایل‌های تغییرکرده، کنترل hash/size و BSDIFF40 محدود؛ فایل
-  دست‌نخورده نباید وارد payload delta شود. ابتدا target کامل در TEMP مونتاژ و verifier
-  متعلق به app با Python خود target اجرا می‌شود. سپس shutdown cooperative، backup
-  فایل/DB، journal، اعمال، anchor جدید، startup و health/build gate؛ شکست باید فایل‌ها،
-  DB و anchor قبلی را برگرداند. این توصیف **کد در حال آزمون** است، نه ادعای موفقیت
-  transaction واقعی Source21. در حالت rollback تأییدنشده قفل حفظ و startup متوقف می‌شود؛
-  recovery پس از قطع برق/kill هنوز اثبات نشده است.
+  تطبیق دقیق عملیات با فایل‌های تغییرکرده، hash/size و BSDIFF40 محدود. فایل دست‌نخورده
+  نباید وارد delta شود. ابتدا target کامل در TEMP مونتاژ و verifier خود app با Python
+  همان target اجرا می‌شود؛ سپس shutdown، backup فایل/DB و journal، اعمال و anchor جدید،
+  startup و health/build gate. شکست باید فایل‌ها، DB و anchor قبلی را برگرداند.
+  rollback تأییدنشده قفل را نگه می‌دارد؛ recovery پس از قطع برق/kill هنوز اثبات نشده است.
 
-هیچ‌یک از ۱۶ فایل اجرایی freeze‌شدهٔ شاهد فاز ۲ تغییر نکرده است. هیچ renderer،
-فرمول مالی، schema، نسخهٔ عمومی یا tag جدیدی انتخاب نشده است. scriptهای جدید داخل
-محدودهٔ MIT چهارده‌فایلی قرار داده نشده‌اند؛ شش گیت همچنان بازند.
+این توصیف **کد در حال آزمون** است، نه اثبات transaction واقعی Source21. factory،
+renderer و migration از QA گرفته نمی‌شوند. ۱۶ فایل freeze‌شدهٔ فاز ۲ تغییر نکرده‌اند.
+schema، محاسبات، UI و نسخهٔ عمومی تغییر نکرده‌اند؛ فایل‌های جدید وارد MIT چهارده‌فایلی نشده‌اند.
 
-## آزمون‌های موجود، با محدودهٔ دقیق
+## شواهد موفق با محدودهٔ دقیق
 
-- **۵۲ تست جدید مصنوعی** برای byte transport، patch واقعی تولیدشده با bsdiff4 روی
-  بایت‌های opaque، anchor/schema/path controls، tampering و عدم تغییر baseline.
-  فایل‌های با پسوند DLL/Python در این تست‌ها **native یا interpreter واقعی نیستند**.
-- **۹۹۷ تست backend محلی موفق، 81.843 ثانیه، بدون skip/error/failure**؛ شامل تمام
-  replayهای قبلی، بدون تغییر هش‌های تاریخی. Ruff، Mypy روی ۸۹ فایل، Bandit در gate
-  موجود و MIT محدود ۱۴ فایل موفق‌اند.
-- workflow جدید preflight برای Windows: کامپایل دو preset واقعی Inno و نصب/uninstall
-  یک fixture صریحاً opaque در مسیر فارسی/فاصله/`! &`؛ اجرای interpreter یا DLL این
-  fixture ممنوع است. حتی موفقیت آن، به‌تنهایی پذیرش native delta/rollback یا تکمیل
-  فاز ۳ محسوب نمی‌شود. نتیجهٔ واقعی اجرا پس از پایان ثبت خواهد شد.
+[اجرای محدود 39585771427](https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39585771427)
+در `e5103ad` موفق شد؛ [رسید احرازشده](../dependencies/phase3-inno-limited-preflight-proof.json):
 
-## کارهای لازم پیش از تحویل فاز ۳
+- **۵۹ تست متمرکز در Windows موفق**؛ دو preset واقعی Inno کامپایل شدند.
+- نصب و uninstall واقعی Inno در مسیر فارسی/فاصله/`! &` با fixture **opaque** انجام شد؛
+  anchor خارج payload کپی شد، نصب مجدد روی anchor موجود رد شد و دادهٔ مصنوعی عمومی و
+  خصوصی پس از uninstall حفظ شد. این فقط مکانیک Inno است؛ نه پذیرش بصری wizard.
+- fixture حاوی فایل‌هایی با نام `python.exe` و `synthetic.dll` بود که **interpreter/DLL
+  واقعی نیستند و اجرا نشدند**. این اجرا، نصب یا PDF یا delta بومی Source21 را اثبات نمی‌کند.
+- اصلاح بعدی، رد orphan state بدون anchor و کنترل نبودِ فایل اضافهٔ Inno در payload
+  را اضافه می‌کند؛ نتیجهٔ نسخهٔ جدید باید جداگانه کنترل شود، نه به اجرای e5103ad نسبت داده شود.
 
-1. رفع هر خطای preflight و تثبیت installer/updater خصوصی با آزمون‌های failure path؛
-2. بستهٔ واقعی Source21 با PE/ACP و source audit مستقل، نصب Inno در مسیر انتخابی،
-   launch واقعی، DB/رسید/secret/session پایدار و PDF واقعی؛
-3. اتصال کامل انتخاب delta و تأیید کاربر در مسیر خصوصی in-app، نه فقط فراخوانی مستقیم
-   helper؛ صحت package/anchor و جلوگیری از fallback نصب کامل برای آپدیت عادی؛
-4. apply و rollback واقعی با برنامه/Native در حال اجرا، cold DB snapshot، تغییرات
-   add/replace/patch/delete، شکست startup و کنترل عدم فقدان داده و صحت PDF پس از restart؛
-5. failure/timeout/stale-lock/recovery و آزمون مستقل بستهٔ native، احراز شاهد کامل در
-   artifact/jobهای جدا با رعایت سقف ۵۰ annotation/job، سپس CI نهایی و همگام‌سازی دو master.
+**۱۰۰۴ تست backend محلی موفق در 78.304 ثانیه، بدون skip/error/failure**؛ Ruff، Mypy
+روی ۸۹ فایل و Bandit در gate موجود موفق‌اند. ۵۹ کنترل متمرکز شامل شش آزمون transaction
+با filesystem/ZIP/BSDIFF و SQLite واقعی، اما process boundaryهای صریحاً mock‌شده است.
+integer/ID، schema، receipt/secret و quarantine پایگاه‌دادهٔ failed-target بررسی شدند؛
+این schema مصنوعی است، نه اجرای نصب‌شدهٔ حسابداری. CMD quoting نیز با batch واقعی
+Windows بررسی شد؛ اجرای interpreter یا native PDF از آن نتیجه نمی‌شود.
 
-**فاز ۳ فعال و ناقص است؛ این گزارش تحویل فاز یا درخواست اجازهٔ فاز ۴ نیست.**
+گیت pip-audit ابتدا ۹ آسیب‌پذیری تازه در certifi/Pillow گزارش کرد. فقط lock به
+certifi `2026.10.19` و Pillow `13.0.0` ارتقا یافت؛ هیچ ignore اضافه نشد. audit محلی
+اکنون پاک است. setuptools قدیمیِ seed محیط ابزار محلی جداگانه ارتقا یافت و به
+وابستگی‌های برنامه اضافه نشد. کنترل مجوز MIT همچنان فقط همان ۱۴ فایل است.
 
+## شکست‌های حفظ‌شده، بدون حذف آزمون
 
-Phase3 initial Windows preflight39583808465 and CI39583808447/4e2ecef failed.
-Opaque-byte pytest parameter IDs exceeded Windows PYTEST_CURRENT_TEST env32767
-limit: exact byte data retained, short explicit IDs added; no skipped controls.
-Security gate found9 newly reported vulnerabilities in certifi2026.7.22/Pillow12.3.0;
-lock upgraded to2026.10.19/13.0.0, no audit ignore. Local audit now clean (old seeded
-setuptools tool upgraded separately, not added as app dependency).
-[Preserved failure](../dependencies/phase3-initial-preflight-failure.json).
-App bridge uses proven raw CMD quoting/profile-owned CWD; generated Inno uninstaller
-is outside fully manifested payload. Added real Windows CMD-only fixture check;
-no native-runtime execution claim.53 focused tests PASS locally; next Windows
-preflight/CI still required. Phase3 remains ACTIVE/INCOMPLETE.
+| اجرا / کد | علت و اصلاح | محدودهٔ اثبات‌نشده |
+|---|---|---|
+| `39583808465 / 4e2ecef` و CI `39583808447` | ID پیش‌فرض byte parameter در pytest از سقف 32767 متغیر محیطی Windows گذشت؛ ID کوتاه صریح، با همان بایت‌ها. audit نیز دو dependency آسیب‌پذیر یافت و lock اصلاح شد. | Inno/native اجرا نشد. |
+| `39584663309 / 4516a48` و CI `39584663404` | بازیابی کمکی log قبل از preflight شکست خورد؛ فقط بازیابی حذف شد. Windows CI در AST test جدید، UTF-8 را با cp1252 خواند؛ encoding صریح شد. | آزمون/expected hash حذف یا ضعیف نشد. |
+| `39585368010 / fffbb1f` | test writer مصنوعی، sqlite3 connection را با context تراکنش می‌بست اما connection بسته نمی‌شد؛ Windows quarantine را رد کرد. `closing` همراه context تراکنش اضافه شد؛ ابزار DB تولیدی از قبل درست می‌بست. | دو failure جدید رفع شدند، نه skip. |
+| `39585596841 / 9d8d778` | ۵۹ تست Windows و compile عمومی موفق؛ ISPP تابع Pascal `Chr` ندارد. quoting literal در entryهای conditional جایگزین شد. | private compile ناموفق؛ نصب هنوز اجرا نشده بود. |
 
+رسیدها: [اول](../dependencies/phase3-initial-preflight-failure.json)،
+[دوم](../dependencies/phase3-second-preflight-failure.json)،
+[سوم](../dependencies/phase3-third-preflight-failure.json)،
+[چهارم](../dependencies/phase3-fourth-preflight-failure.json).
 
-## اصلاح خطاهای Windows و وضعیت جاری
+Inno 6.7.1 عبارت **Non-commercial use only** در banner دارد؛ تست CI، حق انتشار
+تجاری ایجاد نمی‌کند. بررسی entitlement و سایر شرایط توزیع در فاز ۴ باز می‌ماند.
+هر شش گیت حقوقی/توزیع بازند؛ هیچ tag یا release جدید ساخته نشده است.
 
-اجرای دوم `39584663309 / 4516a48` پیش از preflight در بازیابی کمکی log قدیمی متوقف
-شد؛ فقط آن بازیابی حذف شد، نه آزمون. CI عادی `39584663404` در چهار job غیر Windows
-موفق شد؛ Windows یک خطای جدید replay داشت: خواندن سورس UTF8 با cp1252 پیش‌فرض در
-AST test. encoding صریح اصلاح شد؛ hash و دادهٔ آزمون تغییر نکرده‌اند.
-[رسید شکست دوم](../dependencies/phase3-second-preflight-failure.json) حفظ شد.
+## باقی‌ماندهٔ همین فاز، پیش از اعلام تکمیل
 
-اکنون **۱۰۰۴ تست محلی موفق در 78.304 ثانیه، بدون skip/error/failure**؛ ۵۹ کنترل
-متمرکز شامل شش آزمون transaction با filesystem/ZIP/patch و SQLite واقعی، اما
-process boundaryهای صریحاً mock‌شده. بازگشت دادهٔ integer/ID، schema و quarantine
-پایگاه‌دادهٔ failed-target بررسی شد؛ rollback تأییدنشده قفل را نگه می‌دارد. این‌ها
-اجرای برنامهٔ حسابداری/Native نیستند. اصلاح encoding و قفل‌ها هیچ gate را نمی‌بندد.
+1. بستهٔ واقعی Source21 با PE/ACP و source audit مستقل، نصب Inno در مسیر انتخابی،
+   launch واقعی و DB/رسید/secret/session پایدار، همراه PDF واقعی؛
+2. اتصال کامل انتخاب delta و تأیید کاربر در مسیر خصوصی **in-app**، نه فقط فراخوانی
+   مستقیم helper؛ صحت package/anchor و جلوگیری از fallback نصب کامل در آپدیت عادی؛
+3. apply/rollback واقعی با برنامه و native در حال اجرا، cold DB snapshot، عملیات
+   add/replace/patch/delete و شکست startup؛ صحت داده و PDF پس از restart؛
+4. failure/timeout/stale-lock/recovery، احراز کامل شاهد با رعایت سقف annotation/job
+   و CI نهاییِ همان نسخه، سپس همگام‌سازی نهایی هر دو master.
 
-نصب Source21 واقعی، اتصال خصوصی in-app و اثبات واقعی native apply/rollback هنوز
-انجام نشده‌اند؛ workflow ساخت سرد جدید برای فاز ۳ هنوز آغاز نشده است.
-
-
-اجرای سوم `39585368010 / fffbb1f` به‌درستی در دو آزمون writer مصنوعی SQLite ناموفق
-شد: context تراکنش sqlite3 به‌تنهایی connection را نمی‌بندد و Windows جابه‌جایی
-DB باز را رد کرد. test writer با `closing` و context تراکنش اصلاح شد؛ ابزار DB
-تولیدی از قبل connection را می‌بندد. [شکست سوم](../dependencies/phase3-third-preflight-failure.json)
-حفظ شد؛ هیچ موردی skip نشد و هیچ موفقیت native یا Inno از آن نتیجه نمی‌شود.
-
-
-اجرای چهارم `39585596841 / 9d8d778`: هر **۵۹ تست Windows موفق** و preset عمومی Inno
-کامپایل شد؛ preset خصوصی به‌سبب استفاده از `Chr` متعلق به Pascal در ISPP ناموفق
-بود. quoting اکنون literal و داخل entryهای conditional است.
-[رسید چهارم](../dependencies/phase3-fourth-preflight-failure.json) شامل banner کامل
-compiler است. Inno 6.7.1 عبارت Non-commercial use only دارد؛ حق انتشار تجاری از
-این تست نتیجه نمی‌شود و بررسی حقوقی آن در فاز ۴ باز می‌ماند. هنوز نصب اجرا نشده است.
+**ساخت سرد Source21 مخصوص فاز ۳ هنوز آغاز نشده است. فاز ۳ فعال و ناقص است؛ نصب و
+دادهٔ واقعی کاربر دست‌نخورده‌اند و فاز ۴ یا انتشار آغاز/تأیید نشده است.**

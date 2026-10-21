@@ -1609,3 +1609,12 @@ Use literal doubled-quote Parameters in conditional Inno entries.
 [Fourth failure](docs/dependencies/phase3-fourth-preflight-failure.json).
 Inno6.7.1 compiler banner says non-commercial use only: no commercial distribution
 entitlement inferred; legal review still OPEN. No installed Source21 proof.
+
+Phase3 LIMITED Inno checkpoint39585771427/e5103ad SUCCESS:59 Windows focused
+controls, BOTH Inno presets compiled, real private opaque-fixture install/uninstall
+in selected Persian/space/!/& path, external anchor and data preserved, duplicate
+anchor rejected. Interpreter/DLL fixture bytes NEVER executed.
+[Limited authenticated proof](docs/dependencies/phase3-inno-limited-preflight-proof.json).
+Follow-up requires rejection of orphan private state and exact payload file-set
+(no generated Inno uninstaller inside manifested app root). This is NOT Source21
+installed/runtime/delta acceptance or phase completion. Phase3 remains ACTIVE.
