@@ -213,9 +213,12 @@ def test_v2_cli_delta_assembles_and_reverifies_full_synthetic_source_payload(
     put(inv_path, inv)
     repo = Path(__file__).resolve().parents[2]
     proc = subprocess.run(
-        [sys.executable, str(repo / "scripts/build_manifest.py"), str(target)], capture_output=True
+        [sys.executable, str(repo / "scripts/build_manifest.py"), str(target)],
+        env=dict(os.environ, PYTHONIOENCODING="ascii"),
+        capture_output=True,
     )
     assert proc.returncode == 0, proc.stderr
+    assert str(target).encode("utf-8") in proc.stdout
     new = dict(
         old,
         version="99.30.1",

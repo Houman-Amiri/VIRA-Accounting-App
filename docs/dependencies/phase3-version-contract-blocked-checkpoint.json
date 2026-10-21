@@ -38,5 +38,14 @@
   "real_native_delta_rollback_proven": false,
   "phase3_complete": false,
   "release_authorized": false,
-  "all_six_distribution_gates_open": true
+  "all_six_distribution_gates_open": true,
+  "later_observation": {
+    "automatic_runs_now_observed": true,
+    "source_workflow_run": 39608813235,
+    "private_preflight_run": 39608813001,
+    "ci_run": 39609353418,
+    "manual_dispatch_still_http403": true,
+    "permission_blocker_not_a_total_execution_blocker": true,
+    "note": "Earlier observations remain historical facts, not current global status. Automatic push workflows subsequently appeared; manual dispatch is still denied. No user action is needed to continue automatic workflows."
+  }
 }

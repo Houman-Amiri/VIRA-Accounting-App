@@ -20,6 +20,10 @@ from app.services.update_engine import build_manifest, manifest_sha256, manifest
 
 
 def main() -> int:
+    # Redirected Windows stdout may be cp1252 even when paths/JSON are UTF-8.
+    # Set the CLI protocol explicitly; do not change native process ACP guards.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description="Build install_manifest.json")
     parser.add_argument("package_dir", type=Path)
     parser.add_argument("-o", "--output", type=Path, default=None)

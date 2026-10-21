@@ -1263,3 +1263,16 @@ external API permissions; GitHub/Arena connection's Actions authorization needs
 attention. Never request passwords/tokens/codes. Local1059 PASS remains valid for
 runtime code; manual-trigger-only follow-up does not change runtime. Phase3 still
 ACTIVE/INCOMPLETE; owner install/data/public1.0.10 untouched, no release/tag.
+
+
+Phase3 automatic-run update: push workflows subsequently appeared; the earlier
+zero-run/403 checkpoint is HISTORICAL, not a current total execution block.
+Manual dispatch STILL403, but automatic CI39609353418 and source39608813235 are
+running. No user reconnect/action is needed to continue this automatic path.
+Windows preflight39608813001/job119251942209 FAILED at17989b3: build_manifest CLI
+printed Persian path to cp1252 stdout (UnicodeEncodeError). [Failure receipt](docs/dependencies/phase3-version-contract-windows-unicode-failure.json).
+Fix the real CLI stdout to UTF8; retain Persian path and force ASCII inherited
+output in the existing assembly test to prevent regression. Native ACP/loader
+and manifest bytes unchanged.81 focused local controls PASS, Ruff/Mypy90 PASS.
+Re-run Windows preflight AND source workflow on the fix; do not skip failed test
+or infer native success from local/synthetic controls. Phase3 still INCOMPLETE.

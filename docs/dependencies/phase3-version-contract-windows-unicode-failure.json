@@ -1,0 +1,17 @@
+{
+  "role": "PHASE3_REAL_WINDOWS_SYNTHETIC_TEST_FAILURE_NOT_NATIVE_ACCEPTANCE",
+  "run_id": 39608813001,
+  "job_id": 119251942209,
+  "head_sha": "17989b39e0089421ed4c57fe4f98dcb7a8131575",
+  "conclusion": "failure",
+  "failed_step": "Synthetic strict-delta and anchor controls; no native execution claim",
+  "annotations": [
+    "Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, astral-sh/setup-uv@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/",
+    "Process completed with exit code 1.",
+    "...........................F............................................ [ 30%]\r\n........................................................................ [ 60%]\r\n........................................................................ [ 90%]\r\n......................                                                   [100%]\r\n================================== FAILURES ===================================\r\n__ test_v2_cli_delta_assembles_and_reverifies_full_synthetic_source_payload ___\r\nbackend\\tests\\test_private_installed_version.py:218: in test_v2_cli_delta_assembles_and_reverifies_full_synthetic_source_payload\r\n    assert proc.returncode == 0, proc.stderr\r\nE   AssertionError: b'Traceback (most recent call last):\\r\r\nE       File \"D:\\\\a\\\\VIRA-Accounting-App\\\\VIRA-Accounting-App\\\\scripts\\\\build_manife...nUnicodeEncodeError: \\'charmap\\' codec can\\'t encode characters in position 144-148: character maps to <undefined>\\r\r\nE     '\r\nE   assert 1 == 0\r\nE    +  where 1 = CompletedProcess(args=['D:\\\\a\\\\VIRA-Accounting-App\\\\VIRA-Accounting-App\\\\.venv\\\\Scripts\\\\python.exe', 'D:\\\\a\\\\VIRA-Acc...UnicodeEncodeError: \\'charmap\\' codec can\\'t encode characters in position 144-148: character maps to <undefined>\\r\\n').returncode\r\n=========================== short test summary info ===========================\r\nFAILED backend/tests/test_private_installed_version.py::test_v2_cli_delta_assembles_and_reverifies_full_synthetic_source_payload - AssertionError: b'Traceback (most recent call last):\\r\r\n    File \"D:\\\\a\\\\VIRA-Accounting-App\\\\VIRA-Accounting-App\\\\scripts\\\\build_manife...nUnicodeEncodeError: \\'charmap\\' codec can\\'t encode characters in position 144-148: character maps to <undefined>\\r\r\n  '\r\nassert 1 == 0\r\n +  where 1 = CompletedProcess(args=['D:\\\\a\\\\VIRA-Accounting-App\\\\VIRA-Accounting-App\\\\.venv\\\\Scripts\\\\python.exe', 'D:\\\\a\\\\VIRA-Acc...UnicodeEncodeError: \\'charmap\\' codec can\\'t encode characters in position 144-148: character maps to <undefined>\\r\\n').returncode\r\n"
+  ],
+  "root_cause": "build_manifest.py printing a Persian target path to redirected Windows cp1252 stdout raised UnicodeEncodeError after JSON write; exit1 correctly failed the test.",
+  "fix": "Explicit UTF8 CLI stdout; keep exact Persian path and add forced-ASCII-output regression. No native ACP/loader guards changed.",
+  "phase3_complete": false,
+  "release_authorized": false
+}
