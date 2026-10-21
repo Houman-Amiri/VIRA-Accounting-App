@@ -1,0 +1,59 @@
+{
+  "role": "PHASE3_OLD_HELPER_CLONE_LOCAL_FOLLOWUP_NOT_NATIVE_TRANSACTION_PROOF",
+  "baseline_runs": [
+    {
+      "id": 39612185288,
+      "head_sha": "a7c6fc87b6bb066a3e7c78766071451602b1d131",
+      "name": "Phase 3 private installer and byte-transport preflight NOT native acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39612185288"
+    },
+    {
+      "id": 39612185530,
+      "head_sha": "a7c6fc87b6bb066a3e7c78766071451602b1d131",
+      "name": "CI",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39612185530"
+    },
+    {
+      "id": 39610014494,
+      "head_sha": "4669c5e6beab03dc35fada5cab31a7cc2e7eb887",
+      "name": "Phase 2 real CMD source startup and HTTP",
+      "status": "in_progress",
+      "conclusion": null,
+      "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39610014494"
+    },
+    {
+      "id": 39612186978,
+      "head_sha": "a7c6fc87b6bb066a3e7c78766071451602b1d131",
+      "name": "Phase 2 real CMD source startup and HTTP",
+      "status": "pending",
+      "conclusion": null,
+      "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39612186978"
+    }
+  ],
+  "baseline_write_quarantine_windows_preflight_verified": true,
+  "baseline_write_quarantine_ci_all5_success": true,
+  "followup": {
+    "tests": 1074,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 88.96,
+    "new_clone_negative_tests": 3,
+    "ruff": "PASS",
+    "mypy_source_files": 90,
+    "mypy": "PASS",
+    "bandit_ci_level": "PASS",
+    "dependency_audit": "PASS",
+    "windows_verified": false
+  },
+  "dispatch": "Byte-identical SHA/size-verified OLD installed helper copied/fsynced/reverified under fresh runner TEMP outside app/profile. Explicit InstallDir remains independently anchored app. Downloaded target helper is never selected for this transaction. Prevent running installed exe from locking its own replacement.",
+  "source21_build_observed": true,
+  "real_versioned_source21_install_proven": false,
+  "real_native_delta_rollback_proven": false,
+  "phase3_complete": false,
+  "release_authorized": false
+}

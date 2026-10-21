@@ -1315,3 +1315,21 @@ Fresh Windows/Source21 acceptance for THIS safety follow-up still required.
 Source workflow queues new verification WITHOUT cancelling an active cold build.
 Do NOT claim real native delta/rollback or crash/stale recovery yet. Phase3 stays
 ACTIVE/INCOMPLETE; all6 gates OPEN, public1.0.10/user data untouched, no Phase4/tag/release.
+
+
+Phase3 a7c6fc8 write-quarantine Windows39612185288/job119263627060 SUCCESS and
+CI39612185530 ALL5 SUCCESS. Source cold39610014494 STILL compiling; new source
+39612186978 queues behind it (active build NOT cancelled). Windows success is
+synthetic/opaque Inno + general compiled-helper smoke, NOT Source21 transaction.
+
+Additional private dispatch fix: Windows cannot replace a running installed EXE.
+Instead of launching {app}/vira-updater.exe IN PLACE, verify OLD installed helper,
+copy/fsync it to a fresh disjoint runner TEMP directory and recheck size/SHA
+against the same anchored OLD manifest. Execute ONLY that identical OLD clone,
+with explicit anchored InstallDir. NEVER select the downloaded target helper.
+Target can now replace the unlocked installed EXE; no full setup/download change.
+3 additional clone negative controls; full local1074 PASS88.96s, zero failures,
+errors/skips; Ruff/Mypy90/Bandit CI-level/audit PASS. Follow-up needs its OWN
+Windows verification. [Checkpoint](docs/dependencies/phase3-old-helper-clone-checkpoint.json).
+Actual native delta/rollback, terminal-helper fault handling and crash/stale-lock
+recovery remain acceptance work; all6 distribution gates OPEN, Phase3 INCOMPLETE.

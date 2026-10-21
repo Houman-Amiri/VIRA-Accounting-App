@@ -140,8 +140,11 @@ def test_private_stream_download_uses_existing_verifier_and_old_installed_helper
     stage = Path(status["staged_path"])
     assert stage.is_relative_to(home / "state/data/updates")
     argv, log = update._updater_command(settings, str(stage))
-    assert argv[0] == str(root / "vira-updater.exe")
-    assert argv[0] != str(stage / "vira-updater.exe")
+    selected = Path(argv[0])
+    assert not selected.is_relative_to(root) and not selected.is_relative_to(home)
+    assert selected.read_bytes() == (root / "vira-updater.exe").read_bytes()
+    assert selected.read_bytes() != (stage / "vira-updater.exe").read_bytes()
+    assert argv[argv.index("-InstallDir") + 1] == str(root)
     transaction = channel.read(Path(argv[argv.index("-PrivateSourceTransaction") + 1]))
     assert transaction["archive_sha256"] == hashlib.sha256(payload).hexdigest()
     assert not Path(transaction["attempt"]).is_relative_to(home)
@@ -376,3 +379,24 @@ def test_private_version_staging_link_fails_before_any_write(tmp_path, monkeypat
         manager.prepare_download(check, settings)
     assert manager.status()["state"] == "idle"
     assert not list(foreign.iterdir())
+
+
+@pytest.mark.parametrize("fault", ["clone-hash", "existing-clone", "old-helper"])
+def test_old_helper_clone_rejects_drift_or_adopted_directory(tmp_path, monkeypatch, fault):
+    root, _, settings, _, _ = fixture(tmp_path, monkeypatch)
+    context = channel.scope(settings, root)
+    assert context is not None
+    run = "a" * 32
+    if fault == "clone-hash":
+        real_sha = channel.sha
+        monkeypatch.setattr(
+            channel,
+            "sha",
+            lambda path: real_sha(path) if path == root / "vira-updater.exe" else "0" * 64,
+        )
+    elif fault == "existing-clone":
+        (tmp_path / ("VIRA updater خصوصی ! & " + run)).mkdir()
+    else:
+        (root / "vira-updater.exe").write_bytes(b"CHANGED OLD HELPER")
+    with pytest.raises((ValueError, FileExistsError)):
+        channel.clone_installed_helper(context, run)

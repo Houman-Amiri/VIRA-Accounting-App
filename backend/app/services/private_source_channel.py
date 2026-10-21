@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 import secrets
+import shutil
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -102,6 +103,34 @@ def write_new(path: Path, value: dict) -> None:
         os.fsync(stream.fileno())
 
 
+def clone_installed_helper(context: SourceScope, run: str) -> Path:
+    """Execute OLD anchored bytes outside {app}; a running EXE cannot replace itself."""
+    source = context.root / "vira-updater.exe"
+    no_links(source)
+    expected = context.files["vira-updater.exe"]
+    if source.stat().st_size != expected["size"] or sha(source) != expected["sha256"]:
+        raise ValueError("Old installed helper changed")
+    directory = Path(os.environ["RUNNER_TEMP"]) / ("VIRA updater خصوصی ! & " + run)
+    no_links(directory)
+    if (
+        directory.is_relative_to(context.root)
+        or context.root.is_relative_to(directory)
+        or directory.is_relative_to(context.home)
+        or context.home.is_relative_to(directory)
+    ):
+        raise ValueError("Private helper clone must be disjoint from payload and profile")
+    directory.mkdir()  # Fresh nonce; never adopt an existing helper directory.
+    target = directory / "vira-updater.exe"
+    with source.open("rb") as original, target.open("xb") as cloned:
+        shutil.copyfileobj(original, cloned)
+        cloned.flush()
+        os.fsync(cloned.fileno())
+    no_links(target)
+    if target.stat().st_size != expected["size"] or sha(target) != expected["sha256"]:
+        raise ValueError("Old helper clone differs from independent baseline")
+    return target
+
+
 def command(context: SourceScope, stage: Path) -> tuple[list[str], Path]:
     """Use the anchored OLD real helper, never execute a newly downloaded helper."""
     try:
@@ -137,14 +166,8 @@ def command(context: SourceScope, stage: Path) -> tuple[list[str], Path]:
             raise ValueError("Private base version changed")
         if target_pin["manifest_sha256"] != sha(stage / "install_manifest.json"):
             raise ValueError("Private staged manifest changed")
-        helper = context.root / "vira-updater.exe"
-        no_links(helper)
-        if (
-            helper.stat().st_size != context.files["vira-updater.exe"]["size"]
-            or sha(helper) != context.files["vira-updater.exe"]["sha256"]
-        ):
-            raise ValueError("Old installed helper changed")
         run = secrets.token_hex(16)
+        helper = clone_installed_helper(context, run)
         transaction = stage.parent / ("private-transaction-" + run + ".json")
         attempt = Path(os.environ["RUNNER_TEMP"]) / ("VIRA تراکنش خصوصی ! & " + run)
         write_new(
