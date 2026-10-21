@@ -312,7 +312,7 @@ def start(home: Path, root: Path, token: str, options: dict) -> subprocess.Popen
             str(root / "app/private_installed_source.py"),
         ],
         env=env,
-        cwd=root,
+        cwd=home,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
@@ -424,6 +424,7 @@ def main() -> None:
             ],
             check=True,
             timeout=120,
+            cwd=home,
         )
         stop(home, root)
         stopped = True

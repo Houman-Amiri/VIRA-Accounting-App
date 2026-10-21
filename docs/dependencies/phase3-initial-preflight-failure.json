@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "role": "PRESERVED_PHASE3_INITIAL_PREFLIGHT_FAILURE_NOT_NATIVE_ACCEPTANCE",
+  "head_sha": "4e2ecef7faf58ce3b5fa29870a60db80fee7f995",
+  "preflight_run": {
+    "id": 39583808465,
+    "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39583808465",
+    "conclusion": "failure"
+  },
+  "ordinary_ci": {
+    "id": 39583808447,
+    "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39583808447",
+    "conclusion": "failure"
+  },
+  "failed_preflight_job": 119167635625,
+  "failed_windows_ci_job": 119167636017,
+  "failed_security_job": 119167636632,
+  "windows_failure_excerpt": [
+    "#\"! \\x1f\\x1e\\x1d\\x1c\\x1b\\x1a\\x19\\x18\\x17\\x16\\x15\\x14\\x13\\x12\\x11\\x10\\x0f\\x0e\\r\\x0c\\x0b\\n\\t\\x08\\x07\\x06\\x05\\x04\\x03\\x02\\x01\\x00] - ValueError: the environment variable is longer than 32767 characters\r\n"
+  ],
+  "security_annotations": [
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/4e2ecef7faf58ce3b5fa29870a60db80fee7f995/.github",
+      "start_line": 38,
+      "start_column": null,
+      "end_line": 38,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "Dependency audit failure part 0",
+      "message": "Found 9 known vulnerabilities in 2 packages\nName    Version   ID              Fix Versions\n------- --------- --------------- ------------\ncertifi 2026.7.22 PYSEC-2026-4320 2026.10.19\npillow  12.3.0    CVE-2026-112895 13.0.0\npillow  12.3.0    CVE-2026-112400 13.0.0\npillow  12.3.0    CVE-2026-112397 13.0.0\npillow  12.3.0    CVE-2026-112896 13.0.0\npillow  12.3.0    CVE-2026-112897 13.0.0\npillow  12.3.0    CVE-2026-112395 13.0.0\npillow  12.3.0    CVE-2026-112404 13.0.0\npillow  12.3.0    CVE-2026-112899 13.0.0\n\nName            Skip Reason\n--------------- -------------------------------------------------------------------------------\nvira-accounting Dependency not found on PyPI and could not be audited: vira-accounting (1.0.10)\n",
+      "raw_details": ""
+    }
+  ],
+  "root_causes": [
+    "Parameterized opaque 12KB byte strings expanded PYTEST_CURRENT_TEST beyond Windows 32767-character environment-variable limit before the test body. Keep original bytes and use short explicit parameter IDs; no skipped cases.",
+    "Newly reported certifi/Pillow vulnerabilities fail the existing pip-audit gate; upgrade only certifi to2026.10.19 and Pillow to13.0.0 in uv.lock, no ignore/exemption."
+  ],
+  "inno_step_executed": false,
+  "source21_native_execution_proven": false,
+  "phase3_complete": false,
+  "release_authorized": false
+}

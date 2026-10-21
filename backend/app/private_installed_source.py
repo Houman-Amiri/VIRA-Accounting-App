@@ -98,6 +98,12 @@ def prepare(root: Path, pin: Path):
     return options, state, launch_id, boot
 
 
+def real_cmd_command(root: Path, request: Path, comspec: str) -> str:
+    return (
+        f'"{comspec}" /d /s /c ""{root / "start_vira.cmd"}" --private-source-candidate "{request}""'
+    )
+
+
 def main() -> int:
     if os.name != "nt" or os.environ.get("GITHUB_ACTIONS") != "true":
         raise ValueError("Private installed-source Windows CI only")
@@ -150,14 +156,11 @@ def main() -> int:
         request.unlink()
         raise
     try:
-        command = (
-            '""'
-            + str(root / "start_vira.cmd")
-            + '" --private-source-candidate "'
-            + str(request)
-            + '""'
-        )
-        return subprocess.call([os.environ["COMSPEC"], "/d", "/s", "/c", command], cwd=root)
+        # Use the same raw Windows command line as the proven Phase2 driver;
+        # list2cmdline escaping is NOT cmd.exe /s /c quoting.
+        command = real_cmd_command(root, request, os.environ["COMSPEC"])
+        return subprocess.call(command, cwd=state.parent)
+
     finally:
         if read(active) != {"launch_id": launch_id, "payload_root": str(root)}:
             raise RuntimeError("Installed active-launch ownership changed")

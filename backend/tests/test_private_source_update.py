@@ -247,6 +247,7 @@ def test_manifest_case_alias_and_boolean_size_rejected(tmp_path):
         (b"old", b""),
         (bytes(range(256)) * 50, bytes(range(255, -1, -1)) * 48),
     ],
+    ids=["empty", "insert", "delete", "binary-12kb"],
 )
 def test_bounded_stdlib_patch_matches_actual_bsdiff4(old, new):
     assert MODULE["patch"](old, bsdiff4.diff(old, new), len(new)) == new

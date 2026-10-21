@@ -25,11 +25,13 @@
   #define AppName "VIRA PRIVATE SOURCE CI"
   #define AppExeName "python\python.exe"
   #define LaunchArgs "-I -S -B -X utf8 " + Chr(34) + Chr(34) + "{app}\app\private_installed_source.py" + Chr(34) + Chr(34)
+  #define LaunchWorkingDir PrivateSourceProfile
   #define RegistryKey "SOFTWARE\VIRA\PrivateSourceCI"
 #else
   #define AppName "V.I.R.A"
   #define AppExeName "start_vira.cmd"
   #define LaunchArgs ""
+  #define LaunchWorkingDir "{app}"
   #define RegistryKey "SOFTWARE\VIRA"
 #endif
 #define AppPublisher "VIRA"
@@ -56,6 +58,10 @@ ArchitecturesInstallIn64BitMode=x64
 ArchitecturesAllowed=x64
 PrivilegesRequired=admin
 PrivilegesRequiredOverridesAllowed=dialog
+#ifdef PrivateSourceCI
+; Keep generated uninstaller code OUTSIDE the fully manifested app payload.
+UninstallFilesDir={#PrivateSourceProfile}\VIRA\private-native-installed\uninstaller
+#endif
 UninstallDisplayName={#AppName}
 UninstallDisplayIcon={app}\{#AppExeName}
 WizardStyle=modern
@@ -101,9 +107,9 @@ Type: filesandordirs; Name: "{app}\app"
 Type: filesandordirs; Name: "{app}\backend"
 
 [Icons]
-Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Parameters: "{#LaunchArgs}"; WorkingDir: "{app}"
-Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Parameters: "{#LaunchArgs}"; WorkingDir: "{app}"; Tasks: desktopicon
-Name: "{userstartup}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Parameters: "{#LaunchArgs}"; WorkingDir: "{app}"; Tasks: startup
+Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Parameters: "{#LaunchArgs}"; WorkingDir: "{#LaunchWorkingDir}"
+Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Parameters: "{#LaunchArgs}"; WorkingDir: "{#LaunchWorkingDir}"; Tasks: desktopicon
+Name: "{userstartup}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Parameters: "{#LaunchArgs}"; WorkingDir: "{#LaunchWorkingDir}"; Tasks: startup
 
 [Registry]
 ; stable install location for the updater + uninstaller (§1)
@@ -111,7 +117,7 @@ Root: HKA; Subkey: "{#RegistryKey}"; ValueType: string; ValueName: "InstallDir";
 Root: HKA; Subkey: "{#RegistryKey}"; ValueType: string; ValueName: "Version"; ValueData: "{#AppVersion}"; Flags: uninsdeletekey
 
 [Run]
-Filename: "{app}\{#AppExeName}"; Parameters: "{#LaunchArgs}"; Description: "اجرای {#AppName}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#AppExeName}"; Parameters: "{#LaunchArgs}"; WorkingDir: "{#LaunchWorkingDir}"; Description: "اجرای {#AppName}"; Flags: nowait postinstall skipifsilent
 #ifndef PrivateSourceCI
 Filename: "schtasks.exe"; \
   Parameters: "/Create /TN ""VIRA\Backup"" /TR ""''{app}\scripts\backup_vira.ps1''"" /SC DAILY /ST 21:00 /F"; \

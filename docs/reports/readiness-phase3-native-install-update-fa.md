@@ -61,3 +61,16 @@
    artifact/jobهای جدا با رعایت سقف ۵۰ annotation/job، سپس CI نهایی و همگام‌سازی دو master.
 
 **فاز ۳ فعال و ناقص است؛ این گزارش تحویل فاز یا درخواست اجازهٔ فاز ۴ نیست.**
+
+
+Phase3 initial Windows preflight39583808465 and CI39583808447/4e2ecef failed.
+Opaque-byte pytest parameter IDs exceeded Windows PYTEST_CURRENT_TEST env32767
+limit: exact byte data retained, short explicit IDs added; no skipped controls.
+Security gate found9 newly reported vulnerabilities in certifi2026.7.22/Pillow12.3.0;
+lock upgraded to2026.10.19/13.0.0, no audit ignore. Local audit now clean (old seeded
+setuptools tool upgraded separately, not added as app dependency).
+[Preserved failure](docs/dependencies/phase3-initial-preflight-failure.json).
+App bridge uses proven raw CMD quoting/profile-owned CWD; generated Inno uninstaller
+is outside fully manifested payload. Added real Windows CMD-only fixture check;
+no native-runtime execution claim.53 focused tests PASS locally; next Windows
+preflight/CI still required. Phase3 remains ACTIVE/INCOMPLETE.
