@@ -371,7 +371,12 @@
         "private_real_cmd_prior_driver_failure": "docs/dependencies/pdf-desktop-source-driver-failure.json",
         "private_real_cmd_prior_logging_failure": "docs/dependencies/pdf-desktop-source-logging-failure.json",
         "ordinary_default_source_startup_enabled": false,
-        "native_installer_delta_rollback_proven": false
+        "native_installer_delta_rollback_proven": false,
+        "remaining_readiness_phase3_of6_status": "ACTIVE_INCOMPLETE_NO_REAL_NATIVE_INSTALL_DELTA_ROLLBACK_ACCEPTANCE",
+        "private_native_installer_update_work_report": "docs/reports/readiness-phase3-native-install-update-fa.md",
+        "private_native_installer_preset_prepared": true,
+        "private_native_installer_actual_source21_proven": false,
+        "private_native_delta_rollback_actual_source21_proven": false
       }
     }
   ]

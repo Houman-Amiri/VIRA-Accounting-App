@@ -1546,3 +1546,30 @@ Phase2 docs/evidence checkpoint eb7e761: CI39448011124 all5 SUCCESS; license3944
 source kit39448011222 and modified kit39448011383 (including Windows recipient) ALL
 SUCCESS. [Final checkpoint](docs/dependencies/pdf-desktop-source-checkpoint-ci.json).
 Next checkpoint-only tip CI is observed separately; no new native/source claim.
+
+
+### Remaining readiness PHASE 3 OF 6 — 2026-10-21, ACTIVE / NOT COMPLETE
+
+Owner continuation authorizes private native Inno/incremental-update/rollback work,
+NOT public activation or release. Existing vira.iss now has an explicitly defined
+PrivateSourceCI preset with distinct AppId/registry, selected empty directory,
+isolated runner profile, external three-digest anchor and data-preserving uninstall.
+App-owned private_installed_source bridge delegates fresh requests to unchanged
+REAL start_vira.cmd and unchanged app-owned bootstrap/lifecycle. Existing real
+vira_updater.ps1 has an explicit private context branch: anchored OLD runtime byte
+verification, shared mutex and external runtime/controller clone before replacement.
+Public default branches/allowlist remain unchanged. New stdlib private controller
+assembles/verifies exact changed-file delta, bounded BSDIFF, backups/journal/DB,
+apply/restart/health/rollback; it is NOT yet real-native acceptance. No QA factory.
+
+52 new SYNTHETIC byte/anchor/path/tamper tests; opaque .dll/.exe test bytes are NOT
+native execution.997 local backend PASS81.843s/zero skips/errors/failures, Ruff,
+Mypy89/Bandit existing gate/MIT14 PASS. Windows preflight compiles both actual Inno
+presets and installs/uninstalls ONLY opaque data; cannot prove native PDF/update.
+Remaining within SAME Phase3: actual Source21 Inno/startup/PDF, complete private
+in-app permission+delta selection, real apply/rollback/data/session proof, failure/
+recovery controls, authenticated full evidence and final CI. No phase completion,
+no Phase4 approval, no user-install/data/schema/math/UI/version/tag/release change.
+16 executable files frozen by Phase2 proof remain unchanged. ALL SIX GATES OPEN;
+new tooling NOT added to the limited14-file MIT grant.
+[Phase3 work-in-progress](docs/reports/readiness-phase3-native-install-update-fa.md).

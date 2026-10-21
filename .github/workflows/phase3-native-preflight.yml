@@ -1,0 +1,70 @@
+name: Phase 3 private installer and byte-transport preflight NOT native acceptance
+
+on:
+  push:
+    paths: ['.github/workflows/phase3-native-preflight.yml', 'installer/vira.iss', 'backend/app/private_installed_source.py', 'scripts/private_source_update.py', 'backend/tests/test_private_source_update.py']
+  pull_request:
+    paths: ['.github/workflows/phase3-native-preflight.yml', 'installer/vira.iss', 'backend/app/private_installed_source.py', 'scripts/private_source_update.py', 'backend/tests/test_private_source_update.py']
+
+permissions:
+  contents: read
+
+jobs:
+  windows-preflight:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Synthetic strict-delta and anchor controls; no native execution claim
+        shell: pwsh
+        run: |
+          uv sync --frozen --all-extras
+          if ($LASTEXITCODE -ne 0) { throw 'Dependency sync failed' }
+          uv run pytest backend/tests/test_private_source_update.py -q
+          if ($LASTEXITCODE -ne 0) { throw 'Synthetic byte/anchor regressions failed' }
+      - name: Compile BOTH real Inno presets and install/uninstall opaque private fixture
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path -LiteralPath $iscc)) { throw 'Inno Setup compiler is required' }
+          $work = Join-Path $env:RUNNER_TEMP ('phase3-inno-' + [guid]::NewGuid().ToString('N'))
+          $payload = Join-Path $work 'opaque-payload'
+          $profile = Join-Path $work 'کاربر خصوصی ! & Local AppData'
+          $selected = Join-Path $work 'مسیر انتخابی ! & VIRA'
+          New-Item -ItemType Directory -Force $payload, $profile | Out-Null
+          $env:LOCALAPPDATA = $profile
+          New-Item -ItemType Directory -Force (Join-Path $payload 'python'), (Join-Path $payload 'app'), (Join-Path $payload 'native/pdf/bin') | Out-Null
+          # Deliberately NOT executable/native material. NEVER launch this fixture.
+          [IO.File]::WriteAllText((Join-Path $payload 'python/python.exe'), 'OPAQUE NOT AN INTERPRETER')
+          [IO.File]::WriteAllText((Join-Path $payload 'app/private_installed_source.py'), '# opaque installer fixture, never executed')
+          [IO.File]::WriteAllText((Join-Path $payload 'native/pdf/bin/synthetic.dll'), 'OPAQUE NOT A DLL')
+          [IO.File]::WriteAllText((Join-Path $payload 'start_vira.cmd'), '@exit /b 99')
+          $anchor = Join-Path $work 'anchor-input.json'
+          @{schema=1;role='PRIVATE_SOURCE_INSTALLED_ANCHOR';manifest_sha256=('a'*64);inventory_sha256=('b'*64);source_audit_sha256=('c'*64);port=8787;no_browser=$true} | ConvertTo-Json | Set-Content -LiteralPath $anchor -Encoding utf8
+          & $iscc "/DAppVersion=99.30.0" "/DAppSource=$payload" "/O$work/public-compile-only" installer/vira.iss
+          if ($LASTEXITCODE -ne 0) { throw 'Public-default Inno compile regressed' }
+          & $iscc '/DPrivateSourceCI' "/DPrivateSourceAnchor=$anchor" "/DPrivateSourceProfile=$profile" "/DAppVersion=99.30.0" "/DAppSource=$payload" "/O$work/private" installer/vira.iss
+          if ($LASTEXITCODE -ne 0) { throw 'Private Inno compile failed' }
+          $ordinary = Join-Path $profile 'VIRA/data/ordinary-sentinel.txt'
+          New-Item -ItemType Directory -Force (Split-Path $ordinary) | Out-Null
+          [IO.File]::WriteAllText($ordinary, 'ordinary business data must remain untouched')
+          $before = (Get-FileHash -LiteralPath $ordinary).Hash
+          $setup = Join-Path $work 'private/VIRA-Setup-99.30.0.exe'
+          $args = @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/CURRENTUSER','/TASKS=""',('/DIR="' + $selected + '"'))
+          $process = Start-Process -FilePath $setup -ArgumentList $args -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Private Inno install exit $($process.ExitCode)" }
+          $installedAnchor = Join-Path $profile 'VIRA/private-native-installed/anchor.json'
+          if (-not (Test-Path -LiteralPath (Join-Path $selected 'native/pdf/bin/synthetic.dll'))) { throw 'Selected directory was not used' }
+          if ((Get-FileHash -LiteralPath $installedAnchor).Hash -ne (Get-FileHash -LiteralPath $anchor).Hash) { throw 'Independent external anchor not copied intact' }
+          $receipt = Join-Path $profile 'VIRA/private-native-installed/state/receipts/preserve.txt'
+          New-Item -ItemType Directory -Force (Split-Path $receipt) | Out-Null
+          [IO.File]::WriteAllText($receipt, 'private receipt must survive uninstall')
+          $again = Start-Process -FilePath $setup -ArgumentList $args -Wait -PassThru
+          if ($again.ExitCode -eq 0) { throw 'Existing private anchor/state was overwritten' }
+          $uninstall = Start-Process -FilePath (Join-Path $selected 'unins000.exe') -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
+          if ($uninstall.ExitCode -ne 0) { throw 'Private uninstall failed' }
+          if (-not (Test-Path -LiteralPath $receipt) -or -not (Test-Path -LiteralPath $installedAnchor) -or (Get-FileHash -LiteralPath $ordinary).Hash -ne $before) { throw 'Data/anchor preservation failed' }
+          $proof = @{role='PHASE3_INNO_MECHANICS_AND_SYNTHETIC_BYTES_ONLY';real_inno_install_uninstall=$true;selected_unicode_space_bang_ampersand_path=$true;ordinary_and_private_data_preserved=$true;existing_private_state_rejected=$true;native_runtime_executed=$false;real_native_delta_rollback_proven=$false;phase3_complete=$false;release_authorized=$false}
+          Write-Host ('::notice title=Phase 3 LIMITED preflight::' + ($proof | ConvertTo-Json -Compress))

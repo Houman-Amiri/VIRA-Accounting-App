@@ -25,6 +25,7 @@ param(
     [int]$Port = 0,
     [string]$ResultPath = "",
     [int]$HealthTimeoutSeconds = 90,
+    [string]$PrivateSourceTransaction = "",       # explicit private CI context, NEVER public auto-selection
     [switch]$ForceFailure                           # CI forced-failure rollback test
 )
 
@@ -48,6 +49,72 @@ function Get-Sha256([string]$Path) {
         $sha.Dispose()
         $stream.Dispose()
     }
+}
+
+# Phase 3 private source branch. Public transaction below remains the default.
+# Clone the verified OLD runtime outside {app} so Python/DLL replacement cannot
+# lock the interpreter executing the transaction. No alternate QA factory exists.
+if ($PrivateSourceTransaction) {
+    if ($env:GITHUB_ACTIONS -ne "true") { throw "Private installed source Windows CI only" }
+    $runnerPrefix = [IO.Path]::GetFullPath($env:RUNNER_TEMP).TrimEnd('\') + '\'
+    $privateHome = Join-Path $env:LOCALAPPDATA "VIRA\private-native-installed"
+    $installFull = [IO.Path]::GetFullPath($InstallDir).TrimEnd('\')
+    $stageFull = [IO.Path]::GetFullPath($Stage).TrimEnd('\')
+    foreach ($path in @($installFull, $stageFull, $privateHome, $PrivateSourceTransaction)) {
+        $full = [IO.Path]::GetFullPath($path)
+        if (-not $full.StartsWith($runnerPrefix, [StringComparison]::OrdinalIgnoreCase)) { throw "Disposable private runner paths required" }
+        $item = New-Object IO.FileInfo -ArgumentList $full
+        while ($item) {
+            if ((Test-Path -LiteralPath $item.FullName) -and ((Get-Item -LiteralPath $item.FullName -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw "Private reparse path rejected" }
+            $item = if ($item -is [IO.FileInfo]) { $item.Directory } else { $item.Parent }
+        }
+    }
+    if ($stageFull.StartsWith(($installFull + '\'), [StringComparison]::OrdinalIgnoreCase) -or
+        $installFull.StartsWith(($stageFull + '\'), [StringComparison]::OrdinalIgnoreCase) -or
+        $stageFull -eq $installFull) { throw "Private stage must be disjoint from payload" }
+    $pin = Get-Content -LiteralPath (Join-Path $privateHome 'anchor.json') -Raw -Encoding utf8 | ConvertFrom-Json
+    $manifestFile = Join-Path $installFull 'install_manifest.json'
+    if ($pin.role -ne 'PRIVATE_SOURCE_INSTALLED_ANCHOR' -or (Get-Sha256 $manifestFile) -ne $pin.manifest_sha256) { throw "Independent old private anchor mismatch" }
+    $baseline = Get-Content -LiteralPath $manifestFile -Raw -Encoding utf8 | ConvertFrom-Json
+    # Verify EVERY old runtime byte before executing the external clone.
+    $seenPrivate = @{}
+    foreach ($file in $baseline.files) {
+        $relative = [string]$file.path
+        $full = [IO.Path]::GetFullPath((Join-Path $installFull $relative))
+        if ($relative.Contains('\') -or $relative.Contains(':') -or ($relative.Split('/') -contains '..') -or
+            -not $full.StartsWith(($installFull + '\'), [StringComparison]::OrdinalIgnoreCase) -or $seenPrivate.ContainsKey($relative)) { throw "Unsafe/duplicate private runtime path" }
+        $seenPrivate[$relative] = $true
+        $item = New-Object IO.FileInfo -ArgumentList $full
+        while ($item) {
+            if ((Test-Path -LiteralPath $item.FullName) -and ((Get-Item -LiteralPath $item.FullName -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw "Private runtime reparse path rejected" }
+            $item = if ($item -is [IO.FileInfo]) { $item.Directory } else { $item.Parent }
+        }
+        if (-not (Test-Path -LiteralPath $full -PathType Leaf) -or (Get-Item -LiteralPath $full).Length -ne $file.size -or (Get-Sha256 $full) -ne $file.sha256) { throw "Private old runtime differs from independent baseline" }
+    }
+    $entry = @($baseline.files | Where-Object { $_.path -ceq 'scripts/private_source_update.py' })
+    $driver = Join-Path $installFull 'scripts/private_source_update.py'
+    if ($entry.Count -ne 1 -or (Get-Sha256 $driver) -ne $entry[0].sha256) { throw "Old private controller not independently verified" }
+    $context = Get-Content -LiteralPath $PrivateSourceTransaction -Raw -Encoding utf8 | ConvertFrom-Json
+    if ($context.role -ne 'PRIVATE_SOURCE_TRANSACTION') { throw "Private transaction context required" }
+    $privateMutex = New-Object System.Threading.Mutex($false, 'Global\VIRA-Updater')
+    if (-not $privateMutex.WaitOne(0)) { throw "another update is already running" }
+    try {
+        $external = Join-Path $stageFull ('private-controller-' + [guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path $external | Out-Null
+        Copy-Item -LiteralPath $driver -Destination (Join-Path $external 'private_source_update.py')
+        if ((Get-Sha256 (Join-Path $external 'private_source_update.py')) -ne $entry[0].sha256) { throw "Private controller copy mismatch" }
+        Copy-Item -LiteralPath (Join-Path $installFull 'python') -Destination (Join-Path $external 'python') -Recurse
+        $privateArgs = @('-I','-S','-B','-X','utf8',(Join-Path $external 'private_source_update.py'),
+            '--install-root',$installFull,'--archive',[string]$context.archive,'--archive-sha256',[string]$context.archive_sha256,
+            '--target-anchor',[string]$context.target_anchor,'--attempt',[string]$context.attempt)
+        if ($ForceFailure) { $privateArgs += '--force-failure-after-apply' }
+        & (Join-Path $external 'python\python.exe') @privateArgs
+        $privateCode = $LASTEXITCODE
+    } finally {
+        $privateMutex.ReleaseMutex() | Out-Null
+        $privateMutex.Dispose()
+    }
+    exit $privateCode
 }
 
 # A journal for THIS attempt only: deleted files need snapshots too, and new

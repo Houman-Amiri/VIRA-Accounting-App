@@ -15,12 +15,31 @@
   #define AppSource "..\dist-release\app"
 #endif
 
-#define AppName "V.I.R.A"
-#define AppExeName "start_vira.cmd"
+#ifdef PrivateSourceCI
+  #ifndef PrivateSourceAnchor
+    #error PrivateSourceAnchor is required for the isolated private installer
+  #endif
+  #ifndef PrivateSourceProfile
+    #error PrivateSourceProfile is required for the isolated private installer
+  #endif
+  #define AppName "VIRA PRIVATE SOURCE CI"
+  #define AppExeName "python\python.exe"
+  #define LaunchArgs "-I -S -B -X utf8 " + Chr(34) + Chr(34) + "{app}\app\private_installed_source.py" + Chr(34) + Chr(34)
+  #define RegistryKey "SOFTWARE\VIRA\PrivateSourceCI"
+#else
+  #define AppName "V.I.R.A"
+  #define AppExeName "start_vira.cmd"
+  #define LaunchArgs ""
+  #define RegistryKey "SOFTWARE\VIRA"
+#endif
 #define AppPublisher "VIRA"
 
 [Setup]
+#ifdef PrivateSourceCI
+AppId={{CB072AD0-8D63-49D3-9839-1DE745D62CA4}
+#else
 AppId={{B7E4C2A1-9F3D-4E8B-A6C5-1D2E3F405968}
+#endif
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher={#AppPublisher}
@@ -67,6 +86,11 @@ Source: "{#AppSource}\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
 ; updater helper (staged next to the app; also copied to %LOCALAPPDATA%\VIRA\updates)
 Source: "{#AppSource}\vira-updater.exe"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
+#ifdef PrivateSourceCI
+; Digest anchor is OUTSIDE the payload. Never remove state/anchor on uninstall.
+Source: "{#PrivateSourceAnchor}"; DestDir: "{#PrivateSourceProfile}\VIRA\private-native-installed"; DestName: "anchor.json"; Flags: uninsneveruninstall
+#endif
+
 [InstallDelete]
 ; v1.0.5 incident: the old hashed bundles stayed next to the new ones, so a
 ; cached index.html could keep loading the previous UI. Code and SPA are
@@ -77,24 +101,28 @@ Type: filesandordirs; Name: "{app}\app"
 Type: filesandordirs; Name: "{app}\backend"
 
 [Icons]
-Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"
-Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
-Name: "{userstartup}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"; Tasks: startup
+Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Parameters: "{#LaunchArgs}"; WorkingDir: "{app}"
+Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Parameters: "{#LaunchArgs}"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{userstartup}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Parameters: "{#LaunchArgs}"; WorkingDir: "{app}"; Tasks: startup
 
 [Registry]
 ; stable install location for the updater + uninstaller (§1)
-Root: HKA; Subkey: "SOFTWARE\VIRA"; ValueType: string; ValueName: "InstallDir"; ValueData: "{app}"; Flags: uninsdeletekey
-Root: HKA; Subkey: "SOFTWARE\VIRA"; ValueType: string; ValueName: "Version"; ValueData: "{#AppVersion}"; Flags: uninsdeletekey
+Root: HKA; Subkey: "{#RegistryKey}"; ValueType: string; ValueName: "InstallDir"; ValueData: "{app}"; Flags: uninsdeletekey
+Root: HKA; Subkey: "{#RegistryKey}"; ValueType: string; ValueName: "Version"; ValueData: "{#AppVersion}"; Flags: uninsdeletekey
 
 [Run]
-Filename: "{app}\{#AppExeName}"; Description: "اجرای {#AppName}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#AppExeName}"; Parameters: "{#LaunchArgs}"; Description: "اجرای {#AppName}"; Flags: nowait postinstall skipifsilent
+#ifndef PrivateSourceCI
 Filename: "schtasks.exe"; \
   Parameters: "/Create /TN ""VIRA\Backup"" /TR ""''{app}\scripts\backup_vira.ps1''"" /SC DAILY /ST 21:00 /F"; \
   StatusMsg: "ثبت کار زمان‌بند پشتیبان‌گیری..."; \
   Flags: runhidden; Tasks: backupjob
+#endif
 
+#ifndef PrivateSourceCI
 [UninstallRun]
 Filename: "schtasks.exe"; Parameters: "/Delete /TN ""VIRA\Backup"" /F"; Flags: runhidden; RunOnceId: "RemoveBackupTask"
+#endif
 
 [Code]
 var
@@ -103,7 +131,37 @@ var
 function InitializeSetup(): Boolean;
 begin
   Result := True;
+#ifdef PrivateSourceCI
+  // A separate AppId/registry namespace; never touch an existing private state.
+  Result := (GetEnv('GITHUB_ACTIONS') = 'true') and
+    (CompareText(GetEnv('LOCALAPPDATA'), '{#PrivateSourceProfile}') = 0) and
+    (Pos(Lowercase(AddBackslash(GetEnv('RUNNER_TEMP'))), Lowercase('{#PrivateSourceProfile}')) = 1) and
+    not FileExists('{#PrivateSourceProfile}\VIRA\private-native-installed\anchor.json');
+#endif
 end;
+
+#ifdef PrivateSourceCI
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  Rec: TFindRec;
+begin
+  Result := '';
+  if FindFirst(ExpandConstant('{app}\*'), Rec) then
+  begin
+    try
+      repeat
+        if (Rec.Name <> '.') and (Rec.Name <> '..') then
+        begin
+          Result := 'Private source CI requires a fresh empty selected directory.';
+          Break;
+        end;
+      until not FindNext(Rec);
+    finally
+      FindClose(Rec);
+    end;
+  end;
+end;
+#endif
 
 procedure StopRunningInstances();
 var
@@ -131,13 +189,18 @@ end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
+#ifndef PrivateSourceCI
   if CurStep = ssInstall then
     StopRunningInstances;
+#endif
 end;
 
 function InitializeUninstall(): Boolean;
 
 begin
+#ifdef PrivateSourceCI
+  Result := True;
+#else
   // §1: user data is NEVER deleted by default — explicit opt-in only
   DeleteDataPage := CreateInputOptionPage(wpWelcome,
     'داده‌های برنامه',
@@ -147,12 +210,14 @@ begin
   DeleteDataPage.Add('حذف داده‌های برنامه (غیرقابل بازگشت)');
   DeleteDataPage.Values[0] := False;
   Result := True;
+#endif
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   DataDir: String;
 begin
+#ifndef PrivateSourceCI
   if CurUninstallStep = usPostUninstall then
   begin
     DataDir := ExpandConstant('{localappdata}\VIRA');
@@ -164,4 +229,7 @@ begin
     else
       Log('Keeping user data at ' + DataDir);
   end;
+#else
+  Log('Private source uninstall preserves ALL private and ordinary user data.');
+#endif
 end;
