@@ -69,7 +69,7 @@ limit: exact byte data retained, short explicit IDs added; no skipped controls.
 Security gate found9 newly reported vulnerabilities in certifi2026.7.22/Pillow12.3.0;
 lock upgraded to2026.10.19/13.0.0, no audit ignore. Local audit now clean (old seeded
 setuptools tool upgraded separately, not added as app dependency).
-[Preserved failure](docs/dependencies/phase3-initial-preflight-failure.json).
+[Preserved failure](../dependencies/phase3-initial-preflight-failure.json).
 App bridge uses proven raw CMD quoting/profile-owned CWD; generated Inno uninstaller
 is outside fully manifested payload. Added real Windows CMD-only fixture check;
 no native-runtime execution claim.53 focused tests PASS locally; next Windows
@@ -92,3 +92,10 @@ process boundaryهای صریحاً mock‌شده. بازگشت دادهٔ integ
 
 نصب Source21 واقعی، اتصال خصوصی in-app و اثبات واقعی native apply/rollback هنوز
 انجام نشده‌اند؛ workflow ساخت سرد جدید برای فاز ۳ هنوز آغاز نشده است.
+
+
+اجرای سوم `39585368010 / fffbb1f` به‌درستی در دو آزمون writer مصنوعی SQLite ناموفق
+شد: context تراکنش sqlite3 به‌تنهایی connection را نمی‌بندد و Windows جابه‌جایی
+DB باز را رد کرد. test writer با `closing` و context تراکنش اصلاح شد؛ ابزار DB
+تولیدی از قبل connection را می‌بندد. [شکست سوم](../dependencies/phase3-third-preflight-failure.json)
+حفظ شد؛ هیچ موردی skip نشد و هیچ موفقیت native یا Inno از آن نتیجه نمی‌شود.

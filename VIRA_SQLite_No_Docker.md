@@ -1596,3 +1596,9 @@ Added6 explicitly simulated transaction tests: real filesystem/ZIP/BSDIFF/SQLite
 backup+restore/quarantine with mocked process boundaries; plus raw real-CMD-only
 check.59 focused tests,1004 full local tests PASS78.304s/zero skips/failures/errors.
 Actual Source21 installed app/in-app delta/rollback proof STILL NOT DONE.
+
+Phase3 fffbb1f/preflight39585368010 failed in2 simulated SQLite writer tests:
+connection transaction context did NOT close its Windows file handle. Exact
+contextlib.closing+transaction correction; production DB tool already closes.
+[Third failure](docs/dependencies/phase3-third-preflight-failure.json).
+No cases skipped, no native/Inno success inferred.

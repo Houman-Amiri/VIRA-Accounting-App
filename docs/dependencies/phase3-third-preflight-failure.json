@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "role": "PRESERVED_PHASE3_THIRD_PREFLIGHT_FAILURE_NOT_NATIVE_ACCEPTANCE",
+  "head_sha": "fffbb1f5307ca29173d53c231e8451cc97c94f04",
+  "preflight_run_id": 39585368010,
+  "preflight_job": 119172820996,
+  "failure_annotations": [
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/fffbb1f5307ca29173d53c231e8451cc97c94f04/.github",
+      "start_line": 326,
+      "start_column": null,
+      "end_line": 326,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "Phase 3 synthetic failure",
+      "message": "ed by another process: 'C:\\\\\\\\Users\\\\\\\\runneradmin\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\pytest-of-runneradmin\\\\\\\\pytest-0\\\\\\\\test_synthetic_transaction_wit2\\\\\\\\\\u06a9\\u0627\\u0631\\u0628\\u0631 \\u0641\\u0627\\u0631\\u0633\\u06cc ! & profile\\\\\\\\VIRA\\\\\\\\private-native-installed\\\\\\\\state\\\\\\\\data\\\\\\\\data\\\\\\\\vira.sqlite3'\r\nFAILED backend/tests/test_private_source_update.py::test_synthetic_transaction_with_real_sqlite_snapshot_restore[rollback-start-failure] - PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\\\\\\\Users\\\\\\\\runneradmin\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\pytest-of-runneradmin\\\\\\\\pytest-0\\\\\\\\test_synthetic_transaction_wit3\\\\\\\\\\u06a9\\u0627\\u0631\\u0628\\u0631 \\u0641\\u0627\\u0631\\u0633\\u06cc ! & profile\\\\\\\\VIRA\\\\\\\\private-native-installed\\\\\\\\state\\\\\\\\data\\\\\\\\data\\\\\\\\vira.sqlite3'\r\n",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/fffbb1f5307ca29173d53c231e8451cc97c94f04/.github",
+      "start_line": 304,
+      "start_column": null,
+      "end_line": 304,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "Phase 3 synthetic failure",
+      "message": "tart-failure] _\r\nbackend\\tests\\test_private_source_update.py:411: in start_mock\r\n    raise RuntimeError(\"synthetic failed target startup\")\r\nE   RuntimeError: synthetic failed target startup\r\n\r\nDuring handling of the above exception, another exception occurred:\r\nC:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\Lib\\shutil.py:847: in move\r\n    os.rename(src, real_dst)\r\nE   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\\\\\\\Users\\\\\\\\runneradmin\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\pytest-of-runneradmin\\\\\\\\pytest-0\\\\\\\\test_synthetic_transaction_wit3\\\\\\\\\\u06a9\\u0627\\u0631\\u0628\\u0631 \\u0641\\u0627\\u0631\\u0633\\u06cc ! & profile\\\\\\\\VIRA\\\\\\\\private-native-installed\\\\\\\\state\\\\\\\\data\\\\\\\\data\\\\\\\\vira.sqlite3' -> 'C:\\\\\\\\Users\\\\\\\\runneradmin\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\pytest-of-runneradmin\\\\\\\\pytest-0\\\\\\\\test_synthetic_transaction_wit3\\\\\\\\attempt\\\\\\\\database-rollback\\\\\\\\failed-database\\\\\\\\database.sqlite3'\r\n\r\nDuring handling of the above exception, another exception occurred:\r\nbackend\\tests\\test_private_source_update.py:437: in test_synthetic_transaction_with_real_sqlite_snapshot_restore\r\n    controller()\r\nscripts\\private_source_update.py:509: in main\r\n    dbtool[\"restore\"](attempt / \"database-rollback\")\r\nC:\\Users\\runneradmin\\AppData\\Local\\Temp\\pytest-of-runneradmin\\pytest-0\\test_synthetic_transaction_wit3\\base\\scripts\\update_database.py:105: in restore\r\n    shutil.move(str(original), str(failed / (\"database.sqlite3\" + suffix)))\r\nC:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\Lib\\shutil.py:868: in move\r\n    os.unlink(src)\r\nE   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\\\\\\\Users\\\\\\\\runneradmin\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\pytest-of-runneradmin\\\\\\\\pytest-0\\\\\\\\test_synthetic_transaction_wit3\\\\\\\\\\u06a9\\u0627\\u0631\\u0628\\u0631 \\u0641\\u0627\\u0631\\u0633\\u06cc ! & profile\\\\\\\\VIRA\\\\\\\\private-native-installed\\\\\\\\state\\\\\\\\data\\\\\\\\data\\\\\\\\vira.sqlite3'\r\n=========================== short test summary info ===========================\r\nFAILED backend/tests/test_private_source_update.py::test_synthetic_transaction_with_real_sqlite_snapshot_restore[target-start-failure] - PermissionError: [WinError 32] The process cannot access the file because it is being us",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/fffbb1f5307ca29173d53c231e8451cc97c94f04/.github",
+      "start_line": 281,
+      "start_column": null,
+      "end_line": 281,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "Phase 3 synthetic failure",
+      "message": "......................................................FF...              [100%]\r\n================================== FAILURES ===================================\r\n_ test_synthetic_transaction_with_real_sqlite_snapshot_restore[target-start-failure] _\r\nbackend\\tests\\test_private_source_update.py:411: in start_mock\r\n    raise RuntimeError(\"synthetic failed target startup\")\r\nE   RuntimeError: synthetic failed target startup\r\n\r\nDuring handling of the above exception, another exception occurred:\r\nC:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\Lib\\shutil.py:847: in move\r\n    os.rename(src, real_dst)\r\nE   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\\\\\\\Users\\\\\\\\runneradmin\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\pytest-of-runneradmin\\\\\\\\pytest-0\\\\\\\\test_synthetic_transaction_wit2\\\\\\\\\\u06a9\\u0627\\u0631\\u0628\\u0631 \\u0641\\u0627\\u0631\\u0633\\u06cc ! & profile\\\\\\\\VIRA\\\\\\\\private-native-installed\\\\\\\\state\\\\\\\\data\\\\\\\\data\\\\\\\\vira.sqlite3' -> 'C:\\\\\\\\Users\\\\\\\\runneradmin\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\pytest-of-runneradmin\\\\\\\\pytest-0\\\\\\\\test_synthetic_transaction_wit2\\\\\\\\attempt\\\\\\\\database-rollback\\\\\\\\failed-database\\\\\\\\database.sqlite3'\r\n\r\nDuring handling of the above exception, another exception occurred:\r\nbackend\\tests\\test_private_source_update.py:437: in test_synthetic_transaction_with_real_sqlite_snapshot_restore\r\n    controller()\r\nscripts\\private_source_update.py:509: in main\r\n    dbtool[\"restore\"](attempt / \"database-rollback\")\r\nC:\\Users\\runneradmin\\AppData\\Local\\Temp\\pytest-of-runneradmin\\pytest-0\\test_synthetic_transaction_wit2\\base\\scripts\\update_database.py:105: in restore\r\n    shutil.move(str(original), str(failed / (\"database.sqlite3\" + suffix)))\r\nC:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\Lib\\shutil.py:868: in move\r\n    os.unlink(src)\r\nE   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\\\\\\\Users\\\\\\\\runneradmin\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\pytest-of-runneradmin\\\\\\\\pytest-0\\\\\\\\test_synthetic_transaction_wit2\\\\\\\\\\u06a9\\u0627\\u0631\\u0628\\u0631 \\u0641\\u0627\\u0631\\u0633\\u06cc ! & profile\\\\\\\\VIRA\\\\\\\\private-native-installed\\\\\\\\state\\\\\\\\data\\\\\\\\data\\\\\\\\vira.sqlite3'\r\n_ test_synthetic_transaction_with_real_sqlite_snapshot_restore[rollback-s",
+      "raw_details": ""
+    }
+  ],
+  "root_cause": "New synthetic writer used sqlite3 connection context manager without closing the connection. Windows correctly blocked quarantine/rename of the still-open test DB. Use contextlib.closing plus explicit transactional context; production DB tool already closes its connections. No skipped controls or weakened snapshots.",
+  "inno_step_executed": false,
+  "source21_native_execution_proven": false,
+  "phase3_complete": false
+}

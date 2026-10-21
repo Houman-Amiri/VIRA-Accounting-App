@@ -335,6 +335,7 @@ def test_synthetic_transaction_with_real_sqlite_snapshot_restore(tmp_path, monke
     import sqlite3
     import subprocess
     import sys
+    from contextlib import closing
     from types import SimpleNamespace
 
     base, before, after, contents, old, target = fixture(tmp_path, with_controller=True)
@@ -353,7 +354,7 @@ def test_synthetic_transaction_with_real_sqlite_snapshot_restore(tmp_path, monke
     secret.write_bytes(b"synthetic persistent session secret, not a real credential")
     database = state / "data/data/vira.sqlite3"
     database.parent.mkdir(parents=True)
-    with sqlite3.connect(database) as db:
+    with closing(sqlite3.connect(database)) as db, db:
         db.executescript(
             "CREATE TABLE alembic_version(version_num TEXT); INSERT INTO alembic_version VALUES('synthetic-0006'); CREATE TABLE posted(id TEXT PRIMARY KEY, amount INTEGER); INSERT INTO posted VALUES('original-id',1234567891234);"
         )
@@ -405,7 +406,7 @@ def test_synthetic_transaction_with_real_sqlite_snapshot_restore(tmp_path, monke
         assert scope["sha"](root / "install_manifest.json") == pin["manifest_sha256"]
         if mode in {"target-start-failure", "rollback-start-failure"} and len(starts) == 1:
             # Simulate failed target migration/writer, not app/renderer injection.
-            with sqlite3.connect(database) as db:
+            with closing(sqlite3.connect(database)) as db, db:
                 db.execute("UPDATE posted SET amount=-1")
                 db.execute("CREATE TABLE failed_target_only(value TEXT)")
             raise RuntimeError("synthetic failed target startup")
@@ -440,7 +441,7 @@ def test_synthetic_transaction_with_real_sqlite_snapshot_restore(tmp_path, monke
     assert all((base / name).read_bytes() == data for name, data in expected.items())
     assert receipts.read_bytes() == b"preserve all receipt bytes"
     assert secret.read_bytes() == b"synthetic persistent session secret, not a real credential"
-    with sqlite3.connect(database) as db:
+    with closing(sqlite3.connect(database)) as db, db:
         assert db.execute("SELECT * FROM posted").fetchall() == [("original-id", 1234567891234)]
         assert not db.execute(
             "SELECT name FROM sqlite_master WHERE name='failed_target_only'"
