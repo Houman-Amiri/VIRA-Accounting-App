@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "role": "PRESERVED_PHASE3_FOURTH_PREFLIGHT_FAILURE_NOT_NATIVE_ACCEPTANCE",
+  "head_sha": "9d8d778d42a45259ac39eedea707111c9a5fa522",
+  "run_id": 39585596841,
+  "job_id": 119173577344,
+  "synthetic_windows_tests": "59 PASS",
+  "public_inno_compile": "SUCCESS",
+  "private_inno_compile": "FAILURE",
+  "annotations": [
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/9d8d778d42a45259ac39eedea707111c9a5fa522/.github",
+      "start_line": 150,
+      "start_column": null,
+      "end_line": 150,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "Private Inno compiler failure",
+      "message": "Inno Setup 6 Command-Line Compiler\r\nCopyright (C) 1997-2026 Jordan Russell. All rights reserved.\r\nPortions Copyright (C) 2000-2026 Martijn Laan. All rights reserved.\r\nPortions Copyright (C) 2001-2004 Alex Yackimoff. All rights reserved.\r\nhttps://www.innosetup.com\r\n\r\nCompiler engine version: Inno Setup 6.7.1\r\nNon-commercial use only\r\n\r\nPreprocessing\r\n   Reading file: C:\\Program Files (x86)\\Inno Setup 6\\ISPPBuiltins.iss\r\nError on line 27 in D:\\a\\VIRA-Accounting-App\\VIRA-Accounting-App\\installer\\vira.iss: Column 47:\r\nUndeclared identifier: Chr.\r\nCompile aborted.\r\n",
+      "raw_details": ""
+    }
+  ],
+  "root_cause": "ISPP preprocessor does not provide Pascal Chr; use literal doubled quotes in conditional Inno entry fields. No payload/runtime or expected hashes changed.",
+  "install_executed": false,
+  "native_runtime_executed": false,
+  "phase3_complete": false,
+  "inno_compiler_6_7_1_non_commercial_banner_not_commercial_distribution_entitlement": true
+}

@@ -24,13 +24,11 @@
   #endif
   #define AppName "VIRA PRIVATE SOURCE CI"
   #define AppExeName "python\python.exe"
-  #define LaunchArgs "-I -S -B -X utf8 " + Chr(34) + Chr(34) + "{app}\app\private_installed_source.py" + Chr(34) + Chr(34)
   #define LaunchWorkingDir PrivateSourceProfile
   #define RegistryKey "SOFTWARE\VIRA\PrivateSourceCI"
 #else
   #define AppName "V.I.R.A"
   #define AppExeName "start_vira.cmd"
-  #define LaunchArgs ""
   #define LaunchWorkingDir "{app}"
   #define RegistryKey "SOFTWARE\VIRA"
 #endif
@@ -107,9 +105,21 @@ Type: filesandordirs; Name: "{app}\app"
 Type: filesandordirs; Name: "{app}\backend"
 
 [Icons]
-Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Parameters: "{#LaunchArgs}"; WorkingDir: "{#LaunchWorkingDir}"
-Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Parameters: "{#LaunchArgs}"; WorkingDir: "{#LaunchWorkingDir}"; Tasks: desktopicon
-Name: "{userstartup}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Parameters: "{#LaunchArgs}"; WorkingDir: "{#LaunchWorkingDir}"; Tasks: startup
+#ifdef PrivateSourceCI
+Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Parameters: "-I -S -B -X utf8 ""{app}\app\private_installed_source.py"""; WorkingDir: "{#LaunchWorkingDir}"
+#else
+Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{#LaunchWorkingDir}"
+#endif
+#ifdef PrivateSourceCI
+Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Parameters: "-I -S -B -X utf8 ""{app}\app\private_installed_source.py"""; WorkingDir: "{#LaunchWorkingDir}"; Tasks: desktopicon
+#else
+Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{#LaunchWorkingDir}"; Tasks: desktopicon
+#endif
+#ifdef PrivateSourceCI
+Name: "{userstartup}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Parameters: "-I -S -B -X utf8 ""{app}\app\private_installed_source.py"""; WorkingDir: "{#LaunchWorkingDir}"; Tasks: startup
+#else
+Name: "{userstartup}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{#LaunchWorkingDir}"; Tasks: startup
+#endif
 
 [Registry]
 ; stable install location for the updater + uninstaller (§1)
@@ -117,7 +127,11 @@ Root: HKA; Subkey: "{#RegistryKey}"; ValueType: string; ValueName: "InstallDir";
 Root: HKA; Subkey: "{#RegistryKey}"; ValueType: string; ValueName: "Version"; ValueData: "{#AppVersion}"; Flags: uninsdeletekey
 
 [Run]
-Filename: "{app}\{#AppExeName}"; Parameters: "{#LaunchArgs}"; WorkingDir: "{#LaunchWorkingDir}"; Description: "اجرای {#AppName}"; Flags: nowait postinstall skipifsilent
+#ifdef PrivateSourceCI
+Filename: "{app}\{#AppExeName}"; Parameters: "-I -S -B -X utf8 ""{app}\app\private_installed_source.py"""; WorkingDir: "{#LaunchWorkingDir}"; Description: "اجرای {#AppName}"; Flags: nowait postinstall skipifsilent
+#else
+Filename: "{app}\{#AppExeName}"; WorkingDir: "{#LaunchWorkingDir}"; Description: "اجرای {#AppName}"; Flags: nowait postinstall skipifsilent
+#endif
 #ifndef PrivateSourceCI
 Filename: "schtasks.exe"; \
   Parameters: "/Create /TN ""VIRA\Backup"" /TR ""''{app}\scripts\backup_vira.ps1''"" /SC DAILY /ST 21:00 /F"; \

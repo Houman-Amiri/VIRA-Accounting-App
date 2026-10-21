@@ -1602,3 +1602,10 @@ connection transaction context did NOT close its Windows file handle. Exact
 contextlib.closing+transaction correction; production DB tool already closes.
 [Third failure](docs/dependencies/phase3-third-preflight-failure.json).
 No cases skipped, no native/Inno success inferred.
+
+Phase3 preflight39585596841/9d8d778:59 Windows synthetic tests PASS, public
+Inno compile PASS, private compile FAILED (ISPP has no Pascal Chr function).
+Use literal doubled-quote Parameters in conditional Inno entries.
+[Fourth failure](docs/dependencies/phase3-fourth-preflight-failure.json).
+Inno6.7.1 compiler banner says non-commercial use only: no commercial distribution
+entitlement inferred; legal review still OPEN. No installed Source21 proof.

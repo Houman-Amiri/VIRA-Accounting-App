@@ -99,3 +99,11 @@ process boundaryهای صریحاً mock‌شده. بازگشت دادهٔ integ
 DB باز را رد کرد. test writer با `closing` و context تراکنش اصلاح شد؛ ابزار DB
 تولیدی از قبل connection را می‌بندد. [شکست سوم](../dependencies/phase3-third-preflight-failure.json)
 حفظ شد؛ هیچ موردی skip نشد و هیچ موفقیت native یا Inno از آن نتیجه نمی‌شود.
+
+
+اجرای چهارم `39585596841 / 9d8d778`: هر **۵۹ تست Windows موفق** و preset عمومی Inno
+کامپایل شد؛ preset خصوصی به‌سبب استفاده از `Chr` متعلق به Pascal در ISPP ناموفق
+بود. quoting اکنون literal و داخل entryهای conditional است.
+[رسید چهارم](../dependencies/phase3-fourth-preflight-failure.json) شامل banner کامل
+compiler است. Inno 6.7.1 عبارت Non-commercial use only دارد؛ حق انتشار تجاری از
+این تست نتیجه نمی‌شود و بررسی حقوقی آن در فاز ۴ باز می‌ماند. هنوز نصب اجرا نشده است.
