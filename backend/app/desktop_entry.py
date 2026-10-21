@@ -122,7 +122,7 @@ def environment(values: dict[str, str]):  # type: ignore[no-untyped-def]
 
 
 @contextmanager
-def state_guard(root: Path, state: Path, check):  # type: ignore[no-untyped-def]
+def state_guard(root: Path, state: Path, check, *, installed_restart: bool = False):  # type: ignore[no-untyped-def]
     """Private marker + exclusive lifetime lock. Never delete an unowned stale lock."""
     check(state)
     pending = [state] if state.exists() else []
@@ -148,8 +148,25 @@ def state_guard(root: Path, state: Path, check):  # type: ignore[no-untyped-def]
     with lock.open("x", encoding="utf-8") as stream:
         stream.write(token)
     try:
-        if (state / "data/updates/.update.lock").exists():
-            raise ValueError("Update in progress; candidate startup blocked")
+        update_lock = state / "data/updates/.update.lock"
+        if update_lock.exists():
+            # Let ONLY the installed controller's nonce-bearing child start.
+            # Keep the shared HTTP/scheduler write gate CLOSED through readiness
+            # and durable commit/rollback; a late failure must not lose user writes.
+            restart = os.environ.get("VIRA_PRIVATE_UPDATE_TOKEN", "")
+            native = state.parent / ".native-update.lock"
+            check(native)
+            owner = read(native) if installed_restart is True and native.is_file() else {}
+            if (installed_restart is not True
+                    or state != Path(os.environ.get("LOCALAPPDATA", "")) / "VIRA/private-native-installed/state"
+                    or re.fullmatch(r"[0-9a-f]{64}", restart) is None
+                    or set(owner) != {"pid", "token"}
+                    or type(owner.get("pid")) is not int or owner["pid"] <= 0
+                    or not isinstance(owner.get("token"), str)
+                    or re.fullmatch(r"[0-9a-f]{64}", owner["token"]) is None
+                    or not secrets.compare_digest(owner["token"], restart)
+                    or update_lock.read_bytes() != restart.encode("ascii")):
+                raise ValueError("Update in progress; candidate startup blocked")
         yield
     finally:
         check(lock)
@@ -400,7 +417,8 @@ def main() -> int:
     # repeats the full audit at the loading boundary; this is not a cached bypass.
     boot["prepare_private_plan"](plan)
     with (
-        state_guard(root, state, boot["_no_links"]),
+        state_guard(root, state, boot["_no_links"],
+                    installed_restart=options["role"] == "PRIVATE_INSTALLED_SOURCE_DESKTOP_REQUEST"),
         boot["activate_private_source"](plan) as active,
     ):
         launch = state / "launches" / options["launch_id"]

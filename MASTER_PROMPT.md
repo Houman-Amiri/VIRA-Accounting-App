@@ -1288,3 +1288,30 @@ Reconnect GitHub in Arena; no passwords/tokens/codes in chat. Automatic workflow
 may continue remotely; their current status cannot be read. User installation and
 public1.0.10 untouched, Phase3 INCOMPLETE, no release/tag. This documentation-only
 checkpoint is saved locally; no further remote push attempted with known-bad auth.
+
+
+### Phase3 resumed: real Windows stdout fix PASS; cold source build ACTIVE
+GitHub repository/Actions reads work again. No owner reconnect is currently
+required to continue automatic runs; manual dispatch403 is not a total blocker.
+4669c5e CI39610014300 ALL5 SUCCESS; limited Windows39610014273/job119256125181
+SUCCESS (including the previously failing Unicode CLI/assembly test). Source
+workflow39610014494/job119259657791 observed ACTUALLY compiling target libraries
+from local preferred trees with binary caches disabled. This is build progress,
+NOT completed Source21 install/delta acceptance.
+
+New safety fix: keep `state/data/updates/.update.lock` through target/rollback
+readiness AND durable terminal journal. Only the explicit installed SOURCE
+request with matching64-hex controller nonce/native lock may start under it;
+legacy, env-only, foreign-profile/token/owner/link requests remain rejected.
+The existing production HTTP/scheduler gate continues blocking mutations503;
+health reads work. Commit journal failure restores old files/DB/anchor while
+writes stay closed; rollback readiness/journal failure retains quarantine.
+New12 controls; full local1071 PASS86.71s with zero failures/errors/skips; Ruff,
+Mypy90, Bandit CI-level and dependency audit PASS. Initial static call-order test
+needed its extended-call prefix/explicit installed-role assertion updated, not
+removal; initial post-unlock403 test expectation corrected to existing CSRF gate.
+[Checkpoint](docs/dependencies/phase3-write-quarantine-checkpoint.json).
+Fresh Windows/Source21 acceptance for THIS safety follow-up still required.
+Source workflow queues new verification WITHOUT cancelling an active cold build.
+Do NOT claim real native delta/rollback or crash/stale recovery yet. Phase3 stays
+ACTIVE/INCOMPLETE; all6 gates OPEN, public1.0.10/user data untouched, no Phase4/tag/release.

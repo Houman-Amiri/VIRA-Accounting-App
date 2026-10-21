@@ -60,8 +60,9 @@ def test_browser_attempt_only_after_actual_tcp_readiness(tmp_path, monkeypatch):
 
 
 def test_read_only_audit_then_lifetime_guard_before_native_activation():
-    source = (basic.ROOT / "backend/app/desktop_entry.py").read_text()
+    source = (basic.ROOT / "backend/app/desktop_entry.py").read_text(encoding="utf-8")
     audit = source.index('boot["prepare_private_plan"](plan)')
-    guard = source.index('state_guard(root, state, boot["_no_links"])', audit)
+    guard = source.index('state_guard(root, state, boot["_no_links"]', audit)
     activate = source.index('boot["activate_private_source"](plan)', audit)
     assert audit < guard < activate
+    assert 'installed_restart=options["role"] == "PRIVATE_INSTALLED_SOURCE_DESKTOP_REQUEST"' in source[guard:activate]

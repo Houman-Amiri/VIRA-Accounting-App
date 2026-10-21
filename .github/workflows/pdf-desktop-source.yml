@@ -13,7 +13,8 @@ permissions:
 
 concurrency:
   group: desktop-source-${{ github.ref }}
-  cancel-in-progress: true
+  # Preserve an already-running cold build; newer verification queues behind it.
+  cancel-in-progress: false
 
 jobs:
   stock-http-preflight:

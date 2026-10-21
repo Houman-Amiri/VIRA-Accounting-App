@@ -327,6 +327,8 @@ def test_imports_are_stdlib_only_and_no_native_or_installer_claim():
         "target-start-failure",
         "rollback-start-failure",
         "preflight-failure",
+        "commit-receipt-failure",
+        "rollback-receipt-failure",
     ],
 )
 def test_synthetic_transaction_with_real_sqlite_snapshot_restore(tmp_path, monkeypatch, mode):
@@ -389,6 +391,15 @@ def test_synthetic_transaction_with_real_sqlite_snapshot_restore(tmp_path, monke
     monkeypatch.setitem(scope, "os", fake_os)
     preflight_calls = []
     starts = []
+    original_atomic = scope["atomic"]
+    def atomic_mock(path, data):
+        if path == attempt / "result.json":
+            state_name = json.loads(data)["state"]
+            if (mode == "commit-receipt-failure" and state_name == "committed"
+                    or mode == "rollback-receipt-failure" and state_name == "rolled_back"):
+                raise OSError("synthetic durable receipt write failure")
+        return original_atomic(path, data)
+    monkeypatch.setitem(scope, "atomic", atomic_mock)
 
     def preflight(command, **kwargs):
         assert command[1:6] == ["-I", "-S", "-B", "-X", "utf8"]
@@ -401,7 +412,7 @@ def test_synthetic_transaction_with_real_sqlite_snapshot_restore(tmp_path, monke
 
     def start_mock(_home, root, token, pin):
         assert len(token) == 64 and _home == home
-        assert not (home / "state/data/updates/.update.lock").exists()
+        assert (home / "state/data/updates/.update.lock").read_bytes() == token.encode()
         starts.append(pin["manifest_sha256"])
         assert scope["sha"](root / "install_manifest.json") == pin["manifest_sha256"]
         if mode in {"target-start-failure", "rollback-start-failure"} and len(starts) == 1:
@@ -428,13 +439,13 @@ def test_synthetic_transaction_with_real_sqlite_snapshot_restore(tmp_path, monke
         "--attempt",
         str(attempt),
     ]
-    if mode == "force-after-apply":
+    if mode in {"force-after-apply", "rollback-receipt-failure"}:
         args.append("--force-failure-after-apply")
     monkeypatch.setattr(sys, "argv", args)
     if mode == "commit":
         controller()
     else:
-        with pytest.raises((RuntimeError, subprocess.CalledProcessError)):
+        with pytest.raises((RuntimeError, OSError, subprocess.CalledProcessError)):
             controller()
     assert len(preflight_calls) == 1
     expected = after if mode == "commit" else before
@@ -447,10 +458,12 @@ def test_synthetic_transaction_with_real_sqlite_snapshot_restore(tmp_path, monke
             "SELECT name FROM sqlite_master WHERE name='failed_target_only'"
         ).fetchall()
     assert (home / "anchor.json").read_bytes() == (raw(target) if mode == "commit" else old_bytes)
-    if mode == "rollback-start-failure":
+    if mode in {"rollback-start-failure", "rollback-receipt-failure"}:
+        assert (home / "state/data/updates/.update.lock").is_file()
         assert (home / ".native-update.lock").exists()  # fail CLOSED, retain recovery evidence
         assert not (attempt / "result.json").exists()  # no false rolled_back success
     else:
+        assert not (home / "state/data/updates/.update.lock").exists()
         assert not (home / ".native-update.lock").exists()
         if mode != "preflight-failure":
             result = json.loads((attempt / "result.json").read_bytes())

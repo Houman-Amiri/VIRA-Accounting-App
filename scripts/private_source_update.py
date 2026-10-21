@@ -501,11 +501,10 @@ def main() -> None:
         atomic(pin, target_raw)
         if args.force_failure_after_apply:
             raise RuntimeError("Forced private failure after actual file operations")
-        update_lock.unlink()
         start(home, root, token, target)
-        safe_terminal = True
         journal["state"] = "committed"
         atomic(attempt / "result.json", (json.dumps(journal, indent=2) + "\n").encode())
+        safe_terminal = True
     except BaseException:
         if mutated:
             stop(home, root)
@@ -519,14 +518,12 @@ def main() -> None:
             verify(root, baseline)
             atomic(pin, old_raw)
             dbtool["restore"](attempt / "database-rollback")
-        if update_lock.exists() and update_lock.read_bytes() == token.encode():
-            update_lock.unlink()
         if stopped:
             start(home, root, token, old)
-        safe_terminal = True
         if mutated:
             journal["state"] = "rolled_back"
             atomic(attempt / "result.json", (json.dumps(journal, indent=2) + "\n").encode())
+        safe_terminal = True
         raise
     finally:
         if safe_terminal and update_lock.exists() and update_lock.read_bytes() == token.encode():

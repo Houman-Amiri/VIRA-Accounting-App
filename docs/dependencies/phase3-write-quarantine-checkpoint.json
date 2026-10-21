@@ -1,0 +1,118 @@
+{
+  "role": "PHASE3_BASELINE_WINDOWS_STDOUT_FIX_AND_NEW_WRITE_QUARANTINE_NOT_PHASE_COMPLETION",
+  "date": "2026-10-21",
+  "baseline_runs": [
+    {
+      "id": 39610014273,
+      "head_sha": "4669c5e6beab03dc35fada5cab31a7cc2e7eb887",
+      "name": "Phase 3 private installer and byte-transport preflight NOT native acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 119256125181,
+          "name": "windows-preflight",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": []
+        }
+      ]
+    },
+    {
+      "id": 39610014300,
+      "head_sha": "4669c5e6beab03dc35fada5cab31a7cc2e7eb887",
+      "name": "CI",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 119256768023,
+          "name": "Windows-native smoke (SQLite paths, venv, build)",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": []
+        },
+        {
+          "id": 119256768299,
+          "name": "Playwright e2e (native processes)",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": []
+        },
+        {
+          "id": 119256768364,
+          "name": "Backend — lint, type, security, tests",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": []
+        },
+        {
+          "id": 119256768372,
+          "name": "OpenAPI contract is in sync",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": []
+        },
+        {
+          "id": 119256768713,
+          "name": "Frontend — lint, types, contract, tests, build",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": []
+        }
+      ]
+    },
+    {
+      "id": 39610014494,
+      "head_sha": "4669c5e6beab03dc35fada5cab31a7cc2e7eb887",
+      "name": "Phase 2 real CMD source startup and HTTP",
+      "status": "in_progress",
+      "conclusion": null,
+      "jobs": [
+        {
+          "id": 119256858573,
+          "name": "stock-http-preflight",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": []
+        },
+        {
+          "id": 119259657791,
+          "name": "source-http-consumer",
+          "status": "in_progress",
+          "conclusion": null,
+          "active_steps": [
+            "Compile all target libraries from local preferred trees with binary caches disabled"
+          ]
+        }
+      ]
+    }
+  ],
+  "new_followup": {
+    "local_tests": 1071,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 86.653,
+    "new_tests": 12,
+    "ruff": "PASS",
+    "mypy": "PASS",
+    "mypy_source_files": 90,
+    "bandit_ci_gate": "PASS",
+    "dependency_audit": "PASS",
+    "windows_verified": false,
+    "source21_transaction_verified": false
+  },
+  "new_write_gate": "Only explicit installed SOURCE controller nonce may restart with update.lock. HTTP/scheduler write gate remains through readiness until durable terminal journal. Failed rollback readiness or journal publication retains quarantine.",
+  "source_workflow_cold_compilation_observed": true,
+  "cancel_running_cold_build_on_followup": false,
+  "remaining": [
+    "collect real versioned Source21 install/PDF/restart witness",
+    "independently audited changed-native target",
+    "permissioned real in-app delta",
+    "verified native rollback/data invariants",
+    "crash/stale-lock recovery"
+  ],
+  "phase3_complete": false,
+  "release_authorized": false
+}
