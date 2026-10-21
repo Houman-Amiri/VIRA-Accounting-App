@@ -27,7 +27,7 @@ ANCHOR_KEYS = {
 }
 
 
-def read(path: Path) -> dict:
+def unique_json(raw: bytes) -> dict:
     def unique(pairs):
         value = {}
         for key, item in pairs:
@@ -36,10 +36,14 @@ def read(path: Path) -> dict:
             value[key] = item
         return value
 
-    value = json.loads(path.read_bytes().decode("utf-8-sig"), object_pairs_hook=unique)
+    value = json.loads(raw.decode("utf-8-sig"), object_pairs_hook=unique)
     if not isinstance(value, dict):
         raise ValueError("Anchor object required")
     return value
+
+
+def read(path: Path) -> dict:
+    return unique_json(path.read_bytes())
 
 
 def anchor(value: dict) -> dict:
@@ -67,7 +71,12 @@ def anchor(value: dict) -> dict:
 def location() -> tuple[Path, Path]:
     profile = Path(os.environ["LOCALAPPDATA"])
     runner = Path(os.environ["RUNNER_TEMP"])
-    if not profile.is_absolute() or not profile.is_relative_to(runner) or profile == runner:
+    if (
+        not profile.is_absolute()
+        or ".." in profile.parts
+        or not profile.is_relative_to(runner)
+        or profile == runner
+    ):
         raise ValueError("Disposable CI profile below runner TEMP required")
     home = profile / "VIRA/private-native-installed"
     return home / "anchor.json", home / "state"
@@ -159,7 +168,15 @@ def main() -> int:
         # Use the same raw Windows command line as the proven Phase2 driver;
         # list2cmdline escaping is NOT cmd.exe /s /c quoting.
         command = real_cmd_command(root, request, os.environ["COMSPEC"])
-        return subprocess.call(command, cwd=state.parent)
+        return subprocess.call(
+            command,
+            cwd=state.parent,
+            env={
+                **os.environ,
+                "VIRA_PRIVATE_INSTALLED_SOURCE": "1",
+                "VIRA_PORT": str(options["port"]),
+            },
+        )
 
     finally:
         if read(active) != {"launch_id": launch_id, "payload_root": str(root)}:

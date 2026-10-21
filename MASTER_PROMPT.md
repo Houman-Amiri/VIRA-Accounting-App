@@ -1182,3 +1182,31 @@ Follow-up confines private installer directory to runner TEMP and checks OLD
 anchor/manifest reparse paths before cloning runtime; verify its tip separately.
 Still NO actual Source21 installed app/in-app native delta or rollback proof, NO
 new Phase3 cold build started. Phase3 ACTIVE/INCOMPLETE, not permission for Phase4.
+
+
+### Phase3 private in-app channel checkpoint — still INCOMPLETE (2026-10-21)
+The genuine private installed CMD bridge passes an opt-in marker and pinned port;
+marker alone cannot enable this channel. Runner/profile/state ownership, exact
+runtime Settings and old external manifest anchor must match. Existing streaming
+size/SHA verification precedes private target-anchor staging and a receipt; apply
+rechecks package/staged metadata and chooses ONLY the anchored installed OLD
+helper. Native/pdf operations remain forbidden in public staging. Target port and
+browser policy cannot redirect the client. Controller/runtime cloning is outside
+the private data profile. A separate channel lock ties restarted-client polling
+to the current attempt; nested finally releases the mutex even when receipt
+publication fails. Crash/stale-lock recovery is NOT yet proven.
+
+23 new SYNTHETIC channel/CLI controls; complete local backend suite1027 PASS in
+77.29s, zero failures/errors/skips. Ruff PASS; Mypy90 PASS; Bandit CI-level -ll
+PASS. Initial unfiltered Bandit reports27 low findings (not a zero-findings claim).
+Fresh local venv inherited setuptools66.1.1; initial audit failed6 reports for
+3 advisory IDs; upgraded ONLY the local tooling seed to84.2.1, audit then PASS.
+No lockfile or shipped dependency/version change in this checkpoint. Byte-exact
+UTF8 manifest generation now matches delta metadata across Windows/Linux.
+Windows PS parsing, new regressions and real limited Inno checks must verify the
+new commit separately; previous f688 CI is NOT evidence for these changes.
+No Phase3 Source21 cold build/installed native transaction has run. Clean install,
+real permissioned changed-native delta and verified rollback/data preservation,
+plus crash/stale recovery remain acceptance work. Phase3 ACTIVE/INCOMPLETE;
+all6 distribution gates OPEN, public1.0.10/user installation untouched; no Phase4,
+tag, release or expanded MIT permission.

@@ -196,6 +196,7 @@ def assemble(
                 "version.json",
                 "update_database.py",
                 "vira-updater.exe",
+                "private-source-anchor.json",
             }:
                 if name.startswith("files/"):
                     relative(name[6:])
@@ -203,6 +204,11 @@ def assemble(
                     relative(name[8:-7])
                 else:
                     raise ValueError("Unexpected delta member")
+        if (
+            "private-source-anchor.json" in names
+            and read(packet.read("private-source-anchor.json")) != target
+        ):
+            raise ValueError("Target anchor differs from externally verified ZIP")
         plan = read(packet.read("update.json"))
         target_raw = packet.read("install_manifest.json")
         final = manifest(target_raw, target["manifest_sha256"])

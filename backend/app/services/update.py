@@ -23,6 +23,7 @@ from typing import Any
 from uuid import uuid4
 
 from ..config import Settings
+from . import private_source_channel
 from .errors import DomainError
 from .update_engine import (
     DeltaRef,
@@ -351,6 +352,7 @@ class UpdateManager:
     def __init__(self) -> None:
         self._job = UpdateJob()
         self._lock = threading.Lock()
+        self._source_scope: private_source_channel.SourceScope | None = None
 
     def status(self) -> dict[str, Any]:
         with self._lock:
@@ -382,6 +384,7 @@ class UpdateManager:
         size = int(package["size"])
         if size <= 0 or size > 256 * 1024 * 1024:
             raise DomainError("اندازهٔ بستهٔ تفاضلی نامعتبر است.")
+        source_scope = private_source_channel.scope(settings, install_root(settings))
         with self._lock:
             if self._job.state in ("downloading", "verifying", "applying"):
                 raise DomainError("به‌روزرسانی دیگری در حال اجرا است")
@@ -389,6 +392,7 @@ class UpdateManager:
             staging.mkdir(parents=True)
             log_path = staging / "update.log"
             log_path.write_text("download started\n", encoding="utf-8")
+            self._source_scope = source_scope
             self._job = UpdateJob(
                 target_version=check.latest, state="downloading", total_bytes=size, log_path=str(log_path),
             )
@@ -444,7 +448,13 @@ class UpdateManager:
             archive = staging / "package.zip"
             partial.replace(archive)
             payload = staging / "payload"
-            extract_delta(archive, payload, check.current, check.latest)
+            if self._source_scope is None:
+                extract_delta(archive, payload, check.current, check.latest)
+            else:
+                extract_delta(archive, payload, check.current, check.latest, private_pin=self._source_scope.pin)
+                private_source_channel.write_new(staging / "source-download-receipt.json", {
+                    "archive_sha256": digest.hexdigest(), "base_version": check.current, "target_version": check.latest
+                })
             with log_path.open("a", encoding="utf-8") as log:
                 log.write("SHA-256 verified; delta extracted and validated\n")
             with self._lock:
@@ -509,6 +519,10 @@ def _updater_command(settings: Settings, staged_path: str) -> tuple[list[str], P
     stage = Path(staged_path)
     log_path = stage / "update.log"
     root = install_root(settings)
+
+    source_scope = private_source_channel.scope(settings, root)
+    if source_scope is not None:
+        return private_source_channel.command(source_scope, stage)
 
     candidates = [stage / "vira-updater.exe"]
     if root is not None:
@@ -576,6 +590,14 @@ def read_update_status(settings: Settings) -> dict[str, Any]:
     updates = Path(settings.data_dir) / "updates"
     job_applying = status["state"] == "applying"
     lock = updates / ".update.lock"
+    source_scope = private_source_channel.scope(settings, install_root(settings))
+    if source_scope is not None:
+        channel_lock = source_scope.home / ".native-channel.lock"
+        native_lock = source_scope.home / ".native-update.lock"
+        if channel_lock.exists():
+            lock = channel_lock
+        elif native_lock.exists():
+            lock = native_lock
     locked = lock.is_file()
     lock_info: dict[str, Any] = {}
     if locked:

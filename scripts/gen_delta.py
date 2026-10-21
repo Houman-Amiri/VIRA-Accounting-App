@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import zipfile
 from pathlib import Path
@@ -47,7 +48,10 @@ def main() -> int:
     parser.add_argument("--target-version", required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--patch-threshold", type=int, default=256 * 1024)
+    parser.add_argument("--private-source-anchor", type=Path, help="Explicit private CI target anchor, never a public release option")
     args = parser.parse_args()
+    if args.private_source_anchor and os.environ.get("GITHUB_ACTIONS") != "true":
+        parser.error("Private source delta Windows CI only")
 
     base = manifest_from_json(json.loads(args.base_manifest.read_text(encoding="utf-8")))
     target = build_manifest(args.target_dir, skip_names={"install_manifest.json"})
@@ -101,6 +105,19 @@ def main() -> int:
             data = db_tool.read_bytes()
             zf.writestr("update_database.py", data)
             hashes["update_database.py"] = sha256_bytes(data)
+        if args.private_source_anchor:
+            from app.private_installed_source import anchor, read
+            pin = anchor(read(args.private_source_anchor))
+            manifest_raw = json.dumps(target_doc, indent=2, ensure_ascii=False).encode()
+            if sha256_bytes(manifest_raw) != pin["manifest_sha256"]:
+                raise ValueError("External private target manifest digest differs")
+            for field, relative in [("inventory_sha256", "native/pdf/runtime-inventory.json"),
+                                    ("source_audit_sha256", "native/pdf/source-audit.json")]:
+                if sha256_bytes((args.target_dir / relative).read_bytes()) != pin[field]:
+                    raise ValueError("External private target native digest differs")
+            data = args.private_source_anchor.read_bytes()
+            zf.writestr("private-source-anchor.json", data)
+            hashes["private-source-anchor.json"] = sha256_bytes(data)
         update_doc = plan.to_json()
         update_doc["hashes"] = hashes
         update_doc["delete_sha256"] = sha256_bytes(

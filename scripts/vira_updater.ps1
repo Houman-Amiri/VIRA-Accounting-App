@@ -98,8 +98,26 @@ if ($PrivateSourceTransaction) {
     if ($context.role -ne 'PRIVATE_SOURCE_TRANSACTION') { throw "Private transaction context required" }
     $privateMutex = New-Object System.Threading.Mutex($false, 'Global\VIRA-Updater')
     if (-not $privateMutex.WaitOne(0)) { throw "another update is already running" }
+    $channelLock = Join-Path $privateHome '.native-channel.lock'
+    $privateAttempt = [IO.Path]::GetFileName([string]$context.attempt)
+    if (-not $ResultPath) { $ResultPath = Join-Path $privateHome 'state\data\updates\last-result.json' }
+    $expectedResult = [IO.Path]::GetFullPath((Join-Path $privateHome 'state\data\updates\last-result.json'))
+    if ([IO.Path]::GetFullPath($ResultPath) -ne $expectedResult) {
+        $privateMutex.ReleaseMutex() | Out-Null
+        $privateMutex.Dispose()
+        throw 'Foreign private result path'
+    }
+    $channelOwned = $false
+    $privateCode = 1
     try {
-        $external = Join-Path $stageFull ('private-controller-' + [guid]::NewGuid().ToString('N'))
+        $stream = [IO.File]::Open($channelLock,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+        try {
+            $channelBytes = [Text.Encoding]::UTF8.GetBytes((@{pid=$PID;attempt_id=$privateAttempt} | ConvertTo-Json -Compress))
+            $stream.Write($channelBytes,0,$channelBytes.Length)
+            $stream.Flush($true)
+            $channelOwned = $true
+        } finally { $stream.Dispose() }
+        $external = Join-Path $env:RUNNER_TEMP ('VIRA controller خصوصی ! & ' + [guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $external | Out-Null
         Copy-Item -LiteralPath $driver -Destination (Join-Path $external 'private_source_update.py')
         if ((Get-Sha256 (Join-Path $external 'private_source_update.py')) -ne $entry[0].sha256) { throw "Private controller copy mismatch" }
@@ -108,11 +126,31 @@ if ($PrivateSourceTransaction) {
             '--install-root',$installFull,'--archive',[string]$context.archive,'--archive-sha256',[string]$context.archive_sha256,
             '--target-anchor',[string]$context.target_anchor,'--attempt',[string]$context.attempt)
         if ($ForceFailure) { $privateArgs += '--force-failure-after-apply' }
+        Start-Sleep -Seconds 2 # let the authenticated apply HTTP response complete
         & (Join-Path $external 'python\python.exe') @privateArgs
         $privateCode = $LASTEXITCODE
     } finally {
-        $privateMutex.ReleaseMutex() | Out-Null
-        $privateMutex.Dispose()
+        try {
+            if ($channelOwned) {
+                $terminal = 'failed'
+                $journalPath = Join-Path ([string]$context.attempt) 'result.json'
+                if (Test-Path -LiteralPath $journalPath) {
+                    $journal = Get-Content -LiteralPath $journalPath -Raw -Encoding utf8 | ConvertFrom-Json
+                    if ($journal.role -eq 'PRIVATE_NATIVE_TRANSACTION_JOURNAL' -and $journal.state -in @('committed','rolled_back')) { $terminal = [string]$journal.state }
+                }
+                $stamp = Get-Content -LiteralPath (Join-Path $Stage 'version.json') -Raw -Encoding utf8 | ConvertFrom-Json
+                $reason = if ($terminal -eq 'rolled_back') { 'به‌روزرسانی ناموفق بود؛ نسخه و دادهٔ قبلی بازگردانده و سلامت آن تأیید شد.' } elseif ($terminal -eq 'failed') { 'به‌روزرسانی خصوصی تأیید نشد؛ گزارش و قفل‌های بازیابی را بررسی کنید.' } else { '' }
+                $result = @{state=$terminal;target_version=$stamp.version;log_path=$logPath;error_fa=$reason;verified=($terminal -eq 'committed');machine_state=$terminal;helper_pid=$PID;attempt_id=$privateAttempt}
+                $temp = $ResultPath + '.' + [guid]::NewGuid().ToString('N') + '.tmp'
+                [IO.File]::WriteAllText($temp,($result | ConvertTo-Json),(New-Object Text.UTF8Encoding($false)))
+                Move-Item -LiteralPath $temp -Destination $ResultPath -Force
+                $owner = Get-Content -LiteralPath $channelLock -Raw -Encoding utf8 | ConvertFrom-Json
+                if ($owner.pid -ne $PID -or $owner.attempt_id -ne $privateAttempt) { throw 'Private channel lock ownership changed' }
+                Remove-Item -LiteralPath $channelLock
+            }
+        } finally {
+            try { $privateMutex.ReleaseMutex() | Out-Null } finally { $privateMutex.Dispose() }
+        }
     }
     exit $privateCode
 }

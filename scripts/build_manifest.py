@@ -37,7 +37,7 @@ def main() -> int:
     payload = manifest_to_json(manifest)
     payload["files_manifest_sha256"] = manifest_sha256(manifest)
     out = args.output or (root / "install_manifest.json")
-    out.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    out.write_bytes(json.dumps(payload, indent=2, ensure_ascii=False).encode("utf-8"))
     print(f"[build_manifest] {len(manifest)} files -> {out}")
     return 0
 

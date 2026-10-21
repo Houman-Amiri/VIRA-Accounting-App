@@ -24,14 +24,16 @@ def safe_relative(name: str) -> str:
     return PurePosixPath(*parts).as_posix()
 
 
-def _install_path(name: str) -> None:
+def _install_path(name: str, private_native: bool = False) -> None:
     normalized = safe_relative(name)
     first = normalized.split("/", 1)[0]
+    if private_native and normalized.startswith("native/pdf/"):
+        return
     if first not in INSTALL_ROOTS and normalized not in INSTALL_FILES:
         raise VerificationError("delta targets a non-application path")
 
 
-def extract_delta(archive: Path, destination: Path, base: str, target: str) -> None:
+def extract_delta(archive: Path, destination: Path, base: str, target: str, *, private_pin: dict | None = None) -> None:
     """Called only AFTER archive SHA-256 verification. Fail before any extraction."""
     with zipfile.ZipFile(archive) as zf:
         infos = zf.infolist()
@@ -49,6 +51,10 @@ def extract_delta(archive: Path, destination: Path, base: str, target: str) -> N
         required = {"update.json", "version.json", "install_manifest.json", "vira-updater.exe"}
         if not required.issubset(zf.namelist()):
             raise VerificationError("incomplete delta package")
+        if private_pin is not None:
+            validate_private_anchor(zf, private_pin)
+        elif "private-source-anchor.json" in zf.namelist():
+            raise VerificationError("Private source package cannot enter public update path")
         doc = json.loads(zf.read("update.json"))
         plan = DeltaPlan.from_json(doc)
         if plan.base_version != base or plan.target_version != target:
@@ -62,7 +68,7 @@ def extract_delta(archive: Path, destination: Path, base: str, target: str) -> N
             safe_relative(member)
             verify_sha256(zf.read(member), str(expected))
         for op in plan.operations:
-            _install_path(op.path)
+            _install_path(op.path, private_native=private_pin is not None)
             if op.op in (OpKind.ADD, OpKind.REPLACE):
                 member = "files/" + op.path
                 if member not in hashes:
@@ -81,3 +87,19 @@ def extract_delta(archive: Path, destination: Path, base: str, target: str) -> N
             else:
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_bytes(zf.read(info))
+
+
+def validate_private_anchor(packet: zipfile.ZipFile, old_pin: dict) -> dict:
+    """Binding inside an ALREADY externally SHA-verified archive, not a signature."""
+    from ..private_installed_source import anchor, unique_json
+    try:
+        raw = packet.read("private-source-anchor.json")
+        doc = unique_json(packet.read("update.json"))
+        verify_sha256(raw, doc["hashes"]["private-source-anchor.json"])
+        value = anchor(unique_json(raw))
+        verify_sha256(packet.read("install_manifest.json"), value["manifest_sha256"])
+        if value["port"] != old_pin["port"] or value["no_browser"] != old_pin["no_browser"]:
+            raise ValueError("Private update may not redirect the running client")
+        return value
+    except (KeyError, TypeError, ValueError) as exc:
+        raise VerificationError("Private source target anchor binding differs") from exc
