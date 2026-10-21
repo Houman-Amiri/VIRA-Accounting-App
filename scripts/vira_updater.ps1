@@ -60,7 +60,7 @@ if ($PrivateSourceTransaction) {
     $privateHome = Join-Path $env:LOCALAPPDATA "VIRA\private-native-installed"
     $installFull = [IO.Path]::GetFullPath($InstallDir).TrimEnd('\')
     $stageFull = [IO.Path]::GetFullPath($Stage).TrimEnd('\')
-    foreach ($path in @($installFull, $stageFull, $privateHome, $PrivateSourceTransaction)) {
+    foreach ($path in @($installFull, $stageFull, $privateHome, (Join-Path $privateHome 'anchor.json'), (Join-Path $installFull 'install_manifest.json'), $PrivateSourceTransaction)) {
         $full = [IO.Path]::GetFullPath($path)
         if (-not $full.StartsWith($runnerPrefix, [StringComparison]::OrdinalIgnoreCase)) { throw "Disposable private runner paths required" }
         $item = New-Object IO.FileInfo -ArgumentList $full

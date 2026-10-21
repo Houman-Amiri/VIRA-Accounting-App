@@ -44,10 +44,12 @@ schema، محاسبات، UI و نسخهٔ عمومی تغییر نکرده‌ا
   خصوصی پس از uninstall حفظ شد. این فقط مکانیک Inno است؛ نه پذیرش بصری wizard.
 - fixture حاوی فایل‌هایی با نام `python.exe` و `synthetic.dll` بود که **interpreter/DLL
   واقعی نیستند و اجرا نشدند**. این اجرا، نصب یا PDF یا delta بومی Source21 را اثبات نمی‌کند.
-- اصلاح بعدی، رد orphan state بدون anchor و کنترل نبودِ فایل اضافهٔ Inno در payload
-  را اضافه می‌کند؛ نتیجهٔ نسخهٔ جدید باید جداگانه کنترل شود، نه به اجرای e5103ad نسبت داده شود.
+- کنترل‌های orphan state و مجموعهٔ دقیق فایل‌های payload نیز در اجرای جداگانهٔ
+  [39586235223](https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39586235223)
+  روی `9c7b764` موفق شدند؛ [رسید مستقل](../dependencies/phase3-inno-orphan-preflight-proof.json).
+  این نتیجه به اجرای قدیمی e5103ad نسبت داده نشده است.
 
-**۱۰۰۴ تست backend محلی موفق در 78.304 ثانیه، بدون skip/error/failure**؛ Ruff، Mypy
+**۱۰۰۴ تست backend محلی موفق در 77.446 ثانیه، بدون skip/error/failure**؛ Ruff، Mypy
 روی ۸۹ فایل و Bandit در gate موجود موفق‌اند. ۵۹ کنترل متمرکز شامل شش آزمون transaction
 با filesystem/ZIP/BSDIFF و SQLite واقعی، اما process boundaryهای صریحاً mock‌شده است.
 integer/ID، schema، receipt/secret و quarantine پایگاه‌دادهٔ failed-target بررسی شدند؛
@@ -58,6 +60,13 @@ Windows بررسی شد؛ اجرای interpreter یا native PDF از آن نت�
 certifi `2026.10.19` و Pillow `13.0.0` ارتقا یافت؛ هیچ ignore اضافه نشد. audit محلی
 اکنون پاک است. setuptools قدیمیِ seed محیط ابزار محلی جداگانه ارتقا یافت و به
 وابستگی‌های برنامه اضافه نشد. کنترل مجوز MIT همچنان فقط همان ۱۴ فایل است.
+
+در checkpoint `9c7b764`، CI `39586234984` با هر پنج job، license `39586235299`،
+source kit `39586235160` و modified kit/Windows recipient `39586235248` همگی موفق‌اند.
+[رسید checkpoint ناقص](../dependencies/phase3-incomplete-checkpoint-ci.json) صریحاً
+`phase3_complete=false` دارد. سخت‌سازی بعدی، install root خصوصی را به runner TEMP
+محدود و anchor/manifest قدیمی را پیش از clone از نظر reparse کنترل می‌کند؛ نتیجهٔ
+این تغییرات باید برای commit بعدی جداگانه بررسی شود.
 
 ## شکست‌های حفظ‌شده، بدون حذف آزمون
 

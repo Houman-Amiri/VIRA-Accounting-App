@@ -1,0 +1,107 @@
+{
+  "schema": 1,
+  "role": "PHASE3_INCOMPLETE_GREEN_CHECKPOINT_NOT_NATIVE_ACCEPTANCE",
+  "head_sha": "9c7b7640c9d880a0a56fdaeb9df9e858178a1017",
+  "checks": [
+    {
+      "id": 39586235248,
+      "name": "Private complete modified native source review kit",
+      "head_sha": "9c7b7640c9d880a0a56fdaeb9df9e858178a1017",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 119175718142,
+          "name": "assemble",
+          "conclusion": "success"
+        },
+        {
+          "id": 119176502145,
+          "name": "windows-recipient",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 39586235299,
+      "name": "Prepare private native PDF license materials",
+      "head_sha": "9c7b7640c9d880a0a56fdaeb9df9e858178a1017",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 119175718587,
+          "name": "licenses",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 39586235160,
+      "name": "Assemble and inspect private native source kit",
+      "head_sha": "9c7b7640c9d880a0a56fdaeb9df9e858178a1017",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 119175718007,
+          "name": "kit",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 39586234984,
+      "name": "CI",
+      "head_sha": "9c7b7640c9d880a0a56fdaeb9df9e858178a1017",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 119176185085,
+          "name": "Windows-native smoke (SQLite paths, venv, build)",
+          "conclusion": "success"
+        },
+        {
+          "id": 119176185331,
+          "name": "Frontend \u2014 lint, types, contract, tests, build",
+          "conclusion": "success"
+        },
+        {
+          "id": 119176185483,
+          "name": "Backend \u2014 lint, type, security, tests",
+          "conclusion": "success"
+        },
+        {
+          "id": 119176185573,
+          "name": "OpenAPI contract is in sync",
+          "conclusion": "success"
+        },
+        {
+          "id": 119176185600,
+          "name": "Playwright e2e (native processes)",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "limited_inno_run_id": 39586235223,
+  "local_tests": {
+    "tests": "1004",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "time": "77.446"
+  },
+  "local_quality": {
+    "ruff": "PASS",
+    "mypy_source_files": 89,
+    "bandit_existing_gate": "PASS",
+    "pip_audit": "NO_KNOWN_VULNERABILITIES",
+    "limited_mit_file_count": 14
+  },
+  "phase3_complete": false,
+  "native_source21_installer_delta_rollback_proven": false,
+  "in_app_private_native_update_hook_complete": false,
+  "new_phase3_cold_source_build_started": false,
+  "all_six_distribution_gates_still_open": true,
+  "release_authorized": false,
+  "followup_scope": "Private selected-directory confinement to runner TEMP and reparse check on the old external anchor/manifest; not claimed executed by this checkpoint.",
+  "phase2_frozen_16_files_unchanged": true
+}

@@ -43,7 +43,11 @@ AppId={{B7E4C2A1-9F3D-4E8B-A6C5-1D2E3F405968}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher={#AppPublisher}
+#ifdef PrivateSourceCI
+DefaultDirName={#PrivateSourceProfile}\VIRA خصوصی app
+#else
 DefaultDirName={autopf}\VIRA
+#endif
 DefaultGroupName={#AppName}
 DisableDirPage=no
 DisableProgramGroupPage=yes
@@ -164,8 +168,18 @@ end;
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 var
   Rec: TFindRec;
+  TargetDir: String;
+  RunnerPrefix: String;
 begin
   Result := '';
+  TargetDir := ExpandConstant('{app}');
+  RunnerPrefix := AddBackslash(GetEnv('RUNNER_TEMP'));
+  if (Pos(Lowercase(RunnerPrefix), Lowercase(AddBackslash(TargetDir))) <> 1) or
+     (CompareText(RemoveBackslashUnlessRoot(TargetDir), RemoveBackslashUnlessRoot(GetEnv('RUNNER_TEMP'))) = 0) then
+  begin
+    Result := 'Private source CI install directory must be below runner TEMP.';
+    Exit;
+  end;
   if FindFirst(ExpandConstant('{app}\*'), Rec) then
   begin
     try

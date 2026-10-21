@@ -1618,3 +1618,14 @@ anchor rejected. Interpreter/DLL fixture bytes NEVER executed.
 Follow-up requires rejection of orphan private state and exact payload file-set
 (no generated Inno uninstaller inside manifested app root). This is NOT Source21
 installed/runtime/delta acceptance or phase completion. Phase3 remains ACTIVE.
+
+Phase3 9c7b764 checkpoint: CI39586234984 ALL5 SUCCESS; license39586235299, source
+kit39586235160, modified kit39586235248/Windows recipient ALL SUCCESS. Limited
+Inno39586235223 SUCCESS with orphan-state rejection and exact opaque payload set;
+[proof](docs/dependencies/phase3-inno-orphan-preflight-proof.json),
+[incomplete checkpoint](docs/dependencies/phase3-incomplete-checkpoint-ci.json).
+1004 local tests PASS77.446s/no skips/errors/failures, security audit clean.
+Follow-up confines private installer directory to runner TEMP and checks OLD
+anchor/manifest reparse paths before cloning runtime; verify its tip separately.
+Still NO actual Source21 installed app/in-app native delta or rollback proof, NO
+new Phase3 cold build started. Phase3 ACTIVE/INCOMPLETE, not permission for Phase4.

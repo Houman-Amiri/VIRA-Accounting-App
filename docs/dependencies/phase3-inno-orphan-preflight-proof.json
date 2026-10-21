@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "role": "AUTHENTICATED_PHASE3_ORPHAN_AND_INNO_PAYLOAD_MECHANICS_NOT_NATIVE_ACCEPTANCE",
+  "workflow_run": {
+    "id": 39586235223,
+    "head_sha": "9c7b7640c9d880a0a56fdaeb9df9e858178a1017",
+    "path": ".github/workflows/phase3-native-preflight.yml",
+    "conclusion": "success",
+    "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39586235223"
+  },
+  "job": {
+    "id": 119175718218,
+    "name": "windows-preflight",
+    "conclusion": "success",
+    "check_run_url": "https://api.github.com/repos/Houman-Amiri/VIRA-Accounting-App/check-runs/119175718218"
+  },
+  "same_check_annotation": {
+    "role": "PHASE3_INNO_MECHANICS_AND_SYNTHETIC_BYTES_ONLY",
+    "ordinary_and_private_data_preserved": true,
+    "orphaned_state_rejected": true,
+    "payload_has_no_unmanifested_inno_files": true,
+    "release_authorized": false,
+    "existing_private_state_rejected": true,
+    "native_runtime_executed": false,
+    "real_inno_install_uninstall": true,
+    "selected_unicode_space_bang_ampersand_path": true,
+    "real_native_delta_rollback_proven": false,
+    "phase3_complete": false
+  },
+  "phase3_complete": false,
+  "native_source21_installed_or_executed": false,
+  "release_authorized": false
+}
