@@ -1696,3 +1696,17 @@ workflow, not ignored or skipped. Fresh Windows/cold-source execution still must
 verify the new contract; Inno version99.30.0 is DISPOSABLE PRIVATE QA only, public
 version remains1.0.10. No user install/data/math/UI/schema changes, no Phase4 or
 release/tag approval; all6 distribution gates remain OPEN. Phase3 ACTIVE/INCOMPLETE.
+
+
+Phase3 execution blocker after17989b39e0089421ed4c57fe4f98dcb7a8131575 push:
+remote ref confirmed, but Actions lists ZERO new runs/check suites/check runs for
+that revision. Automatic suppression cause NOT established. Explicit source
+workflow dispatch and Actions-permissions API each returnHTTP403, "Resource not
+accessible by integration". Do NOT claim a cold build was started or new Windows
+proof exists. [Blocked receipt](docs/dependencies/phase3-version-contract-blocked-checkpoint.json).
+Add explicit workflow_dispatch to CI/private preflight/source workflows so an
+Actions-authorized connection can run this SAME branch. This does not grant
+external API permissions; GitHub/Arena connection's Actions authorization needs
+attention. Never request passwords/tokens/codes. Local1059 PASS remains valid for
+runtime code; manual-trigger-only follow-up does not change runtime. Phase3 still
+ACTIVE/INCOMPLETE; owner install/data/public1.0.10 untouched, no release/tag.

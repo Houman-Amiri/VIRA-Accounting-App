@@ -1,6 +1,7 @@
 name: Phase 3 private installer and byte-transport preflight NOT native acceptance
 
 on:
+  workflow_dispatch:
   push:
     paths: ['.github/workflows/phase3-native-preflight.yml', 'installer/vira.iss', 'backend/app/private_installed_source.py', 'scripts/private_source_update.py', 'backend/tests/test_private_source_update.py', 'backend/tests/test_private_source_channel.py', 'backend/app/services/private_source_channel.py', 'backend/app/services/update.py', 'backend/app/services/update_staging.py', 'scripts/gen_delta.py', 'scripts/build_manifest.py', 'backend/tests/test_private_installed_cmd.py', 'backend/tests/test_private_installed_version.py', 'backend/app/private_pdf_bootstrap.py', 'backend/app/desktop_entry.py', 'scripts/phase3_installed_smoke.ps1', 'scripts/phase3_installed_probe.py', 'scripts/vira_updater.ps1', 'uv.lock']
   pull_request:

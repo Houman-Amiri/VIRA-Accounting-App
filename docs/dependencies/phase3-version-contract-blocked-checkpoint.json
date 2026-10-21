@@ -1,0 +1,42 @@
+{
+  "role": "PHASE3_VERSION_CONTRACT_LOCAL_ONLY_WINDOWS_EXECUTION_BLOCKED",
+  "date": "2026-10-21",
+  "implemented_revision": "17989b39e0089421ed4c57fe4f98dcb7a8131575",
+  "remote_branch_confirmed_at_revision": true,
+  "local": {
+    "tests": 1059,
+    "focused_new_version_contract_tests": 28,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 87.59,
+    "ruff": "PASS",
+    "mypy_source_files": 90,
+    "mypy": "PASS",
+    "bandit_ci_medium_high_gate": "PASS",
+    "dependency_audit_after_local_tooling_seed_update": "PASS"
+  },
+  "github_observation": {
+    "automatic_workflow_runs_found_for_implemented_revision": 0,
+    "check_suites_found_for_implemented_revision": 0,
+    "check_runs_found_for_implemented_revision": 0,
+    "manual_dispatch_attempt": {
+      "workflow": ".github/workflows/pdf-desktop-source.yml",
+      "branch": "arena/aee91951-vira-accounting-app",
+      "http_status": 403,
+      "message": "Resource not accessible by integration"
+    },
+    "actions_permissions_read_attempt": {
+      "http_status": 403,
+      "message": "Resource not accessible by integration"
+    },
+    "notes": "Code push and Actions reads work. No automatic execution was observed; its suppression cause is not established. Explicit dispatch is denied by integration permissions. Manual workflow_dispatch triggers are added in the follow-up for authorized execution; workflow job permissions are not an external-dispatch credential fix."
+  },
+  "windows_new_contract_verified": false,
+  "new_phase3_source21_cold_build_started": false,
+  "real_versioned_source21_install_proven": false,
+  "real_native_delta_rollback_proven": false,
+  "phase3_complete": false,
+  "release_authorized": false,
+  "all_six_distribution_gates_open": true
+}
