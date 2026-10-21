@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "role": "PRESERVED_PHASE3_SECOND_PREFLIGHT_FAILURE_NOT_NATIVE_ACCEPTANCE",
+  "head_sha": "4516a48291297f5e780a2b456ee2bc737716aba9",
+  "preflight_run_id": 39584663309,
+  "preflight_job": 119170482400,
+  "preflight_failed_step": "Auxiliary old-log retrieval before tests; remove log retrieval now that original root cause is authenticated in retained annotations. No actual test removed.",
+  "ordinary_ci_run_id": 39584663404,
+  "windows_job": 119170483189,
+  "windows_test_failure_annotations": [
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/Houman-Amiri/VIRA-Accounting-App/blob/4516a48291297f5e780a2b456ee2bc737716aba9/.github",
+      "start_line": 272,
+      "start_column": null,
+      "end_line": 272,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "pytest (native Windows) part 0",
+      "message": "........................................................................ [  7%]\r\n........................................................................ [ 14%]\r\n........................................................................ [ 21%]\r\n........................................................................ [ 28%]\r\n........................................................................ [ 36%]\r\n.......................................s................................ [ 43%]\r\n........................................................................ [ 50%]\r\n........................................................................ [ 57%]\r\n........................................................................ [ 64%]\r\n........................................................................ [ 72%]\r\n........................................................................ [ 79%]\r\n........F............................................................... [ 86%]\r\n........................................................................ [ 93%]\r\n..............................................................           [100%]\r\n================================== FAILURES ===================================\r\n________ test_imports_are_stdlib_only_and_no_native_or_installer_claim ________\r\nbackend\\tests\\test_private_source_update.py:309: in test_imports_are_stdlib_only_and_no_native_or_installer_claim\r\n    tree = ast.parse(path.read_text())\r\n                     ^^^^^^^^^^^^^^^^\r\nC:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\Lib\\pathlib.py:1028: in read_text\r\n    return f.read()\r\n           ^^^^^^^^\r\nC:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\Lib\\encodings\\cp1252.py:23: in decode\r\n    return codecs.charmap_decode(input,self.errors,decoding_table)[0]\r\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nE   UnicodeDecodeError: 'charmap' codec can't decode byte 0x81 in position 16643: character maps to <undefined>\r\n=========================== short test summary info ===========================\r\nFAILED backend/tests/test_private_source_update.py::test_imports_are_stdlib_only_and_no_native_or_installer_claim - UnicodeDecodeError: 'charmap' codec can't decode byte 0x81 in position 16643: character maps to <undefined>\r\n",
+      "raw_details": ""
+    }
+  ],
+  "root_cause": "The new AST source test used Windows default cp1252 for a UTF8 Persian source file. Explicit UTF8 fixes the replay-only test; source bytes/expected hashes unchanged.",
+  "inno_step_executed": false,
+  "source21_native_execution_proven": false,
+  "phase3_complete": false
+}

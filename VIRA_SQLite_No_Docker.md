@@ -1586,3 +1586,13 @@ App bridge uses proven raw CMD quoting/profile-owned CWD; generated Inno uninsta
 is outside fully manifested payload. Added real Windows CMD-only fixture check;
 no native-runtime execution claim.53 focused tests PASS locally; next Windows
 preflight/CI still required. Phase3 remains ACTIVE/INCOMPLETE.
+
+Phase3 second Windows run4516a48: auxiliary log retrieval failed BEFORE preflight;
+removed only that retrieval, not a test. Ordinary CI39584663404 backend/security,
+frontend/OpenAPI/Playwright SUCCESS; Windows failed in new AST test's implicit
+cp1252 source read. Explicit UTF8 correction, no expected hash/data relaxation.
+[Second failure](docs/dependencies/phase3-second-preflight-failure.json).
+Added6 explicitly simulated transaction tests: real filesystem/ZIP/BSDIFF/SQLite
+backup+restore/quarantine with mocked process boundaries; plus raw real-CMD-only
+check.59 focused tests,1004 full local tests PASS78.304s/zero skips/failures/errors.
+Actual Source21 installed app/in-app delta/rollback proof STILL NOT DONE.

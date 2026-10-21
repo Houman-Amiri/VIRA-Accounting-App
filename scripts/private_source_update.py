@@ -91,6 +91,8 @@ def manifest(raw: bytes, digest: str) -> dict[str, dict]:
     result = {}
     folded = set()
     for entry in doc["files"]:
+        if not isinstance(entry, dict) or set(entry) != {"path", "sha256", "size"}:
+            raise ValueError("Exact manifest entry schema required")
         name = relative(entry["path"])
         h, size = entry["sha256"], entry["size"]
         if (
@@ -265,11 +267,18 @@ def assemble(
 def atomic(path: Path, raw: bytes) -> None:
     no_links(path)
     temporary = path.with_name(path.name + ".transaction-" + secrets.token_hex(8))
-    with temporary.open("xb") as stream:
-        stream.write(raw)
-        stream.flush()
-        os.fsync(stream.fileno())
-    temporary.replace(path)
+    created = False
+    try:
+        with temporary.open("xb") as stream:
+            created = True
+            stream.write(raw)
+            stream.flush()
+            os.fsync(stream.fileno())
+        temporary.replace(path)
+    finally:
+        if created and temporary.exists():
+            no_links(temporary)
+            temporary.unlink()
 
 
 def stop(home: Path, root: Path) -> None:
@@ -390,6 +399,16 @@ def main() -> None:
         raise ValueError("Disjoint installed payload, private state and transaction required")
     pin = home / "anchor.json"
     no_links(pin)
+    state = home / "state"
+    no_links(state)
+    for child in state.rglob("*"):
+        no_links(child)
+    if read((state / "private-desktop-state.json").read_bytes()) != {
+        "schema": 1,
+        "role": "PRIVATE_SOURCE_DESKTOP_STATE",
+        "payload_root": str(root),
+    }:
+        raise ValueError("Private business state belongs to another installation")
     old_raw, target_raw = pin.read_bytes(), args.target_anchor.read_bytes()
     old_doc = read(old_raw)
     verify(

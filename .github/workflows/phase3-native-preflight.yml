@@ -17,12 +17,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - name: Preserve original failed preflight diagnostics, no success relabeling
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: pwsh
-        run: |
-          python -c "import json,subprocess; text=subprocess.check_output(['gh','api','repos/${{ github.repository }}/actions/jobs/119167635625/logs']).decode('utf-8',errors='replace')[-16000:]; [print('::notice title=Original Phase 3 failed preflight::'+json.dumps({'tail':text[i:i+2300]})) for i in range(0,len(text),2300)]"
       - name: Synthetic strict-delta and anchor controls; no native execution claim
         shell: pwsh
         run: |

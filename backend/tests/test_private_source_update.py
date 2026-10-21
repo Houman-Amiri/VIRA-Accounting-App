@@ -23,7 +23,7 @@ def raw(value):
     return json.dumps(value, indent=2, ensure_ascii=False).encode()
 
 
-def fixture(tmp_path):
+def fixture(tmp_path, with_controller=False):
     base = tmp_path / "base"
     base.mkdir()
     before = {
@@ -34,6 +34,11 @@ def fixture(tmp_path):
         "static/deleted.txt": b"old deletion restored on rollback",
         "static/edit.txt": b"old",
     }
+    if with_controller:
+        before["app/private_installed_source.py"] = (
+            ROOT / "backend/app/private_installed_source.py"
+        ).read_bytes()
+        before["scripts/update_database.py"] = (ROOT / "scripts/update_database.py").read_bytes()
     after = dict(before)
     after["version.json"] = raw({"version": "99.30.1", "spa_build": "new"})
     after["native/pdf/bin/pango.dll"] += b"synthetic changed native-directory bytes"
@@ -306,9 +311,162 @@ def test_imports_are_stdlib_only_and_no_native_or_installer_claim():
     ):
         import ast
 
-        tree = ast.parse(path.read_text())
+        tree = ast.parse(path.read_text(encoding="utf-8"))
         assert not any(
             isinstance(n, ast.ImportFrom) and n.module and n.module.startswith(("app.", "scripts."))
             for n in ast.walk(tree)
         )
     assert "Synthetic" in __doc__
+
+
+@pytest.mark.parametrize(
+    "mode",
+    [
+        "commit",
+        "force-after-apply",
+        "target-start-failure",
+        "rollback-start-failure",
+        "preflight-failure",
+    ],
+)
+def test_synthetic_transaction_with_real_sqlite_snapshot_restore(tmp_path, monkeypatch, mode):
+    """Mock process boundaries, real files/ZIP/BSDIFF/SQLite. NOT native proof."""
+    import os
+    import sqlite3
+    import subprocess
+    import sys
+    from types import SimpleNamespace
+
+    base, before, after, contents, old, target = fixture(tmp_path, with_controller=True)
+    archive = packet(tmp_path, contents)
+    home = tmp_path / "کاربر فارسی ! & profile" / "VIRA/private-native-installed"
+    home.mkdir(parents=True)
+    state = home / "state"
+    state.mkdir()
+    (state / "private-desktop-state.json").write_bytes(
+        raw(dict(schema=1, role="PRIVATE_SOURCE_DESKTOP_STATE", payload_root=str(base)))
+    )
+    receipts = state / "data/receipts/immutable.bin"
+    receipts.parent.mkdir(parents=True)
+    receipts.write_bytes(b"preserve all receipt bytes")
+    secret = state / "session.secret"
+    secret.write_bytes(b"synthetic persistent session secret, not a real credential")
+    database = state / "data/data/vira.sqlite3"
+    database.parent.mkdir(parents=True)
+    with sqlite3.connect(database) as db:
+        db.executescript(
+            "CREATE TABLE alembic_version(version_num TEXT); INSERT INTO alembic_version VALUES('synthetic-0006'); CREATE TABLE posted(id TEXT PRIMARY KEY, amount INTEGER); INSERT INTO posted VALUES('original-id',1234567891234);"
+        )
+    common = dict(
+        schema=1,
+        role="PRIVATE_SOURCE_INSTALLED_ANCHOR",
+        inventory_sha256="b" * 64,
+        source_audit_sha256="c" * 64,
+        port=8787,
+        no_browser=True,
+    )
+    old = dict(common, **old)
+    target = dict(common, **target)
+    old_bytes = raw(old)
+    (home / "anchor.json").write_bytes(old_bytes)
+    target_pin = tmp_path / "target-anchor.json"
+    target_pin.write_bytes(raw(target))
+    attempt = tmp_path / "attempt"
+    controller = runpy.run_path(str(ROOT / "scripts/private_source_update.py"))["main"]
+    scope = controller.__globals__
+    fake_os = SimpleNamespace(
+        name="nt",
+        environ=dict(
+            os.environ,
+            GITHUB_ACTIONS="true",
+            RUNNER_TEMP=str(tmp_path),
+            LOCALAPPDATA=str(home.parents[1]),
+        ),
+        getpid=os.getpid,
+        fsync=os.fsync,
+    )
+    monkeypatch.setitem(scope, "os", fake_os)
+    preflight_calls = []
+    starts = []
+
+    def preflight(command, **kwargs):
+        assert command[1:6] == ["-I", "-S", "-B", "-X", "utf8"]
+        assert kwargs["cwd"] == home
+        preflight_calls.append(command)
+        if mode == "preflight-failure":
+            raise subprocess.CalledProcessError(1, command)
+
+    monkeypatch.setitem(scope, "subprocess", SimpleNamespace(run=preflight))
+
+    def start_mock(_home, root, token, pin):
+        assert len(token) == 64 and _home == home
+        assert not (home / "state/data/updates/.update.lock").exists()
+        starts.append(pin["manifest_sha256"])
+        assert scope["sha"](root / "install_manifest.json") == pin["manifest_sha256"]
+        if mode in {"target-start-failure", "rollback-start-failure"} and len(starts) == 1:
+            # Simulate failed target migration/writer, not app/renderer injection.
+            with sqlite3.connect(database) as db:
+                db.execute("UPDATE posted SET amount=-1")
+                db.execute("CREATE TABLE failed_target_only(value TEXT)")
+            raise RuntimeError("synthetic failed target startup")
+        if mode == "rollback-start-failure":
+            raise RuntimeError("synthetic rollback health failure")
+        return object()
+
+    monkeypatch.setitem(scope, "start", start_mock)
+    args = [
+        "private-controller",
+        "--install-root",
+        str(base),
+        "--archive",
+        str(archive),
+        "--archive-sha256",
+        MODULE["sha"](archive),
+        "--target-anchor",
+        str(target_pin),
+        "--attempt",
+        str(attempt),
+    ]
+    if mode == "force-after-apply":
+        args.append("--force-failure-after-apply")
+    monkeypatch.setattr(sys, "argv", args)
+    if mode == "commit":
+        controller()
+    else:
+        with pytest.raises((RuntimeError, subprocess.CalledProcessError)):
+            controller()
+    assert len(preflight_calls) == 1
+    expected = after if mode == "commit" else before
+    assert all((base / name).read_bytes() == data for name, data in expected.items())
+    assert receipts.read_bytes() == b"preserve all receipt bytes"
+    assert secret.read_bytes() == b"synthetic persistent session secret, not a real credential"
+    with sqlite3.connect(database) as db:
+        assert db.execute("SELECT * FROM posted").fetchall() == [("original-id", 1234567891234)]
+        assert not db.execute(
+            "SELECT name FROM sqlite_master WHERE name='failed_target_only'"
+        ).fetchall()
+    assert (home / "anchor.json").read_bytes() == (raw(target) if mode == "commit" else old_bytes)
+    if mode == "rollback-start-failure":
+        assert (home / ".native-update.lock").exists()  # fail CLOSED, retain recovery evidence
+        assert not (attempt / "result.json").exists()  # no false rolled_back success
+    else:
+        assert not (home / ".native-update.lock").exists()
+        if mode != "preflight-failure":
+            result = json.loads((attempt / "result.json").read_bytes())
+            assert result["state"] == ("committed" if mode == "commit" else "rolled_back")
+    if mode in {"target-start-failure", "rollback-start-failure"}:
+        assert (attempt / "database-rollback/failed-database/database.sqlite3").exists()
+
+
+def test_owned_atomic_temporary_is_removed_on_replace_failure(tmp_path, monkeypatch):
+    target = tmp_path / "target.txt"
+    target.write_bytes(b"original")
+
+    def fail(*args):
+        raise OSError("synthetic replace failure")
+
+    monkeypatch.setattr(Path, "replace", fail)
+    with pytest.raises(OSError):
+        MODULE["atomic"](target, b"new")
+    assert target.read_bytes() == b"original"
+    assert list(tmp_path.iterdir()) == [target]

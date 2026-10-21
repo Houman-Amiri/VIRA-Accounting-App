@@ -74,3 +74,21 @@ App bridge uses proven raw CMD quoting/profile-owned CWD; generated Inno uninsta
 is outside fully manifested payload. Added real Windows CMD-only fixture check;
 no native-runtime execution claim.53 focused tests PASS locally; next Windows
 preflight/CI still required. Phase3 remains ACTIVE/INCOMPLETE.
+
+
+## اصلاح خطاهای Windows و وضعیت جاری
+
+اجرای دوم `39584663309 / 4516a48` پیش از preflight در بازیابی کمکی log قدیمی متوقف
+شد؛ فقط آن بازیابی حذف شد، نه آزمون. CI عادی `39584663404` در چهار job غیر Windows
+موفق شد؛ Windows یک خطای جدید replay داشت: خواندن سورس UTF8 با cp1252 پیش‌فرض در
+AST test. encoding صریح اصلاح شد؛ hash و دادهٔ آزمون تغییر نکرده‌اند.
+[رسید شکست دوم](../dependencies/phase3-second-preflight-failure.json) حفظ شد.
+
+اکنون **۱۰۰۴ تست محلی موفق در 78.304 ثانیه، بدون skip/error/failure**؛ ۵۹ کنترل
+متمرکز شامل شش آزمون transaction با filesystem/ZIP/patch و SQLite واقعی، اما
+process boundaryهای صریحاً mock‌شده. بازگشت دادهٔ integer/ID، schema و quarantine
+پایگاه‌دادهٔ failed-target بررسی شد؛ rollback تأییدنشده قفل را نگه می‌دارد. این‌ها
+اجرای برنامهٔ حسابداری/Native نیستند. اصلاح encoding و قفل‌ها هیچ gate را نمی‌بندد.
+
+نصب Source21 واقعی، اتصال خصوصی in-app و اثبات واقعی native apply/rollback هنوز
+انجام نشده‌اند؛ workflow ساخت سرد جدید برای فاز ۳ هنوز آغاز نشده است.
