@@ -1,0 +1,115 @@
+{
+  "role": "PHASE3_HELPER_CLONE_AND_QUARANTINE_CI_SUCCESS_SOURCE_BUILD_STILL_PENDING",
+  "runtime_revision": "0f55e9c8be4e6b284be2660e3cb6f5e97671ffbf",
+  "runs": [
+    {
+      "id": 39614143087,
+      "head_sha": "0f55e9c8be4e6b284be2660e3cb6f5e97671ffbf",
+      "name": "CI",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39614143087",
+      "jobs": [
+        {
+          "id": 119270525818,
+          "name": "Backend — lint, type, security, tests",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": []
+        },
+        {
+          "id": 119270526255,
+          "name": "Playwright e2e (native processes)",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": []
+        },
+        {
+          "id": 119270526467,
+          "name": "OpenAPI contract is in sync",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": []
+        },
+        {
+          "id": 119270526469,
+          "name": "Frontend — lint, types, contract, tests, build",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": []
+        },
+        {
+          "id": 119270526494,
+          "name": "Windows-native smoke (SQLite paths, venv, build)",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": []
+        }
+      ]
+    },
+    {
+      "id": 39614143678,
+      "head_sha": "0f55e9c8be4e6b284be2660e3cb6f5e97671ffbf",
+      "name": "Phase 3 private installer and byte-transport preflight NOT native acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39614143678",
+      "jobs": [
+        {
+          "id": 119270527662,
+          "name": "windows-preflight",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": []
+        }
+      ]
+    },
+    {
+      "id": 39610014494,
+      "head_sha": "4669c5e6beab03dc35fada5cab31a7cc2e7eb887",
+      "name": "Phase 2 real CMD source startup and HTTP",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39610014494",
+      "jobs": [
+        {
+          "id": 119256858573,
+          "name": "stock-http-preflight",
+          "status": "completed",
+          "conclusion": "success",
+          "active_steps": []
+        },
+        {
+          "id": 119259657791,
+          "name": "source-http-consumer",
+          "status": "in_progress",
+          "conclusion": null,
+          "active_steps": [
+            "Compile all target libraries from local preferred trees with binary caches disabled"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 39612186978,
+      "head_sha": "a7c6fc87b6bb066a3e7c78766071451602b1d131",
+      "name": "Phase 2 real CMD source startup and HTTP",
+      "status": "pending",
+      "conclusion": null,
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39612186978",
+      "jobs": []
+    }
+  ],
+  "local_tests": 1074,
+  "local_failures": 0,
+  "local_errors": 0,
+  "local_skips": 0,
+  "local_seconds": 88.96,
+  "windows_proof_scope": "Synthetic private channel, CLI Unicode, assembly, write quarantine, verified helper copy; opaque selected-path Inno plus existing general compiled-helper CI. NOT real Source21 delta/rollback.",
+  "source21_native_compilation_observed": true,
+  "source21_versioned_install_acceptance_collected": false,
+  "real_native_delta_rollback_proven": false,
+  "crash_stale_recovery_proven": false,
+  "phase3_complete": false,
+  "release_authorized": false
+}
