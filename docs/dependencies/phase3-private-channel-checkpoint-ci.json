@@ -1,0 +1,89 @@
+{
+  "role": "PHASE3_PRIVATE_CHANNEL_SYNTHETIC_CHECKPOINT_NOT_NATIVE_ACCEPTANCE",
+  "date": "2026-10-21",
+  "ci_verified_revision": "263fe1f32e3cdd11c5f07446ffa9201693a71548",
+  "runs": [
+    {
+      "id": 39596501961,
+      "head_sha": "263fe1f32e3cdd11c5f07446ffa9201693a71548",
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39596501961",
+      "name": "Phase 3 private installer and byte-transport preflight NOT native acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 119210007076,
+          "name": "windows-preflight",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 39596502047,
+      "head_sha": "263fe1f32e3cdd11c5f07446ffa9201693a71548",
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39596502047",
+      "name": "CI",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 119210008387,
+          "name": "Windows-native smoke (SQLite paths, venv, build)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 119210008648,
+          "name": "OpenAPI contract is in sync",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 119210008702,
+          "name": "Frontend — lint, types, contract, tests, build",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 119210008781,
+          "name": "Backend — lint, type, security, tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 119210008809,
+          "name": "Playwright e2e (native processes)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "local_followup": {
+    "tests": 1031,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 68.293,
+    "focused_private_channel_tests": 27,
+    "ruff": "PASS",
+    "mypy_source_files": 90,
+    "mypy": "PASS",
+    "bandit_ci_medium_high_gate": "PASS",
+    "pip_audit_after_local_seed_setuptools_84_2_1": "PASS",
+    "followup_ci_verified": false
+  },
+  "frozen_phase2_16_git_blobs_unchanged": true,
+  "source21_cold_build_started": false,
+  "source21_installed_transaction_proven": false,
+  "phase3_complete": false,
+  "release_authorized": false,
+  "remaining": [
+    "Explicit installed-version bootstrap contract: existing Phase1/2 guard admits only 0.0.0-private-unicode-proof; current 99.30.x synthetic fixtures cannot prove native bootstrap.",
+    "Actual selected-path Source21 Inno install and HTTP/PDF",
+    "Independently audited target, permissioned in-app changed-parts transaction",
+    "Verified native rollback preserving accounting DB/IDs/session/secrets/receipts",
+    "Crash/stale-lock recovery"
+  ]
+}

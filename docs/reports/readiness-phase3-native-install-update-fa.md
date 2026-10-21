@@ -125,3 +125,26 @@ Inno 6.7.1 عبارت **Non-commercial use only** در banner دارد؛ تست 
 **وضعیت همچنان ناقص است:** cold build جدید Source21، نصب runtime واقعی، apply
 واقعی از API با رضایت، rollback تأییدشده با حفظ همهٔ داده‌ها و crash/stale recovery
 هنوز انجام نشده‌اند. این checkpoint تحویل فاز، مجوز فاز ۴ یا انتشار نیست.
+
+
+### نتیجهٔ ویندوز و کنترل تکمیلی مسیرها
+
+- commit `263fe1f`: CI کامل `39596502047` در هر پنج job موفق شد؛ بررسی محدود ویندوز
+  `39596501961` نیز موفق است: parse واقعی PowerShell، تست‌های مصنوعی channel و
+  compile/install/uninstall واقعی Inno روی payload غیرقابل‌اجرای مصنوعی. این‌ها
+  پذیرش نصب یا update بومی Source21 نیستند.
+- چهار تست تکمیلی، symlink/junction در data، مسیر DB، updates و نسخهٔ staging را
+  قبل از نوشتن رد می‌کنند. جمع جدید: **۲۷ تست متمرکز؛ کل suite برابر ۱۰۳۱ تست
+  موفق در ۶۸٫۳۲ ثانیه، بدون شکست/خطا/skip**. این follow-up به CI جدا نیاز دارد.
+  Ruff، Mypy، Bandit سطح CI و audit دوباره موفق‌اند. ۱۶ Git blob ثابت فاز ۲
+  دوباره تطبیق داده شدند؛ هیچ تفاوتی ندارند.
+- **مانع integration مشخص شد و دور زده نشد:** guard فعلی bootstrap خصوصی فازهای
+  ۱/۲ فقط نسخهٔ `0.0.0-private-unicode-proof` را قبول می‌کند. fixture نسخهٔ 99.30.x
+  صرفاً تست channel است و نمی‌تواند عبور native bootstrap واقعی را ثابت کند.
+  پیش از build و transaction واقعی، قرارداد صریح نسخهٔ نصب‌شده با anchor مستقل
+  و تست‌های مثبت/منفی لازم است؛ نباید guard عمومی یا کنترل‌های قبلی ضعیف شوند.
+
+جزئیات قابل‌ماشین‌خواندن در
+`docs/dependencies/phase3-private-channel-checkpoint-ci.json` ثبت است.
+فاز ۳ همچنان فعال/ناقص است؛ هیچ cold build جدید، tag، release یا تغییری در نصب و
+دادهٔ واقعی کاربر انجام نشده است.

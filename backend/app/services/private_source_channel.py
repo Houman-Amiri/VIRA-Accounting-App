@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 import secrets
+import zipfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -48,7 +49,14 @@ def scope(settings: Settings, root: Path | None) -> SourceScope | None:
             raise ValueError("Private CI installation required")
         pin_path, state = location()
         runner = Path(os.environ["RUNNER_TEMP"])
-        for path in (root, pin_path, state, state / "private-desktop-state.json"):
+        for path in (
+            root,
+            pin_path,
+            state,
+            state / "private-desktop-state.json",
+            state / "data/data/vira.sqlite3",
+            state / "data/updates",
+        ):
             no_links(path)
             if (
                 ".." in path.parts
@@ -98,6 +106,9 @@ def command(context: SourceScope, stage: Path) -> tuple[list[str], Path]:
             raise ValueError("Foreign private staging directory")
         for path in (
             stage,
+            stage / "version.json",
+            stage / "install_manifest.json",
+            context.root / "version.json",
             stage.parent / "package.zip",
             stage.parent / "source-download-receipt.json",
         ):
@@ -107,8 +118,6 @@ def command(context: SourceScope, stage: Path) -> tuple[list[str], Path]:
         if receipt["archive_sha256"] != sha(archive):
             raise ValueError("Verified private download changed before apply")
         # Archive SHA was recorded only after the ordinary streaming verifier.
-        import zipfile
-
         from .update_staging import validate_private_anchor
 
         with zipfile.ZipFile(archive) as packet:
@@ -156,7 +165,7 @@ def command(context: SourceScope, stage: Path) -> tuple[list[str], Path]:
             "-PrivateSourceTransaction",
             str(transaction),
         ], log
-    except (OSError, ValueError, KeyError, TypeError) as exc:
+    except (OSError, ValueError, KeyError, TypeError, zipfile.BadZipFile) as exc:
         raise DomainError(
             "بسته یا updater خصوصی پس از تأیید تغییر کرده است؛ اعمال متوقف شد."
         ) from exc

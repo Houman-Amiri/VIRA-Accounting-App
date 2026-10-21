@@ -389,6 +389,11 @@ class UpdateManager:
             if self._job.state in ("downloading", "verifying", "applying"):
                 raise DomainError("به‌روزرسانی دیگری در حال اجرا است")
             staging = self._staging_dir(settings, check.latest) / uuid4().hex
+            if source_scope is not None:
+                try:
+                    private_source_channel.no_links(staging)
+                except ValueError as exc:
+                    raise DomainError("مسیر staging خصوصی پیوند یا reparse دارد؛ دانلود شروع نشد.") from exc
             staging.mkdir(parents=True)
             log_path = staging / "update.log"
             log_path.write_text("download started\n", encoding="utf-8")

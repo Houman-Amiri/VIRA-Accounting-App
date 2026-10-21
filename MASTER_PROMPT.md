@@ -1210,3 +1210,19 @@ real permissioned changed-native delta and verified rollback/data preservation,
 plus crash/stale recovery remain acceptance work. Phase3 ACTIVE/INCOMPLETE;
 all6 distribution gates OPEN, public1.0.10/user installation untouched; no Phase4,
 tag, release or expanded MIT permission.
+
+
+Phase3 follow-up:27 synthetic private-channel controls; complete local suite1031
+PASS68.32s with ZERO failures/errors/skips. Added rejection of data/DB/updates and
+version-staging links BEFORE writes, plus normalized malformed archive failures.
+Phase2 frozen16 Git blob digests rechecked: all identical. 263fe1f is independently
+verified by CI39596502047 ALL5 SUCCESS and limited Windows39596501961 SUCCESS
+(PS parsing, synthetic channel controls and opaque Inno, NOT native acceptance).
+[Explicit incomplete channel receipt](docs/dependencies/phase3-private-channel-checkpoint-ci.json).
+Those CI runs precede the four extra link regressions; follow-up needs its own CI.
+Important integration blocker found rather than bypassed: frozen Phase1/2 private
+bootstrap accepts ONLY version0.0.0-private-unicode-proof. Synthetic99.30.x channel
+fixtures do not prove a versioned native installation. Need explicit independently
+anchored installed-version contract and regression proof WITHOUT weakening public
+or existing Phase1/2 rejection. No new Source21 cold build started; Phase3 remains
+ACTIVE/INCOMPLETE, six distribution gates OPEN, no publication/Phase4 permission.

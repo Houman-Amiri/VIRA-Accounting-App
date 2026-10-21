@@ -104,7 +104,9 @@ def fixture(tmp_path, monkeypatch):
     return root, home, settings, archive, old
 
 
-def test_private_stream_download_uses_existing_verifier_and_old_installed_helper(tmp_path, monkeypatch):
+def test_private_stream_download_uses_existing_verifier_and_old_installed_helper(
+    tmp_path, monkeypatch
+):
     root, home, settings, archive, old = fixture(tmp_path, monkeypatch)
     context = channel.scope(settings, root)
     assert context is not None and context.pin == old
@@ -338,3 +340,39 @@ def test_cli_manifest_bytes_match_private_delta_on_every_platform(tmp_path, monk
         args, capture_output=True, text=True, env=dict(os.environ, GITHUB_ACTIONS="false")
     )
     assert result.returncode != 0 and "CI only" in result.stderr
+
+
+@pytest.mark.parametrize("member", ["data", "data/updates", "data/data"])
+def test_private_state_descendant_links_fail_before_staging(tmp_path, monkeypatch, member):
+    root, home, settings, _, _ = fixture(tmp_path, monkeypatch)
+    path = home / "state" / member
+    foreign = tmp_path / "foreign"
+    foreign.mkdir()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.symlink_to(foreign, target_is_directory=True)
+    with pytest.raises(DomainError):
+        channel.scope(settings, root)
+    assert not list(foreign.iterdir())
+
+
+def test_private_version_staging_link_fails_before_any_write(tmp_path, monkeypatch):
+    _, _, settings, archive, _ = fixture(tmp_path, monkeypatch)
+    updates = settings.data_dir / "updates"
+    updates.mkdir(parents=True)
+    foreign = tmp_path / "foreign"
+    foreign.mkdir()
+    (updates / "99.30.1").symlink_to(foreign, target_is_directory=True)
+    check = update.UpdateCheckResult(
+        "99.30.0",
+        "99.30.1",
+        True,
+        True,
+        choice=update.PackageChoice(
+            "delta", [dict(from_version="99.30.0", size=archive.stat().st_size)]
+        ),
+    )
+    manager = update.UpdateManager()
+    with pytest.raises(DomainError):
+        manager.prepare_download(check, settings)
+    assert manager.status()["state"] == "idle"
+    assert not list(foreign.iterdir())
