@@ -1,0 +1,42 @@
+{
+  "role": "PHASE3_STDOUT_FIX_PUSHED_REMOTE_RESULTS_UNKNOWN_AUTHENTICATION_EXPIRED",
+  "runtime_fix_revision": "4669c5e6beab03dc35fada5cab31a7cc2e7eb887",
+  "push_confirmed": true,
+  "local_suite": {
+    "tests": 1059,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 87.72,
+    "ruff": "PASS",
+    "mypy": "PASS",
+    "mypy_source_files": 90,
+    "bandit_ci_level": "PASS",
+    "dependency_audit": "PASS"
+  },
+  "last_observed_windows_failure": {
+    "run_id": 39608813001,
+    "job_id": 119251942209,
+    "reason": "UnicodeEncodeError printing Persian path; CLI stdout UTF8 fix pushed"
+  },
+  "last_observed_source_workflow": {
+    "run_id": 39608813235,
+    "step": "stock-http-preflight real app factory/HTTP",
+    "status_at_last_successful_read": "in_progress"
+  },
+  "subsequent_read_errors": {
+    "http_status": 401,
+    "message": "Bad credentials",
+    "operations": [
+      "Actions runs by fix SHA",
+      "source workflow jobs",
+      "CI jobs"
+    ]
+  },
+  "latest_fix_windows_result": "UNKNOWN_NOT_RETRIEVABLE",
+  "new_source_compilation_status": "UNKNOWN_NOT_RETRIEVABLE",
+  "real_native_delta_rollback_proven": false,
+  "phase3_complete": false,
+  "release_authorized": false,
+  "next_required_action": "Reconnect GitHub in Arena; never send credentials in chat. Then inspect exact fix revision runs, debug failures, and continue Phase3 proof."
+}

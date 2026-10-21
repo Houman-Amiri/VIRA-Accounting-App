@@ -1723,3 +1723,15 @@ output in the existing assembly test to prevent regression. Native ACP/loader
 and manifest bytes unchanged.81 focused local controls PASS, Ruff/Mypy90 PASS.
 Re-run Windows preflight AND source workflow on the fix; do not skip failed test
 or infer native success from local/synthetic controls. Phase3 still INCOMPLETE.
+
+
+Phase3 stdout fix4669c5e PUSH CONFIRMED; full local suite1059 PASS87.72s, zero
+failures/errors/skips; Ruff/Mypy90/Bandit CI-level/dependency audit PASS. While
+collecting fix-run results, GitHub API authentication failedHTTP401 "Bad credentials"
+for run/job reads. This is NEW and distinct from the earlier manual-dispatch403.
+Do not infer latest Windows/source result; it is UNKNOWN until connection repair.
+[Exact checkpoint](docs/dependencies/phase3-stdout-fix-auth-expiry-checkpoint.json).
+Reconnect GitHub in Arena; no passwords/tokens/codes in chat. Automatic workflows
+may continue remotely; their current status cannot be read. User installation and
+public1.0.10 untouched, Phase3 INCOMPLETE, no release/tag. This documentation-only
+checkpoint is saved locally; no further remote push attempted with known-bad auth.
