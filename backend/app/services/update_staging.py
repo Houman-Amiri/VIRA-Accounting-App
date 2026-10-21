@@ -27,7 +27,7 @@ def safe_relative(name: str) -> str:
 def _install_path(name: str, private_native: bool = False) -> None:
     normalized = safe_relative(name)
     first = normalized.split("/", 1)[0]
-    if private_native and normalized.startswith("native/pdf/"):
+    if private_native and (normalized.startswith("native/pdf/") or normalized == "private-utf8-process-manifest.json"):
         return
     if first not in INSTALL_ROOTS and normalized not in INSTALL_FILES:
         raise VerificationError("delta targets a non-application path")
@@ -98,6 +98,10 @@ def validate_private_anchor(packet: zipfile.ZipFile, old_pin: dict) -> dict:
         verify_sha256(raw, doc["hashes"]["private-source-anchor.json"])
         value = anchor(unique_json(raw))
         verify_sha256(packet.read("install_manifest.json"), value["manifest_sha256"])
+        if value["schema"] == 2 and value["version"] != unique_json(packet.read("version.json")).get("version"):
+            raise ValueError("Private target anchor version differs")
+        if value["schema"] < old_pin["schema"]:
+            raise ValueError("Private anchor contract downgrade forbidden")
         if value["port"] != old_pin["port"] or value["no_browser"] != old_pin["no_browser"]:
             raise ValueError("Private update may not redirect the running client")
         return value

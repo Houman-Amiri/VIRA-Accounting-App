@@ -24,7 +24,7 @@ from pathlib import Path
 MAX_FILE = 256 * 1024 * 1024
 MAX_TOTAL = 2 * 1024 * 1024 * 1024
 ROOTS = {"app", "backend", "python", "scripts", "site-packages", "static", "tools"}
-TOP = {"version.json", "start_vira.cmd", "vira-updater.exe"}
+TOP = {"version.json", "start_vira.cmd", "vira-updater.exe", "private-utf8-process-manifest.json"}
 
 
 def sha(path: Path) -> str:
@@ -216,6 +216,12 @@ def assemble(
             raise ValueError("Wrong installed base version")
         if read(packet.read("version.json"))["version"] != plan["target_version"]:
             raise ValueError("Wrong target version")
+        if old.get("schema") == 2 and old["version"] != plan["base_version"]:
+            raise ValueError("Independent old anchor version differs")
+        if target.get("schema") == 2 and target["version"] != plan["target_version"]:
+            raise ValueError("Independent target anchor version differs")
+        if target.get("schema", 1) < old.get("schema", 1):
+            raise ValueError("Private anchor contract downgrade forbidden")
         changed = {n for n in set(baseline) | set(final) if baseline.get(n) != final.get(n)}
         ops = plan["operations"]
         if len(ops) != len(changed) or {o["path"] for o in ops} != changed:

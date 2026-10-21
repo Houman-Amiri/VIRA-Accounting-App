@@ -2,9 +2,9 @@ name: Phase 3 private installer and byte-transport preflight NOT native acceptan
 
 on:
   push:
-    paths: ['.github/workflows/phase3-native-preflight.yml', 'installer/vira.iss', 'backend/app/private_installed_source.py', 'scripts/private_source_update.py', 'backend/tests/test_private_source_update.py', 'backend/tests/test_private_source_channel.py', 'backend/app/services/private_source_channel.py', 'backend/app/services/update.py', 'backend/app/services/update_staging.py', 'scripts/gen_delta.py', 'scripts/build_manifest.py', 'backend/tests/test_private_installed_cmd.py', 'scripts/vira_updater.ps1', 'uv.lock']
+    paths: ['.github/workflows/phase3-native-preflight.yml', 'installer/vira.iss', 'backend/app/private_installed_source.py', 'scripts/private_source_update.py', 'backend/tests/test_private_source_update.py', 'backend/tests/test_private_source_channel.py', 'backend/app/services/private_source_channel.py', 'backend/app/services/update.py', 'backend/app/services/update_staging.py', 'scripts/gen_delta.py', 'scripts/build_manifest.py', 'backend/tests/test_private_installed_cmd.py', 'backend/tests/test_private_installed_version.py', 'backend/app/private_pdf_bootstrap.py', 'backend/app/desktop_entry.py', 'scripts/phase3_installed_smoke.ps1', 'scripts/phase3_installed_probe.py', 'scripts/vira_updater.ps1', 'uv.lock']
   pull_request:
-    paths: ['.github/workflows/phase3-native-preflight.yml', 'installer/vira.iss', 'backend/app/private_installed_source.py', 'scripts/private_source_update.py', 'backend/tests/test_private_source_update.py', 'backend/tests/test_private_source_channel.py', 'backend/app/services/private_source_channel.py', 'backend/app/services/update.py', 'backend/app/services/update_staging.py', 'scripts/gen_delta.py', 'scripts/build_manifest.py', 'backend/tests/test_private_installed_cmd.py', 'scripts/vira_updater.ps1', 'uv.lock']
+    paths: ['.github/workflows/phase3-native-preflight.yml', 'installer/vira.iss', 'backend/app/private_installed_source.py', 'scripts/private_source_update.py', 'backend/tests/test_private_source_update.py', 'backend/tests/test_private_source_channel.py', 'backend/app/services/private_source_channel.py', 'backend/app/services/update.py', 'backend/app/services/update_staging.py', 'scripts/gen_delta.py', 'scripts/build_manifest.py', 'backend/tests/test_private_installed_cmd.py', 'backend/tests/test_private_installed_version.py', 'backend/app/private_pdf_bootstrap.py', 'backend/app/desktop_entry.py', 'scripts/phase3_installed_smoke.ps1', 'scripts/phase3_installed_probe.py', 'scripts/vira_updater.ps1', 'uv.lock']
 
 permissions:
   contents: read
@@ -22,10 +22,12 @@ jobs:
         run: |
           $tokens = $null
           $parseErrors = $null
-          [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PWD 'scripts/vira_updater.ps1'), [ref]$tokens, [ref]$parseErrors) | Out-Null
-          if ($parseErrors.Count) {
-            $parseErrors | ForEach-Object { Write-Host ('::error title=Updater parse error::' + $_.ToString()) }
-            throw 'PowerShell updater parse failed'
+          foreach ($file in @('scripts/vira_updater.ps1','scripts/phase3_installed_smoke.ps1')) {
+            [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PWD $file), [ref]$tokens, [ref]$parseErrors) | Out-Null
+            if ($parseErrors.Count) {
+              $parseErrors | ForEach-Object { Write-Host ('::error title=PowerShell parse error::' + $_.ToString()) }
+              throw 'PowerShell parse failed'
+            }
           }
       - name: Synthetic strict-delta and anchor controls; no native execution claim
         shell: pwsh
@@ -38,7 +40,7 @@ jobs:
             for ($i=0; $i -lt $last.Length; $i+=2300) { Write-Host ('::error title=Phase 3 sync failure::' + (($last.Substring($i,[Math]::Min(2300,$last.Length-$i)) -replace '%','%25') -replace "`n",'%0A' -replace "`r",'%0D')) }
             throw 'Dependency sync failed'
           }
-          $output = (uv run pytest backend/tests/test_private_source_update.py backend/tests/test_private_source_channel.py backend/tests/test_private_installed_cmd.py -q --tb=short 2>&1 | Out-String)
+          $output = (uv run pytest backend/tests/test_private_installed_version.py backend/tests/test_pdf_bootstrap_preparation.py backend/tests/test_pdf_bootstrap_source.py backend/tests/test_desktop_entry.py backend/tests/test_private_source_update.py backend/tests/test_private_source_channel.py backend/tests/test_private_installed_cmd.py -q --tb=short 2>&1 | Out-String)
           $code = $LASTEXITCODE
           Write-Host $output
           if ($code -ne 0) {

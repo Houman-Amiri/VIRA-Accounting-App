@@ -79,6 +79,10 @@ def scope(settings: Settings, root: Path | None) -> SourceScope | None:
         no_links(manifest)
         if sha(manifest) != pin["manifest_sha256"]:
             raise ValueError("Old installed manifest digest differs")
+        if pin["schema"] == 2:
+            no_links(root / "version.json")
+            if read(root / "version.json").get("version") != pin["version"]:
+                raise ValueError("Installed version differs from independent anchor")
         entries = read(manifest)["files"]
         files = {e["path"]: e for e in entries}
         if len(files) != len(entries):

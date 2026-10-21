@@ -48,10 +48,12 @@ def test_authenticated_real_cmd_windows_witness_and_frozen_code(tmp_path):
         for v in recovery["checks"]
     )
     assert proof["all_six_distribution_gates_still_open"] is True
+    # Phase3 extends two modules and their workflow. Retain the exact OLD bytes rather than
+    # rewriting historical proof hashes or claiming old Windows evidence for new code.
+    extended = {"backend/app/private_pdf_bootstrap.py", "backend/app/desktop_entry.py", ".github/workflows/pdf-desktop-source.yml"}
     for name, digest in proof["frozen_implementation_git_blob_sha256"].items():
-        assert (
-            hashlib.sha256((ROOT / name).read_bytes().replace(b"\r\n", b"\n")).hexdigest() == digest
-        )
+        source = (DATA / "phase2-frozen-implementation" / Path(name).name) if name in extended else ROOT / name
+        assert hashlib.sha256(source.read_bytes().replace(b"\r\n", b"\n")).hexdigest() == digest
     for case in witness["cases"].values():
         completed = case["completed"]
         native = PureWindowsPath(completed["activation"]["libffi"])

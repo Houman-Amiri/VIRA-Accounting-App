@@ -1,0 +1,431 @@
+name: Phase 2 real CMD source startup and HTTP
+
+on:
+  push:
+    paths: ['.github/workflows/pdf-desktop-source.yml', 'backend/app/desktop_entry.py', 'scripts/start_vira.cmd', 'scripts/desktop_launcher_*.py', 'scripts/desktop_launcher_smoke.ps1', 'backend/tests/test_desktop_entry.py']
+  pull_request:
+    paths: ['.github/workflows/pdf-desktop-source.yml', 'backend/app/desktop_entry.py', 'scripts/start_vira.cmd', 'scripts/desktop_launcher_*.py', 'scripts/desktop_launcher_smoke.ps1', 'backend/tests/test_desktop_entry.py']
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: desktop-source-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  stock-http-preflight:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Locked app and separately pinned SDK, no native-source claim
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force reports/bootstrap-sdk-http | Out-Null
+          Start-Transcript -Path reports/bootstrap-sdk-http/setup.log
+          uv sync --frozen --all-extras
+          if ($LASTEXITCODE -ne 0) { throw "App dependency setup failed" }
+          pnpm --dir frontend install --frozen-lockfile
+          if ($LASTEXITCODE -ne 0) { throw "SPA dependency setup failed" }
+          pnpm --dir frontend build
+          if ($LASTEXITCODE -ne 0) { throw "SPA build failed" }
+          & ./scripts/prepare_pdf_native_fixture.ps1
+          if ($LASTEXITCODE -ne 0) { throw "Pinned SDK fixture failed" }
+          Stop-Transcript
+      - name: Consume fixture environment only after GITHUB_ENV step boundary
+        shell: pwsh
+        run: |
+          Start-Transcript -Path reports/bootstrap-sdk-http/closure.log
+          if (-not $env:VIRA_PDF_UPSTREAM_ARCHIVE) { throw "Fixture archive was not exported by the prior step" }
+          uv run python scripts/pdf_runtime_inventory.py --archive "$env:VIRA_PDF_UPSTREAM_ARCHIVE" --out-dir "$env:RUNNER_TEMP/launcher-sdk-candidate"
+          if ($LASTEXITCODE -ne 0) { throw "SDK closure failed" }
+          Stop-Transcript
+      - name: Full source-inventory transport budget regression before cold native build
+        run: uv run pytest backend/tests/test_desktop_entry_transport.py -q
+      - name: Fast REAL CMD quoted-path and early rejection, NOT native activation
+        shell: pwsh
+        run: |
+          $output = (& pwsh -NoProfile -File scripts/desktop_launcher_smoke.ps1 -Candidate "$env:RUNNER_TEMP/launcher-sdk-candidate" -PreflightOnly 2>&1 | Out-String)
+          $code = $LASTEXITCODE
+          Write-Host $output
+          New-Item -ItemType Directory -Force reports/desktop-path-preflight | Out-Null
+          $output | Set-Content -Encoding utf8 reports/desktop-path-preflight/driver.log
+          if ($code -ne 0) {
+            $logs = Get-ChildItem reports/desktop-path-preflight -File -Filter *.log
+            foreach ($log in $logs) {
+              $text = (Get-Content $log.FullName -Tail 30) -join "`n"
+              for ($i=0; $i -lt $text.Length; $i+=2400) {
+                $part=$text.Substring($i,[Math]::Min(2400,$text.Length-$i))
+                $part=(($part -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A'
+                Write-Output "::error title=Real CMD early path failure $($log.Name) ${i}::$part"
+              }
+            }
+            throw "Real CMD early path preflight failed before expensive native build"
+          }
+      - name: Real app factory, loopback HTTP, auth/CSRF, parallel PDFs and fresh restart
+        shell: pwsh
+        run: |
+          $output = (& pwsh -NoProfile -File scripts/pdf_bootstrap_sdk_smoke.ps1 -Candidate "$env:RUNNER_TEMP/launcher-sdk-candidate" 2>&1 | Out-String)
+          $code = $LASTEXITCODE
+          Write-Host $output
+          New-Item -ItemType Directory -Force reports/bootstrap-sdk-http | Out-Null
+          $output | Set-Content -Encoding utf8 reports/bootstrap-sdk-http/driver.log
+          if ($code -ne 0) {
+            $tail = $output.Substring([Math]::Max(0, $output.Length - 8000))
+            for ($i = 0; $i -lt $tail.Length; $i += 2400) {
+              $part = $tail.Substring($i, [Math]::Min(2400, $tail.Length - $i))
+              $part = (($part -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A'
+              Write-Output "::error title=Private launcher failure part ${i}::$part"
+            }
+            throw "Private launcher proof failed"
+          }
+      - name: Bind application-owned HTTP proof, never QA replacement
+        run: python scripts/pdf_bootstrap_sdk_bind.py --reports reports/bootstrap-sdk-http
+      - name: Bootstrap SDK evidence group 0
+        run: python scripts/pdf_bootstrap_sdk_bind.py --reports reports/bootstrap-sdk-http --emit-group 0
+      - name: Bootstrap SDK evidence group 1
+        run: python scripts/pdf_bootstrap_sdk_bind.py --reports reports/bootstrap-sdk-http --emit-group 1
+      - name: Bootstrap SDK evidence group 2
+        run: python scripts/pdf_bootstrap_sdk_bind.py --reports reports/bootstrap-sdk-http --emit-group 2
+      - name: Bootstrap SDK evidence group 3
+        run: python scripts/pdf_bootstrap_sdk_bind.py --reports reports/bootstrap-sdk-http --emit-group 3
+      - name: Expose bounded setup diagnostics without changing failure status
+        if: failure()
+        shell: pwsh
+        run: |
+          $logs = Get-ChildItem reports/bootstrap-sdk-http -File -Filter *.log -ErrorAction SilentlyContinue
+          foreach ($log in $logs) {
+            $text = (Get-Content $log.FullName -Tail 80) -join "`n"
+            $tail = $text.Substring([Math]::Max(0, $text.Length - 8000))
+            for ($i = 0; $i -lt $tail.Length; $i += 2400) {
+              $part = $tail.Substring($i, [Math]::Min(2400, $tail.Length - $i))
+              $part = (($part -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A'
+              Write-Output "::error title=Launcher setup diagnostic $($log.Name) part ${i}::$part"
+            }
+          }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: private-app-bootstrap-sdk-http-no-app-db-dlls-not-source-proof
+          path: reports/bootstrap-sdk-http/
+          retention-days: 90
+          if-no-files-found: error
+
+  source-http-consumer:
+    needs: stock-http-preflight
+    runs-on: windows-latest
+    timeout-minutes: 120
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Authenticate the exact prior noticed-source producer and artifact
+        shell: pwsh
+        run: |
+          $pin = Get-Content docs/dependencies/pdf-noticed-archive-build-proof.json -Raw | ConvertFrom-Json
+          $run = gh api "repos/$env:GH_REPO/actions/runs/$($pin.run_id)" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $run.head_sha -ne $pin.head_sha -or $run.path -ne $pin.workflow_path -or $run.conclusion -ne "success") { throw "wrong noticed archive producer" }
+          $expected = @($pin.artifacts | Where-Object name -eq "private-noticed-source-candidate-no-dlls")
+          if ($expected.Count -ne 1) { throw "one pinned source artifact required" }
+          $artifact = gh api "repos/$env:GH_REPO/actions/artifacts/$($expected[0].id)" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $artifact.digest -ne $expected[0].digest -or $artifact.workflow_run.head_sha -ne $pin.head_sha -or $artifact.expired) { throw "source artifact authentication failed" }
+          gh run download $pin.run_id --repo $env:GH_REPO --name "private-noticed-source-candidate-no-dlls" --dir "$env:RUNNER_TEMP/noticed-envelope"
+          if ($LASTEXITCODE -ne 0) { throw "noticed source artifact download failed" }
+      - name: Authenticate downloaded archive, extract exact noticed sources and prepare recipe
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          function Invoke-CheckedPython([string[]]$PythonArgs) {
+            $output = (& python @PythonArgs 2>&1 | Out-String)
+            $code = $LASTEXITCODE
+            Write-Host $output
+            if ($code -ne 0) {
+              $last = $output.Substring([Math]::Max(0, $output.Length - 8000))
+              for ($i = 0; $i -lt $last.Length; $i += 2600) {
+                $part = $last.Substring($i, [Math]::Min(2600, $last.Length - $i))
+                $part = (($part -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A'
+                Write-Output "::error title=Noticed source preparation part ${i}::$part"
+              }
+              throw "noticed source recipient preparation failed"
+            }
+            return $output
+          }
+          New-Item -ItemType Directory -Force reports/local-source | Out-Null
+          $kit = "$env:RUNNER_TEMP/noticed-envelope/modified-source-kit"
+          $pin = Get-Content docs/dependencies/pdf-noticed-archive-build-proof.json -Raw | ConvertFrom-Json
+          $hash = $pin.source_package_receipt_at_packaging_time.modified_kit_manifest_sha256
+          $transferred = Get-Content "$env:RUNNER_TEMP/noticed-envelope/modified-kit-receipt.json" -Raw | ConvertFrom-Json
+          if ($transferred.modified_kit_manifest_sha256 -ne $hash -or $transferred.modified_archive_sha256 -ne $pin.source_archive.sha256) { throw "transferred pins differ from trusted producer job" }
+          $receipt = Invoke-CheckedPython -PythonArgs @('-I', '-S', 'scripts/pdf_source_kit.py', '--verify-modified', $kit, '--expected-manifest-sha256', $hash, '--extract-sources', "$env:RUNNER_TEMP/preferred")
+          [IO.File]::WriteAllText("$pwd/reports/local-source/noticed-kit-receipt.json", $receipt)
+          $baseHash = ($receipt | ConvertFrom-Json).original_kit_manifest_sha256
+          $original = Invoke-CheckedPython -PythonArgs @('-I', '-S', 'scripts/pdf_source_kit.py', '--verify', "$kit/original-kit", '--expected-manifest-sha256', $baseHash)
+          [IO.File]::WriteAllText("$pwd/reports/local-source/kit-receipt.json", $original)
+          # Build/inspect outside the authenticated archive envelope; do not pollute it with caches.
+          Copy-Item "$kit/original-kit/licensed-build-files" "$env:RUNNER_TEMP/build-recipe" -Recurse
+          $null = Invoke-CheckedPython -PythonArgs @('-I', '-S', "$env:RUNNER_TEMP/build-recipe/scripts/prepare_pdf_local_sources.py", '--kit', "$kit/original-kit", '--expected-manifest-sha256', $baseHash, '--sources', "$env:RUNNER_TEMP/preferred", '--out', "$env:RUNNER_TEMP/local-overlay", '--allow-modified')
+          Copy-Item "$env:RUNNER_TEMP/local-overlay/local-source-*.json" reports/local-source/
+          @'
+          import hashlib,json,os,pathlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP']);kit=root/'noticed-envelope/modified-source-kit'
+          record=json.load(open(kit/'modification-record.json'));prep=json.load(open('reports/local-source/local-source-preparation.json'))
+          assert record['archive_variant']=='INLINE_NOTICE_PENDING_FRESH_BUILD_V1'
+          for n,t in record['archive_source_trees'].items():
+              assert prep['packages'][n]['patched_source_files']==t['source_entries'] and prep['packages'][n]['patched_source_tree_sha256']==t['tree_sha256']
+          source=root/'preferred'/record['modified_member'];data=source.read_bytes()
+          assert hashlib.sha256(data).hexdigest()==record['after_sha256']
+          assert data.startswith(b'/* VIRA modification notice - 2026-10-19\n')
+          report={'package':'pango','file':source.relative_to(root/'preferred/sources/pango').as_posix(),'before_sha256':record['before_sha256'],'after_sha256':record['after_sha256'],'expected_runtime_version':record['expected_pango_version'],'original_archive_modified':False,'new_corresponding_source_archive_prepared':True,'modified_source_file':data.decode('utf-8')}
+          pathlib.Path('reports/local-source/explicit-pango-edit.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8',newline='\n')
+          pathlib.Path('reports/local-source/noticed-modification-record.json').write_bytes((kit/'modification-record.json').read_bytes())
+          '@ | python -I -S -
+          if ($LASTEXITCODE -ne 0) { throw "noticed archive/prepared tree correspondence failed" }
+      - name: Compile all target libraries from local preferred trees with binary caches disabled
+        shell: pwsh
+        run: |
+          Set-Location "$env:RUNNER_TEMP/build-recipe"
+          & pwsh -NoProfile -File ./scripts/rebuild_pdf_native.ps1 -WorkDir "$env:RUNNER_TEMP/local-native-work" -OverlayPorts "$env:RUNNER_TEMP/local-overlay"
+          if ($LASTEXITCODE -ne 0) { throw "local preferred-source native compilation failed" }
+      - name: Verify twenty actual build trees, twenty-one DLL origins, and executed modified LGPL function
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          python -m venv "$env:RUNNER_TEMP/native-inspector"
+          if ($LASTEXITCODE -ne 0) { throw "inspector environment failed" }
+          $python = "$env:RUNNER_TEMP/native-inspector/Scripts/python.exe"
+          & $python -m pip install --no-deps "https://files.pythonhosted.org/packages/54/16/12b82f791c7f50ddec566873d5bdd245baa1491bac11d15ffb98aecc8f8b/pefile-2024.8.26-py3-none-any.whl#sha256=76f8b485dcd3b1bb8166f1128d395fa3d87af26360c2358fb75b80019b957c6f"
+          if ($LASTEXITCODE -ne 0) { throw "hash-pinned inspector installation failed" }
+          & $python -B "$env:RUNNER_TEMP/build-recipe/scripts/audit_pdf_native_rebuild.py" --sidecar "$env:RUNNER_TEMP/build-recipe" --work "$env:RUNNER_TEMP/local-native-work" --reference "$env:RUNNER_TEMP/local-overlay/local-source-reference.json" --out reports/local-source/verified-local-rebuild.json
+          if ($LASTEXITCODE -ne 0) { throw "native trees/closure/origins audit failed" }
+          python -I -S "$env:RUNNER_TEMP/build-recipe/scripts/prepare_pdf_local_sources.py" --check-inputs "$env:RUNNER_TEMP/local-overlay/local-source-preparation.json"
+          if ($LASTEXITCODE -ne 0) { throw "input source kit mutated during compilation" }
+          @'
+          import ctypes,json,os,pathlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'],'local-native-work','installed','x64-vira-pdf','bin')
+          with os.add_dll_directory(str(root)):
+            p=ctypes.CDLL(str(root/'pango-1.0-0.dll'))
+            p.pango_version_string.argtypes=[];p.pango_version_string.restype=ctypes.c_char_p
+            actual=p.pango_version_string().decode('ascii')
+          expected=json.load(open('reports/local-source/explicit-pango-edit.json'))['expected_runtime_version']
+          assert actual==expected,(actual,expected)
+          out=pathlib.Path('reports/local-source/verified-local-rebuild.json');x=json.loads(out.read_text())
+          prep=json.load(open('reports/local-source/local-source-preparation.json'));assert prep['changed_packages']==['pango']
+          x['local_source_preparation']=prep;x['explicit_edit']=json.load(open('reports/local-source/explicit-pango-edit.json'));x['kit_receipt']=json.load(open('reports/local-source/kit-receipt.json'))
+          x.update(local_preferred_source_replay='SUCCESS',actual_pango_version_string=actual,changed_packages=['pango'],original_source_tree_count=19,explicitly_modified_source_tree_count=1,input_source_trees_unchanged_during_compilation=True,original_archive_modified=False,new_corresponding_source_archive_prepared=True)
+          rec=json.load(open('reports/local-source/noticed-modification-record.json'))
+          assert x['preferred_source_trees']==rec['archive_source_trees']
+          paths=list(pathlib.Path(os.environ['RUNNER_TEMP'],'local-native-work/vcpkg/buildtrees/pango/src').glob('*/pango/pango-utils.c'));assert len(paths)==1
+          compiled=paths[0].read_bytes();assert compiled==x['explicit_edit']['modified_source_file'].encode('utf-8')
+          assert compiled.startswith(b'/* VIRA modification notice - 2026-10-19\n')
+          x.update(compiled_from_noticed_archive=True,inline_change_date_notice_present_in_compiled_source=True,noticed_source_archive_sha256=rec['modified_archive_sha256'],noticed_source_file_sha256=rec['after_sha256'],noticed_source_kit_receipt=json.load(open('reports/local-source/noticed-kit-receipt.json')))
+          out.write_text(json.dumps(x,indent=2)+'\n',encoding='utf-8',newline='\n')
+          '@ | & $python -I -S -
+          if ($LASTEXITCODE -ne 0) { throw "executed modified Pango proof failed" }
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Prepare locked application only AFTER the standalone native build and audit
+        shell: pwsh
+        run: |
+          uv sync --frozen --all-extras
+          if ($LASTEXITCODE -ne 0) { throw "locked application dependencies failed" }
+          pnpm --dir frontend install --frozen-lockfile
+          if ($LASTEXITCODE -ne 0) { throw "frontend dependencies failed" }
+          pnpm --dir frontend build
+          if ($LASTEXITCODE -ne 0) { throw "production SPA failed" }
+      - name: Fresh no-site source HTTP launcher, real route PDFs and restart
+        shell: pwsh
+        run: |
+          $candidate = "$env:RUNNER_TEMP/source-http-candidate"
+          uv run python scripts/prepare_pdf_consumer_candidate.py --work "$env:RUNNER_TEMP/local-native-work" --reference "$env:RUNNER_TEMP/local-overlay/local-source-reference.json" --native-proof reports/local-source/verified-local-rebuild.json --out $candidate
+          if ($LASTEXITCODE -ne 0) { throw "source HTTP handoff failed" }
+          $output = (& pwsh -NoProfile -File scripts/pdf_launcher_smoke.ps1 -Candidate $candidate -HttpProof -SourceAudit "$pwd/reports/local-source/verified-local-rebuild.json" 2>&1 | Out-String)
+          $code = $LASTEXITCODE
+          New-Item -ItemType Directory -Force reports/source-http | Out-Null
+          $output | Set-Content -Encoding utf8 reports/source-http/driver.log
+          Write-Host $output
+          if ($code -ne 0) {
+            $last = $output.Substring([Math]::Max(0, $output.Length - 14000))
+            for ($i=0; $i -lt $last.Length; $i+=2400) {
+              $part=$last.Substring($i,[Math]::Min(2400,$last.Length-$i))
+              $part=(($part -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A'
+              Write-Output "::error title=Source HTTP failure ${i}::$part"
+            }
+            throw "Source HTTP proof failed"
+          }
+      - name: Bind this fresh noticed-source compilation to both actual HTTP processes
+        run: python scripts/pdf_source_http_bind.py --audit reports/local-source/verified-local-rebuild.json --reports reports/source-http
+      - name: Reverify the exact source envelope after native compilation and rendering
+        shell: pwsh
+        run: |
+          $hash = (Get-Content reports/local-source/noticed-kit-receipt.json -Raw | ConvertFrom-Json).modified_kit_manifest_sha256
+          python -I -S scripts/pdf_source_kit.py --verify-modified "$env:RUNNER_TEMP/noticed-envelope/modified-source-kit" --expected-manifest-sha256 $hash
+          if ($LASTEXITCODE -ne 0) { throw "authenticated noticed source envelope changed" }
+      - name: Source HTTP evidence group 0
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/source-http/verified-source-http.json --emit-group 0
+      - name: Source HTTP evidence group 1
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/source-http/verified-source-http.json --emit-group 1
+      - name: Source HTTP evidence group 2
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/source-http/verified-source-http.json --emit-group 2
+      - name: Source HTTP evidence group 3
+        run: python scripts/audit_pdf_native_rebuild.py --out reports/source-http/verified-source-http.json --emit-group 3
+      - name: Application-owned source HTTP without replacing rendering callables
+        shell: pwsh
+        run: |
+          $output = (& pwsh -NoProfile -File scripts/pdf_launcher_smoke.ps1 -Candidate "$env:RUNNER_TEMP/source-http-candidate" -HttpProof -AppOwnedFonts -SourceAudit "$pwd/reports/local-source/verified-local-rebuild.json" 2>&1 | Out-String)
+          $code = $LASTEXITCODE
+          New-Item -ItemType Directory -Force reports/source-owned-http | Out-Null
+          $output | Set-Content -Encoding utf8 reports/source-owned-http/driver.log
+          Write-Host $output
+          if ($code -ne 0) {
+            $last=$output.Substring([Math]::Max(0,$output.Length-14000))
+            for ($i=0; $i -lt $last.Length; $i+=2400) {
+              $part=$last.Substring($i,[Math]::Min(2400,$last.Length-$i))
+              $part=(($part -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A'
+              Write-Output "::error title=App-owned source HTTP failure ${i}::$part"
+            }
+            throw "App-owned source HTTP failed"
+          }
+      - name: Bind fresh source audit to application-owned HTTP
+        run: python scripts/pdf_owned_http_bind.py --reports reports/source-owned-http --source-audit reports/local-source/verified-local-rebuild.json
+      - name: App-owned source evidence group 0
+        run: python scripts/pdf_owned_http_bind.py --reports reports/source-owned-http --emit-group 0
+      - name: App-owned source evidence group 1
+        run: python scripts/pdf_owned_http_bind.py --reports reports/source-owned-http --emit-group 1
+      - name: App-owned source evidence group 2
+        run: python scripts/pdf_owned_http_bind.py --reports reports/source-owned-http --emit-group 2
+      - name: App-owned source evidence group 3
+        run: python scripts/pdf_owned_http_bind.py --reports reports/source-owned-http --emit-group 3
+      - name: Reverify noticed envelope after application-owned source HTTP
+        shell: pwsh
+        run: |
+          $hash = (Get-Content reports/local-source/noticed-kit-receipt.json -Raw | ConvertFrom-Json).modified_kit_manifest_sha256
+          python -I -S scripts/pdf_source_kit.py --verify-modified "$env:RUNNER_TEMP/noticed-envelope/modified-source-kit" --expected-manifest-sha256 $hash
+          if ($LASTEXITCODE -ne 0) { throw "Noticed envelope changed during app-owned HTTP" }
+      - name: Phase 1 app-owned source preflight and activation with distinct real HTTP processes
+        shell: pwsh
+        run: |
+          $output = (& pwsh -NoProfile -File scripts/pdf_bootstrap_sdk_smoke.ps1 -Candidate "$env:RUNNER_TEMP/source-http-candidate" -SourceAudit "$pwd/reports/local-source/verified-local-rebuild.json" 2>&1 | Out-String)
+          $code = $LASTEXITCODE
+          New-Item -ItemType Directory -Force reports/bootstrap-source-http | Out-Null
+          $output | Set-Content -Encoding utf8 reports/bootstrap-source-http/driver.log
+          Write-Host $output
+          if ($code -ne 0) {
+            $last=$output.Substring([Math]::Max(0,$output.Length-14000))
+            for ($i=0; $i -lt $last.Length; $i+=2400) {
+              $part=$last.Substring($i,[Math]::Min(2400,$last.Length-$i))
+              $part=(($part -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A'
+              Write-Output "::error title=App bootstrap source failure ${i}::$part"
+            }
+            throw "Phase 1 source bootstrap/HTTP failed"
+          }
+      - name: Bind exact fresh source audit to app-owned bootstrap and HTTP
+        run: python scripts/pdf_bootstrap_sdk_bind.py --reports reports/bootstrap-source-http --source-audit reports/local-source/verified-local-rebuild.json
+      - name: Phase 1 bootstrap source evidence group 0
+        run: python scripts/pdf_bootstrap_sdk_bind.py --reports reports/bootstrap-source-http --source-audit reports/local-source/verified-local-rebuild.json --emit-group 0
+      - name: Phase 1 bootstrap source evidence group 1
+        run: python scripts/pdf_bootstrap_sdk_bind.py --reports reports/bootstrap-source-http --source-audit reports/local-source/verified-local-rebuild.json --emit-group 1
+      - name: Phase 1 bootstrap source evidence group 2
+        run: python scripts/pdf_bootstrap_sdk_bind.py --reports reports/bootstrap-source-http --source-audit reports/local-source/verified-local-rebuild.json --emit-group 2
+      - name: Phase 1 bootstrap source evidence group 3
+        run: python scripts/pdf_bootstrap_sdk_bind.py --reports reports/bootstrap-source-http --source-audit reports/local-source/verified-local-rebuild.json --emit-group 3
+      - name: Reverify noticed source envelope after app-owned bootstrap and HTTP
+        shell: pwsh
+        run: |
+          $hash = (Get-Content reports/local-source/noticed-kit-receipt.json -Raw | ConvertFrom-Json).modified_kit_manifest_sha256
+          python -I -S scripts/pdf_source_kit.py --verify-modified "$env:RUNNER_TEMP/noticed-envelope/modified-source-kit" --expected-manifest-sha256 $hash
+          if ($LASTEXITCODE -ne 0) { throw "Noticed envelope changed during source bootstrap" }
+      - name: Phase 2 REAL start_vira.cmd app-owned lifecycle, restart and negative controls
+        shell: pwsh
+        run: |
+          $output = (& pwsh -NoProfile -File scripts/desktop_launcher_smoke.ps1 -Candidate "$env:RUNNER_TEMP/source-http-candidate" -SourceAudit "$pwd/reports/local-source/verified-local-rebuild.json" 2>&1 | Out-String)
+          $code = $LASTEXITCODE
+          New-Item -ItemType Directory -Force reports/desktop-source | Out-Null
+          $output | Set-Content -Encoding utf8 reports/desktop-source/driver.log
+          Write-Host $output
+          if ($code -ne 0) {
+            $logs = Get-ChildItem reports/desktop-source -Recurse -File -Filter *.log
+            foreach ($log in $logs) {
+              $tail = (Get-Content $log.FullName -Tail 35) -join "`n"
+              $tail = $tail.Substring([Math]::Max(0,$tail.Length-6000))
+              for ($i=0; $i -lt $tail.Length; $i+=2400) {
+                $part=$tail.Substring($i,[Math]::Min(2400,$tail.Length-$i))
+                $part=(($part -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A'
+                Write-Output "::error title=Real CMD failure $($log.Name) ${i}::$part"
+              }
+            }
+            throw "Phase 2 REAL CMD source lifecycle failed"
+          }
+      - name: Phase 2 authenticate real CMD process evidence
+        run: python scripts/desktop_launcher_bind.py --reports reports/desktop-source --audit reports/local-source/verified-local-rebuild.json
+      - name: Phase 2 real CMD evidence group 0
+        run: python scripts/desktop_launcher_bind.py --reports reports/desktop-source --emit-group 0
+      - name: Phase 2 real CMD evidence group 1
+        run: python scripts/desktop_launcher_bind.py --reports reports/desktop-source --emit-group 1
+      - name: Phase 2 real CMD evidence group 2
+        run: python scripts/desktop_launcher_bind.py --reports reports/desktop-source --emit-group 2
+      - name: Phase 2 real CMD evidence group 3
+        run: python scripts/desktop_launcher_bind.py --reports reports/desktop-source --emit-group 3
+      - name: Phase 2 real CMD evidence group 4
+        run: python scripts/desktop_launcher_bind.py --reports reports/desktop-source --emit-group 4
+      - name: Phase 2 real CMD evidence group 5
+        run: python scripts/desktop_launcher_bind.py --reports reports/desktop-source --emit-group 5
+      - name: Phase 2 real CMD evidence group 6
+        run: python scripts/desktop_launcher_bind.py --reports reports/desktop-source --emit-group 6
+      - name: Phase 2 real CMD evidence group 7
+        run: python scripts/desktop_launcher_bind.py --reports reports/desktop-source --emit-group 7
+      - name: Reverify noticed envelope after REAL CMD source processes
+        shell: pwsh
+        run: |
+          $hash = (Get-Content reports/local-source/noticed-kit-receipt.json -Raw | ConvertFrom-Json).modified_kit_manifest_sha256
+          python -I -S scripts/pdf_source_kit.py --verify-modified "$env:RUNNER_TEMP/noticed-envelope/modified-source-kit" --expected-manifest-sha256 $hash
+          if ($LASTEXITCODE -ne 0) { throw "Noticed envelope changed during real CMD source startup" }
+      - name: Preserve bounded diagnostics and recipes, never compiled binaries
+        if: always()
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force reports/local-source | Out-Null
+          foreach ($file in @("rebuild-plan.json", "rebuild-result.json", "DO_NOT_DISTRIBUTE.txt", "build.log")) {
+            $source = Join-Path "$env:RUNNER_TEMP/local-native-work" $file
+            if (Test-Path $source) { Copy-Item $source reports/local-source/ }
+          }
+          $trees = "$env:RUNNER_TEMP/local-native-work/vcpkg/buildtrees"
+          if (Test-Path $trees) {
+            $tail = Get-ChildItem $trees -Recurse -File | Where-Object { $_.Extension -in @('.log', '.txt') -and $_.FullName -notmatch '[\\/]src[\\/]' } | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 10 | ForEach-Object { "FILE: $($_.FullName)"; Get-Content $_.FullName -Tail 30 }
+            $tail | Set-Content -Encoding utf8 reports/local-source/diagnostic-tail.txt
+            $text = (($tail -join "`n") -replace '%','%25') -replace "`n",'%0A'
+            Write-Output "::notice title=Local source build diagnostic::$text"
+          }
+          if (Test-Path "$env:RUNNER_TEMP/local-overlay") { Copy-Item "$env:RUNNER_TEMP/local-overlay" reports/local-source/recipes -Recurse }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: private-phase2-real-cmd-source-startup-no-app-db-dlls
+          path: |
+            reports/local-source/
+            reports/source-http/
+            reports/source-owned-http/
+            reports/bootstrap-source-http/
+            reports/desktop-source/
+          retention-days: 90
+          if-no-files-found: error

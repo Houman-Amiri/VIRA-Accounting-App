@@ -108,6 +108,8 @@ def main() -> int:
         if args.private_source_anchor:
             from app.private_installed_source import anchor, read
             pin = anchor(read(args.private_source_anchor))
+            if pin["schema"] == 2 and (pin["version"] != args.target_version or json.loads((args.target_dir / "version.json").read_bytes())["version"] != pin["version"]):
+                raise ValueError("External private target version differs")
             manifest_raw = json.dumps(target_doc, indent=2, ensure_ascii=False).encode()
             if sha256_bytes(manifest_raw) != pin["manifest_sha256"]:
                 raise ValueError("External private target manifest digest differs")

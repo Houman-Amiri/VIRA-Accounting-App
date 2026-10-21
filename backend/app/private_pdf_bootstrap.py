@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 import re
+import runpy
 import sys
 import tempfile
 from collections.abc import Iterator
@@ -160,8 +161,17 @@ class PrivateBootstrapPlan:
     manifest_sha256: str
     inventory_sha256: str
     source_audit_sha256: str | None = None
+    installed_anchor: Path | None = None
+    installed_anchor_sha256: str | None = None
 
     def __post_init__(self) -> None:
+        if (self.installed_anchor is None) != (self.installed_anchor_sha256 is None):
+            raise ValueError("Paired independent installed anchor path/digest required")
+        if self.installed_anchor is not None:
+            _absolute(self.installed_anchor)
+            _digest(self.installed_anchor_sha256)
+            if self.source_audit_sha256 is None or self.installed_anchor.is_relative_to(self.payload_root):
+                raise ValueError("External installed SOURCE anchor required")
         _absolute(self.payload_root)
         _absolute(self.state_root)
         _digest(self.manifest_sha256)
@@ -232,8 +242,20 @@ def verify_private_plan(plan: PrivateBootstrapPlan) -> VerifiedPrivatePlan:
         raise ValueError("Payload has unmanifested files")
     if _sha256(root / "app/private_pdf_bootstrap.py") != _sha256(Path(__file__)):
         raise ValueError("Application preflight code differs from verified payload")
-    if _read(root / "version.json").get("version") != "0.0.0-private-unicode-proof":
-        raise ValueError("Private staged version required; no installed runtime activation")
+    if plan.installed_anchor is None:
+        if _read(root / "version.json").get("version") != "0.0.0-private-unicode-proof":
+            raise ValueError("Private staged version required; no installed runtime activation")
+    else:
+        _no_links(plan.installed_anchor)
+        # This app-owned parser is executed ONLY after the full independently
+        # anchored manifest has verified every byte, including this module.
+        parser = runpy.run_path(str(_member(root, "app/private_installed_source.py")))["anchor"]
+        pin = parser(_read(plan.installed_anchor, plan.installed_anchor_sha256))
+        if (pin["schema"] != 2 or pin["manifest_sha256"] != plan.manifest_sha256
+                or pin["inventory_sha256"] != plan.inventory_sha256
+                or pin["source_audit_sha256"] != plan.source_audit_sha256
+                or pin["version"] != _read(root / "version.json").get("version")):
+            raise ValueError("Independent installed version/manifest/native anchor differs")
     inventory = _read(root / "native/pdf/runtime-inventory.json", plan.inventory_sha256)
     dlls = inventory.get("dlls")
     source = plan.source_audit_sha256 is not None
@@ -319,6 +341,10 @@ def prepare_private_plan(plan: PrivateBootstrapPlan) -> VerifiedPrivatePlan:
             or any(str(p).isascii() or " " not in str(p)
                    for p in (profile, plan.payload_root, plan.state_root, Path.cwd()))):
         raise ValueError("Runner-owned disjoint Unicode/spaced private paths required")
+    if plan.installed_anchor is not None:
+        _no_links(plan.installed_anchor)
+        if not plan.installed_anchor.is_relative_to(profile):
+            raise ValueError("Installed anchor must belong to disposable private profile")
     return verify_private_plan(plan)
 
 

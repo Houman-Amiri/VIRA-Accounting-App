@@ -2,9 +2,9 @@ name: Phase 2 real CMD source startup and HTTP
 
 on:
   push:
-    paths: ['.github/workflows/pdf-desktop-source.yml', 'backend/app/desktop_entry.py', 'scripts/start_vira.cmd', 'scripts/desktop_launcher_*.py', 'scripts/desktop_launcher_smoke.ps1', 'backend/tests/test_desktop_entry.py']
+    paths: ['.github/workflows/pdf-desktop-source.yml', 'backend/app/desktop_entry.py', 'scripts/start_vira.cmd', 'scripts/desktop_launcher_*.py', 'scripts/desktop_launcher_smoke.ps1', 'backend/tests/test_desktop_entry.py', 'backend/app/private_pdf_bootstrap.py', 'backend/app/private_installed_source.py', 'backend/tests/test_private_installed_version.py', 'scripts/phase3_installed_probe.py', 'scripts/phase3_installed_smoke.ps1']
   pull_request:
-    paths: ['.github/workflows/pdf-desktop-source.yml', 'backend/app/desktop_entry.py', 'scripts/start_vira.cmd', 'scripts/desktop_launcher_*.py', 'scripts/desktop_launcher_smoke.ps1', 'backend/tests/test_desktop_entry.py']
+    paths: ['.github/workflows/pdf-desktop-source.yml', 'backend/app/desktop_entry.py', 'scripts/start_vira.cmd', 'scripts/desktop_launcher_*.py', 'scripts/desktop_launcher_smoke.ps1', 'backend/tests/test_desktop_entry.py', 'backend/app/private_pdf_bootstrap.py', 'backend/app/private_installed_source.py', 'backend/tests/test_private_installed_version.py', 'scripts/phase3_installed_probe.py', 'scripts/phase3_installed_smoke.ps1']
 
 permissions:
   contents: read
@@ -400,6 +400,34 @@ jobs:
           $hash = (Get-Content reports/local-source/noticed-kit-receipt.json -Raw | ConvertFrom-Json).modified_kit_manifest_sha256
           python -I -S scripts/pdf_source_kit.py --verify-modified "$env:RUNNER_TEMP/noticed-envelope/modified-source-kit" --expected-manifest-sha256 $hash
           if ($LASTEXITCODE -ne 0) { throw "Noticed envelope changed during real CMD source startup" }
+      - name: Phase3 real versioned Source21 Inno selected-path install and app HTTP restart NOT delta acceptance
+        shell: pwsh
+        run: |
+          $output = (& pwsh -NoProfile -File scripts/phase3_installed_smoke.ps1 -Candidate "$env:RUNNER_TEMP/source-http-candidate" -SourceAudit "$pwd/reports/local-source/verified-local-rebuild.json" 2>&1 | Out-String)
+          $code = $LASTEXITCODE
+          New-Item -ItemType Directory -Force reports/phase3-installed | Out-Null
+          $output | Set-Content -Encoding utf8 reports/phase3-installed/driver.log
+          Write-Host $output
+          if ($code -ne 0) {
+            $logs = Get-ChildItem reports/phase3-installed -Recurse -File -Filter *.log
+            foreach ($log in $logs) {
+              $tail = (Get-Content $log.FullName -Tail 40) -join "`n"
+              $tail = $tail.Substring([Math]::Max(0,$tail.Length-8000))
+              for ($i=0; $i -lt $tail.Length; $i+=2400) {
+                $part=$tail.Substring($i,[Math]::Min(2400,$tail.Length-$i))
+                $part=(($part -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A'
+                Write-Output "::error title=Phase3 installed source $($log.Name) ${i}::$part"
+              }
+            }
+            throw "Phase3 versioned Source21 install/HTTP failed"
+          }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: private-phase3-versioned-source-install-no-app-db-dlls-NOT-delta-proof
+          path: reports/phase3-installed/
+          retention-days: 90
+          if-no-files-found: ignore
       - name: Preserve bounded diagnostics and recipes, never compiled binaries
         if: always()
         shell: pwsh

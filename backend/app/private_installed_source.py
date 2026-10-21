@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import runpy
 import secrets
 import subprocess
@@ -48,9 +49,9 @@ def read(path: Path) -> dict:
 
 def anchor(value: dict) -> dict:
     if (
-        set(value) != ANCHOR_KEYS
-        or type(value["schema"]) is not int
-        or value["schema"] != 1
+        type(value.get("schema")) is not int
+        or value["schema"] not in (1, 2)
+        or set(value) != (ANCHOR_KEYS | {"version"} if value["schema"] == 2 else ANCHOR_KEYS)
         or value["role"] != "PRIVATE_SOURCE_INSTALLED_ANCHOR"
         or type(value["port"]) is not int
         or not 1 <= value["port"] <= 65535
@@ -65,6 +66,11 @@ def anchor(value: dict) -> dict:
             or any(c not in "0123456789abcdef" for c in digest)
         ):
             raise ValueError("Independent installed SHA256 required")
+    if value["schema"] == 2 and (
+        not isinstance(value["version"], str)
+        or re.fullmatch(r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)", value["version"]) is None
+    ):
+        raise ValueError("Exact private installed release version required")
     return value
 
 
@@ -102,6 +108,8 @@ def prepare(root: Path, pin: Path):
         options["manifest_sha256"],
         options["inventory_sha256"],
         source_audit_sha256=options["source_audit_sha256"],
+        installed_anchor=pin if options["schema"] == 2 else None,
+        installed_anchor_sha256=hashlib.sha256(pin.read_bytes()).hexdigest() if options["schema"] == 2 else None,
     )
     boot["prepare_private_plan"](plan)
     return options, state, launch_id, boot
@@ -154,6 +162,9 @@ def main() -> int:
         )
     }
     value.update(role="PRIVATE_SOURCE_DESKTOP_REQUEST", state_root=str(state), launch_id=launch_id)
+    if options["schema"] == 2:
+        value.update(role="PRIVATE_INSTALLED_SOURCE_DESKTOP_REQUEST", installed_anchor=str(pin),
+                     installed_anchor_sha256=hashlib.sha256(pin.read_bytes()).hexdigest())
     with request.open("xb") as stream:
         stream.write((json.dumps(value, indent=2) + "\n").encode())
     # Publication is exclusive while this installed bridge has a live child.

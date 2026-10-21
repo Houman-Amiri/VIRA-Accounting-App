@@ -1226,3 +1226,26 @@ fixtures do not prove a versioned native installation. Need explicit independent
 anchored installed-version contract and regression proof WITHOUT weakening public
 or existing Phase1/2 rejection. No new Source21 cold build started; Phase3 remains
 ACTIVE/INCOMPLETE, six distribution gates OPEN, no publication/Phase4 permission.
+
+
+### Phase3 installed-version implementation (2026-10-21; INCOMPLETE)
+Owner authorized continuing without user action. Explicit schema2 anchor adds a
+canonical version; the app binds it to the independently checked manifest and
+source pins. An explicit installed request passes the anchor through the SAME
+real CMD; legacy fixed-version and public paths remain closed. No env-only opt-in,
+QA callbacks, SDK fallback or silent version-file rewrite. Target version binding
+and contract-downgrade rejection also cover generator/stager/controller.
+[Contract and acceptance limits](docs/dependencies/phase3-installed-version-contract.md).
+
+IMPORTANT evidence change: Phase3 now extends TWO Phase2 runtime modules AND their
+workflow (THREE of the16 historical frozen files). Exact old bytes retained in
+`docs/dependencies/phase2-frozen-implementation/` match original proof hashes;
+other13 files unchanged. Old proof hashes/witnesses are NOT rewritten; historical
+Windows evidence does NOT attest new runtime. Legacy regressions and new28
+synthetic contract/ZIP/BSDIFF/assembly tests run; final local1059 PASS87.59s with
+zero failures/errors/skips; Ruff/Mypy90/Bandit CI-level/audit PASS. The initial
+full run's single evidence assertion was FIXED by archiving the omitted original
+workflow, not ignored or skipped. Fresh Windows/cold-source execution still must
+verify the new contract; Inno version99.30.0 is DISPOSABLE PRIVATE QA only, public
+version remains1.0.10. No user install/data/math/UI/schema changes, no Phase4 or
+release/tag approval; all6 distribution gates remain OPEN. Phase3 ACTIVE/INCOMPLETE.

@@ -60,9 +60,12 @@ def request(root: Path, file: Path) -> dict[str, Any]:
         "port",
         "no_browser",
     }
+    installed = value.get("role") == "PRIVATE_INSTALLED_SOURCE_DESKTOP_REQUEST"
+    if installed:
+        keys |= {"installed_anchor", "installed_anchor_sha256"}
     if (
         set(value) != keys
-        or value["role"] != "PRIVATE_SOURCE_DESKTOP_REQUEST"
+        or value["role"] not in ("PRIVATE_SOURCE_DESKTOP_REQUEST", "PRIVATE_INSTALLED_SOURCE_DESKTOP_REQUEST")
         or not isinstance(value["launch_id"], str)
         or re.fullmatch(r"[0-9a-f]{32}", value["launch_id"]) is None
         or type(value["port"]) is not int
@@ -73,6 +76,23 @@ def request(root: Path, file: Path) -> dict[str, Any]:
     for key in ("manifest_sha256", "inventory_sha256", "source_audit_sha256"):
         if not isinstance(value[key], str) or re.fullmatch(r"[0-9a-f]{64}", value[key]) is None:
             raise ValueError("Independent startup SHA256 required")
+    if installed:
+        anchor = Path(value["installed_anchor"])
+        digest = value["installed_anchor_sha256"]
+        if (not anchor.is_absolute() or ".." in anchor.parts or anchor.is_relative_to(root)
+                or anchor != Path(os.environ["LOCALAPPDATA"]) / "VIRA/private-native-installed/anchor.json"
+                or not isinstance(digest, str) or re.fullmatch(r"[0-9a-f]{64}", digest) is None):
+            raise ValueError("Explicit external installed anchor required")
+        for item in (anchor, *anchor.parents):
+            if item.is_symlink() or (item.exists() and getattr(item.stat(), "st_file_attributes", 0) & 0x400):
+                raise ValueError("Installed anchor reparse path")
+        if hashlib.sha256(anchor.read_bytes()).hexdigest() != digest:
+            raise ValueError("Independent installed anchor digest differs")
+        pin = read(anchor)
+        if (pin.get("schema") != 2 or pin.get("role") != "PRIVATE_SOURCE_INSTALLED_ANCHOR"
+                or any(pin.get(k) != value[k] for k in ("manifest_sha256", "inventory_sha256", "source_audit_sha256", "port", "no_browser"))
+                or Path(value["state_root"]) != anchor.parent / "state"):
+            raise ValueError("Installed request does not match independent anchor")
     state = Path(value["state_root"])
     profile = Path(os.environ["LOCALAPPDATA"])
     if (
@@ -372,6 +392,8 @@ def main() -> int:
         options["manifest_sha256"],
         options["inventory_sha256"],
         source_audit_sha256=options["source_audit_sha256"],
+        installed_anchor=Path(options["installed_anchor"]) if "installed_anchor" in options else None,
+        installed_anchor_sha256=options.get("installed_anchor_sha256"),
     )
     # Reject changed payload/source before touching business state, then acquire
     # the lifetime/update guards BEFORE any native DLL import. Activation still
