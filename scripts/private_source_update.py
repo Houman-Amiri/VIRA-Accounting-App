@@ -380,6 +380,247 @@ def start(home: Path, root: Path, token: str, options: dict) -> subprocess.Popen
         raise
 
 
+def process_definitely_dead(pid: int) -> bool:
+    """Windows handle query only. Unknown/inaccessible/reused live PID fails closed."""
+    if os.name != "nt":
+        raise ValueError("Windows process handles required")
+    if type(pid) is not int or not 0 < pid < 2**32:
+        raise ValueError("Positive Windows PID required")
+    import ctypes
+    from ctypes import wintypes
+
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.OpenProcess.argtypes = (wintypes.DWORD, wintypes.BOOL, wintypes.DWORD)
+    kernel.OpenProcess.restype = wintypes.HANDLE
+    kernel.WaitForSingleObject.argtypes = (wintypes.HANDLE, wintypes.DWORD)
+    kernel.WaitForSingleObject.restype = wintypes.DWORD
+    kernel.CloseHandle.argtypes = (wintypes.HANDLE,)
+    kernel.CloseHandle.restype = wintypes.BOOL
+    handle = kernel.OpenProcess(0x1000 | 0x00100000, False, pid)  # query + synchronize
+    if not handle:
+        if ctypes.get_last_error() == 87:  # Invalid parameter: no such process.
+            return True
+        raise RuntimeError("Process ownership/death cannot be established")
+    try:
+        result = kernel.WaitForSingleObject(handle, 0)
+        if result == 0:
+            return True
+        if result == 258:
+            return False
+        raise RuntimeError("Process handle state is unknown")
+    finally:
+        kernel.CloseHandle(handle)
+
+
+def inspect_recovery(
+    root: Path,
+    home: Path,
+    attempt: Path,
+    archive: Path,
+    archive_sha256: str,
+    old_anchor_sha256: str,
+    database_fingerprint: str,
+) -> dict:
+    """READ ONLY eligibility, NOT recovery or permission to remove stale locks.
+
+    Only a prepared, cold, owned schema2 transaction with independent external
+    archive/old-anchor/DB fingerprints can qualify. Live/inaccessible PID, desktop
+    or channel guards, terminal receipts, partial/missing backups and corruption
+    are rejected. A future recovery executor must reacquire the global mutex and
+    repeat validation; this result is NOT a reusable authorization capability.
+    """
+    if os.name != "nt" or os.environ.get("GITHUB_ACTIONS") != "true":
+        raise ValueError("Private disposable Windows CI inspection only")
+    for digest in (archive_sha256, old_anchor_sha256, database_fingerprint):
+        if (
+            not isinstance(digest, str)
+            or len(digest) != 64
+            or any(c not in "0123456789abcdef" for c in digest)
+        ):
+            raise ValueError("Independent external digest required")
+    runner = Path(os.environ["RUNNER_TEMP"])
+    if home != Path(os.environ["LOCALAPPDATA"]) / "VIRA/private-native-installed":
+        raise ValueError("Foreign recovery profile")
+    for p in (root, home, attempt, archive):
+        no_links(p)
+        if not p.is_absolute() or ".." in p.parts or p == runner or not p.is_relative_to(runner):
+            raise ValueError("Disposable owned recovery paths required")
+    for a, b in ((root, home), (root, attempt), (home, attempt)):
+        if a.is_relative_to(b) or b.is_relative_to(a):
+            raise ValueError("Disjoint recovery payload/state/attempt required")
+    state = home / "state"
+    for parent in (state, attempt):
+        no_links(parent)
+        for p in parent.rglob("*"):
+            no_links(p)
+    if read((state / "private-desktop-state.json").read_bytes()) != dict(
+        schema=1,
+        role="PRIVATE_SOURCE_DESKTOP_STATE",
+        payload_root=str(root),
+    ):
+        raise ValueError("Foreign private recovery state")
+
+    def require_offline():
+        for p in (
+            home / ".native-channel.lock",
+            home / "active-launch.json",
+            state / ".desktop.lock",
+            attempt / "result.json",
+        ):
+            no_links(p)
+            if p.exists():
+                raise ValueError(
+                    "Live/unknown desktop/channel or terminal transaction; refuse recovery"
+                )
+
+    require_offline()
+    no_links(home / "anchor.json")
+    lock_path = home / ".native-update.lock"
+    no_links(lock_path)
+    lock = read(lock_path.read_bytes())
+    if (
+        set(lock) != {"token", "pid"}
+        or type(lock["pid"]) is not int
+        or not 0 < lock["pid"] < 2**32
+        or not isinstance(lock["token"], str)
+        or len(lock["token"]) != 64
+        or any(c not in "0123456789abcdef" for c in lock["token"])
+    ):
+        raise ValueError("Unknown native guard owner")
+    token = lock["token"]
+    if not process_definitely_dead(lock["pid"]):
+        raise ValueError("Native controller PID is still live; no stale-lock removal")
+    if (state / "data/updates/.update.lock").read_bytes() != token.encode():
+        raise ValueError("Recovery write guard owner differs")
+    journal = read((attempt / "journal.json").read_bytes())
+    if (
+        type(journal.get("schema")) is not int
+        or journal.get("schema") != 1
+        or journal.get("role") != "PRIVATE_NATIVE_TRANSACTION_JOURNAL"
+        or journal.get("state") != "prepared"
+        or journal.get("archive_sha256") != archive_sha256
+        or journal.get("old_anchor_sha256") != old_anchor_sha256
+        or journal.get("database_fingerprint") != database_fingerprint
+        or journal.get("recovery_context")
+        != dict(
+            install_root=str(root),
+            home=str(home),
+            controller_pid=lock["pid"],
+            guard_token_sha256=hashlib.sha256(token.encode()).hexdigest(),
+        )
+    ):
+        raise ValueError("Prepared recovery journal/external authority differs")
+    old_raw = (attempt / "anchor-before.json").read_bytes()
+    old = read(old_raw)
+    if (
+        hashlib.sha256(old_raw).hexdigest() != old_anchor_sha256
+        or old.get("schema") != 2
+        or old.get("role") != "PRIVATE_SOURCE_INSTALLED_ANCHOR"
+    ):
+        raise ValueError("Independent schema2 old anchor required")
+    backup = attempt / "files-before"
+    baseline = manifest((backup / "install_manifest.json").read_bytes(), old["manifest_sha256"])
+    if sha(archive) != archive_sha256:
+        raise ValueError("Authorized recovery archive changed")
+    with zipfile.ZipFile(archive) as packet:
+        names = packet.namelist()
+        if len(names) != len({n.casefold() for n in names}):
+            raise ValueError("Ambiguous recovery ZIP")
+        for name in ("private-source-anchor.json", "install_manifest.json"):
+            if packet.getinfo(name).file_size > 16 * 1024 * 1024:
+                raise ValueError("Oversized recovery metadata")
+        target_raw = packet.read("private-source-anchor.json")
+        target = read(target_raw)
+        if (
+            target.get("schema") != 2
+            or target.get("role") != old["role"]
+            or hashlib.sha256(target_raw).hexdigest() != journal.get("target_anchor_sha256")
+        ):
+            raise ValueError("Authorized target anchor differs")
+        final = manifest(packet.read("install_manifest.json"), target["manifest_sha256"])
+    current = (home / "anchor.json").read_bytes()
+    if current not in (old_raw, target_raw):
+        raise ValueError("Current anchor belongs to neither authorized version")
+    changed = sorted(n for n in set(baseline) | set(final) if baseline.get(n) != final.get(n))
+    if journal.get("changed") != changed:
+        raise ValueError("Recovery file set differs from authorized delta")
+    installed = set()
+    for p in root.rglob("*"):
+        no_links(p)
+        if p.is_file():
+            installed.add(p.relative_to(root).as_posix())
+    if not installed <= set(baseline) | set(final) | {"install_manifest.json"}:
+        raise ValueError("Unowned files/atomic debris require separate recovery review")
+    for n in set(baseline) - set(changed):
+        p = root / n
+        if (
+            n not in installed
+            or p.stat().st_size != baseline[n]["size"]
+            or sha(p) != baseline[n]["sha256"]
+        ):
+            raise ValueError("Unchanged installed file is not recoverable from changed-file backup")
+    expected = {n for n in changed if n in baseline} | {"install_manifest.json"}
+    if {p.relative_to(backup).as_posix() for p in backup.rglob("*") if p.is_file()} != expected:
+        raise ValueError("Incomplete/foreign cold file backup")
+    for n in changed:
+        if n in baseline and (
+            (backup / n).stat().st_size != baseline[n]["size"]
+            or sha(backup / n) != baseline[n]["sha256"]
+        ):
+            raise ValueError("Cold recovery file backup corrupt")
+    # Execute only the independently anchored OLD stdlib-only snapshot verifier,
+    # never a script from the newly downloaded or partially applied target.
+    name = "scripts/update_database.py"
+    tool = backup / name if name in changed else root / name
+    no_links(tool)
+    if tool.stat().st_size != baseline[name]["size"] or sha(tool) != baseline[name]["sha256"]:
+        raise ValueError("Old database verifier is not anchored")
+    bundle = attempt / "database-rollback"
+    metadata = read((bundle / "metadata.json").read_bytes())
+    database = state / "data/data/vira.sqlite3"
+    if (
+        set(metadata) != {"schema_version", "database", "sha256", "fingerprint"}
+        or type(metadata["schema_version"]) is not int
+        or metadata["schema_version"] != 1
+        or not isinstance(metadata["database"], str)
+        or Path(metadata["database"]) != database
+        or metadata["fingerprint"] != database_fingerprint
+    ):
+        raise ValueError("Recovery database destination/fingerprint differs")
+    snapshot = bundle / "database.sqlite3"
+    if sha(snapshot) != metadata["sha256"]:
+        raise ValueError("Cold recovery database backup corrupt")
+    dbtool = runpy.run_path(str(tool))
+    if dbtool["fingerprint"](snapshot) != database_fingerprint:
+        raise ValueError("Independent accounting fingerprint differs")
+    # Recheck guards after all slow reads; no elapsed-time/PID-file heuristic.
+    require_offline()
+    no_links(home / "anchor.json")
+    if (home / "anchor.json").read_bytes() != current:
+        raise ValueError("Recovery anchor changed during inspection")
+    if (
+        read(lock_path.read_bytes()) != lock
+        or not process_definitely_dead(lock["pid"])
+        or (state / "data/updates/.update.lock").read_bytes() != token.encode()
+    ):
+        raise ValueError("Recovery ownership changed during inspection")
+    return dict(
+        role="PRIVATE_COLD_PREPARED_RECOVERY_INSPECTION_NOT_EXECUTION",
+        eligible_for_offline_recovery=True,
+        independent_old_anchor_sha256=old_anchor_sha256,
+        archive_sha256=archive_sha256,
+        database_fingerprint=database_fingerprint,
+        changed=changed,
+        controller_pid=lock["pid"],
+        recovery_executed=False,
+        locks_released=False,
+        authorization_reusable=False,
+        crash_recovery_proven=False,
+        phase3_complete=False,
+        release_authorized=False,
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("install-root", "archive", "target-anchor", "attempt"):
@@ -484,6 +725,12 @@ def main() -> None:
             archive_sha256=args.archive_sha256,
             changed=changed,
             database_fingerprint=snapshot["fingerprint"],
+            recovery_context=dict(
+                install_root=str(root),
+                home=str(home),
+                controller_pid=os.getpid(),
+                guard_token_sha256=hashlib.sha256(token.encode()).hexdigest(),
+            ),
             state="prepared",
         )
         atomic(attempt / "journal.json", (json.dumps(journal, indent=2) + "\n").encode())

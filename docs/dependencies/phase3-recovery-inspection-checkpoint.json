@@ -1,0 +1,44 @@
+{
+  "role": "PRIVATE_READ_ONLY_PREPARED_RECOVERY_ELIGIBILITY_NOT_RECOVERY_EXECUTION",
+  "local_suite": {
+    "passed": 1183,
+    "seconds": 84.27,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0
+  },
+  "ruff": "PASS",
+  "mypy": "PASS90",
+  "bandit": "PASS",
+  "pip_audit": "no_known_vulnerabilities_local_app_unlisted",
+  "new_controls": 33,
+  "actual_windows_handle_control_observed": false,
+  "eligibility": {
+    "scope": "owned_disjoint_disposable_Windows_CI_schema2_prepared_transactions_only",
+    "external_inputs": [
+      "archive_sha256",
+      "old_anchor_sha256",
+      "full_accounting_database_fingerprint"
+    ],
+    "no_elapsed_time_heuristic": true,
+    "pid_reuse_or_unknown_access": "fail_closed",
+    "guards": "native_owner_and_matching_write_token_no_channel_or_desktop_or_active_launch_or_terminal_result",
+    "files": "exact_authorized_changed_set_verified_cold_backups_unchanged_files_intact_no_unowned_debris_or_reparse",
+    "snapshot": "existing_old_anchored_update_database_py_verifier_only_correct_destination_SHA_and_external_SQL_fingerprint",
+    "recheck": "guards_anchor_and_process_liveness_after_slow_reads",
+    "result_not_reusable_authorization": true
+  },
+  "metadata": "prepared_journal_binds_root_home_controller_pid_and_guard_token_SHA_no_secret_in_report",
+  "recovery_executed": false,
+  "locks_released": false,
+  "crash_recovery_proven": false,
+  "executor_implemented": false,
+  "global_mutex_reacquisition_not_yet_implemented": true,
+  "ordinary_startup_update_data_math_schema_changed": false,
+  "fixed_native_pipeline": 40190780548,
+  "fixed_native_pipeline_observed": "pending_behind_old7bb72e0_baseline_cold_build",
+  "old_active_run": 40189290222,
+  "old_active_job": 121159923038,
+  "phase3_complete": false,
+  "release_authorized": false
+}

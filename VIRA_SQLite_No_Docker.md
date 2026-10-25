@@ -1977,3 +1977,34 @@ helper fault/crash recovery or installed in-app native delta/rollback. Fixed
 source pipeline40190780548 queues behind active7bb72e0/source40189290222 (which
 still contains the old slash-only verifier). Both full native result and crash
 recovery remain unproved; Phase3 INCOMPLETE, all6 gates OPEN, no publication.
+
+
+## Phase3 — read-only prepared-transaction recovery eligibility, NOT an executor
+
+`scripts/private_source_update.py` adds ONLY a guarded read-only inspection
+primitive plus prepared-journal root/home/PID/guard-token-SHA context. No recovery
+CLI, automatic stale-lock deletion, crash fault selector, snapshot restore or
+new restart path is introduced. Existing ordinary/default update/math/schema/
+startup remains unchanged; new fields are private transaction metadata only.
+
+Require owned disjoint disposable Windows CI schema2 state; independently supplied
+old-anchor SHA, authorized archive SHA and FULL accounting DB fingerprint; real
+Windows process handle definitely dead (unknown/access-denied/reused live PID
+fails closed, no age heuristic); matching native/write guard ownership and no
+channel/active desktop/lifetime lock or terminal result. Exact changed set from
+authorized old/target manifests, complete cold file backups, every unchanged
+installed file intact, no foreign files/atomic debris/reparse; only anchored OLD
+stdlib snapshot verifier may read the backup, with exact DB destination/SHA and
+external SQL fingerprint. Recheck guard, anchor and PID after slow reads.
+Eligibility output explicitly NOT reusable authorization; no guard/data is changed.
+A future executor MUST acquire global updater mutex and validate again, perform
+owned recovery/restart/health and durable result before lock release. NOT yet done.
+
+33 new controls: real SQLite/ZIP/files/SHAs with synthetic process boundary; one
+platform-aware actual Windows owned-child handle control (local non-Windows
+rejection verified, Windows outcome pending); no executable/native fixtures run.
+Full local1183PASS84.27s,0fail/error/skip; Ruff/Mypy90/Bandit/pip-audit PASS.
+Fixed native pipeline40190780548 still queues behind7bb72e0/source40189290222/
+job121159923038 baseline cold build. No new native transaction/crash proof.
+Phase3 ACTIVE/INCOMPLETE, all6 gates OPEN; no next phase or release authorization.
+Checkpoint:docs/dependencies/phase3-recovery-inspection-checkpoint.json.
