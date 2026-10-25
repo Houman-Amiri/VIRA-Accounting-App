@@ -52,12 +52,21 @@ jobs:
               assert audit['dll_count'] == 21 and len(audit['preferred_source_trees']) == 20
               assert proof['native_executable_text_changed'] and not proof['native_delta_rollback_proven']
               notice('Authenticated NativeB success not transaction success',dict(run=run_id,job=job_id,head=head,artifact=artifact_id,zip_sha256=digest,witness_sha256=hashlib.sha256(raw).hexdigest(),native_text_changed=True,pango=proof['actual_pango_version_string'],before_text_sha256=proof['before_text_sha256'],after_text_sha256=proof['after_text_sha256'],dll_count=21,source_count=20,transaction_success=False))
-          logs = subprocess.check_output(['gh','api',f'repos/{repo}/actions/runs/{run_id}/logs'])
+          fetch = subprocess.run(['gh','api',f'repos/{repo}/actions/runs/{run_id}/logs'],capture_output=True)
+          if fetch.returncode:
+              notice('Original log transport failure',dict(code=fetch.returncode,error=fetch.stderr.decode(errors='replace')[-1600:]))
+              fetch.check_returncode()
+          logs = fetch.stdout
           with zipfile.ZipFile(io.BytesIO(logs)) as z:
-              names = [n for n in z.namelist() if 'source-http-consumer/' in n and 'real in-app signed native delta' in n.lower()]
-              assert len(names) == 1
+              names = [n for n in z.namelist() if 'source-http-consumer' in n.lower() and 'real in-app' in n.lower()]
+              if len(names) != 1:
+                  notice('Original log member index',dict(names=[n for n in z.namelist() if 'source' in n.lower()][:12]))
+                  # Some Actions log archives expose one consolidated job log.
+                  names = [n for n in z.namelist() if 'source-http-consumer' in n.lower() and '/' not in n]
+              assert len(names) == 1, 'Unique original transaction/job log required'
               raw = z.read(names[0])
-              tail = raw[-6000:]
+              marker = raw.rfind(b'Traceback (most recent call last)')
+              tail = raw[marker:marker+6000] if marker >= 0 else raw[-6000:]
               notice('Original failed transaction log provenance',dict(run=run_id,job=job_id,member=names[0],complete_bytes=len(raw),complete_sha256=hashlib.sha256(raw).hexdigest(),tail_bytes=len(tail),tail_sha256=hashlib.sha256(tail).hexdigest()))
               # Base64 avoids GitHub corrupting ANSI escapes in JSON notices.
               # At most six parts; stay below the ten-notice per-step ceiling.
