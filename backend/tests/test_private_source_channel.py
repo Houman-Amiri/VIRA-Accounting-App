@@ -432,3 +432,52 @@ def test_private_terminal_receipt_never_overrides_surviving_cleanup_guard(
     assert status["verified"] is False
     lock.unlink()
     assert update.read_update_status(settings)["state"] == terminal
+
+
+@pytest.mark.parametrize("fault", ["", "AFTER_APPLY", "UNKNOWN"])
+@pytest.mark.parametrize("schema", [1, 2])
+def test_private_fault_selector_requires_owned_schema2_and_exact_explicit_mode(
+    tmp_path, monkeypatch, fault, schema
+):
+    root, home, settings, archive, old = fixture(tmp_path, monkeypatch)
+    # Synthetic archive/manifest only; never execute its opaque helper or DLL.
+    if schema == 2:
+        old = dict(old, schema=2, version="99.30.0")
+        (home / "anchor.json").write_bytes(raw(old))
+        with zipfile.ZipFile(archive) as z:
+            contents = {n: z.read(n) for n in z.namelist()}
+        target = dict(
+            json.loads(contents["private-source-anchor.json"]), schema=2, version="99.30.1"
+        )
+        contents["private-source-anchor.json"] = raw(target)
+        doc = json.loads(contents["update.json"])
+        doc["hashes"]["private-source-anchor.json"] = hashlib.sha256(
+            contents["private-source-anchor.json"]
+        ).hexdigest()
+        contents["update.json"] = raw(doc)
+        with zipfile.ZipFile(archive, "w") as z:
+            for n, b in contents.items():
+                z.writestr(n, b)
+    updates = settings.data_dir / "updates/99.30.1/attempt"
+    updates.mkdir(parents=True)
+    (updates / "package.zip").write_bytes(archive.read_bytes())
+    stage = updates / "payload"
+    extract_delta(archive, stage, "99.30.0", "99.30.1", private_pin=old)
+    (updates / "source-download-receipt.json").write_bytes(
+        raw(
+            dict(
+                archive_sha256=channel.sha(archive),
+                base_version="99.30.0",
+                target_version="99.30.1",
+            )
+        )
+    )
+    monkeypatch.setenv("VIRA_PRIVATE_SOURCE_FORCE_FAILURE", fault)
+    if fault and (schema != 2 or fault != "AFTER_APPLY"):
+        with pytest.raises(DomainError):
+            update._updater_command(settings, str(stage))
+        assert not list(updates.glob("private-transaction-*.json"))
+    else:
+        argv, _ = update._updater_command(settings, str(stage))
+        assert ("-ForceFailure" in argv) == bool(fault)
+        assert Path(argv[0]).read_bytes() == (root / "vira-updater.exe").read_bytes()

@@ -1,10 +1,13 @@
 # External Phase3 driver: actual selected-path Inno + actual app; no QA hooks.
 [CmdletBinding()]
 param([Parameter(Mandatory=$true)][string]$Candidate,
-      [Parameter(Mandatory=$true)][string]$SourceAudit)
+      [Parameter(Mandatory=$true)][string]$SourceAudit,
+      [string]$TransactionTarget = '', [string]$TransactionAudit = '',
+      [ValidateSet('phase3-installed','phase3-native-transaction')][string]$ReportsName = 'phase3-installed')
 $ErrorActionPreference = 'Stop'
 if (-not $IsWindows -or $env:GITHUB_ACTIONS -ne 'true') { throw 'Private disposable Windows CI only' }
-$reports = Join-Path $PWD 'reports/phase3-installed'
+$reports = Join-Path $PWD ('reports/' + $ReportsName)
+if ([bool]$TransactionTarget -ne [bool]$TransactionAudit) { throw 'Both independent native transaction inputs required' }
 New-Item -ItemType Directory -Force $reports | Out-Null
 $work = Join-Path $env:RUNNER_TEMP ('phase3-installed-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory $work | Out-Null
@@ -23,6 +26,13 @@ Install-Module ps2exe -Force -Scope CurrentUser -ErrorAction Stop
 Import-Module ps2exe -ErrorAction Stop
 Invoke-ps2exe -inputFile scripts/vira_updater.ps1 -outputFile (Join-Path $payload 'vira-updater.exe') -noConsole:$false
 if (-not (Test-Path -LiteralPath (Join-Path $payload 'vira-updater.exe'))) { throw 'Actual compiled helper missing' }
+$targetHelper = ''
+if ($TransactionTarget) {
+    $targetHelper = Join-Path $work 'independently-compiled-target-updater.exe'
+    Invoke-ps2exe -inputFile scripts/vira_updater.ps1 -outputFile $targetHelper -noConsole:$false
+    if (-not (Test-Path -LiteralPath $targetHelper) -or (Get-FileHash -LiteralPath $targetHelper).Hash -eq (Get-FileHash -LiteralPath (Join-Path $payload 'vira-updater.exe')).Hash) { throw 'Distinct actual target helper required; no fake PE edits' }
+}
+
 $stampPath = Join-Path $payload 'version.json'
 $stamp = Get-Content -LiteralPath $stampPath -Raw -Encoding utf8 | ConvertFrom-Json
 $stamp.version = '99.30.0'
@@ -64,7 +74,9 @@ try {
         $name = [IO.Path]::GetRelativePath($payload,$file.FullName)
         if ((Get-FileHash -LiteralPath $file.FullName).Hash -ne (Get-FileHash -LiteralPath (Join-Path $selected $name)).Hash) { throw 'Installed Source21 bytes differ' }
     }
-    uv run python scripts/phase3_installed_probe.py --app-root $selected --profile $profile --reports $reports --audit $SourceAudit
+    $probeArgs = @('--app-root',$selected,'--profile',$profile,'--reports',$reports,'--audit',$SourceAudit)
+    if ($TransactionTarget) { $probeArgs += @('--transaction-target',$TransactionTarget,'--transaction-audit',$TransactionAudit,'--transaction-helper',$targetHelper) }
+    uv run python scripts/phase3_installed_probe.py @probeArgs
     if ($LASTEXITCODE -ne 0) { throw 'Actual installed Source21 app proof failed' }
     if ((Get-FileHash -LiteralPath $ordinary).Hash -ne $before) { throw 'Ordinary sentinel changed' }
 } finally { $env:LOCALAPPDATA = $previous }

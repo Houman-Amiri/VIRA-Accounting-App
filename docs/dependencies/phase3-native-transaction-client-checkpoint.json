@@ -1,0 +1,31 @@
+{
+  "role": "PHASE3_REAL_IN_APP_NATIVE_TRANSACTION_DRIVER_IMPLEMENTED_NOT_YET_EXECUTED",
+  "local_tests": 1137,
+  "local_seconds": 101.62,
+  "local_failures": 0,
+  "local_errors": 0,
+  "local_skips": 0,
+  "synthetic_protocol_tests_added": 10,
+  "actual_native_transaction_executed": false,
+  "actual_native_delta_rollback_proven": false,
+  "crash_stale_lock_recovery_proven": false,
+  "phase3_complete": false,
+  "release_authorized": false,
+  "known_existing_source_codegen_run": 40183092030,
+  "existing_source_codegen_head": "55e65f5",
+  "existing_source_build_observed": "baseline_cold_compilation_in_progress",
+  "new_source_job_expected": "automatic_push_queued_without_cancelling_existing_cold_build",
+  "architecture": {
+    "client": "external_only_real_TCP_no_app_imports_or_mocked_processes",
+    "feed": "ephemeral_memory_only_Ed25519_signed_latest_and_real_streamed_delta",
+    "approval": "actual_OWNER_CSRF_sudo_and_exact_version_SHA_API",
+    "full_setup": "forbidden_URL_trap_and_no_setup_members",
+    "native": "independently_audited_Source21_A_to_codegen_B_with_changed_PE_text",
+    "helper": "distinct_real_ps2exe_target_bytes_OLD_anchored_TEMP_clone_selected",
+    "rollback": "newer99.30.2_with_audited_native_A_apply_then_forced_failure_before_target_startup_restore_running99.30.1_B",
+    "state": "posted_scaled_integer_ledger_entry_real_receipt_full_read_only_SQL_fingerprint_same_cookie_secret_full_manifest_anchor",
+    "fault_gate": "exact_AFTER_APPLY_only_already_owned_schema2_private_CI_scope_not_public_environment_authority",
+    "observers": "HTTP_503_quarantine_is_recorded_only_if_actually_observed",
+    "cleanup": "graceful_owned_process_only_no_guard_deletion_or_success_from_forced_cleanup"
+  }
+}

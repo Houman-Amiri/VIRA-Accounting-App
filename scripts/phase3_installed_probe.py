@@ -26,7 +26,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for key in ("app-root", "profile", "reports", "audit"):
         parser.add_argument("--" + key, type=Path, required=True)
+    for key in ("transaction-target", "transaction-audit", "transaction-helper"):
+        parser.add_argument("--" + key, type=Path)
     args = parser.parse_args()
+    transaction = (args.transaction_target, args.transaction_audit, args.transaction_helper)
+    if any(transaction) and not all(transaction):
+        parser.error("All independently audited native transaction inputs required")
     if sys.platform != "win32" or os.environ.get("GITHUB_ACTIONS") != "true":
         raise RuntimeError("Disposable Windows CI installed-source proof only")
     root, profile, reports = args.app_root, args.profile, args.reports
@@ -207,6 +212,13 @@ def main():
     print(
         "PASS: versioned installed Source21 HTTP/PDF/restart only; NOT native delta/rollback acceptance"
     )
+    if all(transaction):
+        from phase3_native_transaction import run
+
+        run(root, profile, reports, args.audit, *transaction, environment, password, sessions)
+        print(
+            "PASS: actual in-app native delta/forced rollback subproof; crash recovery and Phase3 completion NOT claimed"
+        )
 
 
 if __name__ == "__main__":

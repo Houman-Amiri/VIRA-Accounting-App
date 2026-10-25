@@ -1407,3 +1407,33 @@ fault proof. Source/codegen40183092030/55e65f5/job121138959651 still compiling
 baseline preferred sources; independent changed-native target outcome and actual
 permissioned delta/rollback/crash recovery STILL unproven. Phase3 INCOMPLETE;
 no new phase/publication, no user's installation/data changes.
+
+
+## Phase3 — real in-app native transaction driver implemented, NOT yet acceptance
+
+External `scripts/phase3_native_transaction.py` now connects the existing selected
+Inno installation and independently audited cold codegen target to REAL app APIs.
+Ephemeral signed Ed25519 loopback feed; real OWNER/CSRF/sudo + exact version/SHA
+approval, ordinary streaming staging, actual old verified cloned EXE launch.
+Full-setup URL is a failing sentinel; delta operations must EXACTLY equal changed
+payload files, including genuine Pango AND separately compiled helper replacement.
+99.30.0 nativeA→99.30.1 nativeB, then permissioned99.30.2 nativeA package and
+explicit failure AFTER actual file apply / BEFORE target startup, restoring and
+running99.30.1 nativeB. No app factory, renderer, seed/migration or process mock.
+
+Client creates a real posted scaled-integer ledger entry and uploads an actual
+synthetic receipt through app APIs, compares FULL readonly SQL fingerprint/IDs/
+security rows, persistent secret, same cookie without new login, receipt bytes,
+complete file set+hashes+manifest+anchor, real route PDFs and native origins.
+Real HTTP503 write quarantine is recorded only IF observed; no timing claim from
+unit tests. Source channel fault flag only selects existing helper failure mode
+inside already-owned schema2 private CI scope; ordinary default is unchanged.
+
+1137 local PASS101.62s,0fail/error/skip; Ruff/Mypy90/BanditCI/pip-audit PASS.
+10 new synthetic protocol/selector controls are NOT Windows/native transaction
+proof. New source pipeline will queue behind existing40183092030/55e65f5, whose
+baseline cold compilation is still active; do not cancel or infer new code ran in
+that older job. Fresh Windows outcome and ACTUAL native delta/rollback STILL
+pending, as are crash/stale-lock recovery. Phase3 ACTIVE/INCOMPLETE, all6 gates
+OPEN; no next phase, tag/release, user installation/data or math/UI/schema changes.
+[Strict checkpoint](docs/dependencies/phase3-native-transaction-client-checkpoint.json).

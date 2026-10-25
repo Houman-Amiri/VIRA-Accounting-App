@@ -134,6 +134,14 @@ def clone_installed_helper(context: SourceScope, run: str) -> Path:
 def command(context: SourceScope, stage: Path) -> tuple[list[str], Path]:
     """Use the anchored OLD real helper, never execute a newly downloaded helper."""
     try:
+        fault = os.environ.get("VIRA_PRIVATE_SOURCE_FORCE_FAILURE", "")
+        if fault and (
+            fault != "AFTER_APPLY"
+            or context.pin["schema"] != 2
+            or os.environ.get("GITHUB_ACTIONS") != "true"
+            or os.environ.get("VIRA_PRIVATE_INSTALLED_SOURCE") != "1"
+        ):
+            raise ValueError("Explicit schema2 private CI fault selection required")
         expected_updates = context.home / "state/data/updates"
         if not stage.is_relative_to(expected_updates) or stage.name != "payload":
             raise ValueError("Foreign private staging directory")
@@ -181,7 +189,7 @@ def command(context: SourceScope, stage: Path) -> tuple[list[str], Path]:
             ),
         )
         log = stage / "update.log"
-        return [
+        argv = [
             str(helper),
             "-Stage",
             str(stage),
@@ -191,7 +199,10 @@ def command(context: SourceScope, stage: Path) -> tuple[list[str], Path]:
             str(context.root),
             "-PrivateSourceTransaction",
             str(transaction),
-        ], log
+        ]
+        if fault:
+            argv.append("-ForceFailure")
+        return argv, log
     except (OSError, ValueError, KeyError, TypeError, zipfile.BadZipFile) as exc:
         raise DomainError(
             "بسته یا updater خصوصی پس از تأیید تغییر کرده است؛ اعمال متوقف شد."
