@@ -531,3 +531,14 @@ pin تمام۲۱ DLL در activation خصوصی برای فرایند بدون P
 exit کنترلر، لاگ تازهٔ startup هدف/rollback و diagnostic محدود بدون DB/secret.
 گیت‌ها و مهلت۲۴۰ثانیه تغییر نکرده‌اند؛ این اصلاح هنوز شاهد native موفق، recovery
 executor یا انتشار نیست. جزئیات و محدودیت شواهد در برنامهٔ مرجع دو فاز ثبت است.
+
+
+نتیجهٔ جدید همان فاز اول: producer40220128706/d464e62 و native delta/forced
+rollback موفق شدند؛ artifact12611303055 و report۵۸۳۴۱بایتی به‌طور مستقل با
+40227028592 احراز شدند. حفظ SQL/ID/session/secret/receipt و۲۱ DLL واقعی ثبت
+است، اما مشاهدهٔ HTTP503 در هر دو case false بود؛ گیت جداگانه عمداً fail مانده
+است. executor5ed8bf2، CI کامل40225667608 و preflight ویندوز40225667551 را گذراند،
+با startup mock و نه native crash proof. اصلاح سه‌قفل HTTP/scheduler محلی با۱۲۲۳
+تست موفق آماده است؛ همراه harness نهایی native crash باید یک‌جا اثبات شود.
+اثبات تاریخی main با حفظ دقیق فایل قدیمی نگه داشته شد، نه تغییر hash شاهد یا
+نسبت‌دادن آن به main جدید. فاز اول/گیت توزیع/انتشار هنوز کامل اعلام نمی‌شوند.

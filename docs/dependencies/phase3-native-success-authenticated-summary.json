@@ -1,0 +1,59 @@
+{
+  "artifact": 12611303055,
+  "artifact_sha256": "2a16549e5506a9697d7be5b9a11ecab1f3813d4b277ff8336ff88718a65e4e26",
+  "cases": {
+    "commit": {
+      "changed_file_count": 25,
+      "database_fingerprint": "5da3af85e0acb04b7bc6d7f384124ac032ae0c9027570b464318e9eece4ec73e",
+      "forced_failure_point": null,
+      "full_installer_in_package": false,
+      "loaded_dll_count": 21,
+      "native_operation_count": 21,
+      "pango_version": "1.58.0-vira-local-source",
+      "pdf_document_count": 4,
+      "preserved": {
+        "full_database_preserved": true,
+        "persistent_secret_preserved": true,
+        "persistent_session_accepted_without_login": true,
+        "posted_entry_preserved": true,
+        "receipt_bytes_preserved": true
+      },
+      "state": "committed",
+      "unchanged_payload_files_absent": true,
+      "write_quarantine_http503_observed": false
+    },
+    "rollback": {
+      "changed_file_count": 25,
+      "database_fingerprint": "a0015b40ea2c29f2bd689a01c9490466378ca83f1cb27399a4da629e0bd4057c",
+      "forced_failure_point": "AFTER_FILE_APPLY_BEFORE_TARGET_STARTUP",
+      "full_installer_in_package": false,
+      "loaded_dll_count": 21,
+      "native_operation_count": 21,
+      "pango_version": "1.58.0-vira-local-source",
+      "pdf_document_count": 4,
+      "preserved": {
+        "full_database_preserved": true,
+        "persistent_secret_preserved": true,
+        "persistent_session_accepted_without_login": true,
+        "posted_entry_preserved": true,
+        "receipt_bytes_preserved": true
+      },
+      "state": "rolled_back",
+      "unchanged_payload_files_absent": true,
+      "write_quarantine_http503_observed": false
+    }
+  },
+  "crash_recovery_proven": false,
+  "head": "d464e62ec4e8fc668acef42d7765ba6c019875b1",
+  "live_write_quarantine_acceptance": false,
+  "phase3_complete": false,
+  "producer_job": 121250610073,
+  "producer_run": 40220128706,
+  "release_authorized": false,
+  "report_bytes": 58341,
+  "report_sha256": "324179ed5b74d79c54576bd4bc786a373edfdb7d2ed531440d93f089f0bde559",
+  "role": "AUTHENTICATED_NATIVE_DELTA_AND_FORCED_ROLLBACK_NOT_CRASH_OR_RELEASE",
+  "readonly_authentication_run": 40227028592,
+  "readonly_authentication_check": 121270460850,
+  "readonly_authentication_conclusion": "failure_due_to_separate_missing_HTTP503_acceptance_NOT_artifact_authentication"
+}

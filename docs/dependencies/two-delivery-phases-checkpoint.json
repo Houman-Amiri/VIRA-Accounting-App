@@ -33,7 +33,7 @@
   },
   "diagnostic_recovery_run": 40218916819,
   "actual_native_transaction_passed": true,
-  "current_failure": null,
+  "current_failure": "live_HTTP503_quarantine_not_observed_in_native_producer_commit_or_rollback; native_crash_recovery_still_unproven",
   "underlying_timeout_cause_proven": false,
   "recovery_executor_implemented": true,
   "heavy_rebuild_triggered_for_log_recovery": false,
@@ -145,9 +145,35 @@
     "artifact": 12611303055,
     "artifact_size": 489270,
     "artifact_sha256": "2a16549e5506a9697d7be5b9a11ecab1f3813d4b277ff8336ff88718a65e4e26",
-    "report_extraction": "pending_read_only_authenticator",
+    "report_extraction": {
+      "readonly_run": 40227028592,
+      "check": 121270460850,
+      "original_report_bytes": 58341,
+      "original_report_sha256": "324179ed5b74d79c54576bd4bc786a373edfdb7d2ed531440d93f089f0bde559",
+      "local_artifact_zip_downloaded": false,
+      "artifact_and_report_authenticated_GitHub_side": true,
+      "summary": "docs/dependencies/phase3-native-success-authenticated-summary.json",
+      "separate_live_write_quarantine_acceptance": false,
+      "readonly_workflow_conclusion": "failure_due_to_missing_HTTP503_in_both_original_cases"
+    },
     "proves_new_recovery_executor": false,
     "crash_recovery_proven": false,
     "phase_one_complete": false
+  },
+  "runtime_write_gate_patch": {
+    "status": "implemented_and_tested_locally_not_yet_pushed_to_avoid_duplicate_cold_build_before_combined_native_crash_run",
+    "uses_authenticated_private_scope_bound_once_at_factory_startup": true,
+    "guards": [
+      "state/data/updates/.update.lock",
+      ".native-channel.lock",
+      ".native-update.lock"
+    ],
+    "same_callable_for_HTTP_and_scheduler": true,
+    "partial_unlock_remains_write_blocked": true,
+    "full_local_pytest_passed": 1223,
+    "full_local_pytest_seconds": 105.04,
+    "ruff_mypy_bandit": "passed",
+    "current_native_acceptance": false,
+    "frozen_phase2_main_preserved_without_rewriting_historical_digest": true
   }
 }
