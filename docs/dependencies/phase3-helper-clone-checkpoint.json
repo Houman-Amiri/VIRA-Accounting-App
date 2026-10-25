@@ -1,0 +1,77 @@
+{
+  "role": "PRIVATE_OLD_PYTHON_CLONE_INTEGRITY_IMPLEMENTED_NOT_NATIVE_TRANSACTION_PROOF",
+  "last_runtime_ci": [
+    {
+      "id": 40186562664,
+      "revision": "36a99fd3aec3ea80f13409536df96e3ee22edc9b",
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/40186562664",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121148473289,
+          "name": "Playwright e2e (native processes)",
+          "conclusion": "success"
+        },
+        {
+          "id": 121148473402,
+          "name": "Frontend \u2014 lint, types, contract, tests, build",
+          "conclusion": "success"
+        },
+        {
+          "id": 121148473406,
+          "name": "Windows-native smoke (SQLite paths, venv, build)",
+          "conclusion": "success"
+        },
+        {
+          "id": 121148473411,
+          "name": "OpenAPI contract is in sync",
+          "conclusion": "success"
+        },
+        {
+          "id": 121148473417,
+          "name": "Backend \u2014 lint, type, security, tests",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 40186562661,
+      "revision": "36a99fd3aec3ea80f13409536df96e3ee22edc9b",
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/40186562661",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121148473092,
+          "name": "windows-preflight",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "local_python_suite": {
+    "passed": 1137,
+    "seconds": 82.54,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0
+  },
+  "ruff": "PASS",
+  "mypy": "PASS90",
+  "bandit": "PASS",
+  "pip_audit": "no_known_vulnerabilities_local_project_unlisted",
+  "new_windows_ast_controls": {
+    "count": 12,
+    "executed": false,
+    "opaque_interpreter_bytes_never_executed": true
+  },
+  "clone_verification": "full_exact_file_set_size_sha_and_no_reparse_before_executable_invocation",
+  "existing_native_b_run": 40183092030,
+  "existing_native_b_job": 121138959651,
+  "existing_native_b_observed": "independent_cold_build_in_progress_started_2026-10-25T11:06:58Z",
+  "queued_native_transaction_run_before_this_push": 40186562685,
+  "actual_native_b_audit_collected": false,
+  "actual_native_delta_rollback_collected": false,
+  "crash_stale_lock_recovery_proven": false,
+  "phase3_complete": false,
+  "release_authorized": false
+}

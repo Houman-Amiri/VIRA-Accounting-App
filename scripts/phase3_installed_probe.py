@@ -1,4 +1,6 @@
-"""External HTTP/process client: real versioned Inno install, NOT delta acceptance.
+"""External client: Inno startup witness; optional separate real native transactions.
+
+The baseline installed witness alone is NOT delta acceptance.
 
 No app imports, patched callables, in-process ASGI transport or native substitutes.
 """

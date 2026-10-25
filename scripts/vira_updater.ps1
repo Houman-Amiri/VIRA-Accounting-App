@@ -51,6 +51,49 @@ function Get-Sha256([string]$Path) {
     }
 }
 
+# Compare the ENTIRE copied interpreter subtree to the already anchored OLD
+# manifest, before invoking ANY executable from it. Copy-Item success alone is
+# not integrity verification (missing/extra/corrupt/reparse entries fail closed).
+function Assert-PrivatePythonClone([string]$Runtime, [object[]]$BaselineFiles) {
+    $root = [IO.Path]::GetFullPath($Runtime).TrimEnd('\')
+    $prefix = $root + '\'
+    $ancestor = New-Object IO.DirectoryInfo -ArgumentList $root
+    while ($ancestor) {
+        if ($ancestor.Exists -and ($ancestor.Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'Private Python clone reparse path' }
+        $ancestor = $ancestor.Parent
+    }
+    if (-not (Test-Path -LiteralPath $root -PathType Container)) { throw 'Private Python clone missing directory' }
+    $expected = @{}
+    foreach ($entry in $BaselineFiles) {
+        $name = [string]$entry.path
+        if (-not $name.StartsWith('python/', [StringComparison]::Ordinal)) { continue }
+        $relative = $name.Substring(7)
+        if (-not $relative -or $relative.Contains('\') -or $relative.Contains(':') -or
+            ($relative.Split('/') -contains '..') -or ($relative.Split('/') -contains '.') -or
+            ($relative.Split('/') -contains '') -or $expected.ContainsKey($relative)) { throw 'Private Python clone ambiguous path' }
+        $full = [IO.Path]::GetFullPath((Join-Path $root $relative))
+        if (-not $full.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) { throw 'Private Python clone escaped root' }
+        $expected[$relative] = $entry
+    }
+    if (-not $expected.ContainsKey('python.exe')) { throw 'Private Python executable not anchored' }
+    $seen = @{}
+    $pending = New-Object 'System.Collections.Generic.Stack[string]'
+    $pending.Push($root)
+    while ($pending.Count -gt 0) {
+        $directory = $pending.Pop()
+        foreach ($item in @(Get-ChildItem -LiteralPath $directory -Force)) {
+            if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Private Python clone reparse entry' }
+            if ($item.PSIsContainer) { $pending.Push($item.FullName); continue }
+            $relative = $item.FullName.Substring($prefix.Length).Replace('\','/')
+            if (-not $expected.ContainsKey($relative) -or $seen.ContainsKey($relative)) { throw 'Private Python clone extra/duplicate file' }
+            $entry = $expected[$relative]
+            if ($item.Length -ne $entry.size -or (Get-Sha256 $item.FullName) -cne $entry.sha256) { throw 'Private Python clone differs from anchored bytes' }
+            $seen[$relative] = $true
+        }
+    }
+    if ($seen.Count -ne $expected.Count) { throw 'Private Python clone missing anchored file' }
+}
+
 # Phase 3 private source branch. Public transaction below remains the default.
 # Clone the verified OLD runtime outside {app} so Python/DLL replacement cannot
 # lock the interpreter executing the transaction. No alternate QA factory exists.
@@ -124,6 +167,7 @@ if ($PrivateSourceTransaction) {
         Copy-Item -LiteralPath $driver -Destination (Join-Path $external 'private_source_update.py')
         if ((Get-Sha256 (Join-Path $external 'private_source_update.py')) -ne $entry[0].sha256) { throw "Private controller copy mismatch" }
         Copy-Item -LiteralPath (Join-Path $installFull 'python') -Destination (Join-Path $external 'python') -Recurse
+        Assert-PrivatePythonClone (Join-Path $external 'python') $baseline.files
         $privateArgs = @('-I','-S','-B','-X','utf8',(Join-Path $external 'private_source_update.py'),
             '--install-root',$installFull,'--archive',[string]$context.archive,'--archive-sha256',[string]$context.archive_sha256,
             '--target-anchor',[string]$context.target_anchor,'--attempt',[string]$context.attempt)

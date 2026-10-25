@@ -1450,3 +1450,24 @@ one-build job64min), and real sudo re-elevation AFTER full preservation check so
 normal5min expiry is not mistaken for data loss. No token TTL/auth bypass/relogin.
 Full local rerun1137PASS98.26s/0fail/error/skip; this follow-up's fresh Windows/native
 result is not yet observed. Phase3 still INCOMPLETE, all6 gates OPEN, no publication.
+
+
+## Phase3 — verify copied OLD Python before any execution (still INCOMPLETE)
+
+36a99fd CI40186562664 ALL5 SUCCESS; limited Windows preflight40186562661 SUCCESS.
+Existing55e65f5/source40183092030/job121138959651 reached the genuinely independent
+cold NativeB build at2026-10-25T11:06:58Z; its audit/result is NOT yet collected.
+The queued actual transaction run40186562685 predates this push and may be replaced
+by GitHub's latest-pending concurrency rule; NEVER cancel the active cold build.
+
+Closed another verifier gap: private compiled-helper source now compares the copied
+OLD interpreter subtree's COMPLETE file set/sizes/SHA256 against the anchored old
+manifest, rejects root/ancestor/nested reparse and ambiguous/missing/extra entries,
+and requires anchored python.exe BEFORE invoking it. No new downloader/controller,
+no public update selection or startup/math/schema change.12 actual-function-AST
+synthetic filesystem cases added; opaque exe/DLL bytes NEVER executed. Fresh
+Windows parser/AST and compiled/native transaction results STILL pending.
+Local full1137PASS82.54s,0fail/error/skip; Ruff/Mypy90/Bandit/pip-audit PASS.
+Phase3 ACTIVE/INCOMPLETE; crash/stale-lock recovery unproved; all6 gates OPEN;
+no publication, later phase, installed-user data or installation change authorized.
+Checkpoint:docs/dependencies/phase3-helper-clone-checkpoint.json.
