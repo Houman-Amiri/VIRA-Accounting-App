@@ -59,8 +59,14 @@
     "target_and_rollback_startup_logs_preserved": true,
     "failure_artifact_collects_only_bounded_owned_startup_logs_and_guard_presence": true,
     "timeout_seconds_unchanged": 240,
-    "native_acceptance": "pending_new_run",
-    "Windows_PowerShell_5_1_and_7_controls": "pending_new_run",
+    "native_acceptance": {
+      "run": 40220128706,
+      "stock_sdk_preflight": "success",
+      "source_job": 121250610073,
+      "last_observed_stage": "cold_compile_local_preferred_source_trees",
+      "conclusion": "pending"
+    },
+    "Windows_PowerShell_5_1_and_7_controls": "passed_actual_native_stdout_stderr_exit_launch_failure_controls",
     "local_validation": {
       "full_pytest_passed": 1197,
       "full_pytest_seconds": 81.78,
@@ -68,6 +74,25 @@
       "mypy": "90 source files passed",
       "bandit": "passed",
       "pip_audit": "no known third-party vulnerabilities; local vira-accounting package not on PyPI"
+    },
+    "runtime_commit": "d464e62ec4e8fc668acef42d7765ba6c019875b1",
+    "windows_preflight": {
+      "run": 40220128810,
+      "job": 121249689065,
+      "conclusion": "success",
+      "inno_install_uninstall_opaque_fixture": true,
+      "native_transaction_acceptance": false
+    },
+    "full_CI": {
+      "run": 40220128766,
+      "conclusion": "success",
+      "jobs_passed": 5
+    },
+    "redundant_workflow_cancel_attempt": {
+      "run": 40220128709,
+      "result": "HTTP403_actions_write_not_available",
+      "cancelled": false,
+      "other_runs_not_claimed_passed": true
     }
   }
 }

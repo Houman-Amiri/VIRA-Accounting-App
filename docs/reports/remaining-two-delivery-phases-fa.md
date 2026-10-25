@@ -72,3 +72,21 @@ load و تا پایان عمر برنامه نگه می‌دارد و origin ه�
 Ruff، Mypy روی۹۰فایل، Bandit و audit وابستگی‌های منتشرشده موفق‌اند؛ پکیج محلی
 vira-accounting در PyPI منتشر نیست و قابل audit به‌عنوان dependency عمومی نبود.
 این نتایج جایگزین اجرای واقعی ویندوز یا پذیرش با دادهٔ واقعی کاربر نیستند.
+
+
+### نتیجهٔ کنترل‌های اجرایی candidate d464e62
+
+- CI کامل40220128766: هر۵ job موفق، شامل backend، frontend، Playwright، قرارداد
+  OpenAPI و smoke بومی ویندوز با migration/compiled-helper rollback عمومی.
+- preflight ویندوز40220128810/job121249689065 موفق: فراخوانی واقعی فرایند native
+  با هر دو PowerShell۷ و۵٫۱، حفظ کامل stdout/stderr، exit صفر با stderr، exit۷،
+  رد launch ناموجود بدون استفاده از LASTEXITCODE قدیمی و بازگردانی Stop.
+  تست‌های source closure همچنان synthetic هستند؛ fixture نصب Inno همچنان opaque است.
+- خط لولهٔ یکپارچهٔ40220128706: stock SDK preflight موفق؛ job121250610073 وارد
+  compile واقعی source شد. نتیجهٔ native delta/rollback هنوز pending است و پاس
+  اعلام نمی‌شود. این rebuild برای آزمودن اصلاح کد است، نه بازیابی دوبارهٔ لاگ.
+- درخواست لغو اجرای موازی40220128709 با API به HTTP403 برخورد کرد؛ لغو نشده و
+  موفق اعلام نمی‌شود. اجراهای دیگر نیز خودکار «پاس» تلقی نشده‌اند.
+
+executor/crash proof و گیت‌های توزیع همچنان باقی‌اند. هیچ release/tag جدیدی ساخته
+نشده و نصب یا دادهٔ واقعی کاربر دست نخورده است.
