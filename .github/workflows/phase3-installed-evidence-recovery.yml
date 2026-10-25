@@ -1,0 +1,103 @@
+name: Recover authenticated Phase3 installed Source21 witness NOT delta acceptance
+
+on:
+  push:
+    paths: ['.github/workflows/phase3-installed-evidence-recovery.yml']
+
+permissions:
+  contents: read
+  actions: read
+
+# No native rebuild, installer execution, app imports or changed producer files.
+# Separate jobs avoid the prior producer's per-job annotation retention ceiling.
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [0, 1, 2, 3, 4, 5, 6, 7]
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      GROUP: ${{ matrix.group }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: a7c6fc87b6bb066a3e7c78766071451602b1d131
+      - name: Authenticate exact successful installer producer and transport full immutable witness
+        shell: bash
+        run: |
+          python - <<'PY'
+          import base64, hashlib, io, json, os, pathlib, runpy, subprocess, zipfile, zlib
+          repo = os.environ['GH_REPO']
+          def api(path):
+              return json.loads(subprocess.check_output(['gh', 'api', f'repos/{repo}/{path}']))
+          run_id, job_id = 39612186978, 119294190368
+          head = 'a7c6fc87b6bb066a3e7c78766071451602b1d131'
+          run = api(f'actions/runs/{run_id}')
+          jobs = api(f'actions/runs/{run_id}/jobs')['jobs']
+          assert run['conclusion'] == 'success' and run['head_sha'] == head
+          assert run['path'] == '.github/workflows/pdf-desktop-source.yml'
+          assert len(jobs) == 2 and all(j['conclusion'] == 'success' for j in jobs)
+          job = next(j for j in jobs if j['id'] == job_id)
+          assert job['name'] == 'source-http-consumer'
+          step = 'Phase3 real versioned Source21 Inno selected-path install and app HTTP restart NOT delta acceptance'
+          assert any(s['name'] == step and s['conclusion'] == 'success' for s in job['steps'])
+          artifacts = [
+              (12359170810, 'private-phase3-versioned-source-install-no-app-db-dlls-NOT-delta-proof',
+               '7950a3add7cfab2b2bc0c2986b12f430bac46cd62676f17e009ea570ed7a15d0', 'verified-installed-source.json'),
+              (12359465855, 'private-phase2-real-cmd-source-startup-no-app-db-dlls',
+               '3b8b5990bd1388953351e7cd46d2c78f30f8c7228d454177edc2038b7c02ca2a', 'verified-desktop-source.json'),
+          ]
+          raw_members, provenance = {}, []
+          for artifact_id, name, digest, member in artifacts:
+              artifact = api(f'actions/artifacts/{artifact_id}')
+              assert artifact['workflow_run']['id'] == run_id
+              assert artifact['workflow_run']['head_sha'] == head and not artifact['expired']
+              assert artifact['name'] == name and artifact['digest'] == 'sha256:' + digest
+              archive = subprocess.check_output(['gh', 'api', f'repos/{repo}/actions/artifacts/{artifact_id}/zip'])
+              assert hashlib.sha256(archive).hexdigest() == digest
+              with zipfile.ZipFile(io.BytesIO(archive)) as packet:
+                  names = [n for n in packet.namelist() if n.split('/')[-1] == member]
+                  assert len(names) == 1
+                  raw_members[member] = packet.read(names[0])
+                  if member == 'verified-desktop-source.json':
+                      audits = [n for n in packet.namelist() if n.endswith('/verified-local-rebuild.json')]
+                      assert len(audits) == 1
+                      raw_members['audit'] = packet.read(audits[0])
+              provenance.append(dict(artifact_id=artifact_id, zip_sha256=digest, zip_bytes=len(archive)))
+          audit = pathlib.Path(os.environ['RUNNER_TEMP']) / 'native-audit.json'
+          audit.write_bytes(raw_members['audit'])
+          desktop = json.loads(raw_members['verified-desktop-source.json'])
+          runpy.run_path('scripts/desktop_launcher_bind.py')['validate'](desktop, audit)
+          raw = raw_members['verified-installed-source.json']
+          witness = json.loads(raw)
+          assert witness['role'] == 'PHASE3_REAL_VERSIONED_INNO_SOURCE_INSTALL_NOT_DELTA_ACCEPTANCE'
+          assert witness['native_audit'] == desktop['native_audit']
+          assert witness['native_audit_sha256'] == hashlib.sha256(raw_members['audit']).hexdigest()
+          assert witness['installed_source21_startup_and_restart'] is True
+          assert witness['persistent_session_secret_preserved'] is True
+          assert all(witness[k] is False for k in ('native_delta_rollback_proven', 'phase3_complete', 'release_authorized'))
+          assert witness['anchor']['schema'] == 2 and witness['anchor']['version'] == '99.30.0'
+          assert witness['anchor']['source_audit_sha256'] == witness['native_audit_sha256']
+          assert set(witness['cases']) == {'first-installed-process', 'restarted-installed-process'}
+          for case in witness['cases'].values():
+              assert case['completed']['activation']['source_audit_sha256'] == witness['native_audit_sha256']
+              assert case['completed']['activation']['dll_count'] == 21
+              assert case['completed']['graceful_shutdown'] is True
+              assert case['completed']['qa_worker_executed'] is False
+              assert case['completed']['qa_factory_or_renderer_replacement'] is False
+          encoded = base64.b64encode(zlib.compress(raw, 9)).decode()
+          parts = [encoded[i:i+3000] for i in range(0, len(encoded), 3000)]
+          assert len(parts) <= 64, 'Refuse partial installed witness'
+          group = int(os.environ['GROUP'])
+          receipt = dict(source_run=run_id, source_job=job_id, source_head=head, artifacts=provenance,
+              witness_sha256=hashlib.sha256(raw).hexdigest(), witness_bytes=len(raw), total_parts=len(parts),
+              group=group, application_reexecuted=False, original_source_binder_revalidated=True,
+              native_delta_rollback_proven=False, phase3_complete=False, release_authorized=False)
+          print('::notice title=Recovered Phase3 install provenance::' + json.dumps(receipt))
+          for i in range(group*8, min(len(parts), (group+1)*8)):
+              print('::notice title=Recovered Phase3 install evidence::' + json.dumps(dict(part=i, total=len(parts), data=parts[i])))
+          PY
