@@ -7,7 +7,7 @@
   "skips": 0,
   "additional_synthetic_api_cases": 9,
   "planned_actual_ast_windows_synthetic_fault_cases": 14,
-  "windows_followup_observed": false,
+  "windows_followup_observed": true,
   "source_codegen_run": 40183092030,
   "source_codegen_revision": "55e65f5",
   "source_codegen_state_last_observed": "cold_native_compilation_in_progress",
@@ -16,5 +16,55 @@
   "compiled_helper_fault_acceptance": false,
   "crash_stale_lock_recovery_proven": false,
   "phase3_complete": false,
-  "release_authorized": false
+  "release_authorized": false,
+  "windows_actual_ast_synthetic_cases_passed": 14,
+  "runtime_revision": "a14e7f0c0896e04d7277323434773552b44b4c61",
+  "verified_runs": [
+    {
+      "id": 40183597682,
+      "head_sha": "a14e7f0c0896e04d7277323434773552b44b4c61",
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/40183597682",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121139605977,
+          "name": "Frontend \u2014 lint, types, contract, tests, build",
+          "conclusion": "success"
+        },
+        {
+          "id": 121139606073,
+          "name": "OpenAPI contract is in sync",
+          "conclusion": "success"
+        },
+        {
+          "id": 121139606097,
+          "name": "Backend \u2014 lint, type, security, tests",
+          "conclusion": "success"
+        },
+        {
+          "id": 121139606105,
+          "name": "Playwright e2e (native processes)",
+          "conclusion": "success"
+        },
+        {
+          "id": 121139606115,
+          "name": "Windows-native smoke (SQLite paths, venv, build)",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 40183597690,
+      "head_sha": "a14e7f0c0896e04d7277323434773552b44b4c61",
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/40183597690",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121139605976,
+          "name": "windows-preflight",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ]
 }

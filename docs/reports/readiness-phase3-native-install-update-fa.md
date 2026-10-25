@@ -330,3 +330,16 @@ anchorهای قدیم/هدف، تطابق exit-code/state و anchor جاری ر�
 transaction یا اثبات crash recovery نیستند. Source40183092030 روی55e65f5 هنوز
 cold compile است؛ preflight محدود همان commit شمارهٔ40183092159 موفق شد، نه
 تأیید بومی این اصلاح بعدی. هیچ گیت انتشار/حقوقی بسته نشده است.
+
+
+### نتیجهٔ ویندوزِ اصلاح رسید — موفق، با دامنهٔ محدود
+
+کد a14e7f0 در preflight40183597690/job121139605976 موفق شد؛ هر۱۴ fault مصنوعیِ
+بلوک AST واقعی helper، کنترل‌های byte/anchor و مکانیک Inno محدود موفق‌اند.
+CI کامل40183597682 نیز هر۵ job موفق است. این نتیجه، actual compiled-helper
+native transaction را ثابت نمی‌کند. رسید دقیق در
+`docs/dependencies/phase3-helper-terminal-cleanup-checkpoint.json` ثبت شد.
+
+اجرای source/codegen40183092030 روی55e65f5 هنوز در کامپایل سردِ sourceهای پایه
+است؛ نتیجهٔ هدف native متفاوت و transaction واقعی و crash recovery هنوز نداریم.
+فاز۳ ناقص است؛ نصب/دادهٔ کاربر، نسخهٔ عمومی1.0.10 و مجوز انتشار تغییر نکرده‌اند.

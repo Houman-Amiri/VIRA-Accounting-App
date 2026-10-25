@@ -1841,3 +1841,16 @@ NOT crash/stale-lock recovery. No automatic deletion of stale guards.
 Source/codegen run40183092030 at55e65f5 remains cold-compiling;55 limited Windows
 40183092159/job121138091366 SUCCESS. Neither certifies this later receipt fix's
 native transaction. Phase3 remains ACTIVE/INCOMPLETE; all6 gates OPEN.
+
+
+Receipt follow-up a14e7f0 now Windows-verified within its LIMITED scope:
+40183597690/job121139605976 SUCCESS, including14 actual-helper-AST synthetic
+fault cases, strict byte/anchor controls and opaque Inno mechanics.
+Full CI40183597682 ALL5 SUCCESS (frontend121139605977,OpenAPI121139606073,
+backend121139606097,Playwright121139606105,Windows121139606115).
+[Exact revision/results](docs/dependencies/phase3-helper-terminal-cleanup-checkpoint.json).
+Local1127PASS123.87s,0fail/error/skip. NOT compiled-helper native-transaction
+fault proof. Source/codegen40183092030/55e65f5/job121138959651 still compiling
+baseline preferred sources; independent changed-native target outcome and actual
+permissioned delta/rollback/crash recovery STILL unproven. Phase3 INCOMPLETE;
+no new phase/publication, no user's installation/data changes.
