@@ -1,0 +1,41 @@
+{
+  "role": "TWO_REMAINING_DELIVERY_PHASES_OWNER_AUTHORIZED_RELEASE_AFTER_GATES",
+  "remaining_delivery_phases": 2,
+  "phase_one": "technical_candidate_and_native_update_rollback_crash_acceptance",
+  "phase_two": "distribution_clearance_packaging_Persian_notes_immutable_tag_publication",
+  "owner_authorized_new_release_after_required_gates": true,
+  "release_published": false,
+  "broader_MIT_grant": false,
+  "user_install_or_data_modification_authorized": false,
+  "native_b_authenticated": {
+    "run": 40190780548,
+    "job": 121182331473,
+    "head": "ecf68651ba2470a0fe8b43f787396032e1a5ab51",
+    "artifact": 12604415038,
+    "zip_sha256": "ac7022d6fdc113bb771780adabeeee6bdb3abf509de96baa096834a2e0f811fd",
+    "witness_sha256": "6538a50a18b1f0087e675bf1aabc82499630a94c0b884fe8fb923fb3b31db82f",
+    "native_text_changed": true,
+    "pango": "1.58.0-vira-local-source",
+    "before_text_sha256": "7da76fe50fcb48b4862dd61a66897b8e996c9b0377c288a6cba7302b59514c15",
+    "after_text_sha256": "929572da80ee07e1f9eb44ecde501bb9139422f5ed1f1b0ba6c1c850dc1bc48b",
+    "dll_count": 21,
+    "source_count": 20,
+    "transaction_success": false
+  },
+  "original_transaction_failure_log": {
+    "run": 40190780548,
+    "job": 121182331473,
+    "member": "0_source-http-consumer.txt",
+    "complete_bytes": 6439666,
+    "complete_sha256": "5ddce5726efc08e56713933ab72d034a6d778e362755603ffb336fcf27c6fa99",
+    "tail_bytes": 6000,
+    "tail_sha256": "284b204c4137746ae6faf841cf9dc115380a63f46cf798c80fce92722e1df397"
+  },
+  "diagnostic_recovery_run": 40218916819,
+  "actual_native_transaction_passed": false,
+  "current_failure": "wait_terminal_240s_expired_without_fresh_verified_terminal_result",
+  "underlying_timeout_cause_proven": false,
+  "recovery_executor_implemented": false,
+  "heavy_rebuild_triggered_for_log_recovery": false,
+  "distribution_gates_closed": false
+}
