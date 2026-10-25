@@ -32,8 +32,8 @@
     "tail_sha256": "284b204c4137746ae6faf841cf9dc115380a63f46cf798c80fce92722e1df397"
   },
   "diagnostic_recovery_run": 40218916819,
-  "actual_native_transaction_passed": false,
-  "current_failure": "verified_preflight_then_private_desktop_RuntimeError_and_PowerShell_Stop_truncated_controller_stderr",
+  "actual_native_transaction_passed": true,
+  "current_failure": null,
   "underlying_timeout_cause_proven": false,
   "recovery_executor_implemented": true,
   "heavy_rebuild_triggered_for_log_recovery": false,
@@ -115,10 +115,39 @@
     "local_full_pytest_seconds": 113.97,
     "local_focused_executor_controls_passed": 22,
     "local_ruff_mypy_bandit": "passed",
-    "Windows_real_mutex_and_abrupt_child_SQLite_controls": "pending_new_preflight",
+    "Windows_real_mutex_and_abrupt_child_SQLite_controls": {
+      "run": 40225667551,
+      "job": 121266367756,
+      "head": "5ed8bf2d44252de9d8aa43556d31f704f96ae9c4",
+      "conclusion": "success",
+      "actual_Windows_mutex_contention_and_owned_child_exit_73": "passed",
+      "real_SQLite_restore": "passed",
+      "app_startup_boundary": "mocked_NOT_native_app_crash_proof"
+    },
     "app_startup_boundary_in_executor_controls": "mocked_not_native_application_proof",
     "real_native_crash_recovery_proven": false,
     "crash_during_recovery_or_partial_terminal_unlock_automatically_supported": false,
-    "public_release_ready": false
+    "public_release_ready": false,
+    "full_CI": {
+      "run": 40225667608,
+      "head": "5ed8bf2d44252de9d8aa43556d31f704f96ae9c4",
+      "conclusion": "success",
+      "jobs_passed": 5
+    }
+  },
+  "successful_native_producer": {
+    "run": 40220128706,
+    "job": 121250610073,
+    "head": "d464e62ec4e8fc668acef42d7765ba6c019875b1",
+    "conclusion": "success",
+    "independent_native_codegen_step": "success",
+    "real_in_app_native_delta_and_forced_rollback_step": "success",
+    "artifact": 12611303055,
+    "artifact_size": 489270,
+    "artifact_sha256": "2a16549e5506a9697d7be5b9a11ecab1f3813d4b277ff8336ff88718a65e4e26",
+    "report_extraction": "pending_read_only_authenticator",
+    "proves_new_recovery_executor": false,
+    "crash_recovery_proven": false,
+    "phase_one_complete": false
   }
 }

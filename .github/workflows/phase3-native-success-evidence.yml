@@ -1,0 +1,92 @@
+name: Authenticate successful native transaction without rebuilding
+
+on:
+  push:
+    paths: ['.github/workflows/phase3-native-success-evidence.yml']
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  authenticate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Authenticate exact producer, artifact and complete report; emit bounded summary only
+        shell: bash
+        run: |
+          python - <<'PY'
+          import base64, hashlib, io, json, os, pathlib, subprocess, zipfile, zlib
+          repo = os.environ['GH_REPO']
+          def api(path):
+              return json.loads(subprocess.check_output(['gh', 'api', f'repos/{repo}/{path}']))
+          run_id, job_id, artifact_id = 40220128706, 121250610073, 12611303055
+          head = 'd464e62ec4e8fc668acef42d7765ba6c019875b1'
+          digest = '2a16549e5506a9697d7be5b9a11ecab1f3813d4b277ff8336ff88718a65e4e26'
+          run, job = api(f'actions/runs/{run_id}'), api(f'actions/jobs/{job_id}')
+          assert run['head_sha'] == head and run['conclusion'] == 'success'
+          assert run['path'] == '.github/workflows/pdf-desktop-source.yml'
+          assert job['run_id'] == run_id and job['conclusion'] == 'success'
+          steps = {s['name']: s['conclusion'] for s in job['steps']}
+          assert steps['Phase3 REAL in-app signed native delta and forced rollback with preserved accounting'] == 'success'
+          artifact = api(f'actions/artifacts/{artifact_id}')
+          assert artifact['workflow_run']['id'] == run_id and artifact['workflow_run']['head_sha'] == head
+          assert artifact['name'] == 'private-phase3-real-native-transaction-no-app-db-dlls-NOT-crash-recovery'
+          assert artifact['digest'] == 'sha256:' + digest and not artifact['expired']
+          raw = subprocess.check_output(['gh', 'api', f'repos/{repo}/actions/artifacts/{artifact_id}/zip'])
+          assert len(raw) == artifact['size_in_bytes'] == 489270
+          assert hashlib.sha256(raw).hexdigest() == digest
+          with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+              names = archive.namelist()
+              assert len(names) == len({n.casefold() for n in names})
+              selected = [n for n in names if n == 'verified-native-transaction.json']
+              assert len(selected) == 1 and archive.getinfo(selected[0]).file_size <= 4 * 1024 * 1024
+              report = archive.read(selected[0])
+          doc = json.loads(report)
+          assert doc['role'] == 'PHASE3_REAL_IN_APP_SOURCE21_NATIVE_DELTA_AND_FORCED_ROLLBACK_PRIVATE_NOT_RELEASE'
+          assert doc['real_native_delta_and_forced_rollback'] is True
+          assert doc['full_setup_requested'] is False
+          assert doc['crash_recovery_proven'] is False and doc['phase3_complete'] is False
+          assert doc['release_authorized'] is False and set(doc['cases']) == {'commit', 'rollback'}
+          summary = dict(role='AUTHENTICATED_NATIVE_DELTA_AND_FORCED_ROLLBACK_NOT_CRASH_OR_RELEASE',
+                         producer_run=run_id, producer_job=job_id, head=head, artifact=artifact_id,
+                         artifact_sha256=digest, report_bytes=len(report),
+                         report_sha256=hashlib.sha256(report).hexdigest(), cases={},
+                         crash_recovery_proven=False, phase3_complete=False, release_authorized=False)
+          preserved = ['full_database_preserved', 'persistent_session_accepted_without_login',
+                       'persistent_secret_preserved', 'receipt_bytes_preserved', 'posted_entry_preserved']
+          for name, expected in [('commit', 'committed'), ('rollback', 'rolled_back')]:
+              case = doc['cases'][name]
+              assert case['terminal']['state'] == case['journal']['state'] == expected
+              assert case['terminal']['verified'] is (name == 'commit')
+              assert case['database_fingerprint_before'] == case['database_fingerprint_after'] == case['journal']['database_fingerprint']
+              assert all(case[k] is True for k in preserved)
+              assert case['write_quarantine_http503_observed'] is True
+              assert case['old_pid'] != case['new_pid']
+              assert len(case['completed']['loaded_dlls']) == case['completed']['activation']['dll_count'] == 21
+              assert case['completed']['pango_version'] == '1.58.0-vira-local-source'
+              assert case['package']['unchanged_payload_files_absent'] is True
+              assert case['package']['full_installer_in_package'] is False
+              summary['cases'][name] = dict(state=expected, preserved={k: case[k] for k in preserved},
+                  database_fingerprint=case['database_fingerprint_after'], write_quarantine_http503_observed=True,
+                  loaded_dll_count=21, pango_version=case['completed']['pango_version'],
+                  changed_file_count=len(case['package']['changed']),
+                  native_operation_count=len(case['package']['native_operations']),
+                  pdf_document_count=len(case['documents']), unchanged_payload_files_absent=True,
+                  full_installer_in_package=False, forced_failure_point=case['forced_failure_point'])
+          encoded = json.dumps(summary, sort_keys=True).encode()
+          pathlib.Path('native-success-summary.json').write_bytes(encoded + b'\n')
+          packed = base64.b64encode(zlib.compress(encoded, 9)).decode()
+          assert len(packed) <= 3500
+          print('::notice title=Authenticated native success zlib base64::' + packed)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: private-authenticated-native-success-summary-NOT-crash-proof
+          path: native-success-summary.json
+          if-no-files-found: error
+          retention-days: 90
