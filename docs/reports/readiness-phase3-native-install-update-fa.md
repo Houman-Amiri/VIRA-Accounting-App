@@ -495,3 +495,14 @@ eligibility مجوز قابل reuse نیست. executor آینده باید mutex
 تست شد، نه skip). suite کامل۱۱۸۳PASS در84.27s، صفرfail/error/skip و Ruff/Mypy90/
 Bandit/audit موفق. این‌ها نه crash recovery و نه Source21 transaction acceptance
 هستند. اجرای بومی40190780548 همچنان صف و فاز۳ و هر۶گیت بازند.
+
+
+### تأیید ویندوز primitive فقط‌خواندنی
+
+کد6d05f0f در CI40193261172 هر۵job موفق و preflight40193261212/
+job121168607182 موفق شد.۳۳کنترل eligibility و query واقعی handle process زنده و
+خاتمه‌یافتهٔ Python خود runner موفق‌اند؛ نه crash برنامهٔ Source21 و نه recovery
+helper کامپایل‌شده. هیچ قفل یا snapshot در این کنترل بازیابی/آزاد نشده است.
+اجرای قدیمی40189290222 ساخت پایه را گذرانده و به setup/HTTP برنامه رسیده؛ اجرای
+اصلاح‌شده40190780548 هنوز پشت آن صف است. executor و شاهد crash هنوز نداریم؛
+فاز۳ ناقص، هر۶گیت باز، نصب/داده/انتشار کاربر بدون تغییر.

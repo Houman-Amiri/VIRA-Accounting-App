@@ -1561,3 +1561,13 @@ Fixed native pipeline40190780548 still queues behind7bb72e0/source40189290222/
 job121159923038 baseline cold build. No new native transaction/crash proof.
 Phase3 ACTIVE/INCOMPLETE, all6 gates OPEN; no next phase or release authorization.
 Checkpoint:docs/dependencies/phase3-recovery-inspection-checkpoint.json.
+
+
+Recovery-inspection runtime6d05f0f: full CI40193261172 ALL5 SUCCESS; Windows
+preflight40193261212/job121168607182 SUCCESS, including33 new eligibility controls
+and real owned runner-Python process handle live/exited checks. Not Source21
+process crash/recovery, compiled-helper recovery or native transaction proof.
+Original7bb72e0/source40189290222 passed baseline compilation and advanced to app
+setup/HTTP; fixed ecf6865/source40190780548 still queued behind it. No native
+recovery executor, guard deletion or restore was added. Phase3 INCOMPLETE/all6
+OPEN; no release/user-install/data authority change.

@@ -12,7 +12,7 @@
   "bandit": "PASS",
   "pip_audit": "no_known_vulnerabilities_local_app_unlisted",
   "new_controls": 33,
-  "actual_windows_handle_control_observed": false,
+  "actual_windows_handle_control_observed": true,
   "eligibility": {
     "scope": "owned_disjoint_disposable_Windows_CI_schema2_prepared_transactions_only",
     "external_inputs": [
@@ -40,5 +40,56 @@
   "old_active_run": 40189290222,
   "old_active_job": 121159923038,
   "phase3_complete": false,
-  "release_authorized": false
+  "release_authorized": false,
+  "runtime_revision": "6d05f0f",
+  "ci": [
+    {
+      "id": 40193261172,
+      "head": "6d05f0f8599c0576d0668cfa514d0b0743bc3086",
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/40193261172",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121168607143,
+          "name": "Playwright e2e (native processes)",
+          "conclusion": "success"
+        },
+        {
+          "id": 121168607287,
+          "name": "OpenAPI contract is in sync",
+          "conclusion": "success"
+        },
+        {
+          "id": 121168607320,
+          "name": "Windows-native smoke (SQLite paths, venv, build)",
+          "conclusion": "success"
+        },
+        {
+          "id": 121168607351,
+          "name": "Backend \u2014 lint, type, security, tests",
+          "conclusion": "success"
+        },
+        {
+          "id": 121168607355,
+          "name": "Frontend \u2014 lint, types, contract, tests, build",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 40193261212,
+      "head": "6d05f0f8599c0576d0668cfa514d0b0743bc3086",
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/40193261212",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121168607182,
+          "name": "windows-preflight",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "windows_observation_scope": "real_owned_runner_Python_child_handle_live_then_exited_and_PID_range_controls_not_Source21_native_crash",
+  "old_active_baseline_compile_observed": "passed_compile_now_app_setup_or_HTTP_no_native_transaction_result"
 }
