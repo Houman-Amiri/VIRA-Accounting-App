@@ -1,4 +1,4 @@
-name: Recover failed NativeB compiler diagnostics NOT native acceptance
+name: Read original native transaction failure without rebuilding
 
 on:
   push:
@@ -16,60 +16,54 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
     steps:
-      - name: Authenticate failed producer and expose bounded original compiler diagnostics
+      - name: Authenticate passed NativeB and recover failed transaction step only
         shell: bash
         run: |
           python - <<'PY'
-          import hashlib, io, json, os, subprocess, zipfile
+          import base64, hashlib, io, json, os, subprocess, zipfile
           repo = os.environ['GH_REPO']
           def api(path):
               return json.loads(subprocess.check_output(['gh','api',f'repos/{repo}/{path}']))
-          def notice(title, text):
-              text = text.replace('%','%25').replace('\r','%0D').replace('\n','%0A')
+          def notice(title, value):
+              text = json.dumps(value).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
               print(f'::notice title={title}::{text}', flush=True)
-          run_id, job_id, artifact_id = 40183092030, 121138959651, 12597309662
+          run_id, job_id = 40190780548, 121182331473
+          head = 'ecf68651ba2470a0fe8b43f787396032e1a5ab51'
           run = api(f'actions/runs/{run_id}')
-          assert run['head_sha'].startswith('55e65f5') and run['path'] == '.github/workflows/pdf-desktop-source.yml'
           job = api(f'actions/jobs/{job_id}')
+          assert run['head_sha'] == head and run['path'] == '.github/workflows/pdf-desktop-source.yml'
           assert job['run_id'] == run_id and job['conclusion'] == 'failure'
-          target_step = 'Phase3 independently cold-build genuine native codegen target NOT delta acceptance'
-          assert any(s['name'] == target_step and s['conclusion'] == 'failure' for s in job['steps'])
+          steps = {s['name']:s['conclusion'] for s in job['steps']}
+          assert steps['Phase3 independently cold-build genuine native codegen target NOT delta acceptance'] == 'success'
+          assert steps['Phase3 REAL in-app signed native delta and forced rollback with preserved accounting'] == 'failure'
+          artifact_id = 12604415038
           artifact = api(f'actions/artifacts/{artifact_id}')
-          assert artifact['workflow_run']['id'] == run_id and artifact['workflow_run']['head_sha'] == run['head_sha']
+          assert artifact['workflow_run']['id'] == run_id and artifact['workflow_run']['head_sha'] == head
           assert artifact['name'] == 'private-phase3-independent-codegen-source21-NOT-delta-proof' and not artifact['expired']
           archive = subprocess.check_output(['gh','api',f'repos/{repo}/actions/artifacts/{artifact_id}/zip'])
           digest = hashlib.sha256(archive).hexdigest()
           assert artifact['digest'] == 'sha256:' + digest
           with zipfile.ZipFile(io.BytesIO(archive)) as z:
-              notice('Failed NativeB provenance', json.dumps(dict(run=run_id,job=job_id,head=run['head_sha'],artifact=artifact_id,zip_sha256=digest,zip_bytes=len(archive),members=z.namelist(),native_success=False,transaction_proven=False)))
-          with zipfile.ZipFile(io.BytesIO(archive)) as z:
-              name = 'compiler-instructions/vcpkg/buildtrees/pango/x64-vira-pdf-rel/build.ninja'
-              raw = z.read(name)
-              lines = raw.decode('utf-8-sig').splitlines()
-              text = '\n'.join(lines)
-              notice('Actual Pango Ninja flags',json.dumps(dict(member=name,sha256=hashlib.sha256(raw).hexdigest(),flags={f:f in text for f in ('/Od','/Ob0','/DNDEBUG')},has_pango_utils='pango-utils.c' in text)))
-              chosen = [i for i,l in enumerate(lines) if 'utils.c' in l and l.startswith('build ')]
-              if not chosen:
-                  chosen = [i for i,l in enumerate(lines) if l.startswith('build ') and 'c_COMPILER' in l][:1]
-              context = '\n'.join('\n'.join(lines[max(0,i-1):i+5]) for i in chosen[:2])
-              for i in range(0,min(len(context),3200),1600):
-                  notice('Actual Pango compiler command',json.dumps(dict(part=i//1600,text=context[i:i+1600])))
-          # Original step logs can contain tool errors not mirrored in build.log.
+              names = [n for n in z.namelist() if n.split('/')[-1] == 'verified-codegen-target.json']
+              assert len(names) == 1
+              raw = z.read(names[0])
+              audit = json.loads(raw)
+              proof = audit['private_codegen_variant']
+              assert audit['dll_count'] == 21 and len(audit['preferred_source_trees']) == 20
+              assert proof['native_executable_text_changed'] and not proof['native_delta_rollback_proven']
+              notice('Authenticated NativeB success not transaction success',dict(run=run_id,job=job_id,head=head,artifact=artifact_id,zip_sha256=digest,witness_sha256=hashlib.sha256(raw).hexdigest(),native_text_changed=True,pango=proof['actual_pango_version_string'],before_text_sha256=proof['before_text_sha256'],after_text_sha256=proof['after_text_sha256'],dll_count=21,source_count=20,transaction_success=False))
           logs = subprocess.check_output(['gh','api',f'repos/{repo}/actions/runs/{run_id}/logs'])
           with zipfile.ZipFile(io.BytesIO(logs)) as z:
-              names = [n for n in z.namelist() if 'codegen' in n.lower() and 'source-http-consumer' in n]
-              assert names, 'Original failed step log missing'
-              for name in names:
-                  raw = z.read(name)
-                  notice('NativeB step log digest',json.dumps(dict(member=name,bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest())))
-                  text = raw.decode('utf-8-sig',errors='replace')[-4000:]
-                  for i in range(0,len(text),1600):
-                      notice('Original NativeB step tail',json.dumps(dict(member=name,part=i//1600,text=text[i:i+1600])))
-          # A step retains at most ten notices. Prioritize the exception first,
-          # then small immutable build result/recipe, not pages of successful pkgconfig.
-          with zipfile.ZipFile(io.BytesIO(archive)) as z:
-              for name in z.namelist():
-                  if name.split('/')[-1] in {'target-triplet.cmake'}:
-                      raw = z.read(name)
-                      notice('NativeB result or recipe',json.dumps(dict(member=name,sha256=hashlib.sha256(raw).hexdigest(),text=raw.decode('utf-8-sig',errors='replace')[-4000:])))
+              names = [n for n in z.namelist() if 'source-http-consumer/' in n and 'real in-app signed native delta' in n.lower()]
+              assert len(names) == 1
+              raw = z.read(names[0])
+              tail = raw[-6000:]
+              notice('Original failed transaction log provenance',dict(run=run_id,job=job_id,member=names[0],complete_bytes=len(raw),complete_sha256=hashlib.sha256(raw).hexdigest(),tail_bytes=len(tail),tail_sha256=hashlib.sha256(tail).hexdigest()))
+              # Base64 avoids GitHub corrupting ANSI escapes in JSON notices.
+              # At most six parts; stay below the ten-notice per-step ceiling.
+              encoded = base64.b64encode(tail).decode()
+              parts = [encoded[i:i+2000] for i in range(0,len(encoded),2000)]
+              assert len(parts) <= 6
+              for i, data in enumerate(parts):
+                  notice('Original transaction failure tail',dict(part=i,total=len(parts),data=data))
           PY
