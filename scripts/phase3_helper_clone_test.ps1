@@ -12,7 +12,7 @@ foreach ($name in @('Get-Sha256','Assert-PrivatePythonClone')) {
     . ([scriptblock]::Create($functions[0].Extent.Text))
 }
 $checks = @($ast.FindAll({param($n) $n -is [Management.Automation.Language.CommandAst] -and $n.GetCommandName() -eq 'Assert-PrivatePythonClone'},$true))
-$invocations = @($ast.FindAll({param($n) $n -is [Management.Automation.Language.CommandAst] -and $n.CommandElements[-1].Extent.Text -eq '@privateArgs'},$true))
+$invocations = @($ast.FindAll({param($n) $n -is [Management.Automation.Language.CommandAst] -and $n.GetCommandName() -eq 'Invoke-PrivateController'},$true))
 if ($checks.Count -ne 1 -or $invocations.Count -ne 1 -or $checks[0].Extent.EndOffset -ge $invocations[0].Extent.StartOffset) { throw 'Actual clone must be verified before interpreter execution' }
 $work = Join-Path $env:RUNNER_TEMP ('phase3-clone-synthetic-' + [guid]::NewGuid().ToString('N'))
 $cases = @('valid','truncated','same-size-corrupt','missing','extra-hidden','duplicate-case','escaped','missing-executable','directory-junction','root-junction','nested-corrupt','source-mutated-after-copy')

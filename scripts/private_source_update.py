@@ -320,23 +320,27 @@ def stop(home: Path, root: Path) -> None:
     raise TimeoutError("Old installed process did not gracefully release native runtime")
 
 
-def start(home: Path, root: Path, token: str, options: dict) -> subprocess.Popen:
+def start(home: Path, root: Path, token: str, options: dict, log: Path) -> subprocess.Popen:
     env = dict(os.environ, VIRA_PRIVATE_UPDATE_TOKEN=token)
-    process = subprocess.Popen(
-        [
-            str(root / "python/python.exe"),
-            "-I",
-            "-S",
-            "-B",
-            "-X",
-            "utf8",
-            str(root / "app/private_installed_source.py"),
-        ],
-        env=env,
-        cwd=home,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
+    no_links(log)
+    # Fresh transaction-owned diagnostics, never discard a rejected startup.
+    # Closing the parent's handle does not close the child's inherited stream.
+    with log.open("xb") as diagnostic:
+        process = subprocess.Popen(
+            [
+                str(root / "python/python.exe"),
+                "-I",
+                "-S",
+                "-B",
+                "-X",
+                "utf8",
+                str(root / "app/private_installed_source.py"),
+            ],
+            env=env,
+            cwd=home,
+            stdout=diagnostic,
+            stderr=subprocess.STDOUT,
+        )
     deadline = time.monotonic() + 90
     try:
         while time.monotonic() < deadline:
@@ -748,7 +752,7 @@ def main() -> None:
         atomic(pin, target_raw)
         if args.force_failure_after_apply:
             raise RuntimeError("Forced private failure after actual file operations")
-        start(home, root, token, target)
+        start(home, root, token, target, attempt / "target-startup.log")
         journal["state"] = "committed"
         atomic(attempt / "result.json", (json.dumps(journal, indent=2) + "\n").encode())
         safe_terminal = True
@@ -766,7 +770,7 @@ def main() -> None:
             atomic(pin, old_raw)
             dbtool["restore"](attempt / "database-rollback")
         if stopped:
-            start(home, root, token, old)
+            start(home, root, token, old, attempt / "rollback-startup.log")
         if mutated:
             journal["state"] = "rolled_back"
             atomic(attempt / "result.json", (json.dumps(journal, indent=2) + "\n").encode())

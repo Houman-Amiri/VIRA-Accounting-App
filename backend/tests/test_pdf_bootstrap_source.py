@@ -271,9 +271,87 @@ def test_simulated_source_activation_uses_source_ffi_and_audit_not_sdk(simulated
     monkeypatch.setitem(
         sys.modules, "cffi", SimpleNamespace(FFI=lambda: SimpleNamespace(dlopen=load))
     )
+    monkeypatch.setattr("ctypes.CDLL", lambda *_: object())
     with boot.activate_private_source(plan) as active:
         assert active.role == "APP_OWNED_PRIVATE_SOURCE_ACTIVATION_NOT_INSTALLED"
         assert active.source_audit_sha256 == "d" * 64
         assert Path(active.libffi).name == "ffi-8.dll"
         assert calls[-1] == "source-pin"
     assert calls[-1] == "close" and not plan.state_root.exists()
+
+
+@pytest.mark.parametrize("fault", [None, "foreign-dependency", "unmapped", "load-error"])
+def test_source_maps_full_closure_before_app_even_without_pdf(simulated, monkeypatch, fault):
+    """FAKE loader lifecycle only: no Windows DLLs or native acceptance here."""
+    import ctypes
+    import sys
+    import weakref
+    from types import SimpleNamespace
+
+    from app import desktop_entry
+
+    from .test_pdf_bootstrap_activation import Fn, process_state
+
+    plan, calls, kernel, _ = simulated
+    plan = replace(plan, source_audit_sha256="d" * 64)
+    names = ["ffi-8.dll", "pango-1.0-0.dll"] + [f"fake-lazy-{i}.dll" for i in range(19)]
+    verified = boot.VerifiedPrivatePlan(
+        plan, tuple((n, "c" * 64) for n in names),
+        plan.payload_root / "native/pdf/bin/ffi-8.dll", plan.state_root / "cache", 55,
+    )
+    monkeypatch.setattr(boot, "prepare_private_plan", lambda _: verified)
+    monkeypatch.setattr(boot, "verify_private_plan", lambda _: verified)
+    monkeypatch.setitem(
+        sys.modules, "cffi",
+        SimpleNamespace(FFI=lambda: SimpleNamespace(dlopen=lambda *a, **k: object())),
+    )
+    mapped = {"ffi-8.dll"}
+    handles, loads = [], []
+    before = process_state()
+    kernel.GetModuleHandleW.fn = lambda name: name if name in mapped else None
+    original_filename = kernel.GetModuleFileNameW.fn
+
+    def filename(name, buffer, length):
+        if fault == "foreign-dependency" and name == names[-1]:
+            buffer.value = str(plan.payload_root / "FOREIGN.dll")
+            return len(buffer.value)
+        return original_filename(name, buffer, length)
+
+    kernel.GetModuleFileNameW.fn = filename
+
+    class FakeHandle:
+        pango_version_string = Fn(lambda: b"1.58.0-vira-local-source")
+
+    def load(absolute):
+        path = Path(absolute)
+        assert path.parent == plan.payload_root / "native/pdf/bin"
+        assert path.name in names
+        if fault == "load-error" and path.name == names[-1]:
+            raise OSError("Synthetic native load failure")
+        loads.append(path.name)
+        if not (fault == "unmapped" and path.name == names[-1]):
+            mapped.add(path.name)
+        handle = FakeHandle()
+        handles.append(weakref.ref(handle))
+        return handle
+
+    monkeypatch.setattr(ctypes, "CDLL", load)
+    inventory = plan.payload_root / "native/pdf/runtime-inventory.json"
+    inventory.parent.mkdir(parents=True)
+    inventory.write_text(json.dumps({"dlls": dict.fromkeys(names)}))
+    # Reproduce the pre-fix shutdown failure in a process that never rendered:
+    # the original FFI-only activation leaves the other modules unmapped.
+    with pytest.raises(RuntimeError, match="Audited desktop native module absent"):
+        desktop_entry.native_state(plan.payload_root)
+    if fault:
+        with pytest.raises((ValueError, RuntimeError, OSError)), boot.activate_private_source(plan):
+            pytest.fail("Bad source closure must not enter the application body")
+    else:
+        with boot.activate_private_source(plan):
+            # No renderer/factory/PDF has run; all 21 handles are already pinned.
+            assert loads == names and len(mapped) == 21
+            assert all(ref() is not None for ref in handles)
+            assert len(desktop_entry.native_state(plan.payload_root)["loaded_dlls"]) == 21
+        assert all(ref() is None for ref in handles)
+    assert process_state() == before
+    assert not plan.state_root.exists() and calls[-1] == "close"

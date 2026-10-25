@@ -2045,3 +2045,12 @@ release هنوز انجام نشده و MIT محدود به۱۴فایل و مم�
 تراکنش واقعی و recovery است، نه افزودن شمارش تست یا افزایش کورکورانهٔ مهلت.
 مجوز انتشار جدید پس از کنترل‌ها دریافت شده، اما انتشار انجام نشده؛ برنامه فقط
 دو فاز تحویل باقی‌مانده دارد. checkpoint:docs/dependencies/two-delivery-phases-checkpoint.json.
+
+
+ادامهٔ همان دو فاز — لاگ اصلی launcher با40219174001 و SHA احراز شد:
+preflight موفق، سپس RuntimeError برنامه و قطع traceback کنترلر توسط Stop در
+PowerShell. متن دقیق RuntimeError اصلی در artifact موجود نیست. اصلاح candidate:
+pin تمام۲۱ DLL در activation خصوصی برای فرایند بدون PDF، حفظ کامل stream و
+exit کنترلر، لاگ تازهٔ startup هدف/rollback و diagnostic محدود بدون DB/secret.
+گیت‌ها و مهلت۲۴۰ثانیه تغییر نکرده‌اند؛ این اصلاح هنوز شاهد native موفق، recovery
+executor یا انتشار نیست. جزئیات و محدودیت شواهد در برنامهٔ مرجع دو فاز ثبت است.

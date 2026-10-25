@@ -451,6 +451,14 @@ def failure_kind(exc: Exception) -> str:
         "Update in progress; candidate startup blocked": "UPDATE_LOCK",
         "Independent desktop manifest mismatch": "MANIFEST_DIGEST",
         "Independent digest mismatch": "BOOTSTRAP_DIGEST",
+        "Audited desktop native module absent": "NATIVE_MODULE_ABSENT",
+        "Foreign desktop native module": "FOREIGN_NATIVE_MODULE",
+        "Desktop source function mismatch": "NATIVE_SOURCE_FUNCTION",
+        "Desktop lifetime lock ownership changed": "DESKTOP_LOCK_OWNERSHIP",
+        "Desktop startup/monitor failed": "DESKTOP_MONITOR",
+        "Desktop server startup deadline": "DESKTOP_STARTUP_DEADLINE",
+        "Desktop health gate failed": "DESKTOP_HEALTH_GATE",
+        "Desktop migration readiness gate failed": "DESKTOP_MIGRATION_GATE",
     }
     return known.get(str(exc), type(exc).__name__)
 

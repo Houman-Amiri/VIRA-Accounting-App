@@ -94,6 +94,24 @@ function Assert-PrivatePythonClone([string]$Runtime, [object[]]$BaselineFiles) {
     if ($seen.Count -ne $expected.Count) { throw 'Private Python clone missing anchored file' }
 }
 
+# PowerShell 5.1 turns a native stderr line into an ErrorRecord. With Stop,
+# the first traceback line used to interrupt this pipeline and hide the rest.
+# Drain BOTH streams without treating stderr as the exit status; restore Stop
+# even on a launch failure. The caller still validates exit/journal/guards.
+function Invoke-PrivateController([string]$Executable, [string[]]$Arguments) {
+    $previous = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        $global:LASTEXITCODE = $null
+        & $Executable @Arguments 2>&1 | ForEach-Object { Write-Host ([string]$_) }
+        $nativeCode = $global:LASTEXITCODE
+        if ($null -eq $nativeCode) { throw 'Private controller exit code absent' }
+        return [int]$nativeCode
+    } finally {
+        $ErrorActionPreference = $previous
+    }
+}
+
 # Phase 3 private source branch. Public transaction below remains the default.
 # Clone the verified OLD runtime outside {app} so Python/DLL replacement cannot
 # lock the interpreter executing the transaction. No alternate QA factory exists.
@@ -173,8 +191,7 @@ if ($PrivateSourceTransaction) {
             '--target-anchor',[string]$context.target_anchor,'--attempt',[string]$context.attempt)
         if ($ForceFailure) { $privateArgs += '--force-failure-after-apply' }
         Start-Sleep -Seconds 2 # let the authenticated apply HTTP response complete
-        & (Join-Path $external 'python\python.exe') @privateArgs
-        $privateCode = $LASTEXITCODE
+        $privateCode = Invoke-PrivateController (Join-Path $external 'python\python.exe') $privateArgs
     } finally {
         try {
             if ($channelOwned) {

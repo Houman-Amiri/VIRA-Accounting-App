@@ -104,3 +104,58 @@ def test_packet_checker_requires_native_and_helper_operations_and_no_unchanged_p
             client_module["check_packet"](base, target, packet(extra))
     with pytest.raises(ValueError):
         client_module["check_packet"](base, target, packet(drop="vira-updater.exe"))
+
+
+def test_failure_diagnostics_collect_only_fixed_owned_bounded_startup_logs(tmp_path, client_module):
+    home = tmp_path / "profile/VIRA/private-native-installed"
+    updates = home / "state/data/updates"
+    stage = updates / "99.30.1" / ("b" * 32)
+    stage.mkdir(parents=True)
+    reports = tmp_path / "reports"
+    reports.mkdir()
+    nonce = "c" * 32
+    attempt = tmp_path / ("VIRA تراکنش خصوصی ! & " + nonce)
+    attempt.mkdir()
+    context = dict(role="PRIVATE_SOURCE_TRANSACTION", attempt=str(attempt))
+    (stage / ("private-transaction-" + nonce + ".json")).write_text(json.dumps(context))
+    data = b"SYNTHETIC STARTUP DIAGNOSTIC\n" * 1000
+    (attempt / "target-startup.log").write_bytes(data)
+    (attempt / "rollback-startup.log").write_bytes(b"rollback diagnostic")
+    for secret in ("session.secret", "vira.sqlite3", "private-key.pem", "journal.json"):
+        (attempt / secret).write_bytes(b"MUST NEVER BE COLLECTED")
+    (home / ".native-update.lock").write_bytes(b"GUARD TOKEN MUST NEVER BE COLLECTED")
+    before = {p: p.read_bytes() for p in attempt.iterdir()}
+    client_module["collect_failure_diagnostics"](home, reports, tmp_path)
+    out = reports / "failure-diagnostics"
+    assert {p.name for p in out.iterdir()} == {
+        "snapshot.json", nonce + "-target-startup.log", nonce + "-rollback-startup.log",
+    }
+    assert (out / (nonce + "-target-startup.log")).read_bytes() == data[-16384:]
+    snapshot = json.loads((out / "snapshot.json").read_text())
+    assert snapshot["guards_present"] == [False, True, False]
+    assert snapshot["startup_logs"][0]["complete_bytes"] == len(data)
+    assert before == {p: p.read_bytes() for p in attempt.iterdir()}
+    assert (home / ".native-update.lock").read_bytes() == b"GUARD TOKEN MUST NEVER BE COLLECTED"
+
+
+@pytest.mark.parametrize("fault", ["foreign-path", "invalid-nonce", "wrong-role"])
+def test_failure_diagnostics_never_follow_unowned_contexts(tmp_path, client_module, fault):
+    home = tmp_path / "profile/VIRA/private-native-installed"
+    stage = home / "state/data/updates/99.30.1" / ("b" * 32)
+    stage.mkdir(parents=True)
+    reports = tmp_path / "reports"
+    reports.mkdir()
+    nonce = "c" * 32 if fault != "invalid-nonce" else "not-owned"
+    attempt = tmp_path / ("VIRA تراکنش خصوصی ! & " + nonce)
+    attempt.mkdir()
+    (attempt / "target-startup.log").write_bytes(b"MUST NOT BE COLLECTED")
+    value = dict(role="PRIVATE_SOURCE_TRANSACTION", attempt=str(attempt))
+    if fault == "foreign-path":
+        value["attempt"] = str(tmp_path / "foreign")
+    if fault == "wrong-role":
+        value["role"] = "FOREIGN"
+    (stage / ("private-transaction-" + nonce + ".json")).write_text(json.dumps(value))
+    client_module["collect_failure_diagnostics"](home, reports, tmp_path)
+    out = reports / "failure-diagnostics"
+    assert {p.name for p in out.iterdir()} == {"snapshot.json"}
+    assert json.loads((out / "snapshot.json").read_text())["startup_logs"] == []

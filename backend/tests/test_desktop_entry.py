@@ -188,3 +188,14 @@ def test_environment_restores_absent_and_existing(monkeypatch):
         raise RuntimeError("test")
     assert entry.os.environ["VIRA_ENTRY_TEST"] == "old"
     assert "VIRA_ENTRY_ABSENT" not in entry.os.environ
+
+
+@pytest.mark.parametrize("message, code", [
+    ("Audited desktop native module absent", "NATIVE_MODULE_ABSENT"),
+    ("Foreign desktop native module", "FOREIGN_NATIVE_MODULE"),
+    ("Desktop source function mismatch", "NATIVE_SOURCE_FUNCTION"),
+    ("Desktop startup/monitor failed", "DESKTOP_MONITOR"),
+    ("Unrecognized error with SECRET synthetic password", "RuntimeError"),
+])
+def test_bounded_startup_diagnostics_distinguish_known_failures_without_secrets(message, code):
+    assert entry.failure_kind(RuntimeError(message)) == code

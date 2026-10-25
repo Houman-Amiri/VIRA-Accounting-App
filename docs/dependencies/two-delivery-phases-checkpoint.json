@@ -33,9 +33,41 @@
   },
   "diagnostic_recovery_run": 40218916819,
   "actual_native_transaction_passed": false,
-  "current_failure": "wait_terminal_240s_expired_without_fresh_verified_terminal_result",
+  "current_failure": "verified_preflight_then_private_desktop_RuntimeError_and_PowerShell_Stop_truncated_controller_stderr",
   "underlying_timeout_cause_proven": false,
   "recovery_executor_implemented": false,
   "heavy_rebuild_triggered_for_log_recovery": false,
-  "distribution_gates_closed": false
+  "distribution_gates_closed": false,
+  "original_native_launcher": {
+    "diagnostic_run": 40219174001,
+    "artifact": 12603259611,
+    "artifact_sha256": "fb19d1e4021a9a855fb60edc875409b74147448ff4c72863a7a7dd83a265d7bb",
+    "member": "native-commit/launcher.log",
+    "bytes": 1225,
+    "sha256": "51677889c31fcf4b3a52fe1cf9bda63a722892e11ae9fcf72e1156db72bfff48",
+    "preflight_verified": true,
+    "desktop_error": "RuntimeError",
+    "native_imported": true,
+    "app_imported": true,
+    "full_original_exception_message_available": false
+  },
+  "candidate_repair": {
+    "source_full_closure_pinned_before_app_even_without_PDF": true,
+    "synthetic_no_PDF_shutdown_failure_reproduced_and_fixed": true,
+    "original_RuntimeError_exact_cause_proven": false,
+    "PowerShell_native_streams_drained_and_exit_code_preserved": true,
+    "target_and_rollback_startup_logs_preserved": true,
+    "failure_artifact_collects_only_bounded_owned_startup_logs_and_guard_presence": true,
+    "timeout_seconds_unchanged": 240,
+    "native_acceptance": "pending_new_run",
+    "Windows_PowerShell_5_1_and_7_controls": "pending_new_run",
+    "local_validation": {
+      "full_pytest_passed": 1197,
+      "full_pytest_seconds": 81.78,
+      "ruff": "passed",
+      "mypy": "90 source files passed",
+      "bandit": "passed",
+      "pip_audit": "no known third-party vulnerabilities; local vira-accounting package not on PyPI"
+    }
+  }
 }

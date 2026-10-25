@@ -410,7 +410,8 @@ def test_synthetic_transaction_with_real_sqlite_snapshot_restore(tmp_path, monke
 
     monkeypatch.setitem(scope, "subprocess", SimpleNamespace(run=preflight))
 
-    def start_mock(_home, root, token, pin):
+    def start_mock(_home, root, token, pin, log):
+        assert log.parent == attempt and log.name in {"target-startup.log", "rollback-startup.log"}
         assert len(token) == 64 and _home == home
         assert (home / "state/data/updates/.update.lock").read_bytes() == token.encode()
         starts.append(pin["manifest_sha256"])
@@ -484,3 +485,49 @@ def test_owned_atomic_temporary_is_removed_on_replace_failure(tmp_path, monkeypa
         MODULE["atomic"](target, b"new")
     assert target.read_bytes() == b"original"
     assert list(tmp_path.iterdir()) == [target]
+
+
+def test_rejected_target_preserves_startup_diagnostics_without_overwriting(tmp_path, monkeypatch):
+    """Mock owned child only; actual exclusive file/stream handling, no native proof."""
+    from types import SimpleNamespace
+
+    start = runpy.run_path(str(ROOT / "scripts/private_source_update.py"))["start"]
+    scope = start.__globals__
+    home, root = tmp_path / "home", tmp_path / "payload"
+    home.mkdir()
+    root.mkdir()
+    log = tmp_path / "target-startup.log"
+    calls, streams = [], []
+
+    class Child:
+        pid = 123456
+
+        def poll(self):
+            return 9
+
+        def wait(self, timeout):
+            assert timeout == 15
+            return 9
+
+    def spawn(argv, **kwargs):
+        assert argv[-1] == str(root / "app/private_installed_source.py")
+        assert kwargs["env"]["VIRA_PRIVATE_UPDATE_TOKEN"] == "a" * 64
+        assert kwargs["stderr"] == -2  # subprocess.STDOUT, not discarded.
+        calls.append(argv)
+        streams.append(kwargs["stdout"])
+        kwargs["stdout"].write(b"VIRA private desktop startup rejected: NATIVE_MODULE_ABSENT\n")
+        kwargs["stdout"].flush()
+        return Child()
+
+    def reap(argv, **kwargs):
+        assert argv == ["taskkill", "/PID", "123456", "/T", "/F"]
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setitem(scope, "subprocess", SimpleNamespace(Popen=spawn, STDOUT=-2, run=reap))
+    with pytest.raises(RuntimeError, match="exited before readiness"):
+        start(home, root, "a" * 64, {"port": 8787}, log)
+    expected = b"VIRA private desktop startup rejected: NATIVE_MODULE_ABSENT\n"
+    assert log.read_bytes() == expected and streams[0].closed
+    with pytest.raises(FileExistsError):
+        start(home, root, "a" * 64, {"port": 8787}, log)
+    assert len(calls) == 1 and log.read_bytes() == expected

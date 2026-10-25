@@ -17,7 +17,7 @@ import sys
 import threading
 import time
 import zipfile
-from contextlib import closing
+from contextlib import closing, suppress
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -634,6 +634,58 @@ def _run_owned(
     return result
 
 
+def collect_failure_diagnostics(home: Path, reports: Path, runner: Path) -> None:
+    """Read only bounded, fixed startup logs; NEVER collect DB/secrets/packages.
+
+    A context may not redirect diagnostics outside its exact nonce-owned attempt.
+    This is diagnostics, not recovery or permission to remove any guard.
+    """
+    def safe(path: Path) -> None:
+        for part in (path, *path.parents):
+            if part.is_symlink() or (
+                part.exists() and getattr(part.stat(), "st_file_attributes", 0) & 0x400
+            ):
+                raise ValueError("Diagnostic reparse path rejected")
+
+    updates = home / "state/data/updates"
+    safe(updates)
+    out = reports / "failure-diagnostics"
+    out.mkdir(exist_ok=True)
+    guards = [home / ".native-channel.lock", home / ".native-update.lock",
+              updates / ".update.lock"]
+    summary = dict(guards_present=[p.exists() for p in guards], startup_logs=[])
+    contexts = sorted(updates.glob("*/*/private-transaction-*.json"))
+    for context in contexts[:8]:
+        safe(context)
+        if context.stat().st_size > 65536:
+            continue
+        nonce = context.stem.removeprefix("private-transaction-")
+        if len(nonce) != 32 or any(c not in "0123456789abcdef" for c in nonce):
+            continue
+        value = read(context)
+        attempt = runner / ("VIRA تراکنش خصوصی ! & " + nonce)
+        if (value.get("role") != "PRIVATE_SOURCE_TRANSACTION"
+                or value.get("attempt") != str(attempt)):
+            continue
+        safe(attempt)
+        for name in ("target-startup.log", "rollback-startup.log"):
+            log = attempt / name
+            safe(log)
+            if not log.is_file():
+                continue
+            with log.open("rb") as stream:
+                size = stream.seek(0, 2)
+                stream.seek(max(0, size - 16384))
+                tail = stream.read(16384)
+            destination = out / (nonce + "-" + name)
+            destination.write_bytes(tail)
+            summary["startup_logs"].append(dict(
+                file=destination.name, complete_bytes=size, tail_bytes=len(tail),
+                tail_sha256=hashlib.sha256(tail).hexdigest(),
+            ))
+    dump(out / "snapshot.json", summary)
+
+
 def run(
     root: Path,
     profile: Path,
@@ -672,6 +724,11 @@ def run(
             password,
             sessions,
         )
+    except BaseException:
+        # Diagnostics may fail closed, but must never replace the real error.
+        with suppress(OSError, ValueError, KeyError, TypeError):
+            collect_failure_diagnostics(profile / "VIRA/private-native-installed", reports, runner)
+        raise
     finally:
         # Never interfere with an in-flight helper or erase its recovery guards.
         # A failed proof is NOT success merely because CI eventually kills orphans.

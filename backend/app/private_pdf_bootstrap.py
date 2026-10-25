@@ -447,6 +447,21 @@ def _activate_private(plan: PrivateBootstrapPlan) -> Iterator[PrivateSdkActivati
                     loaded_preload = buffer.value
             if loaded_preload is None or pinned is None:
                 raise RuntimeError("Private native preload lifetime failure")
+            # Source21 shutdown receipts audit the entire loaded closure, including
+            # when this process has never rendered a PDF. Do not depend on lazy
+            # renderer imports to map all audited DLLs. Keep absolute handles alive
+            # throughout the app body; reject foreign dependency resolution too.
+            source_handles = []
+            if plan.source_audit_sha256 is not None:
+                for name, _ in verified.dlls:
+                    source_handles.append(ctypes.CDLL(str(native / name)))
+                for name, _ in verified.dlls:
+                    module = kernel.GetModuleHandleW(name)
+                    buffer = ctypes.create_unicode_buffer(32768)
+                    if not module or not kernel.GetModuleFileNameW(module, buffer, len(buffer)):
+                        raise RuntimeError("Private source closure not mapped")
+                    if Path(buffer.value).resolve() != native / name:
+                        raise ValueError("Foreign source module before app entry")
             yield PrivateSdkActivation(os.getpid(), kernel.GetACP(), loaded_preload,
                                        plan.manifest_sha256, plan.inventory_sha256,
                                        verified.payload_files, len(verified.dlls), directory,
@@ -455,7 +470,9 @@ def _activate_private(plan: PrivateBootstrapPlan) -> Iterator[PrivateSdkActivati
                                        plan.source_audit_sha256)
             if any(Path(directory).iterdir()):
                 raise ValueError("Private bootstrap temporary files leaked")
-            if pinned is None:
+            if pinned is None or (
+                plan.source_audit_sha256 is not None and len(source_handles) != len(verified.dlls)
+            ):
                 raise RuntimeError("Private native preload lost during application body")
     finally:
         try:
