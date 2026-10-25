@@ -1967,3 +1967,13 @@ to pwsh12 cases and14terminal-AST faults. Still NOT compiled EXE/native acceptan
 do not attribute it to this fix. New fixed pipeline will queue without cancelling
 the active cold build. Native transaction and crash/stale-lock outcomes remain
 unproved. Phase3 INCOMPLETE, all6 gates OPEN; no release/next-phase/user-data change.
+
+
+Phase3 verifier runtime ecf6865: CI40190780398 ALL5 SUCCESS and Windows
+preflight40190780428/job121161134729 SUCCESS.1150 local all-extras PASS82.13s;
+recorded actual Ninja command regression and effective-option rejection controls
+passed on Windows too. Does NOT retroactively admit original NativeB, compiled
+helper fault/crash recovery or installed in-app native delta/rollback. Fixed
+source pipeline40190780548 queues behind active7bb72e0/source40189290222 (which
+still contains the old slash-only verifier). Both full native result and crash
+recovery remain unproved; Phase3 INCOMPLETE, all6 gates OPEN, no publication.

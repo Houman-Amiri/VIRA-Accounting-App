@@ -120,5 +120,59 @@
     "conclusion": "success",
     "cases": 12,
     "compiled_helper_or_native_proof": false
+  },
+  "effective_compiler_verifier_runtime_revision": "ecf6865",
+  "effective_compiler_verifier_ci": [
+    {
+      "id": 40190780398,
+      "head": "ecf68651ba2470a0fe8b43f787396032e1a5ab51",
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/40190780398",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121161191006,
+          "name": "Backend \u2014 lint, type, security, tests",
+          "conclusion": "success"
+        },
+        {
+          "id": 121161191186,
+          "name": "OpenAPI contract is in sync",
+          "conclusion": "success"
+        },
+        {
+          "id": 121161191214,
+          "name": "Frontend \u2014 lint, types, contract, tests, build",
+          "conclusion": "success"
+        },
+        {
+          "id": 121161191242,
+          "name": "Playwright e2e (native processes)",
+          "conclusion": "success"
+        },
+        {
+          "id": 121161191290,
+          "name": "Windows-native smoke (SQLite paths, venv, build)",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 40190780428,
+      "head": "ecf68651ba2470a0fe8b43f787396032e1a5ab51",
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/40190780428",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121161134729,
+          "name": "windows-preflight",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "fixed_actual_native_pipeline": {
+    "run": 40190780548,
+    "outcome": "pending_behind_existing_7bb72e0_cold_build",
+    "actual_native_acceptance": false
   }
 }
