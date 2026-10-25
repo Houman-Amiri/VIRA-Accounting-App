@@ -76,3 +76,28 @@ jobs:
               for i, data in enumerate(parts):
                   notice('Original transaction failure tail',dict(part=i,total=len(parts),data=data))
           PY
+      - name: Recover original owned native-commit launcher log, never database or keys
+        shell: bash
+        run: |
+          python - <<'PY'
+          import base64,hashlib,io,json,os,subprocess,zipfile,zlib
+          repo=os.environ['GH_REPO']; artifact_id=12603259611
+          meta=json.loads(subprocess.check_output(['gh','api',f'repos/{repo}/actions/artifacts/{artifact_id}']))
+          assert meta['workflow_run']['id']==40190780548 and meta['workflow_run']['head_sha']=='ecf68651ba2470a0fe8b43f787396032e1a5ab51'
+          assert meta['name']=='private-phase3-real-native-transaction-no-app-db-dlls-NOT-crash-recovery' and not meta['expired']
+          archive=subprocess.check_output(['gh','api',f'repos/{repo}/actions/artifacts/{artifact_id}/zip'])
+          digest=hashlib.sha256(archive).hexdigest()
+          assert meta['digest']=='sha256:'+digest and digest=='fb19d1e4021a9a855fb60edc875409b74147448ff4c72863a7a7dd83a265d7bb'
+          with zipfile.ZipFile(io.BytesIO(archive)) as z:
+              names=z.namelist()
+              print('::notice title=Original transaction artifact members::'+json.dumps(dict(artifact=artifact_id,zip_sha256=digest,names=names)))
+              selected=[n for n in names if n.endswith('native-commit/launcher.log')]
+              assert len(selected)==1
+              raw=z.read(selected[0]); assert len(raw)<2*1024*1024
+              encoded=base64.b64encode(zlib.compress(raw,9)).decode()
+              parts=[encoded[i:i+2000] for i in range(0,len(encoded),2000)]
+              assert len(parts)<=8,'Need split jobs, never truncate the owned log'
+              print('::notice title=Original owned launcher provenance::'+json.dumps(dict(member=selected[0],bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest(),parts=len(parts))))
+              for i,data in enumerate(parts):
+                  print('::notice title=Original owned launcher evidence::'+json.dumps(dict(part=i,total=len(parts),data=data)))
+          PY
