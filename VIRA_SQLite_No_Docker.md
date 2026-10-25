@@ -1791,3 +1791,36 @@ Source39610014494 is STILL in actual cold native compilation; source39612186978
 for0f55e9c. No actual permissioned Source21 native delta/rollback/crash-recovery
 claim. All6 distribution gates OPEN; Phase3 ACTIVE/INCOMPLETE, no Phase4/tag/release.
 GitHub connection works; no owner installation/data action required currently.
+
+
+## 2026-10-25 — Phase3 REAL Source21 install proven, native transaction STILL pending
+
+Source runs39610014494 (4669c5e) and39612186978 (a7c6fc8) BOTH SUCCESS.
+The latter really compiled/audited20 preferred trees/21DLLs, executed selected-path
+Unicode/space/!& Inno99.30.0, real app-owned CMD/HTTP/PDF and distinct restart.
+Authenticated artifact12359170810 ZIPsha7950a3add7cfab2b2bc0c2986b12f430bac46cd62676f17e009ea570ed7a15d0;
+losslessly recovered by40182013261/all8 SUCCESS, not another app execution.
+[Full immutable witness](docs/dependencies/phase3-installed-source21-evidence.json),
+[artifact/recovery proof](docs/dependencies/phase3-installed-source21-recovery-proof.json).
+94910bytes/SHA6be7d5384c81511d30e009b412808c185c472dcd4903d292913f853a01db3ef3;
+actual installed PIDs4016/6596, persisted IDs/session/secret,8HTTP PDFs1/4pages,
+all21DLL origins in chosen installation. This is NOT in-app native delta/rollback.
+
+Next target is a SECOND cold, disjoint, cache-disabled build from the SAME20
+noticed preferred-source trees, with explicit MSVC /Od /Ob0 /DNDEBUG codegen.
+Original authenticated kit unchanged; only its isolated MIT-scoped triplet COPY
+is extended, not the application license. Verify independent20tree/21DLL audit,
+executed Pango, COMPLETE compiler Ninja instructions and different Pango PE.text
+bytes; timestamp/version/header-only change MUST fail. No synthetic DLL or PE edit.
+Target construction is implemented but Windows outcome not yet observed; actual
+permissioned changed-parts-only delta/verified rollback and terminal-helper faults,
+crash/stale-lock recovery remain pending. No full setup is selected for updates.
+
+1118 local PASS104.15s, no failures/errors/skips; Ruff/Mypy90/BanditCI PASS.
+Today's pip-audit found9 new advisories in Python brotli/filelock/pypdf; fixed to
+1.2.1/4.2.1/6.21.2 without ignores. Compatible dependency resolution also changes
+optional LiteLLM1.105.1→1.103.9 (old requires filelock<4) and boto3/botocore to
+minimal compatible1.43.117. Audit now0 known external-dependency vulnerabilities;
+this is NOT native-DLL/CRT/security/legal clearance. Public version1.0.10, math,
+schema, UI and user installation/data unchanged. All6 gates OPEN, Phase3 INCOMPLETE,
+no Phase4/5/6/tag/release approval. [Checkpoint](docs/dependencies/phase3-installed-and-codegen-checkpoint.json).

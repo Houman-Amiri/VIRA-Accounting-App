@@ -3,9 +3,9 @@ name: Phase 2 real CMD source startup and HTTP
 on:
   workflow_dispatch:
   push:
-    paths: ['.github/workflows/pdf-desktop-source.yml', 'backend/app/desktop_entry.py', 'scripts/start_vira.cmd', 'scripts/desktop_launcher_*.py', 'scripts/desktop_launcher_smoke.ps1', 'backend/tests/test_desktop_entry.py', 'backend/app/private_pdf_bootstrap.py', 'backend/app/private_installed_source.py', 'backend/tests/test_private_installed_version.py', 'scripts/phase3_installed_probe.py', 'scripts/phase3_installed_smoke.ps1', 'scripts/build_manifest.py']
+    paths: ['.github/workflows/pdf-desktop-source.yml', 'backend/app/desktop_entry.py', 'scripts/start_vira.cmd', 'scripts/desktop_launcher_*.py', 'scripts/desktop_launcher_smoke.ps1', 'backend/tests/test_desktop_entry.py', 'backend/app/private_pdf_bootstrap.py', 'backend/app/private_installed_source.py', 'backend/tests/test_private_installed_version.py', 'scripts/phase3_installed_probe.py', 'scripts/phase3_installed_smoke.ps1', 'scripts/build_manifest.py', 'scripts/phase3_native_codegen.ps1', 'scripts/phase3_native_codegen.py']
   pull_request:
-    paths: ['.github/workflows/pdf-desktop-source.yml', 'backend/app/desktop_entry.py', 'scripts/start_vira.cmd', 'scripts/desktop_launcher_*.py', 'scripts/desktop_launcher_smoke.ps1', 'backend/tests/test_desktop_entry.py', 'backend/app/private_pdf_bootstrap.py', 'backend/app/private_installed_source.py', 'backend/tests/test_private_installed_version.py', 'scripts/phase3_installed_probe.py', 'scripts/phase3_installed_smoke.ps1', 'scripts/build_manifest.py']
+    paths: ['.github/workflows/pdf-desktop-source.yml', 'backend/app/desktop_entry.py', 'scripts/start_vira.cmd', 'scripts/desktop_launcher_*.py', 'scripts/desktop_launcher_smoke.ps1', 'backend/tests/test_desktop_entry.py', 'backend/app/private_pdf_bootstrap.py', 'backend/app/private_installed_source.py', 'backend/tests/test_private_installed_version.py', 'scripts/phase3_installed_probe.py', 'scripts/phase3_installed_smoke.ps1', 'scripts/build_manifest.py', 'scripts/phase3_native_codegen.ps1', 'scripts/phase3_native_codegen.py']
 
 permissions:
   contents: read
@@ -430,6 +430,27 @@ jobs:
           path: reports/phase3-installed/
           retention-days: 90
           if-no-files-found: ignore
+      - name: Phase3 independently cold-build genuine native codegen target NOT delta acceptance
+        shell: pwsh
+        run: |
+          & ./scripts/phase3_native_codegen.ps1 -BaselineAudit "$pwd/reports/local-source/verified-local-rebuild.json"
+          if ($LASTEXITCODE -ne 0) { throw "Phase3 independent codegen target failed" }
+      - name: Preserve independent target compiler diagnostics without binaries
+        if: always()
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force reports/phase3-codegen | Out-Null
+          foreach ($name in @('rebuild-plan.json','rebuild-result.json','build.log','DO_NOT_DISTRIBUTE.txt')) {
+            $file = Join-Path "$env:RUNNER_TEMP/phase3-codegen-native-work" $name
+            if (Test-Path -LiteralPath $file) { Copy-Item -LiteralPath $file -Destination reports/phase3-codegen/ }
+          }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: private-phase3-independent-codegen-source21-NOT-delta-proof
+          path: reports/phase3-codegen/
+          retention-days: 90
+          if-no-files-found: error
       - name: Preserve bounded diagnostics and recipes, never compiled binaries
         if: always()
         shell: pwsh

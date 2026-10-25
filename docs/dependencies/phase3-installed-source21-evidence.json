@@ -1,0 +1,1146 @@
+{
+  "role": "PHASE3_REAL_VERSIONED_INNO_SOURCE_INSTALL_NOT_DELTA_ACCEPTANCE",
+  "native_audit_sha256": "6eb2429c6e1a2304e780ba84b86d15cb33cd60e18c0a2231aeba6692a27a3122",
+  "native_audit": {
+    "schema": 1,
+    "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+    "application_present": false,
+    "native_compilation": "SUCCESS",
+    "preferred_source_trees": {
+      "brotli": {
+        "source_entries": 167,
+        "tree_sha256": "dbd3a49c029b7987709016c830d91d81965140cd968899774cde542e96227b52"
+      },
+      "bzip2": {
+        "source_entries": 57,
+        "tree_sha256": "eae6339dedd63e3c4919a06d34c6f720ed01ff5919858f11efaacb052d4057ec"
+      },
+      "cairo": {
+        "source_entries": 4949,
+        "tree_sha256": "c464d129dad5472d3634c2103ea7d877fbe59a660518c3a9e591dbcb7a0a591b"
+      },
+      "dirent": {
+        "source_entries": 46,
+        "tree_sha256": "af4c3eaa83c0c0b2f575b7dcd7b2ec244c0c2148606ee0e2211535b614c71995"
+      },
+      "expat": {
+        "source_entries": 232,
+        "tree_sha256": "8ee999e481158da858f42a8219915ff8ea3ea8ec7e0cb6cda8c572b0c2cdb145"
+      },
+      "fontconfig": {
+        "source_entries": 618,
+        "tree_sha256": "8c1ba8655e514d077e652ba11c66ac4c659ec5f562098b8a0f902a98bdec1ea0"
+      },
+      "freetype": {
+        "source_entries": 744,
+        "tree_sha256": "b90227de0647bcdfb79521081c68f97c2a7e57aae8da3fc3e7a0622a30d45849"
+      },
+      "fribidi": {
+        "source_entries": 134,
+        "tree_sha256": "4796dfebf071048db5ee6ea24dc8938279d9e296b8a078c4fdc5b5376dcde3a0"
+      },
+      "gettext-libintl": {
+        "source_entries": 7200,
+        "tree_sha256": "79d17dec1e2c5a82f5115e0e742d84e5bed3a312a5531f288f2511a0aa6abdc6"
+      },
+      "glib": {
+        "source_entries": 2395,
+        "tree_sha256": "f44a752458028ea8af656f2b49fe5ec1046fb7b740a1f08a73f04a756a1b4d70"
+      },
+      "harfbuzz": {
+        "source_entries": 3873,
+        "tree_sha256": "26d960d02c680eb073678fd9b110a1377780408d8f7dbcf4428b88a3ce2b25d5"
+      },
+      "libffi": {
+        "source_entries": 481,
+        "tree_sha256": "6fc9638f10f798341a44522a95bddf760df134c216a64d44313902171192ac72"
+      },
+      "libiconv": {
+        "source_entries": 1109,
+        "tree_sha256": "ad2a87da82e69221ddd2ee4f27cefe11d43976ea9d6ec99f630f817c97bca43c"
+      },
+      "libpng": {
+        "source_entries": 614,
+        "tree_sha256": "758103f80501c993c41dead506585729bf5ca1a3f3a87e6d6648c3bd186d05b2"
+      },
+      "pango": {
+        "source_entries": 1333,
+        "tree_sha256": "1112304eec8ec141b65abcaea69dbd5711ab483c073572dca7683e5595bd599b"
+      },
+      "pcre2": {
+        "source_entries": 646,
+        "tree_sha256": "a9dc03571cfa9e7c523624ac7943b3b39b0748928141ac739c5137647c7dbbd1"
+      },
+      "pixman": {
+        "source_entries": 224,
+        "tree_sha256": "d35d4d470f750c443bf817df080a3431a7f2e63b112ed1880a5541650a872f4c"
+      },
+      "pthread": {
+        "source_entries": 0,
+        "tree_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "pthreads": {
+        "source_entries": 421,
+        "tree_sha256": "f5ad35883c380b0fe9e77daaef2b0667724683cdc756dec66a5456f0e858b2a9"
+      },
+      "zlib": {
+        "source_entries": 262,
+        "tree_sha256": "d5a8207f1132f75079688ca21cc9d713e86ad128fc4f34a3fc837e8e0c7c00b6"
+      }
+    },
+    "dll_count": 21,
+    "dlls": {
+      "brotlicommon.dll": {
+        "source_package": "brotli",
+        "sha256": "d10ebefaf11c511b429dcfe760da06bf35051849714e7985503fb5e55e33af31",
+        "loaded_path": "D:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\brotlicommon.dll"
+      },
+      "brotlidec.dll": {
+        "source_package": "brotli",
+        "sha256": "381aa4c625a1ff1085e5a9c47f0bf3c33f6b8714ae2a8e9ee0308bea9b774671",
+        "loaded_path": "D:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\brotlidec.dll"
+      },
+      "bz2.dll": {
+        "source_package": "bzip2",
+        "sha256": "889d94c6dc0e05a43aa0fa0908dde02d7dcea05ef0a2f3f9c29e396885ae6668",
+        "loaded_path": "D:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\bz2.dll"
+      },
+      "ffi-8.dll": {
+        "source_package": "libffi",
+        "sha256": "033cf0b27893404576a30a102594c1be4b44d0a841d64d612fea66892e49d963",
+        "loaded_path": "D:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\ffi-8.dll"
+      },
+      "fontconfig-1.dll": {
+        "source_package": "fontconfig",
+        "sha256": "1292fe54506de097db64e845153feff5182545f1ad36cb2a30748d44ddd01b30",
+        "loaded_path": "D:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\fontconfig-1.dll"
+      },
+      "freetype.dll": {
+        "source_package": "freetype",
+        "sha256": "5c7933ac996c0b9e02ed5538cedc800d7297a44c3e87cb65aa07573b4b7e7af1",
+        "loaded_path": "D:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\freetype.dll"
+      },
+      "fribidi-0.dll": {
+        "source_package": "fribidi",
+        "sha256": "c4ccd64ef1c068c9c807b4f8733a626fa9381eceb95d8bf0a2198c9efc081efd",
+        "loaded_path": "D:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\fribidi-0.dll"
+      },
+      "gio-2.0-0.dll": {
+        "source_package": "glib",
+        "sha256": "d5d1e3eabfcfc883ce1b244d0e0330c5a3d841b82d2c98fca60bae2dbba7dba5",
+        "loaded_path": "D:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\gio-2.0-0.dll"
+      },
+      "glib-2.0-0.dll": {
+        "source_package": "glib",
+        "sha256": "bdd28e0e0917a491cfead5979adb53163b594b31d38842082b77beae6f4cc6b9",
+        "loaded_path": "D:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\glib-2.0-0.dll"
+      },
+      "gmodule-2.0-0.dll": {
+        "source_package": "glib",
+        "sha256": "bca47094811dda702f3eb6dac10e033a0b18bc6df511e2025cbeb69400004eb0",
+        "loaded_path": "D:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\gmodule-2.0-0.dll"
+      },
+      "gobject-2.0-0.dll": {
+        "source_package": "glib",
+        "sha256": "be4f5b235e0657aecdb8b2a5ffa9f06d1e21afe00b02d97f50bf7b2b26b19d79",
+        "loaded_path": "D:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\gobject-2.0-0.dll"
+      },
+      "harfbuzz-subset.dll": {
+        "source_package": "harfbuzz",
+        "sha256": "ef77cf70adb4729605a4dcbe09ad3bfc964422d9a6b59a5d948beea293846163",
+        "loaded_path": "D:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\harfbuzz-subset.dll"
+      },
+      "harfbuzz.dll": {
+        "source_package": "harfbuzz",
+        "sha256": "97d745b291cb3904f457685dd4f62df1ea435d4067a8e4b4b2df6dee862cf349",
+        "loaded_path": "D:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\harfbuzz.dll"
+      },
+      "iconv-2.dll": {
+        "source_package": "libiconv",
+        "sha256": "89590b85c40219e9aad4902fff73d52517fc04e9ae20693e9cfa7b72de2aec1f",
+        "loaded_path": "D:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\iconv-2.dll"
+      },
+      "intl-8.dll": {
+        "source_package": "gettext-libintl",
+        "sha256": "39534ce8b33151d86a4a2f94d57d36bc509f097d343c3479cce9e4f2dafd2269",
+        "loaded_path": "D:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\intl-8.dll"
+      },
+      "libexpat.dll": {
+        "source_package": "expat",
+        "sha256": "ae8fb477a4102a797b7b371b0af442814eaa27bff18cddb7109eebac05e21345",
+        "loaded_path": "D:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\libexpat.dll"
+      },
+      "libpng16.dll": {
+        "source_package": "libpng",
+        "sha256": "5d04a2cec1385976a8993aeb9fc4b1bcf4602e08e4403540173528cd04c06c31",
+        "loaded_path": "D:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\libpng16.dll"
+      },
+      "pango-1.0-0.dll": {
+        "source_package": "pango",
+        "sha256": "cefddb63a87171b0427b3f2e9c98ed982de8ff64c9a97086ee23a98a3f53761c",
+        "loaded_path": "D:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\pango-1.0-0.dll"
+      },
+      "pangoft2-1.0-0.dll": {
+        "source_package": "pango",
+        "sha256": "555ce46f97071185bf813fa16ba3ba2624654b511ae53cc58513658556109205",
+        "loaded_path": "D:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\pangoft2-1.0-0.dll"
+      },
+      "pcre2-8.dll": {
+        "source_package": "pcre2",
+        "sha256": "ec8a81a4eea77e553a6b2276e46d3cecc4b972598f4f9e164d406cca29987d54",
+        "loaded_path": "D:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\pcre2-8.dll"
+      },
+      "z.dll": {
+        "source_package": "zlib",
+        "sha256": "c095ddbb7820039d3eb869389318d08cb73678ddcb80bbb36b52b004551882f8",
+        "loaded_path": "D:\\a\\_temp\\local-native-work\\installed\\x64-vira-pdf\\bin\\z.dll"
+      }
+    },
+    "not_proven": [
+      "application PDF rendering with this new build",
+      "bitwise reproducibility",
+      "compiler/CRT redistribution permission",
+      "production installation/updates"
+    ],
+    "local_source_preparation": {
+      "schema": 1,
+      "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+      "source_kit_manifest_sha256": "f7276442d9d00f5c6360aafecfd67b4f75aae614a147794af2d56cbf56f0bea7",
+      "target_triplet": "x64-vira-pdf",
+      "host_source_downloads_still_allowed": true,
+      "target_source_acquisitions_replaced": true,
+      "modified_sources_explicitly_allowed": true,
+      "packages": {
+        "brotli": {
+          "patched_source_files": 167,
+          "patched_source_tree_sha256": "dbd3a49c029b7987709016c830d91d81965140cd968899774cde542e96227b52",
+          "patched_source_symlinks": {},
+          "changed_from_original": false,
+          "original_tree_sha256": "dbd3a49c029b7987709016c830d91d81965140cd968899774cde542e96227b52",
+          "roots": [
+            "v1.2.0-7af7ca71ad.clean"
+          ],
+          "upstream_port_sha256": "142eff2e161dcbd5abe54f9acc0ad1954494f2a657780a32e83e558ee7fec4f1",
+          "transformed_port_sha256": "d44e5ce40c2b649dfff8c9d29582aadf2597e41b05028fd8ff0c3fa0aecf35fd",
+          "source_path": "D:\\a\\_temp\\preferred\\sources\\brotli"
+        },
+        "bzip2": {
+          "patched_source_files": 57,
+          "patched_source_tree_sha256": "eae6339dedd63e3c4919a06d34c6f720ed01ff5919858f11efaacb052d4057ec",
+          "patched_source_symlinks": {},
+          "changed_from_original": false,
+          "original_tree_sha256": "eae6339dedd63e3c4919a06d34c6f720ed01ff5919858f11efaacb052d4057ec",
+          "roots": [
+            "bzip2-1-336d4794a3.clean"
+          ],
+          "upstream_port_sha256": "f9214fef97e792ca76f2cf97343edb1b83d6457e7320ae36b06306d0f038b439",
+          "transformed_port_sha256": "f6d0fe036dee7a0c4dea81118ea6e8e80d28a0a36c510b82e4c43a159e107958",
+          "source_path": "D:\\a\\_temp\\preferred\\sources\\bzip2"
+        },
+        "cairo": {
+          "patched_source_files": 4949,
+          "patched_source_tree_sha256": "c464d129dad5472d3634c2103ea7d877fbe59a660518c3a9e591dbcb7a0a591b",
+          "patched_source_symlinks": {},
+          "changed_from_original": false,
+          "original_tree_sha256": "c464d129dad5472d3634c2103ea7d877fbe59a660518c3a9e591dbcb7a0a591b",
+          "roots": [
+            "cairo-1-ebb6bf2944.clean"
+          ],
+          "upstream_port_sha256": "64d835ac4779e10c1373db5195b40bc4d4871c225924a0c184c9ae1c5e71f22d",
+          "transformed_port_sha256": "e1ecfcf47a3cfc1ba013d1f05532549a7818fc6c0a544efc84b9ea056f0ced97",
+          "source_path": "D:\\a\\_temp\\preferred\\sources\\cairo"
+        },
+        "dirent": {
+          "patched_source_files": 46,
+          "patched_source_tree_sha256": "af4c3eaa83c0c0b2f575b7dcd7b2ec244c0c2148606ee0e2211535b614c71995",
+          "patched_source_symlinks": {},
+          "changed_from_original": false,
+          "original_tree_sha256": "af4c3eaa83c0c0b2f575b7dcd7b2ec244c0c2148606ee0e2211535b614c71995",
+          "roots": [
+            "1.26-15c15b77f8.clean"
+          ],
+          "upstream_port_sha256": "038ec47bd2b005c24d700750210bd21df863d2788b6ee09e65a97b0c482b2a6a",
+          "transformed_port_sha256": "39e89f22ad1804dd73cf0aaaaacb51fe808ff665cacc6562f90df04912f6755b",
+          "source_path": "D:\\a\\_temp\\preferred\\sources\\dirent"
+        },
+        "expat": {
+          "patched_source_files": 232,
+          "patched_source_tree_sha256": "8ee999e481158da858f42a8219915ff8ea3ea8ec7e0cb6cda8c572b0c2cdb145",
+          "patched_source_symlinks": {
+            "R_2_9_0-d49b1aac51.clean/README.md": "expat/README.md"
+          },
+          "changed_from_original": false,
+          "original_tree_sha256": "8ee999e481158da858f42a8219915ff8ea3ea8ec7e0cb6cda8c572b0c2cdb145",
+          "roots": [
+            "R_2_9_0-d49b1aac51.clean"
+          ],
+          "upstream_port_sha256": "1c0629d055208c4e4352294e9c0f8270630759549c6eca131ba2d500d37793e9",
+          "transformed_port_sha256": "4f126ffad26dc80f89ac5ffd76c9b29cc42678cf51a2b0b5d1a47d2ba2f3d9fc",
+          "source_path": "D:\\a\\_temp\\preferred\\sources\\expat"
+        },
+        "fontconfig": {
+          "patched_source_files": 618,
+          "patched_source_tree_sha256": "8c1ba8655e514d077e652ba11c66ac4c659ec5f562098b8a0f902a98bdec1ea0",
+          "patched_source_symlinks": {},
+          "changed_from_original": false,
+          "original_tree_sha256": "8c1ba8655e514d077e652ba11c66ac4c659ec5f562098b8a0f902a98bdec1ea0",
+          "roots": [
+            "2.17.1-6edd6fe145.clean"
+          ],
+          "upstream_port_sha256": "d466e115fd9e7e1b2ac4cad483b8bef0fbf82a2db2e2ba19c037fd04845a3aac",
+          "transformed_port_sha256": "e7e1e46f6171b6c3439da776250ad51426aefe3ae56fc625c648dcf7fe22f060",
+          "source_path": "D:\\a\\_temp\\preferred\\sources\\fontconfig"
+        },
+        "freetype": {
+          "patched_source_files": 744,
+          "patched_source_tree_sha256": "b90227de0647bcdfb79521081c68f97c2a7e57aae8da3fc3e7a0622a30d45849",
+          "patched_source_symlinks": {},
+          "changed_from_original": false,
+          "original_tree_sha256": "b90227de0647bcdfb79521081c68f97c2a7e57aae8da3fc3e7a0622a30d45849",
+          "roots": [
+            "VER-2-14-3-46d5ca34ec.clean"
+          ],
+          "upstream_port_sha256": "c139c72f8246c293ef68b4a3cc81ce2bee26afc81ab19d466f0403655c8a9918",
+          "transformed_port_sha256": "c0434a3cd73da2630e71c013b2ceccf3cd5f71c59d2632c129678691a48a203e",
+          "source_path": "D:\\a\\_temp\\preferred\\sources\\freetype"
+        },
+        "fribidi": {
+          "patched_source_files": 134,
+          "patched_source_tree_sha256": "4796dfebf071048db5ee6ea24dc8938279d9e296b8a078c4fdc5b5376dcde3a0",
+          "patched_source_symlinks": {},
+          "changed_from_original": false,
+          "original_tree_sha256": "4796dfebf071048db5ee6ea24dc8938279d9e296b8a078c4fdc5b5376dcde3a0",
+          "roots": [
+            "v1.0.17-27f6b21819.clean"
+          ],
+          "upstream_port_sha256": "dc612dda5d3953c1436d58e7267ff8721ef60682a7e6315c60a813711e923a1a",
+          "transformed_port_sha256": "e20c00ed17d9f8c7e0c5b4ac8f7e2aa0b63de26279acb8b7ceeb26de9f898f05",
+          "source_path": "D:\\a\\_temp\\preferred\\sources\\fribidi"
+        },
+        "gettext-libintl": {
+          "patched_source_files": 7200,
+          "patched_source_tree_sha256": "79d17dec1e2c5a82f5115e0e742d84e5bed3a312a5531f288f2511a0aa6abdc6",
+          "patched_source_symlinks": {},
+          "changed_from_original": false,
+          "original_tree_sha256": "79d17dec1e2c5a82f5115e0e742d84e5bed3a312a5531f288f2511a0aa6abdc6",
+          "roots": [
+            "gettext-0-5775b97cd5.clean"
+          ],
+          "upstream_port_sha256": "eb2d2f4c5e92b4be462da420cbc4d4b000ccf3d8bf2d32af4b58f548e474e1f1",
+          "transformed_port_sha256": "d8305597601652275cbe8ede2c4a207c8d535f7fdbe35fc5144336a62050d473",
+          "source_path": "D:\\a\\_temp\\preferred\\sources\\gettext-libintl"
+        },
+        "glib": {
+          "patched_source_files": 2395,
+          "patched_source_tree_sha256": "f44a752458028ea8af656f2b49fe5ec1046fb7b740a1f08a73f04a756a1b4d70",
+          "patched_source_symlinks": {
+            "glib-2-85f794b129.clean/COPYING": "LICENSES/LGPL-2.1-or-later.txt",
+            "glib-2-85f794b129.clean/gmodule/COPYING": "../LICENSES/LGPL-2.1-or-later.txt"
+          },
+          "changed_from_original": false,
+          "original_tree_sha256": "f44a752458028ea8af656f2b49fe5ec1046fb7b740a1f08a73f04a756a1b4d70",
+          "roots": [
+            "glib-2-85f794b129.clean"
+          ],
+          "upstream_port_sha256": "17a12add41698bc59ffc1b49c28e51ff7e60818281da4485f2be0549bbaaf9cf",
+          "transformed_port_sha256": "8429b2acc4d7998ef9f2260d7a33855c74b8f3fe0096a35e777199f86477f145",
+          "source_path": "D:\\a\\_temp\\preferred\\sources\\glib"
+        },
+        "harfbuzz": {
+          "patched_source_files": 3873,
+          "patched_source_tree_sha256": "26d960d02c680eb073678fd9b110a1377780408d8f7dbcf4428b88a3ce2b25d5",
+          "patched_source_symlinks": {
+            "14.6.0-c6e291dab0.clean/CLAUDE.md": "AGENTS.md"
+          },
+          "changed_from_original": false,
+          "original_tree_sha256": "26d960d02c680eb073678fd9b110a1377780408d8f7dbcf4428b88a3ce2b25d5",
+          "roots": [
+            "14.6.0-c6e291dab0.clean"
+          ],
+          "upstream_port_sha256": "9aa9a6b83ed8c6b5557cb7cd49f578781692e13081f2a46f4c38772149ae4a84",
+          "transformed_port_sha256": "bfb17766e8fe02f03d386bbb2fef0bf3a1eb742221e37490510d7eea487a6af7",
+          "source_path": "D:\\a\\_temp\\preferred\\sources\\harfbuzz"
+        },
+        "libffi": {
+          "patched_source_files": 481,
+          "patched_source_tree_sha256": "6fc9638f10f798341a44522a95bddf760df134c216a64d44313902171192ac72",
+          "patched_source_symlinks": {},
+          "changed_from_original": false,
+          "original_tree_sha256": "6fc9638f10f798341a44522a95bddf760df134c216a64d44313902171192ac72",
+          "roots": [
+            "libffi-3-ab3188cbcc.clean"
+          ],
+          "upstream_port_sha256": "7915550ae2ec74e86fc35cbbabcb4e064c93ef5af471445c08c69fefdd0363d1",
+          "transformed_port_sha256": "3f4f72f0198545c54f0ebb6e42a1283ae48f0f67877f41f313ceb92dae0b35be",
+          "source_path": "D:\\a\\_temp\\preferred\\sources\\libffi"
+        },
+        "libiconv": {
+          "patched_source_files": 1109,
+          "patched_source_tree_sha256": "ad2a87da82e69221ddd2ee4f27cefe11d43976ea9d6ec99f630f817c97bca43c",
+          "patched_source_symlinks": {},
+          "changed_from_original": false,
+          "original_tree_sha256": "ad2a87da82e69221ddd2ee4f27cefe11d43976ea9d6ec99f630f817c97bca43c",
+          "roots": [
+            "v1.19-81131afe73.clean"
+          ],
+          "upstream_port_sha256": "4fd50416fde07190457694efad72120512f24393f818c42fe637eb7cf20d75d2",
+          "transformed_port_sha256": "22dda5892a1f4de56cfae125b9b9227fb97b3111b87239c1aed8627a8add6b11",
+          "source_path": "D:\\a\\_temp\\preferred\\sources\\libiconv"
+        },
+        "libpng": {
+          "patched_source_files": 614,
+          "patched_source_tree_sha256": "758103f80501c993c41dead506585729bf5ca1a3f3a87e6d6648c3bd186d05b2",
+          "patched_source_symlinks": {},
+          "changed_from_original": false,
+          "original_tree_sha256": "758103f80501c993c41dead506585729bf5ca1a3f3a87e6d6648c3bd186d05b2",
+          "roots": [
+            "v1.6.59-47af3e6fae.clean"
+          ],
+          "upstream_port_sha256": "946d34dff5d9b684e82705da689eec31998a9b2bfbcc516148641a798f6d8ad6",
+          "transformed_port_sha256": "b0100e45ffbf41dc324177e8f45b6c5f917d92fd3d42453151a28ae1e0bb740c",
+          "source_path": "D:\\a\\_temp\\preferred\\sources\\libpng"
+        },
+        "pango": {
+          "patched_source_files": 1333,
+          "patched_source_tree_sha256": "1112304eec8ec141b65abcaea69dbd5711ab483c073572dca7683e5595bd599b",
+          "patched_source_symlinks": {},
+          "changed_from_original": true,
+          "original_tree_sha256": "d9b002dfb01e7f4525f70bcef082ad618339bc0885c923ed56ec2cd93a89bda2",
+          "roots": [
+            "pango-1-5cb02b5781.clean"
+          ],
+          "upstream_port_sha256": "26a37da1650dd56ff10abce9af6308792319eb4011d4758b3daf4fea41d0c060",
+          "transformed_port_sha256": "be4ea0871982cbb5332aad66e34ca91935e60ca6a127e8a4d9cb5ede38f4f83f",
+          "source_path": "D:\\a\\_temp\\preferred\\sources\\pango"
+        },
+        "pcre2": {
+          "patched_source_files": 646,
+          "patched_source_tree_sha256": "a9dc03571cfa9e7c523624ac7943b3b39b0748928141ac739c5137647c7dbbd1",
+          "patched_source_symlinks": {},
+          "changed_from_original": false,
+          "original_tree_sha256": "a9dc03571cfa9e7c523624ac7943b3b39b0748928141ac739c5137647c7dbbd1",
+          "roots": [
+            "cre2-10.49-cde0d234e5.clean"
+          ],
+          "upstream_port_sha256": "630058a170c4c73d31e8d036929d4cbe0c07a1df1e7a2de1c64e39723551019e",
+          "transformed_port_sha256": "12371ff564b6ae9e9878916cce55d6763228eb658e1b4b4a78060b4a6474f9a6",
+          "source_path": "D:\\a\\_temp\\preferred\\sources\\pcre2"
+        },
+        "pixman": {
+          "patched_source_files": 224,
+          "patched_source_tree_sha256": "d35d4d470f750c443bf817df080a3431a7f2e63b112ed1880a5541650a872f4c",
+          "patched_source_symlinks": {
+            "man-0.46.4-4600eb3651.clean/.gitlab-ci.d/01-docker/target-env/linux-ppc.env": "linux-amd64.env",
+            "man-0.46.4-4600eb3651.clean/.gitlab-ci.d/01-docker/target-env/linux-ppc64.env": "linux-amd64.env",
+            "man-0.46.4-4600eb3651.clean/.gitlab-ci.d/01-docker/target-env/windows-686.env": "linux-amd64.env",
+            "man-0.46.4-4600eb3651.clean/.gitlab-ci.d/01-docker/target-env/windows-amd64.env": "linux-amd64.env",
+            "man-0.46.4-4600eb3651.clean/.gitlab-ci.d/01-docker/target-env/windows-arm64-v8.env": "linux-arm64-v8.env",
+            "man-0.46.4-4600eb3651.clean/.gitlab-ci.d/meson-cross/linux-386-gnu.meson": "native-gnu.meson",
+            "man-0.46.4-4600eb3651.clean/.gitlab-ci.d/meson-cross/linux-386-llvm.meson": "native-llvm.meson",
+            "man-0.46.4-4600eb3651.clean/.gitlab-ci.d/meson-cross/linux-amd64-gnu.meson": "native-gnu.meson",
+            "man-0.46.4-4600eb3651.clean/.gitlab-ci.d/meson-cross/linux-amd64-llvm.meson": "native-llvm.meson",
+            "man-0.46.4-4600eb3651.clean/.gitlab-ci.d/meson-cross/linux-arm64-v8-gnu.meson": "native-gnu.meson",
+            "man-0.46.4-4600eb3651.clean/.gitlab-ci.d/meson-cross/linux-arm64-v8-llvm.meson": "native-llvm.meson",
+            "man-0.46.4-4600eb3651.clean/.gitlab-ci.d/meson-cross/linux-mipsel-gnu.meson": "native-gnu-noopenmp.meson",
+            "man-0.46.4-4600eb3651.clean/.gitlab-ci.d/meson-cross/linux-mipsel-llvm.meson": "native-llvm-noopenmp.meson",
+            "man-0.46.4-4600eb3651.clean/.gitlab-ci.d/meson-cross/linux-ppc64le-gnu.meson": "native-gnu.meson",
+            "man-0.46.4-4600eb3651.clean/.gitlab-ci.d/meson-cross/linux-ppc64le-llvm.meson": "native-llvm.meson",
+            "man-0.46.4-4600eb3651.clean/.gitlab-ci.d/meson-cross/linux-riscv64-gnu.meson": "native-gnu.meson",
+            "man-0.46.4-4600eb3651.clean/.gitlab-ci.d/meson-cross/linux-riscv64-llvm.meson": "native-llvm.meson"
+          },
+          "changed_from_original": false,
+          "original_tree_sha256": "d35d4d470f750c443bf817df080a3431a7f2e63b112ed1880a5541650a872f4c",
+          "roots": [
+            "man-0.46.4-4600eb3651.clean"
+          ],
+          "upstream_port_sha256": "b3a83e55aaa42bc09490ed9e19306374a1a3b548b5a3ca53df67c2be41fd110e",
+          "transformed_port_sha256": "55bcfe2564c497ff8b8f5dc42de146dde5ff33156ec5b81351ce042351acc7cd",
+          "source_path": "D:\\a\\_temp\\preferred\\sources\\pixman"
+        },
+        "pthread": {
+          "patched_source_files": 0,
+          "patched_source_tree_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "patched_source_symlinks": {},
+          "changed_from_original": false,
+          "original_tree_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "roots": [],
+          "upstream_port_sha256": "16471ec9a5c3dbec7727a062ac069ccbe805f3486de47296c62c92cf895d054c",
+          "transformed_port_sha256": "16471ec9a5c3dbec7727a062ac069ccbe805f3486de47296c62c92cf895d054c",
+          "source_path": "D:\\a\\_temp\\preferred\\sources\\pthread"
+        },
+        "pthreads": {
+          "patched_source_files": 421,
+          "patched_source_tree_sha256": "f5ad35883c380b0fe9e77daaef2b0667724683cdc756dec66a5456f0e858b2a9",
+          "patched_source_symlinks": {},
+          "changed_from_original": false,
+          "original_tree_sha256": "f5ad35883c380b0fe9e77daaef2b0667724683cdc756dec66a5456f0e858b2a9",
+          "roots": [
+            "-15acc74eed.clean"
+          ],
+          "upstream_port_sha256": "f1a9c2feb03dae457ffb60fe35128253e5b26ef7252d905051f6c86a316f3291",
+          "transformed_port_sha256": "254cd6c4dd5d3c0a9bf1f8b99b00580eddac9c0f4ab79706d2e15c967dee6f87",
+          "source_path": "D:\\a\\_temp\\preferred\\sources\\pthreads"
+        },
+        "zlib": {
+          "patched_source_files": 262,
+          "patched_source_tree_sha256": "d5a8207f1132f75079688ca21cc9d713e86ad128fc4f34a3fc837e8e0c7c00b6",
+          "patched_source_symlinks": {},
+          "changed_from_original": false,
+          "original_tree_sha256": "d5a8207f1132f75079688ca21cc9d713e86ad128fc4f34a3fc837e8e0c7c00b6",
+          "roots": [
+            "v1.3.2-c19a0bfd23.clean"
+          ],
+          "upstream_port_sha256": "ea47bb5089d792f31127ad26e780e78bb940ad4372aa2d66649a4f446a1a2b72",
+          "transformed_port_sha256": "c644bbaf7613b1225783c9ba7a6e510695daab169ff483f7ca19267cf1bf5b01",
+          "source_path": "D:\\a\\_temp\\preferred\\sources\\zlib"
+        }
+      },
+      "changed_packages": [
+        "pango"
+      ],
+      "offline_sdk": false,
+      "new_corresponding_source_archive_prepared": false
+    },
+    "explicit_edit": {
+      "package": "pango",
+      "file": "pango-1-5cb02b5781.clean/pango/pango-utils.c",
+      "before_sha256": "03352da0e584f9223fdb67cbd74a0fd42a61af18e282e2e4a4a406ee4457be98",
+      "after_sha256": "a530b81e21d8799996032c68398651ec802d62017bac88c6c9d3b7cebd89719a",
+      "expected_runtime_version": "1.58.0-vira-local-source",
+      "original_archive_modified": false,
+      "new_corresponding_source_archive_prepared": true,
+      "modified_source_file": "/* VIRA modification notice - 2026-10-19\n * Modified by VIRA contributors for the private native-source replay test.\n * pango_version_string() appends the suffix -vira-local-source.\n * This dated notice is part of the modified source file itself.\n * Original upstream copyright and license terms below are retained.\n */\n/* Pango\n * pango-utils.c: Utilities for internal functions and modules\n *\n * Copyright (C) 2000 Red Hat Software\n *\n * This library is free software; you can redistribute it and/or\n * modify it under the terms of the GNU Library General Public\n * License as published by the Free Software Foundation; either\n * version 2 of the License, or (at your option) any later version.\n *\n * This library is distributed in the hope that it will be useful,\n * but WITHOUT ANY WARRANTY; without even the implied warranty of\n * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\t See the GNU\n * Library General Public License for more details.\n *\n * You should have received a copy of the GNU Library General Public\n * License along with this library; if not, write to the\n * Free Software Foundation, Inc., 59 Temple Place - Suite 330,\n * Boston, MA 02111-1307, USA.\n */\n\n#include \"config.h\"\n#include <errno.h>\n#include <string.h>\n#include <stdlib.h>\n#include <math.h>\n#include <locale.h>\n\n#include \"pango-font.h\"\n#include \"pango-features.h\"\n#include \"pango-impl-utils.h\"\n#include \"pango-utils-internal.h\"\n#include \"pango-utils-private.h\"\n\n#include <glib/gstdio.h>\n\n#ifdef G_OS_WIN32\n\n#define flockfile(f) (void)1\n#define funlockfile(f) (void)1\n#define getc_unlocked(f) getc(f)\n\n#include <sys/types.h>\n\n#define STRICT\n#include <windows.h>\n\n#endif\n\n/**\n * pango_version:\n *\n * Returns the encoded version of Pango available at run-time.\n *\n * This is similar to the macro %PANGO_VERSION except that the macro\n * returns the encoded version available at compile-time. A version\n * number can be encoded into an integer using PANGO_VERSION_ENCODE().\n *\n * Returns: The encoded version of Pango library available at run time.\n *\n * Since: 1.16\n */\nint\npango_version (void)\n{\n  return PANGO_VERSION;\n}\n\n/**\n * pango_version_string:\n *\n * Returns the version of Pango available at run-time.\n *\n * This is similar to the macro %PANGO_VERSION_STRING except that the\n * macro returns the version available at compile-time.\n *\n * Returns: (transfer none): A string containing the version of Pango library available\n *   at run time. The returned string is owned by Pango and should not\n *   be modified or freed.\n *\n * Since: 1.16\n */\nconst char *\npango_version_string (void)\n{\n  return PANGO_VERSION_STRING \"-vira-local-source\";\n}\n\n/**\n * pango_version_check:\n * @required_major: the required major version\n * @required_minor: the required minor version\n * @required_micro: the required major version\n *\n * Checks that the Pango library in use is compatible with the\n * given version.\n *\n * Generally you would pass in the constants %PANGO_VERSION_MAJOR,\n * %PANGO_VERSION_MINOR, %PANGO_VERSION_MICRO as the three arguments\n * to this function; that produces a check that the library in use at\n * run-time is compatible with the version of Pango the application or\n * module was compiled against.\n *\n * Compatibility is defined by two things: first the version\n * of the running library is newer than the version\n * @required_major.required_minor.@required_micro. Second\n * the running library must be binary compatible with the\n * version @required_major.required_minor.@required_micro\n * (same major version.)\n *\n * For compile-time version checking use PANGO_VERSION_CHECK().\n *\n * Returns: (transfer none) (nullable): %NULL if the Pango library is compatible\n *   with the given version, or a string describing the version\n *   mismatch.  The returned string is owned by Pango and should not\n *   be modified or freed.\n *\n * Since: 1.16\n */\nconst gchar*\npango_version_check (int required_major,\n\t\t     int required_minor,\n\t\t     int required_micro)\n{\n  gint pango_effective_micro = 100 * PANGO_VERSION_MINOR + PANGO_VERSION_MICRO;\n  gint required_effective_micro = 100 * required_minor + required_micro;\n\n  if (required_major > PANGO_VERSION_MAJOR)\n    return \"Pango version too old (major mismatch)\";\n  if (required_major < PANGO_VERSION_MAJOR)\n    return \"Pango version too new (major mismatch)\";\n  if (required_effective_micro < pango_effective_micro - PANGO_BINARY_AGE)\n    return \"Pango version too new (micro mismatch)\";\n  if (required_effective_micro > pango_effective_micro)\n    return \"Pango version too old (micro mismatch)\";\n  return NULL;\n}\n\n/**\n * pango_trim_string:\n * @str: a string\n *\n * Trims leading and trailing whitespace from a string.\n *\n * Returns: (transfer full): A newly-allocated string that must be freed with g_free()\n *\n * Deprecated: 1.38\n */\nchar *\npango_trim_string (const char *str)\n{\n  return _pango_trim_string (str);\n}\n\nchar *\n_pango_trim_string (const char *str)\n{\n  int len;\n\n  g_return_val_if_fail (str != NULL, NULL);\n\n  while (*str && g_ascii_isspace (*str))\n    str++;\n\n  len = strlen (str);\n  while (len > 0 && g_ascii_isspace (str[len-1]))\n    len--;\n\n  return g_strndup (str, len);\n}\n\n/**\n * pango_split_file_list:\n * @str: a %G_SEARCHPATH_SEPARATOR separated list of filenames\n *\n * Splits a %G_SEARCHPATH_SEPARATOR-separated list of files, stripping\n * white space and substituting ~/ with $HOME/.\n *\n * Returns: (transfer full) (array zero-terminated=1): a list of\n *   strings to be freed with g_strfreev()\n *\n * Deprecated: 1.38\n */\nchar **\npango_split_file_list (const char *str)\n{\n  int i = 0;\n  int j;\n  char **files;\n\n  files = g_strsplit (str, G_SEARCHPATH_SEPARATOR_S, -1);\n\n  while (files[i])\n    {\n      char *file = _pango_trim_string (files[i]);\n\n      /* If the resulting file is empty, skip it */\n      if (file[0] == '\\0')\n\t{\n\t  g_free(file);\n\t  g_free (files[i]);\n\n\t  for (j = i + 1; files[j]; j++)\n\t    files[j - 1] = files[j];\n\n\t  files[j - 1] = NULL;\n\n\t  continue;\n\t}\n#ifndef G_OS_WIN32\n      /* '~' is a quite normal and common character in file names on\n       * Windows, especially in the 8.3 versions of long file names, which\n       * still occur now and then. Also, few Windows user are aware of the\n       * Unix shell convention that '~' stands for the home directory,\n       * even if they happen to have a home directory.\n       */\n      if (file[0] == '~' && file[1] == G_DIR_SEPARATOR)\n\t{\n\t  char *tmp = g_strconcat (g_get_home_dir(), file + 1, NULL);\n\t  g_free (file);\n\t  file = tmp;\n\t}\n      else if (file[0] == '~' && file[1] == '\\0')\n\t{\n\t  g_free (file);\n\t  file = g_strdup (g_get_home_dir());\n\t}\n#endif\n      g_free (files[i]);\n      files[i] = file;\n\n      i++;\n    }\n\n  return files;\n}\n\n/**\n * pango_read_line:\n * @stream: a stdio stream\n * @str: `GString` buffer into which to write the result\n *\n * Reads an entire line from a file into a buffer.\n *\n * Lines may be delimited with '\\n', '\\r', '\\n\\r', or '\\r\\n'. The delimiter\n * is not written into the buffer. Text after a '#' character is treated as\n * a comment and skipped. '\\' can be used to escape a # character.\n * '\\' proceeding a line delimiter combines adjacent lines. A '\\' proceeding\n * any other character is ignored and written into the output buffer\n * unmodified.\n *\n * Returns: 0 if the stream was already at an %EOF character,\n *   otherwise the number of lines read (this is useful for maintaining\n *   a line number counter which doesn't combine lines with '\\')\n *\n * Deprecated: 1.38\n */\ngint\npango_read_line (FILE *stream, GString *str)\n{\n  gboolean quoted = FALSE;\n  gboolean comment = FALSE;\n  int n_read = 0;\n  int lines = 1;\n\n  flockfile (stream);\n\n  g_string_truncate (str, 0);\n\n  while (1)\n    {\n      int c;\n\n      c = getc_unlocked (stream);\n\n      if (c == EOF)\n\t{\n\t  if (quoted)\n\t    g_string_append_c (str, '\\\\');\n\n\t  goto done;\n\t}\n      else\n\tn_read++;\n\n      if (quoted)\n\t{\n\t  quoted = FALSE;\n\n\t  switch (c)\n\t    {\n\t    case '#':\n\t      g_string_append_c (str, '#');\n\t      break;\n\t    case '\\r':\n\t    case '\\n':\n\t      {\n\t\tint next_c = getc_unlocked (stream);\n\n\t\tif (!(next_c == EOF ||\n\t\t      (c == '\\r' && next_c == '\\n') ||\n\t\t      (c == '\\n' && next_c == '\\r')))\n\t\t  ungetc (next_c, stream);\n\n\t\tlines++;\n\n\t\tbreak;\n\t      }\n\t    default:\n\t      g_string_append_c (str, '\\\\');\n\t      g_string_append_c (str, c);\n\t    }\n\t}\n      else\n\t{\n\t  switch (c)\n\t    {\n\t    case '#':\n\t      comment = TRUE;\n\t      break;\n\t    case '\\\\':\n\t      if (!comment)\n\t\tquoted = TRUE;\n\t      break;\n\t    case '\\r':\n\t    case '\\n':\n\t      {\n\t\tint next_c = getc_unlocked (stream);\n\n\t\tif (!(next_c == EOF ||\n\t\t      (c == '\\r' && next_c == '\\n') ||\n\t\t      (c == '\\n' && next_c == '\\r')))\n\t\t  ungetc (next_c, stream);\n\n\t\tgoto done;\n\t      }\n\t    default:\n\t      if (!comment)\n\t\tg_string_append_c (str, c);\n\t    }\n\t}\n    }\n\n done:\n\n  funlockfile (stream);\n\n  return (n_read > 0) ? lines : 0;\n}\n\n/**\n * pango_skip_space:\n * @pos: (inout) (transfer none): in/out string position\n *\n * Skips 0 or more characters of white space.\n *\n * Returns: %FALSE if skipping the white space leaves\n *   the position at a '\\0' character.\n *\n * Deprecated: 1.38\n */\ngboolean\npango_skip_space (const char **pos)\n{\n  const char *p = *pos;\n\n  while (g_ascii_isspace (*p))\n    p++;\n\n  *pos = p;\n\n  return !(*p == '\\0');\n}\n\n/**\n * pango_scan_word:\n * @pos: (inout) (transfer none): in/out string position\n * @out: a `GString` into which to write the result\n *\n * Scans a word into a `GString` buffer.\n *\n * A word consists of [A-Za-z_] followed by zero or more\n * [A-Za-z_0-9]. Leading white space is skipped.\n *\n * Returns: %FALSE if a parse error occurred\n *\n * Deprecated: 1.38\n */\ngboolean\npango_scan_word (const char **pos, GString *out)\n{\n  const char *p = *pos;\n\n  while (g_ascii_isspace (*p))\n    p++;\n\n  if (!((*p >= 'A' && *p <= 'Z') ||\n\t(*p >= 'a' && *p <= 'z') ||\n\t*p == '_'))\n    return FALSE;\n\n  g_string_truncate (out, 0);\n  g_string_append_c (out, *p);\n  p++;\n\n  while ((*p >= 'A' && *p <= 'Z') ||\n\t (*p >= 'a' && *p <= 'z') ||\n\t (*p >= '0' && *p <= '9') ||\n\t *p == '_')\n    {\n      g_string_append_c (out, *p);\n      p++;\n    }\n\n  *pos = p;\n\n  return TRUE;\n}\n\n/**\n * pango_scan_string:\n * @pos: (inout) (transfer none): in/out string position\n * @out: a `GString` into which to write the result\n *\n * Scans a string into a `GString` buffer.\n *\n * The string may either be a sequence of non-white-space characters,\n * or a quoted string with '\"'. Instead a quoted string, '\\\"' represents\n * a literal quote. Leading white space outside of quotes is skipped.\n *\n * Returns: %FALSE if a parse error occurred\n *\n * Deprecated: 1.38\n */\ngboolean\npango_scan_string (const char **pos, GString *out)\n{\n  const char *p = *pos;\n\n  while (g_ascii_isspace (*p))\n    p++;\n\n  if (G_UNLIKELY (!*p))\n    return FALSE;\n  else if (*p == '\"')\n    {\n      gboolean quoted = FALSE;\n      g_string_truncate (out, 0);\n\n      p++;\n\n      while (TRUE)\n\t{\n\t  if (quoted)\n\t    {\n\t      int c = *p;\n\n\t      switch (c)\n\t\t{\n\t\tcase '\\0':\n\t\t  return FALSE;\n\t\tcase 'n':\n\t\t  c = '\\n';\n\t\t  break;\n\t\tcase 't':\n\t\t  c = '\\t';\n\t\t  break;\n\t\tdefault:\n\t\t  break;\n\t\t}\n\n\t      quoted = FALSE;\n\t      g_string_append_c (out, c);\n\t    }\n\t  else\n\t    {\n\t      switch (*p)\n\t\t{\n\t\tcase '\\0':\n\t\t  return FALSE;\n\t\tcase '\\\\':\n\t\t  quoted = TRUE;\n\t\t  break;\n\t\tcase '\"':\n\t\t  p++;\n\t\t  goto done;\n\t\tdefault:\n\t\t  g_string_append_c (out, *p);\n\t\t  break;\n\t\t}\n\t    }\n\t  p++;\n\t}\n    done:\n      ;\n    }\n  else\n    {\n      g_string_truncate (out, 0);\n\n      while (*p && !g_ascii_isspace (*p))\n\t{\n\t  g_string_append_c (out, *p);\n\t  p++;\n\t}\n    }\n\n  *pos = p;\n\n  return TRUE;\n}\n\n/**\n * pango_scan_int:\n * @pos: (inout) (transfer none): in/out string position\n * @out: (out): an int into which to write the result\n *\n * Scans an integer.\n *\n * Leading white space is skipped.\n *\n * Returns: %FALSE if a parse error occurred\n *\n * Deprecated: 1.38\n */\ngboolean\npango_scan_int (const char **pos, int *out)\n{\n  return _pango_scan_int (pos, out);\n}\n\ngboolean\n_pango_scan_int (const char **pos, int *out)\n{\n  char *end;\n  long temp;\n\n  errno = 0;\n  temp = strtol (*pos, &end, 10);\n  if (errno == ERANGE)\n    {\n      errno = 0;\n      return FALSE;\n    }\n\n  *out = (int)temp;\n  if ((long)(*out) != temp)\n    {\n      return FALSE;\n    }\n\n  *pos = end;\n\n  return TRUE;\n}\n\n/**\n * pango_config_key_get_system:\n * @key: Key to look up, in the form \"SECTION/KEY\"\n *\n * Do not use.  Does not do anything.\n *\n * Returns: (nullable): %NULL\n *\n * Deprecated: 1.38\n */\nchar *\npango_config_key_get_system (const char *key)\n{\n  return NULL;\n}\n\n/**\n * pango_config_key_get:\n * @key: Key to look up, in the form \"SECTION/KEY\"\n *\n * Do not use.  Does not do anything.\n *\n * Returns: (nullable): %NULL\n *\n * Deprecated: 1.38\n */\nchar *\npango_config_key_get (const char *key)\n{\n  return NULL;\n}\n\n/**\n * pango_get_sysconf_subdirectory:\n *\n * Returns the name of the \"pango\" subdirectory of SYSCONFDIR\n * (which is set at compile time).\n *\n * Returns: (transfer none): the Pango sysconf directory. The returned string should\n * not be freed.\n *\n * Deprecated: 1.38\n */\nconst char *\npango_get_sysconf_subdirectory (void)\n{\n  static const gchar *result = NULL; /* MT-safe */\n\n  if (g_once_init_enter (&result))\n    {\n      const char *tmp_result = NULL;\n      const char *sysconfdir = g_getenv (\"PANGO_SYSCONFDIR\");\n      if (sysconfdir != NULL)\n\ttmp_result = g_build_filename (sysconfdir, \"pango\", NULL);\n      else\n\ttmp_result = SYSCONFDIR \"/pango\";\n      g_once_init_leave(&result, tmp_result);\n    }\n  return result;\n}\n\n/**\n * pango_get_lib_subdirectory:\n *\n * Returns the name of the \"pango\" subdirectory of LIBDIR\n * (which is set at compile time).\n *\n * Returns: (transfer none): the Pango lib directory. The returned string should\n * not be freed.\n *\n * Deprecated: 1.38\n */\nconst char *\npango_get_lib_subdirectory (void)\n{\n  static const gchar *result = NULL; /* MT-safe */\n\n  if (g_once_init_enter (&result))\n    {\n      const gchar *tmp_result = NULL;\n      const char *libdir = g_getenv (\"PANGO_LIBDIR\");\n      if (libdir != NULL)\n\ttmp_result = g_build_filename (libdir, \"pango\", NULL);\n      else\n\ttmp_result = LIBDIR \"/pango\";\n      g_once_init_leave(&result, tmp_result);\n    }\n  return result;\n}\n\n\nstatic gboolean\nparse_int (const char *word,\n\t   int        *out)\n{\n  char *end;\n  long val;\n  int i;\n\n  if (word == NULL)\n    return FALSE;\n\n  val = strtol (word, &end, 10);\n  i = val;\n\n  if (end != word && *end == '\\0' && val >= 0 && val == i)\n    {\n      if (out)\n        *out = i;\n\n      return TRUE;\n    }\n\n  return FALSE;\n}\n\n/**\n * pango_parse_enum:\n * @type: enum type to parse, eg. %PANGO_TYPE_ELLIPSIZE_MODE\n * @str: (nullable): string to parse\n * @value: (out) (optional): integer to store the result in\n * @warn: if %TRUE, issue a g_warning() on bad input\n * @possible_values: (out) (optional): place to store list of possible\n *   values on failure\n *\n * Parses an enum type and stores the result in @value.\n *\n * If @str does not match the nick name of any of the possible values\n * for the enum and is not an integer, %FALSE is returned, a warning\n * is issued if @warn is %TRUE, and a string representing the list of\n * possible values is stored in @possible_values. The list is\n * slash-separated, eg. \"none/start/middle/end\".\n *\n * If failed and @possible_values is not %NULL, returned string should\n * be freed using g_free().\n *\n * Returns: %TRUE if @str was successfully parsed\n *\n * Deprecated: 1.38\n *\n * Since: 1.16\n */\ngboolean\npango_parse_enum (GType       type,\n\t\t  const char *str,\n\t\t  int        *value,\n\t\t  gboolean    warn,\n\t\t  char      **possible_values)\n{\n  return _pango_parse_enum (type, str, value, warn, possible_values);\n}\n\ngboolean\n_pango_parse_enum (GType       type,\n\t\t   const char *str,\n \t\t   int        *value,\n\t\t   gboolean    warn,\n\t\t   char      **possible_values)\n{\n  GEnumClass *class = NULL;\n  gboolean ret = TRUE;\n  GEnumValue *v = NULL;\n\n  class = g_type_class_ref (type);\n\n  if (G_LIKELY (str))\n    v = g_enum_get_value_by_nick (class, str);\n\n  if (v)\n    {\n      if (G_LIKELY (value))\n\t*value = v->value;\n    }\n  else if (!parse_int (str, value))\n    {\n      ret = FALSE;\n      if (G_LIKELY (warn || possible_values))\n\t{\n\t  int i;\n\t  GString *s = g_string_new (NULL);\n\n\t  for (i = 0, v = g_enum_get_value (class, i); v;\n\t       i++  , v = g_enum_get_value (class, i))\n\t    {\n\t      if (i)\n\t\tg_string_append_c (s, '/');\n\t      g_string_append (s, v->value_nick);\n\t    }\n\n\t  if (warn)\n\t    g_warning (\"%s must be one of %s\",\n\t\t       G_ENUM_CLASS_TYPE_NAME(class),\n\t\t       s->str);\n\n\t  if (possible_values)\n\t    *possible_values = g_string_free (s, FALSE);\n          else\n\t    g_string_free (s, TRUE);\n\t}\n    }\n\n  g_type_class_unref (class);\n\n  return ret;\n}\n\ngboolean\npango_parse_flags (GType        type,\n                   const char  *str,\n                   int         *value,\n                   char       **possible_values)\n{\n  GFlagsClass *class = NULL;\n  gboolean ret = TRUE;\n  GFlagsValue *v = NULL;\n\n  class = g_type_class_ref (type);\n\n  v = g_flags_get_value_by_nick (class, str);\n\n  if (v)\n    {\n      *value = v->value;\n    }\n  else if (!parse_int (str, value))\n    {\n      char **strv = g_strsplit (str, \"|\", 0);\n      int i;\n\n      *value = 0;\n\n      for (i = 0; strv[i]; i++)\n        {\n          strv[i] = g_strstrip (strv[i]);\n          v = g_flags_get_value_by_nick (class, strv[i]);\n          if (!v)\n            {\n              ret = FALSE;\n              break;\n            }\n          *value |= v->value;\n        }\n      g_strfreev (strv);\n\n      if (!ret && possible_values)\n\t{\n\t  int i;\n\t  GString *s = g_string_new (NULL);\n\n          for (i = 0; i < class->n_values; i++)\n            {\n              v = &class->values[i];\n              if (i)\n                g_string_append_c (s, '/');\n              g_string_append (s, v->value_nick);\n            }\n\n          *possible_values = g_string_free (s, FALSE);\n\t}\n    }\n\n  g_type_class_unref (class);\n\n  return ret;\n}\n\n/**\n * pango_lookup_aliases:\n * @fontname: an ASCII string\n * @families: (out) (array length=n_families): will be set to an array of\n *   font family names. This array is owned by Pango and should not be freed\n * @n_families: (out): will be set to the length of the @families array\n *\n * Look up all user defined aliases for the alias @fontname.\n *\n * The resulting font family names will be stored in @families,\n * and the number of families in @n_families.\n *\n * Deprecated: 1.32: This function is not thread-safe.\n */\nvoid\npango_lookup_aliases (const char   *fontname,\n\t\t      char       ***families,\n\t\t      int          *n_families)\n{\n  *families = NULL;\n  *n_families = 0;\n}\n\n#pragma GCC diagnostic push\n#pragma GCC diagnostic ignored \"-Wdeprecated-declarations\"\n\n/**\n * pango_find_base_dir:\n * @text: the text to process. Must be valid UTF-8\n * @length: length of @text in bytes (may be -1 if @text is nul-terminated)\n *\n * Searches a string the first character that has a strong\n * direction, according to the Unicode bidirectional algorithm.\n *\n * Returns: The direction corresponding to the first strong character.\n *   If no such character is found, then %PANGO_DIRECTION_NEUTRAL is returned.\n *\n * Since: 1.4\n */\nPangoDirection\npango_find_base_dir (const gchar *text,\n\t\t     gint         length)\n{\n  PangoDirection dir = PANGO_DIRECTION_NEUTRAL;\n  const gchar *p;\n\n  g_return_val_if_fail (text != NULL || length == 0, PANGO_DIRECTION_NEUTRAL);\n\n  p = text;\n  while ((length < 0 || p < text + length) && *p)\n    {\n      gunichar wc = g_utf8_get_char (p);\n\n      dir = pango_unichar_direction (wc);\n\n      if (dir != PANGO_DIRECTION_NEUTRAL)\n\tbreak;\n\n      p = g_utf8_next_char (p);\n    }\n\n  return dir;\n}\n\n#pragma GCC diagnostic pop\n\n/**\n * pango_is_zero_width:\n * @ch: a Unicode character\n *\n * Checks if a character that should not be normally rendered.\n *\n * This includes all Unicode characters with \"ZERO WIDTH\" in their name,\n * as well as *bidi* formatting characters, and a few other ones.\n *\n * This is totally different from [func@GLib.unichar_iszerowidth] and is at best misnamed.\n *\n * Returns: %TRUE if @ch is a zero-width character, %FALSE otherwise\n *\n * Since: 1.10\n */\ngboolean\npango_is_zero_width (gunichar ch)\n{\n/* Zero Width characters:\n *\n *  00AD  SOFT HYPHEN\n *  034F  COMBINING GRAPHEME JOINER\n *\n *  200B  ZERO WIDTH SPACE\n *  200C  ZERO WIDTH NON-JOINER\n *  200D  ZERO WIDTH JOINER\n *  200E  LEFT-TO-RIGHT MARK\n *  200F  RIGHT-TO-LEFT MARK\n *\n *  2028  LINE SEPARATOR\n *\n *  2060  WORD JOINER\n *  2061  FUNCTION APPLICATION\n *  2062  INVISIBLE TIMES\n *  2063  INVISIBLE SEPARATOR\n *\n *  2066  LEFT-TO-RIGHT ISOLATE\n *  2067  RIGHT-TO-LEFT ISOLATE\n *  2068  FIRST STRONG ISOLATE\n *  2069  POP DIRECTIONAL ISOLATE\n *\n *  202A  LEFT-TO-RIGHT EMBEDDING\n *  202B  RIGHT-TO-LEFT EMBEDDING\n *  202C  POP DIRECTIONAL FORMATTING\n *  202D  LEFT-TO-RIGHT OVERRIDE\n *  202E  RIGHT-TO-LEFT OVERRIDE\n *\n *  FEFF  ZERO WIDTH NO-BREAK SPACE\n */\n  return ((ch & ~(gunichar)0x007F) == 0x2000 && (\n\t\t(ch >= 0x200B && ch <= 0x200F) ||\n\t\t(ch >= 0x202A && ch <= 0x202E) ||\n\t\t(ch >= 0x2060 && ch <= 0x2063) ||\n                (ch >= 0x2066 && ch <= 0x2069) ||\n\t\t(ch == 0x2028)\n\t )) || G_UNLIKELY (ch == 0x00AD\n\t\t\t|| ch == 0x034F\n\t\t\t|| ch == 0xFEFF);\n}\n\n/**\n * pango_quantize_line_geometry:\n * @thickness: (inout): pointer to the thickness of a line, in Pango units\n * @position: (inout): corresponding position\n *\n * Quantizes the thickness and position of a line to whole device pixels.\n *\n * This is typically used for underline or strikethrough. The purpose of\n * this function is to avoid such lines looking blurry.\n *\n * Care is taken to make sure @thickness is at least one pixel when this\n * function returns, but returned @position may become zero as a result\n * of rounding.\n *\n * Since: 1.12\n */\nvoid\npango_quantize_line_geometry (int *thickness,\n\t\t\t      int *position)\n{\n  int thickness_pixels = (*thickness + PANGO_SCALE / 2) / PANGO_SCALE;\n  if (thickness_pixels == 0)\n    thickness_pixels = 1;\n\n  if (thickness_pixels & 1)\n    {\n      int new_center = ((*position - *thickness / 2) & ~(PANGO_SCALE - 1)) + PANGO_SCALE / 2;\n      *position = new_center + (PANGO_SCALE * thickness_pixels) / 2;\n    }\n  else\n    {\n      int new_center = ((*position - *thickness / 2 + PANGO_SCALE / 2) & ~(PANGO_SCALE - 1));\n      *position = new_center + (PANGO_SCALE * thickness_pixels) / 2;\n    }\n\n  *thickness = thickness_pixels * PANGO_SCALE;\n}\n\n/**\n * pango_units_from_double:\n * @d: double floating-point value\n *\n * Converts a floating-point number to Pango units.\n *\n * The conversion is done by multiplying @d by %PANGO_SCALE and\n * rounding the result to nearest integer.\n *\n * Returns: the value in Pango units.\n *\n * Since: 1.16\n */\nint\npango_units_from_double (double d)\n{\n  return (int)floor (d * PANGO_SCALE + 0.5);\n}\n\n/**\n * pango_units_to_double:\n * @i: value in Pango units\n *\n * Converts a number in Pango units to floating-point.\n *\n * The conversion is done by dividing @i by %PANGO_SCALE.\n *\n * Returns: the double value.\n *\n * Since: 1.16\n */\ndouble\npango_units_to_double (int i)\n{\n  return (double)i / PANGO_SCALE;\n}\n\n/**\n * pango_extents_to_pixels:\n * @inclusive: (inout) (optional): rectangle to round to pixels inclusively\n * @nearest: (inout) (optional): rectangle to round to nearest pixels\n *\n * Converts extents from Pango units to device units.\n *\n * The conversion is done by dividing by the %PANGO_SCALE factor and\n * performing rounding.\n *\n * The @inclusive rectangle is converted by flooring the x/y coordinates\n * and extending width/height, such that the final rectangle completely\n * includes the original rectangle.\n *\n * The @nearest rectangle is converted by rounding the coordinates\n * of the rectangle to the nearest device unit (pixel).\n *\n * The rule to which argument to use is: if you want the resulting device-space\n * rectangle to completely contain the original rectangle, pass it in as\n * @inclusive. If you want two touching-but-not-overlapping rectangles stay\n * touching-but-not-overlapping after rounding to device units, pass them in\n * as @nearest.\n *\n * Since: 1.16\n */\nvoid\npango_extents_to_pixels (PangoRectangle *inclusive,\n\t\t\t PangoRectangle *nearest)\n{\n  if (inclusive)\n    {\n      int orig_x = inclusive->x;\n      int orig_y = inclusive->y;\n\n      inclusive->x = PANGO_PIXELS_FLOOR (inclusive->x);\n      inclusive->y = PANGO_PIXELS_FLOOR (inclusive->y);\n\n      inclusive->width  = PANGO_PIXELS_CEIL (orig_x + inclusive->width ) - inclusive->x;\n      inclusive->height = PANGO_PIXELS_CEIL (orig_y + inclusive->height) - inclusive->y;\n    }\n\n  if (nearest)\n    {\n      int orig_x = nearest->x;\n      int orig_y = nearest->y;\n\n      nearest->x = PANGO_PIXELS (nearest->x);\n      nearest->y = PANGO_PIXELS (nearest->y);\n\n      nearest->width  = PANGO_PIXELS (orig_x + nearest->width ) - nearest->x;\n      nearest->height = PANGO_PIXELS (orig_y + nearest->height) - nearest->y;\n    }\n}\n\n\n\n\n\f\n/*********************************************************\n * Some internal functions for handling PANGO_ATTR_SHAPE *\n ********************************************************/\n\nvoid\n_pango_shape_shape (const char       *text,\n\t\t    unsigned int      n_chars,\n\t\t    PangoRectangle   *shape_ink G_GNUC_UNUSED,\n\t\t    PangoRectangle   *shape_logical,\n\t\t    PangoGlyphString *glyphs)\n{\n  unsigned int i;\n  const char *p;\n\n  pango_glyph_string_set_size (glyphs, n_chars);\n\n  for (i=0, p = text; i < n_chars; i++, p = g_utf8_next_char (p))\n    {\n      glyphs->glyphs[i].glyph = PANGO_GLYPH_EMPTY;\n      glyphs->glyphs[i].geometry.x_offset = 0;\n      glyphs->glyphs[i].geometry.y_offset = 0;\n      glyphs->glyphs[i].geometry.width = shape_logical->width;\n      glyphs->glyphs[i].attr.is_cluster_start = 1;\n\n      glyphs->log_clusters[i] = p - text;\n    }\n}\n\nvoid\n_pango_shape_get_extents (gint              n_chars,\n\t\t\t  PangoRectangle   *shape_ink,\n\t\t\t  PangoRectangle   *shape_logical,\n\t\t\t  PangoRectangle   *ink_rect,\n\t\t\t  PangoRectangle   *logical_rect)\n{\n  if (n_chars > 0)\n    {\n      if (ink_rect)\n\t{\n\t  ink_rect->x = MIN (shape_ink->x, shape_ink->x + shape_logical->width * (n_chars - 1));\n\t  ink_rect->width = MAX (shape_ink->width, shape_ink->width + shape_logical->width * (n_chars - 1));\n\t  ink_rect->y = shape_ink->y;\n\t  ink_rect->height = shape_ink->height;\n\t}\n      if (logical_rect)\n\t{\n\t  logical_rect->x = MIN (shape_logical->x, shape_logical->x + shape_logical->width * (n_chars - 1));\n\t  logical_rect->width = MAX (shape_logical->width, shape_logical->width + shape_logical->width * (n_chars - 1));\n\t  logical_rect->y = shape_logical->y;\n\t  logical_rect->height = shape_logical->height;\n\t}\n    }\n  else\n    {\n      if (ink_rect)\n\t{\n\t  ink_rect->x = 0;\n\t  ink_rect->y = 0;\n\t  ink_rect->width = 0;\n\t  ink_rect->height = 0;\n\t}\n\n      if (logical_rect)\n\t{\n\t  logical_rect->x = 0;\n\t  logical_rect->y = 0;\n\t  logical_rect->width = 0;\n\t  logical_rect->height = 0;\n\t}\n    }\n}\n\n/**\n * pango_find_paragraph_boundary:\n * @text: UTF-8 text\n * @length: length of @text in bytes, or -1 if nul-terminated\n * @paragraph_delimiter_index: (out) (optional): return location\n *  for index of delimiter\n * @next_paragraph_start: (out) (optional): return location for\n *  start of next paragraph\n *\n * Locates a paragraph boundary in @text.\n *\n * A boundary is caused by delimiter characters, such as\n * a newline, carriage return, carriage return-newline pair,\n * or Unicode paragraph separator character.\n *\n * The index of the run of delimiters is returned in\n * @paragraph_delimiter_index. The index of the start of the\n * next paragraph (index after all delimiters) is stored n\n * @next_paragraph_start.\n *\n * If no delimiters are found, both @paragraph_delimiter_index\n * and @next_paragraph_start are filled with the length of @text\n * (an index one off the end).\n */\nvoid\npango_find_paragraph_boundary (const char *text,\n                               int         length,\n                               int        *paragraph_delimiter_index,\n                               int        *next_paragraph_start)\n{\n  const char *p = text;\n  const char *end;\n  const char *start = NULL;\n  const char *delimiter = NULL;\n\n  /* Only one character has type G_UNICODE_PARAGRAPH_SEPARATOR in\n   * Unicode 5.0; update the following code if that changes.\n   */\n\n  /* prev_sep is the first byte of the previous separator.  Since\n   * the valid separators are \\r, \\n, and PARAGRAPH_SEPARATOR, the\n   * first byte is enough to identify it.\n   */\n  char prev_sep;\n\n#define PARAGRAPH_SEPARATOR_STRING \"\\xE2\\x80\\xA9\"\n\n  if (length < 0)\n    length = strlen (text);\n\n  end = text + length;\n\n  if (paragraph_delimiter_index)\n    *paragraph_delimiter_index = length;\n\n  if (next_paragraph_start)\n    *next_paragraph_start = length;\n\n  if (length == 0)\n    return;\n\n  prev_sep = 0;\n  while (p < end)\n    {\n      if (prev_sep == '\\n' ||\n          prev_sep == PARAGRAPH_SEPARATOR_STRING[0])\n        {\n          g_assert (delimiter);\n          start = p;\n          break;\n        }\n      else if (prev_sep == '\\r')\n        {\n          /* don't break between \\r and \\n */\n          if (*p != '\\n')\n            {\n              g_assert (delimiter);\n              start = p;\n              break;\n            }\n        }\n\n      if (*p == '\\n' ||\n           *p == '\\r' ||\n           !strncmp(p, PARAGRAPH_SEPARATOR_STRING, strlen (PARAGRAPH_SEPARATOR_STRING)))\n        {\n          if (delimiter == NULL)\n            delimiter = p;\n          prev_sep = *p;\n        }\n      else\n        prev_sep = 0;\n\n      p = g_utf8_next_char (p);\n    }\n\n  if (delimiter && paragraph_delimiter_index)\n    *paragraph_delimiter_index = delimiter - text;\n\n  if (start && next_paragraph_start)\n    *next_paragraph_start = start - text;\n}\n"
+    },
+    "kit_receipt": {
+      "schema": 1,
+      "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+      "kit_manifest_sha256": "f7276442d9d00f5c6360aafecfd67b4f75aae614a147794af2d56cbf56f0bea7",
+      "external_manifest_hash_checked": true,
+      "authentication": "REQUIRES_TRUSTED_EXTERNAL_DIGEST_AND_VERIFIER",
+      "kit_files": 26,
+      "licensed_files": 14,
+      "verified_sources": {
+        "packages": 20,
+        "source_entries": 25505,
+        "source_symlinks": 21
+      },
+      "source_archive_sha256": "259532d2cd8c5d3b176402acdcfb9daadb2cb897d5710010cc198eeabe5401de",
+      "recipient_source_delivery": false
+    },
+    "local_preferred_source_replay": "SUCCESS",
+    "actual_pango_version_string": "1.58.0-vira-local-source",
+    "changed_packages": [
+      "pango"
+    ],
+    "original_source_tree_count": 19,
+    "explicitly_modified_source_tree_count": 1,
+    "input_source_trees_unchanged_during_compilation": true,
+    "original_archive_modified": false,
+    "new_corresponding_source_archive_prepared": true,
+    "compiled_from_noticed_archive": true,
+    "inline_change_date_notice_present_in_compiled_source": true,
+    "noticed_source_archive_sha256": "b1078a6bba74d86565b97694c8ac2afc6adf15c045a843cdbf55cb08f6226fc2",
+    "noticed_source_file_sha256": "a530b81e21d8799996032c68398651ec802d62017bac88c6c9d3b7cebd89719a",
+    "noticed_source_kit_receipt": {
+      "schema": 1,
+      "distribution_status": "BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW",
+      "modified_kit_manifest_sha256": "784c8d196ad0da899e7d6b65d26aff4d4bf9bb00551526692cda9b47c43c2023",
+      "external_manifest_hash_checked": true,
+      "original_kit_manifest_sha256": "f7276442d9d00f5c6360aafecfd67b4f75aae614a147794af2d56cbf56f0bea7",
+      "original_archive_sha256": "259532d2cd8c5d3b176402acdcfb9daadb2cb897d5710010cc198eeabe5401de",
+      "modified_archive_sha256": "b1078a6bba74d86565b97694c8ac2afc6adf15c045a843cdbf55cb08f6226fc2",
+      "modified_archive_size": 188617046,
+      "native_build_witness_sha256": "eb275260c533e1572a3a8a31fc445e8af92353aaa88e6255da61c9b8127b464b",
+      "verified_sources": {
+        "packages": 20,
+        "source_entries": 25505,
+        "source_symlinks": 21,
+        "all_nonmodified_members_unchanged": true,
+        "source_modes_and_zip_local_times_retained": true
+      },
+      "licensed_files": 14,
+      "kit_files": 32,
+      "new_modified_source_archive_prepared": true,
+      "recipient_source_delivery": false,
+      "legal_notice_completeness_approved": false,
+      "modified_build_is_distribution_candidate": false,
+      "new_native_build_from_this_envelope_proven": false,
+      "archive_variant": "INLINE_NOTICE_PENDING_FRESH_BUILD_V1",
+      "inline_change_date_notice_present_in_archive_source": true,
+      "prior_build_witness_applies_to_archive_sources": false
+    }
+  },
+  "anchor": {
+    "port": 53125,
+    "no_browser": true,
+    "inventory_sha256": "41cf732674be20f9e7e3636a3efabf0f720c405b3a10c35388d2196743b9200e",
+    "version": "99.30.0",
+    "schema": 2,
+    "role": "PRIVATE_SOURCE_INSTALLED_ANCHOR",
+    "manifest_sha256": "323eb88782fdfe3f4c984aefccd2283ad3605b848b1a441d0cb2991e7f2c26ea",
+    "source_audit_sha256": "6eb2429c6e1a2304e780ba84b86d15cb33cd60e18c0a2231aeba6692a27a3122"
+  },
+  "cases": {
+    "first-installed-process": {
+      "ready": {
+        "role": "PRIVATE_REAL_DESKTOP_READY_NOT_INSTALLED",
+        "pid": 4016,
+        "url": "http://127.0.0.1:53125",
+        "database": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u06a9\u0627\u0631\u0628\u0631 \u062e\u0635\u0648\u0635\u06cc ! & Local AppData\\VIRA\\private-native-installed\\state\\data\\data\\vira.sqlite3",
+        "migration_status": "migrated",
+        "first_run": true,
+        "seed": {
+          "currencies_created": 6,
+          "accounts_created": 22,
+          "users_created": 1
+        },
+        "browser_requested": false,
+        "browser_opened": false,
+        "browser_gated_on_health": true
+      },
+      "completed": {
+        "migration_status": "migrated",
+        "first_run": true,
+        "seed": {
+          "currencies_created": 6,
+          "accounts_created": 22,
+          "users_created": 1
+        },
+        "database": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u06a9\u0627\u0631\u0628\u0631 \u062e\u0635\u0648\u0635\u06cc ! & Local AppData\\VIRA\\private-native-installed\\state\\data\\data\\vira.sqlite3",
+        "url": "http://127.0.0.1:53125",
+        "graceful_shutdown": true,
+        "factory_module": "app.main",
+        "renderer_module": "app.services.pdf_rendering",
+        "loaded_dlls": {
+          "brotlicommon.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\brotlicommon.dll",
+          "brotlidec.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\brotlidec.dll",
+          "bz2.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\bz2.dll",
+          "ffi-8.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\ffi-8.dll",
+          "fontconfig-1.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\fontconfig-1.dll",
+          "freetype.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\freetype.dll",
+          "fribidi-0.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\fribidi-0.dll",
+          "gio-2.0-0.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\gio-2.0-0.dll",
+          "glib-2.0-0.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\glib-2.0-0.dll",
+          "gmodule-2.0-0.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\gmodule-2.0-0.dll",
+          "gobject-2.0-0.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\gobject-2.0-0.dll",
+          "harfbuzz-subset.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\harfbuzz-subset.dll",
+          "harfbuzz.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\harfbuzz.dll",
+          "iconv-2.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\iconv-2.dll",
+          "intl-8.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\intl-8.dll",
+          "libexpat.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\libexpat.dll",
+          "libpng16.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\libpng16.dll",
+          "pango-1.0-0.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\pango-1.0-0.dll",
+          "pangoft2-1.0-0.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\pangoft2-1.0-0.dll",
+          "pcre2-8.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\pcre2-8.dll",
+          "z.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\z.dll"
+        },
+        "pango_version": "1.58.0-vira-local-source",
+        "role": "PRIVATE_REAL_START_VIRA_SOURCE_NOT_INSTALLED_ACCEPTANCE",
+        "pid": 4016,
+        "launch_id": "be38b0a796b98bb65287b093737e5ca4",
+        "activation": {
+          "pid": 4016,
+          "windows_acp": 65001,
+          "libffi": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\ffi-8.dll",
+          "manifest_sha256": "323eb88782fdfe3f4c984aefccd2283ad3605b848b1a441d0cb2991e7f2c26ea",
+          "inventory_sha256": "41cf732674be20f9e7e3636a3efabf0f720c405b3a10c35388d2196743b9200e",
+          "payload_files": 15188,
+          "dll_count": 21,
+          "bootstrap_temp": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u06a9\u0627\u0631\u0628\u0631 \u062e\u0635\u0648\u0635\u06cc ! & Local AppData\\VIRA\\private-native-installed\\bootstrap-be38b0a796b98bb65287b093737e5ca4\\bootstrap-xhqdb_b3",
+          "role": "APP_OWNED_PRIVATE_SOURCE_ACTIVATION_NOT_INSTALLED",
+          "source_audit_sha256": "6eb2429c6e1a2304e780ba84b86d15cb33cd60e18c0a2231aeba6692a27a3122"
+        },
+        "startup_path": "START_VIRA_CMD_TO_APP_DESKTOP_ENTRY",
+        "qa_worker_executed": false,
+        "qa_factory_or_renderer_replacement": false,
+        "ordinary_default_enabled": false,
+        "release_authorized": false,
+        "bootstrap_temp_cleaned": true,
+        "desktop_lock_released": true
+      },
+      "http": {
+        "transport": "REAL_TCP_LOOPBACK_NOT_ASGI_TRANSPORT",
+        "lifespan_started": true,
+        "live": {
+          "status": "alive"
+        },
+        "ready": {
+          "status": "ready",
+          "sqlite_version": "3.53.1",
+          "pragmas": {
+            "foreign_keys": "1",
+            "journal_mode": "wal",
+            "synchronous": "1",
+            "busy_timeout": "5000"
+          },
+          "alembic_revision": "0006_item_catalog",
+          "invariants": {
+            "integrity_check": "ok",
+            "foreign_key_violations": 0,
+            "total_debits": 0,
+            "total_credits": 0,
+            "balanced": true
+          },
+          "receipt_storage_writable": true,
+          "scheduler": {
+            "enabled": false,
+            "running": false,
+            "jobs": 0
+          }
+        },
+        "compiled_spa_served": true,
+        "production_openapi_route": true,
+        "unauthorized_pdf_rejected": true,
+        "wrong_login_rejected": true,
+        "missing_csrf_rejected": true,
+        "authenticated_owner_session": true,
+        "prior_process_session_accepted_before_new_login": false,
+        "route_context_from_sqlite": true,
+        "fixture_ids": {
+          "single-page": "01a15f2e-0844-758a-83d6-b4d81af65648",
+          "multi-page": "01a15f2e-0855-7e9c-8bc0-26bf89cad3a9"
+        },
+        "parallel_http_requests": 2,
+        "existing_db_session_serialization_preserved": true,
+        "documents": {
+          "single-page": {
+            "status": 200,
+            "content_type": "application/pdf",
+            "bytes": 18994,
+            "sha256": "48300f19db9906187d3c724d4c602a4f60065f11cb0227bbeff868f1afd04ce4"
+          },
+          "multi-page": {
+            "status": 200,
+            "content_type": "application/pdf",
+            "bytes": 30064,
+            "sha256": "e7497898a48549b43d47fbfcd9db87a9d3eaf44c976160e3e20769b120cc1ab4"
+          },
+          "parallel-single-page": {
+            "status": 200,
+            "content_type": "application/pdf",
+            "bytes": 18994,
+            "sha256": "48300f19db9906187d3c724d4c602a4f60065f11cb0227bbeff868f1afd04ce4"
+          },
+          "parallel-multi-page": {
+            "status": 200,
+            "content_type": "application/pdf",
+            "bytes": 30064,
+            "sha256": "e7497898a48549b43d47fbfcd9db87a9d3eaf44c976160e3e20769b120cc1ab4"
+          }
+        }
+      },
+      "documents": {
+        "single-page": {
+          "pages": 1,
+          "sha256": "48300f19db9906187d3c724d4c602a4f60065f11cb0227bbeff868f1afd04ce4",
+          "bytes": 18994,
+          "fonts": [
+            {
+              "name": "/GMIUCZ+Vazirmatn-Bold",
+              "weight": 700,
+              "digits": "\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9"
+            },
+            {
+              "name": "/RFZBDK+Vazirmatn",
+              "weight": 400,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            }
+          ]
+        },
+        "multi-page": {
+          "pages": 4,
+          "sha256": "e7497898a48549b43d47fbfcd9db87a9d3eaf44c976160e3e20769b120cc1ab4",
+          "bytes": 30064,
+          "fonts": [
+            {
+              "name": "/GMIUCZ+Vazirmatn-Bold",
+              "weight": 700,
+              "digits": "\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9"
+            },
+            {
+              "name": "/RFZBDK+Vazirmatn",
+              "weight": 400,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            }
+          ]
+        },
+        "parallel-single-page": {
+          "pages": 1,
+          "sha256": "48300f19db9906187d3c724d4c602a4f60065f11cb0227bbeff868f1afd04ce4",
+          "bytes": 18994,
+          "fonts": [
+            {
+              "name": "/GMIUCZ+Vazirmatn-Bold",
+              "weight": 700,
+              "digits": "\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9"
+            },
+            {
+              "name": "/RFZBDK+Vazirmatn",
+              "weight": 400,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            }
+          ]
+        },
+        "parallel-multi-page": {
+          "pages": 4,
+          "sha256": "e7497898a48549b43d47fbfcd9db87a9d3eaf44c976160e3e20769b120cc1ab4",
+          "bytes": 30064,
+          "fonts": [
+            {
+              "name": "/GMIUCZ+Vazirmatn-Bold",
+              "weight": 700,
+              "digits": "\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9"
+            },
+            {
+              "name": "/RFZBDK+Vazirmatn",
+              "weight": 400,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            }
+          ]
+        }
+      },
+      "font_documents": [
+        {
+          "event": "completed",
+          "id": "560b2cc7a577465aac79991cad831d09",
+          "font_folder": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u06a9\u0627\u0631\u0628\u0631 \u062e\u0635\u0648\u0635\u06cc ! & Local AppData\\VIRA\\private-native-installed\\bootstrap-be38b0a796b98bb65287b093737e5ca4\\bootstrap-xhqdb_b3\\weasyprint-mz5k_zxn",
+          "font_sha256": [
+            "b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56",
+            "f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723"
+          ],
+          "system_fonts": 0,
+          "preferred_encoding": "utf-8",
+          "cache_folder": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u06a9\u0627\u0631\u0628\u0631 \u062e\u0635\u0648\u0635\u06cc ! & Local AppData\\VIRA\\private-native-installed\\state\\pdf-cache\\document-t_r68pua",
+          "cache_temp_cleaned": true,
+          "font_temp_cleaned": true
+        },
+        {
+          "event": "completed",
+          "id": "8cedbc636ecd487e9b2b5e4d77e91d48",
+          "font_folder": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u06a9\u0627\u0631\u0628\u0631 \u062e\u0635\u0648\u0635\u06cc ! & Local AppData\\VIRA\\private-native-installed\\bootstrap-be38b0a796b98bb65287b093737e5ca4\\bootstrap-xhqdb_b3\\weasyprint-sg5rwt24",
+          "font_sha256": [
+            "b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56",
+            "f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723"
+          ],
+          "system_fonts": 0,
+          "preferred_encoding": "utf-8",
+          "cache_folder": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u06a9\u0627\u0631\u0628\u0631 \u062e\u0635\u0648\u0635\u06cc ! & Local AppData\\VIRA\\private-native-installed\\state\\pdf-cache\\document-v__0izru",
+          "cache_temp_cleaned": true,
+          "font_temp_cleaned": true
+        },
+        {
+          "event": "completed",
+          "id": "a78b03ea31c54af5bb5874f9d8e20467",
+          "font_folder": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u06a9\u0627\u0631\u0628\u0631 \u062e\u0635\u0648\u0635\u06cc ! & Local AppData\\VIRA\\private-native-installed\\bootstrap-be38b0a796b98bb65287b093737e5ca4\\bootstrap-xhqdb_b3\\weasyprint-vo5ufani",
+          "font_sha256": [
+            "b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56",
+            "f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723"
+          ],
+          "system_fonts": 0,
+          "preferred_encoding": "utf-8",
+          "cache_folder": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u06a9\u0627\u0631\u0628\u0631 \u062e\u0635\u0648\u0635\u06cc ! & Local AppData\\VIRA\\private-native-installed\\state\\pdf-cache\\document-7y9tm04o",
+          "cache_temp_cleaned": true,
+          "font_temp_cleaned": true
+        },
+        {
+          "event": "completed",
+          "id": "402ea4d053ab424f97bf6ebe17c71266",
+          "font_folder": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u06a9\u0627\u0631\u0628\u0631 \u062e\u0635\u0648\u0635\u06cc ! & Local AppData\\VIRA\\private-native-installed\\bootstrap-be38b0a796b98bb65287b093737e5ca4\\bootstrap-xhqdb_b3\\weasyprint-2p_gtpun",
+          "font_sha256": [
+            "b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56",
+            "f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723"
+          ],
+          "system_fonts": 0,
+          "preferred_encoding": "utf-8",
+          "cache_folder": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u06a9\u0627\u0631\u0628\u0631 \u062e\u0635\u0648\u0635\u06cc ! & Local AppData\\VIRA\\private-native-installed\\state\\pdf-cache\\document-xlvltjzn",
+          "cache_temp_cleaned": true,
+          "font_temp_cleaned": true
+        }
+      ],
+      "peak_concurrent_documents": 1
+    },
+    "restarted-installed-process": {
+      "ready": {
+        "role": "PRIVATE_REAL_DESKTOP_READY_NOT_INSTALLED",
+        "pid": 6596,
+        "url": "http://127.0.0.1:53125",
+        "database": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u06a9\u0627\u0631\u0628\u0631 \u062e\u0635\u0648\u0635\u06cc ! & Local AppData\\VIRA\\private-native-installed\\state\\data\\data\\vira.sqlite3",
+        "migration_status": "migrated",
+        "first_run": false,
+        "seed": {
+          "currencies_created": 0,
+          "accounts_created": 0,
+          "users_created": 0
+        },
+        "browser_requested": false,
+        "browser_opened": false,
+        "browser_gated_on_health": true
+      },
+      "completed": {
+        "migration_status": "migrated",
+        "first_run": false,
+        "seed": {
+          "currencies_created": 0,
+          "accounts_created": 0,
+          "users_created": 0
+        },
+        "database": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u06a9\u0627\u0631\u0628\u0631 \u062e\u0635\u0648\u0635\u06cc ! & Local AppData\\VIRA\\private-native-installed\\state\\data\\data\\vira.sqlite3",
+        "url": "http://127.0.0.1:53125",
+        "graceful_shutdown": true,
+        "factory_module": "app.main",
+        "renderer_module": "app.services.pdf_rendering",
+        "loaded_dlls": {
+          "brotlicommon.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\brotlicommon.dll",
+          "brotlidec.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\brotlidec.dll",
+          "bz2.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\bz2.dll",
+          "ffi-8.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\ffi-8.dll",
+          "fontconfig-1.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\fontconfig-1.dll",
+          "freetype.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\freetype.dll",
+          "fribidi-0.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\fribidi-0.dll",
+          "gio-2.0-0.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\gio-2.0-0.dll",
+          "glib-2.0-0.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\glib-2.0-0.dll",
+          "gmodule-2.0-0.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\gmodule-2.0-0.dll",
+          "gobject-2.0-0.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\gobject-2.0-0.dll",
+          "harfbuzz-subset.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\harfbuzz-subset.dll",
+          "harfbuzz.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\harfbuzz.dll",
+          "iconv-2.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\iconv-2.dll",
+          "intl-8.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\intl-8.dll",
+          "libexpat.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\libexpat.dll",
+          "libpng16.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\libpng16.dll",
+          "pango-1.0-0.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\pango-1.0-0.dll",
+          "pangoft2-1.0-0.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\pangoft2-1.0-0.dll",
+          "pcre2-8.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\pcre2-8.dll",
+          "z.dll": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\z.dll"
+        },
+        "pango_version": "1.58.0-vira-local-source",
+        "role": "PRIVATE_REAL_START_VIRA_SOURCE_NOT_INSTALLED_ACCEPTANCE",
+        "pid": 6596,
+        "launch_id": "283c54c1a2afbafa9eb85cdd8984018b",
+        "activation": {
+          "pid": 6596,
+          "windows_acp": 65001,
+          "libffi": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u0645\u0633\u06cc\u0631 \u0627\u0646\u062a\u062e\u0627\u0628\u06cc \u0646\u0635\u0628 ! & VIRA\\native\\pdf\\bin\\ffi-8.dll",
+          "manifest_sha256": "323eb88782fdfe3f4c984aefccd2283ad3605b848b1a441d0cb2991e7f2c26ea",
+          "inventory_sha256": "41cf732674be20f9e7e3636a3efabf0f720c405b3a10c35388d2196743b9200e",
+          "payload_files": 15188,
+          "dll_count": 21,
+          "bootstrap_temp": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u06a9\u0627\u0631\u0628\u0631 \u062e\u0635\u0648\u0635\u06cc ! & Local AppData\\VIRA\\private-native-installed\\bootstrap-283c54c1a2afbafa9eb85cdd8984018b\\bootstrap-r4oufov6",
+          "role": "APP_OWNED_PRIVATE_SOURCE_ACTIVATION_NOT_INSTALLED",
+          "source_audit_sha256": "6eb2429c6e1a2304e780ba84b86d15cb33cd60e18c0a2231aeba6692a27a3122"
+        },
+        "startup_path": "START_VIRA_CMD_TO_APP_DESKTOP_ENTRY",
+        "qa_worker_executed": false,
+        "qa_factory_or_renderer_replacement": false,
+        "ordinary_default_enabled": false,
+        "release_authorized": false,
+        "bootstrap_temp_cleaned": true,
+        "desktop_lock_released": true
+      },
+      "http": {
+        "transport": "REAL_TCP_LOOPBACK_NOT_ASGI_TRANSPORT",
+        "lifespan_started": true,
+        "live": {
+          "status": "alive"
+        },
+        "ready": {
+          "status": "ready",
+          "sqlite_version": "3.53.1",
+          "pragmas": {
+            "foreign_keys": "1",
+            "journal_mode": "wal",
+            "synchronous": "1",
+            "busy_timeout": "5000"
+          },
+          "alembic_revision": "0006_item_catalog",
+          "invariants": {
+            "integrity_check": "ok",
+            "foreign_key_violations": 0,
+            "total_debits": 0,
+            "total_credits": 0,
+            "balanced": true
+          },
+          "receipt_storage_writable": true,
+          "scheduler": {
+            "enabled": false,
+            "running": false,
+            "jobs": 0
+          }
+        },
+        "compiled_spa_served": true,
+        "production_openapi_route": true,
+        "unauthorized_pdf_rejected": true,
+        "wrong_login_rejected": true,
+        "missing_csrf_rejected": true,
+        "authenticated_owner_session": true,
+        "prior_process_session_accepted_before_new_login": true,
+        "route_context_from_sqlite": true,
+        "fixture_ids": {
+          "single-page": "01a15f2e-0844-758a-83d6-b4d81af65648",
+          "multi-page": "01a15f2e-0855-7e9c-8bc0-26bf89cad3a9"
+        },
+        "parallel_http_requests": 2,
+        "existing_db_session_serialization_preserved": true,
+        "documents": {
+          "single-page": {
+            "status": 200,
+            "content_type": "application/pdf",
+            "bytes": 18994,
+            "sha256": "48300f19db9906187d3c724d4c602a4f60065f11cb0227bbeff868f1afd04ce4"
+          },
+          "multi-page": {
+            "status": 200,
+            "content_type": "application/pdf",
+            "bytes": 30064,
+            "sha256": "e7497898a48549b43d47fbfcd9db87a9d3eaf44c976160e3e20769b120cc1ab4"
+          },
+          "parallel-single-page": {
+            "status": 200,
+            "content_type": "application/pdf",
+            "bytes": 18994,
+            "sha256": "48300f19db9906187d3c724d4c602a4f60065f11cb0227bbeff868f1afd04ce4"
+          },
+          "parallel-multi-page": {
+            "status": 200,
+            "content_type": "application/pdf",
+            "bytes": 30064,
+            "sha256": "e7497898a48549b43d47fbfcd9db87a9d3eaf44c976160e3e20769b120cc1ab4"
+          }
+        }
+      },
+      "documents": {
+        "single-page": {
+          "pages": 1,
+          "sha256": "48300f19db9906187d3c724d4c602a4f60065f11cb0227bbeff868f1afd04ce4",
+          "bytes": 18994,
+          "fonts": [
+            {
+              "name": "/GMIUCZ+Vazirmatn-Bold",
+              "weight": 700,
+              "digits": "\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9"
+            },
+            {
+              "name": "/RFZBDK+Vazirmatn",
+              "weight": 400,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            }
+          ]
+        },
+        "multi-page": {
+          "pages": 4,
+          "sha256": "e7497898a48549b43d47fbfcd9db87a9d3eaf44c976160e3e20769b120cc1ab4",
+          "bytes": 30064,
+          "fonts": [
+            {
+              "name": "/GMIUCZ+Vazirmatn-Bold",
+              "weight": 700,
+              "digits": "\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9"
+            },
+            {
+              "name": "/RFZBDK+Vazirmatn",
+              "weight": 400,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            }
+          ]
+        },
+        "parallel-single-page": {
+          "pages": 1,
+          "sha256": "48300f19db9906187d3c724d4c602a4f60065f11cb0227bbeff868f1afd04ce4",
+          "bytes": 18994,
+          "fonts": [
+            {
+              "name": "/GMIUCZ+Vazirmatn-Bold",
+              "weight": 700,
+              "digits": "\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9"
+            },
+            {
+              "name": "/RFZBDK+Vazirmatn",
+              "weight": 400,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            }
+          ]
+        },
+        "parallel-multi-page": {
+          "pages": 4,
+          "sha256": "e7497898a48549b43d47fbfcd9db87a9d3eaf44c976160e3e20769b120cc1ab4",
+          "bytes": 30064,
+          "fonts": [
+            {
+              "name": "/GMIUCZ+Vazirmatn-Bold",
+              "weight": 700,
+              "digits": "\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9"
+            },
+            {
+              "name": "/RFZBDK+Vazirmatn",
+              "weight": 400,
+              "digits": "0123456789\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"
+            }
+          ]
+        }
+      },
+      "font_documents": [
+        {
+          "event": "completed",
+          "id": "682b32e7db014704add8d830b29f2330",
+          "font_folder": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u06a9\u0627\u0631\u0628\u0631 \u062e\u0635\u0648\u0635\u06cc ! & Local AppData\\VIRA\\private-native-installed\\bootstrap-283c54c1a2afbafa9eb85cdd8984018b\\bootstrap-r4oufov6\\weasyprint-rziyn2rs",
+          "font_sha256": [
+            "b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56",
+            "f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723"
+          ],
+          "system_fonts": 0,
+          "preferred_encoding": "utf-8",
+          "cache_folder": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u06a9\u0627\u0631\u0628\u0631 \u062e\u0635\u0648\u0635\u06cc ! & Local AppData\\VIRA\\private-native-installed\\state\\pdf-cache\\document-d0vel11z",
+          "cache_temp_cleaned": true,
+          "font_temp_cleaned": true
+        },
+        {
+          "event": "completed",
+          "id": "3a7228460f5a4bdf8304ee4d6c6f141a",
+          "font_folder": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u06a9\u0627\u0631\u0628\u0631 \u062e\u0635\u0648\u0635\u06cc ! & Local AppData\\VIRA\\private-native-installed\\bootstrap-283c54c1a2afbafa9eb85cdd8984018b\\bootstrap-r4oufov6\\weasyprint-175ul0_r",
+          "font_sha256": [
+            "b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56",
+            "f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723"
+          ],
+          "system_fonts": 0,
+          "preferred_encoding": "utf-8",
+          "cache_folder": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u06a9\u0627\u0631\u0628\u0631 \u062e\u0635\u0648\u0635\u06cc ! & Local AppData\\VIRA\\private-native-installed\\state\\pdf-cache\\document-qexxzjpl",
+          "cache_temp_cleaned": true,
+          "font_temp_cleaned": true
+        },
+        {
+          "event": "completed",
+          "id": "86021e58c1534f26bdef9c8568529d12",
+          "font_folder": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u06a9\u0627\u0631\u0628\u0631 \u062e\u0635\u0648\u0635\u06cc ! & Local AppData\\VIRA\\private-native-installed\\bootstrap-283c54c1a2afbafa9eb85cdd8984018b\\bootstrap-r4oufov6\\weasyprint-5g9a66d7",
+          "font_sha256": [
+            "b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56",
+            "f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723"
+          ],
+          "system_fonts": 0,
+          "preferred_encoding": "utf-8",
+          "cache_folder": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u06a9\u0627\u0631\u0628\u0631 \u062e\u0635\u0648\u0635\u06cc ! & Local AppData\\VIRA\\private-native-installed\\state\\pdf-cache\\document-3xs14i15",
+          "cache_temp_cleaned": true,
+          "font_temp_cleaned": true
+        },
+        {
+          "event": "completed",
+          "id": "302ffd41182f4b72bd95c46f28eb456c",
+          "font_folder": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u06a9\u0627\u0631\u0628\u0631 \u062e\u0635\u0648\u0635\u06cc ! & Local AppData\\VIRA\\private-native-installed\\bootstrap-283c54c1a2afbafa9eb85cdd8984018b\\bootstrap-r4oufov6\\weasyprint-e8rq00i1",
+          "font_sha256": [
+            "b69fd4c680b8f3f225feabcc655a2c585d97627b8f5f5c0f9985e894069f3a56",
+            "f635fdbea28f265de395ba83b4b1570dcf2f58d13c65469e61903b1c2d2ae723"
+          ],
+          "system_fonts": 0,
+          "preferred_encoding": "utf-8",
+          "cache_folder": "D:\\a\\_temp\\phase3-installed-77df0bcd8b524dc7a009495e306cef3c\\\u06a9\u0627\u0631\u0628\u0631 \u062e\u0635\u0648\u0635\u06cc ! & Local AppData\\VIRA\\private-native-installed\\state\\pdf-cache\\document-61byoe0e",
+          "cache_temp_cleaned": true,
+          "font_temp_cleaned": true
+        }
+      ],
+      "peak_concurrent_documents": 1
+    }
+  },
+  "installed_source21_startup_and_restart": true,
+  "persistent_session_secret_preserved": true,
+  "native_delta_rollback_proven": false,
+  "phase3_complete": false,
+  "release_authorized": false
+}

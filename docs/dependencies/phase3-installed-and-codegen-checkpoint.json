@@ -1,0 +1,107 @@
+{
+  "role": "PHASE3_AUTHENTICATED_REAL_SOURCE21_INSTALL_AND_INDEPENDENT_CODEGEN_TARGET_PREPARATION",
+  "runs": [
+    {
+      "id": 39610014494,
+      "head_sha": "4669c5e6beab03dc35fada5cab31a7cc2e7eb887",
+      "path": ".github/workflows/pdf-desktop-source.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39610014494"
+    },
+    {
+      "id": 39612186978,
+      "head_sha": "a7c6fc87b6bb066a3e7c78766071451602b1d131",
+      "path": ".github/workflows/pdf-desktop-source.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/39612186978"
+    },
+    {
+      "id": 40182013261,
+      "head_sha": "a28ec867673904ade0fda16239545d071bbc65f3",
+      "path": ".github/workflows/phase3-installed-evidence-recovery.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/40182013261"
+    }
+  ],
+  "witness_sha256": "6be7d5384c81511d30e009b412808c185c472dcd4903d292913f853a01db3ef3",
+  "witness_bytes": 94910,
+  "source_run_revision": "a7c6fc87b6bb066a3e7c78766071451602b1d131",
+  "installed_version": "99.30.0",
+  "installed_process_pids": [
+    4016,
+    6596
+  ],
+  "dlls": 21,
+  "preferred_source_trees": 20,
+  "source_install_and_restart_proven": true,
+  "target_codegen_build_implemented": true,
+  "target_codegen_windows_build_observed": false,
+  "real_native_delta_rollback_proven": false,
+  "helper_terminal_fault_cases_proven": false,
+  "crash_stale_lock_recovery_proven": false,
+  "phase3_complete": false,
+  "distribution_gates_open": 6,
+  "release_authorized": false,
+  "local_tests": 1118,
+  "local_seconds": 104.15,
+  "local_failures": 0,
+  "local_errors": 0,
+  "local_skips": 0,
+  "dependency_security": {
+    "initial_advisories": 9,
+    "initial_packages": [
+      "brotli",
+      "filelock",
+      "pypdf"
+    ],
+    "changes": [
+      {
+        "name": "boto3",
+        "before": "1.43.113",
+        "after": "1.43.117"
+      },
+      {
+        "name": "botocore",
+        "before": "1.43.113",
+        "after": "1.43.117"
+      },
+      {
+        "name": "brotli",
+        "before": "1.2.0",
+        "after": "1.2.1"
+      },
+      {
+        "name": "filelock",
+        "before": "3.32.7",
+        "after": "4.2.1"
+      },
+      {
+        "name": "litellm",
+        "before": "1.105.1",
+        "after": "1.103.9"
+      },
+      {
+        "name": "pypdf",
+        "before": "6.21.0",
+        "after": "6.21.2"
+      }
+    ],
+    "reason_for_other_changes": "LiteLLM1.105.1 requires filelock<4; resolver selected compatible1.103.9 without override. That release requires boto3>=1.43.117; boto3/botocore pinned to minimal compatible1.43.117.",
+    "pip_audit_known_vulnerabilities_after": 0,
+    "local_app_pypi_skip": "vira-accounting1.0.10 is local/unlisted, not an external dependency CVE waiver",
+    "native_dll_security_clearance_claimed": false,
+    "unchanged_numeric_forks": {
+      "numpy": [
+        "2.4.6",
+        "2.5.4"
+      ],
+      "scipy": [
+        "1.17.1",
+        "1.18.1"
+      ]
+    }
+  }
+}

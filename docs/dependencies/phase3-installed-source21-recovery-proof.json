@@ -1,0 +1,230 @@
+{
+  "recovery_run": 40182013261,
+  "recovery_head": "a28ec867673904ade0fda16239545d071bbc65f3",
+  "conclusion": "success",
+  "job_ids": [
+    121134848339,
+    121134848481,
+    121134848488,
+    121134848509,
+    121134848517,
+    121134848537,
+    121134848572,
+    121134848634
+  ],
+  "provenance": [
+    {
+      "source_run": 39612186978,
+      "source_job": 119294190368,
+      "source_head": "a7c6fc87b6bb066a3e7c78766071451602b1d131",
+      "artifacts": [
+        {
+          "artifact_id": 12359170810,
+          "zip_sha256": "7950a3add7cfab2b2bc0c2986b12f430bac46cd62676f17e009ea570ed7a15d0",
+          "zip_bytes": 395548
+        },
+        {
+          "artifact_id": 12359465855,
+          "zip_sha256": "3b8b5990bd1388953351e7cd46d2c78f30f8c7228d454177edc2038b7c02ca2a",
+          "zip_bytes": 1968338
+        }
+      ],
+      "witness_sha256": "6be7d5384c81511d30e009b412808c185c472dcd4903d292913f853a01db3ef3",
+      "witness_bytes": 94910,
+      "total_parts": 9,
+      "group": 6,
+      "application_reexecuted": false,
+      "original_source_binder_revalidated": true,
+      "native_delta_rollback_proven": false,
+      "phase3_complete": false,
+      "release_authorized": false
+    },
+    {
+      "source_run": 39612186978,
+      "source_job": 119294190368,
+      "source_head": "a7c6fc87b6bb066a3e7c78766071451602b1d131",
+      "artifacts": [
+        {
+          "artifact_id": 12359170810,
+          "zip_sha256": "7950a3add7cfab2b2bc0c2986b12f430bac46cd62676f17e009ea570ed7a15d0",
+          "zip_bytes": 395548
+        },
+        {
+          "artifact_id": 12359465855,
+          "zip_sha256": "3b8b5990bd1388953351e7cd46d2c78f30f8c7228d454177edc2038b7c02ca2a",
+          "zip_bytes": 1968338
+        }
+      ],
+      "witness_sha256": "6be7d5384c81511d30e009b412808c185c472dcd4903d292913f853a01db3ef3",
+      "witness_bytes": 94910,
+      "total_parts": 9,
+      "group": 7,
+      "application_reexecuted": false,
+      "original_source_binder_revalidated": true,
+      "native_delta_rollback_proven": false,
+      "phase3_complete": false,
+      "release_authorized": false
+    },
+    {
+      "source_run": 39612186978,
+      "source_job": 119294190368,
+      "source_head": "a7c6fc87b6bb066a3e7c78766071451602b1d131",
+      "artifacts": [
+        {
+          "artifact_id": 12359170810,
+          "zip_sha256": "7950a3add7cfab2b2bc0c2986b12f430bac46cd62676f17e009ea570ed7a15d0",
+          "zip_bytes": 395548
+        },
+        {
+          "artifact_id": 12359465855,
+          "zip_sha256": "3b8b5990bd1388953351e7cd46d2c78f30f8c7228d454177edc2038b7c02ca2a",
+          "zip_bytes": 1968338
+        }
+      ],
+      "witness_sha256": "6be7d5384c81511d30e009b412808c185c472dcd4903d292913f853a01db3ef3",
+      "witness_bytes": 94910,
+      "total_parts": 9,
+      "group": 3,
+      "application_reexecuted": false,
+      "original_source_binder_revalidated": true,
+      "native_delta_rollback_proven": false,
+      "phase3_complete": false,
+      "release_authorized": false
+    },
+    {
+      "source_run": 39612186978,
+      "source_job": 119294190368,
+      "source_head": "a7c6fc87b6bb066a3e7c78766071451602b1d131",
+      "artifacts": [
+        {
+          "artifact_id": 12359170810,
+          "zip_sha256": "7950a3add7cfab2b2bc0c2986b12f430bac46cd62676f17e009ea570ed7a15d0",
+          "zip_bytes": 395548
+        },
+        {
+          "artifact_id": 12359465855,
+          "zip_sha256": "3b8b5990bd1388953351e7cd46d2c78f30f8c7228d454177edc2038b7c02ca2a",
+          "zip_bytes": 1968338
+        }
+      ],
+      "witness_sha256": "6be7d5384c81511d30e009b412808c185c472dcd4903d292913f853a01db3ef3",
+      "witness_bytes": 94910,
+      "total_parts": 9,
+      "group": 4,
+      "application_reexecuted": false,
+      "original_source_binder_revalidated": true,
+      "native_delta_rollback_proven": false,
+      "phase3_complete": false,
+      "release_authorized": false
+    },
+    {
+      "source_run": 39612186978,
+      "source_job": 119294190368,
+      "source_head": "a7c6fc87b6bb066a3e7c78766071451602b1d131",
+      "artifacts": [
+        {
+          "artifact_id": 12359170810,
+          "zip_sha256": "7950a3add7cfab2b2bc0c2986b12f430bac46cd62676f17e009ea570ed7a15d0",
+          "zip_bytes": 395548
+        },
+        {
+          "artifact_id": 12359465855,
+          "zip_sha256": "3b8b5990bd1388953351e7cd46d2c78f30f8c7228d454177edc2038b7c02ca2a",
+          "zip_bytes": 1968338
+        }
+      ],
+      "witness_sha256": "6be7d5384c81511d30e009b412808c185c472dcd4903d292913f853a01db3ef3",
+      "witness_bytes": 94910,
+      "total_parts": 9,
+      "group": 2,
+      "application_reexecuted": false,
+      "original_source_binder_revalidated": true,
+      "native_delta_rollback_proven": false,
+      "phase3_complete": false,
+      "release_authorized": false
+    },
+    {
+      "source_run": 39612186978,
+      "source_job": 119294190368,
+      "source_head": "a7c6fc87b6bb066a3e7c78766071451602b1d131",
+      "artifacts": [
+        {
+          "artifact_id": 12359170810,
+          "zip_sha256": "7950a3add7cfab2b2bc0c2986b12f430bac46cd62676f17e009ea570ed7a15d0",
+          "zip_bytes": 395548
+        },
+        {
+          "artifact_id": 12359465855,
+          "zip_sha256": "3b8b5990bd1388953351e7cd46d2c78f30f8c7228d454177edc2038b7c02ca2a",
+          "zip_bytes": 1968338
+        }
+      ],
+      "witness_sha256": "6be7d5384c81511d30e009b412808c185c472dcd4903d292913f853a01db3ef3",
+      "witness_bytes": 94910,
+      "total_parts": 9,
+      "group": 5,
+      "application_reexecuted": false,
+      "original_source_binder_revalidated": true,
+      "native_delta_rollback_proven": false,
+      "phase3_complete": false,
+      "release_authorized": false
+    },
+    {
+      "source_run": 39612186978,
+      "source_job": 119294190368,
+      "source_head": "a7c6fc87b6bb066a3e7c78766071451602b1d131",
+      "artifacts": [
+        {
+          "artifact_id": 12359170810,
+          "zip_sha256": "7950a3add7cfab2b2bc0c2986b12f430bac46cd62676f17e009ea570ed7a15d0",
+          "zip_bytes": 395548
+        },
+        {
+          "artifact_id": 12359465855,
+          "zip_sha256": "3b8b5990bd1388953351e7cd46d2c78f30f8c7228d454177edc2038b7c02ca2a",
+          "zip_bytes": 1968338
+        }
+      ],
+      "witness_sha256": "6be7d5384c81511d30e009b412808c185c472dcd4903d292913f853a01db3ef3",
+      "witness_bytes": 94910,
+      "total_parts": 9,
+      "group": 1,
+      "application_reexecuted": false,
+      "original_source_binder_revalidated": true,
+      "native_delta_rollback_proven": false,
+      "phase3_complete": false,
+      "release_authorized": false
+    },
+    {
+      "source_run": 39612186978,
+      "source_job": 119294190368,
+      "source_head": "a7c6fc87b6bb066a3e7c78766071451602b1d131",
+      "artifacts": [
+        {
+          "artifact_id": 12359170810,
+          "zip_sha256": "7950a3add7cfab2b2bc0c2986b12f430bac46cd62676f17e009ea570ed7a15d0",
+          "zip_bytes": 395548
+        },
+        {
+          "artifact_id": 12359465855,
+          "zip_sha256": "3b8b5990bd1388953351e7cd46d2c78f30f8c7228d454177edc2038b7c02ca2a",
+          "zip_bytes": 1968338
+        }
+      ],
+      "witness_sha256": "6be7d5384c81511d30e009b412808c185c472dcd4903d292913f853a01db3ef3",
+      "witness_bytes": 94910,
+      "total_parts": 9,
+      "group": 0,
+      "application_reexecuted": false,
+      "original_source_binder_revalidated": true,
+      "native_delta_rollback_proven": false,
+      "phase3_complete": false,
+      "release_authorized": false
+    }
+  ],
+  "witness_sha256": "6be7d5384c81511d30e009b412808c185c472dcd4903d292913f853a01db3ef3",
+  "witness_bytes": 94910,
+  "source21_install_only": true,
+  "native_delta_rollback_proven": false,
+  "phase3_complete": false
+}
