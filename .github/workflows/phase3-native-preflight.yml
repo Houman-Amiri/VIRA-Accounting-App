@@ -35,6 +35,9 @@ jobs:
         run: |
           ./scripts/phase3_helper_terminal_test.ps1
           ./scripts/phase3_helper_clone_test.ps1
+          # ps2exe hosts Windows PowerShell5.1, not just the CI pwsh runtime.
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/phase3_helper_clone_test.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'Desktop5.1 actual clone function controls failed' }
       - name: Synthetic strict-delta and anchor controls; no native execution claim
         shell: pwsh
         run: |

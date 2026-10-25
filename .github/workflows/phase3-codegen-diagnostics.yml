@@ -1,0 +1,64 @@
+name: Recover failed NativeB compiler diagnostics NOT native acceptance
+
+on:
+  push:
+    paths: ['.github/workflows/phase3-codegen-diagnostics.yml']
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  read-failed-producer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Authenticate failed producer and expose bounded original compiler diagnostics
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, io, json, os, subprocess, zipfile
+          repo = os.environ['GH_REPO']
+          def api(path):
+              return json.loads(subprocess.check_output(['gh','api',f'repos/{repo}/{path}']))
+          def notice(title, text):
+              text = text.replace('%','%25').replace('\r','%0D').replace('\n','%0A')
+              print(f'::notice title={title}::{text}', flush=True)
+          run_id, job_id, artifact_id = 40183092030, 121138959651, 12597309662
+          run = api(f'actions/runs/{run_id}')
+          assert run['head_sha'].startswith('55e65f5') and run['path'] == '.github/workflows/pdf-desktop-source.yml'
+          job = api(f'actions/jobs/{job_id}')
+          assert job['run_id'] == run_id and job['conclusion'] == 'failure'
+          target_step = 'Phase3 independently cold-build genuine native codegen target NOT delta acceptance'
+          assert any(s['name'] == target_step and s['conclusion'] == 'failure' for s in job['steps'])
+          artifact = api(f'actions/artifacts/{artifact_id}')
+          assert artifact['workflow_run']['id'] == run_id and artifact['workflow_run']['head_sha'] == run['head_sha']
+          assert artifact['name'] == 'private-phase3-independent-codegen-source21-NOT-delta-proof' and not artifact['expired']
+          archive = subprocess.check_output(['gh','api',f'repos/{repo}/actions/artifacts/{artifact_id}/zip'])
+          digest = hashlib.sha256(archive).hexdigest()
+          assert artifact['digest'] == 'sha256:' + digest
+          with zipfile.ZipFile(io.BytesIO(archive)) as z:
+              notice('Failed NativeB provenance', json.dumps(dict(run=run_id,job=job_id,head=run['head_sha'],artifact=artifact_id,zip_sha256=digest,zip_bytes=len(archive),members=z.namelist(),native_success=False,transaction_proven=False)))
+              for name in z.namelist():
+                  if name.split('/')[-1] not in {'build.log','rebuild-result.json','rebuild-plan.json','target-triplet.cmake'}:
+                      continue
+                  raw = z.read(name)
+                  notice('NativeB diagnostic digest', json.dumps(dict(member=name,bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest())))
+                  text = raw.decode('utf-8-sig', errors='replace')[-20000:]
+                  for i in range(0,len(text),2400):
+                      notice('Original NativeB diagnostic',json.dumps(dict(member=name,part=i//2400,text=text[i:i+2400])))
+          # Original step logs can contain tool errors not mirrored in build.log.
+          logs = subprocess.check_output(['gh','api',f'repos/{repo}/actions/runs/{run_id}/logs'])
+          with zipfile.ZipFile(io.BytesIO(logs)) as z:
+              names = [n for n in z.namelist() if 'codegen' in n.lower() and 'source-http-consumer' in n]
+              assert names, 'Original failed step log missing'
+              for name in names:
+                  raw = z.read(name)
+                  notice('NativeB step log digest',json.dumps(dict(member=name,bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest())))
+                  text = raw.decode('utf-8-sig',errors='replace')[-36000:]
+                  for i in range(0,len(text),2400):
+                      notice('Original NativeB step tail',json.dumps(dict(member=name,part=i//2400,text=text[i:i+2400])))
+          PY

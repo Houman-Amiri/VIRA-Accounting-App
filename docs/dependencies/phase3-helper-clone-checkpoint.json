@@ -61,17 +61,44 @@
   "pip_audit": "no_known_vulnerabilities_local_project_unlisted",
   "new_windows_ast_controls": {
     "count": 12,
-    "executed": false,
-    "opaque_interpreter_bytes_never_executed": true
+    "executed": true,
+    "opaque_interpreter_bytes_never_executed": true,
+    "host": "pwsh",
+    "run": 40189290266,
+    "job": 121156634230,
+    "conclusion": "success"
   },
   "clone_verification": "full_exact_file_set_size_sha_and_no_reparse_before_executable_invocation",
   "existing_native_b_run": 40183092030,
   "existing_native_b_job": 121138959651,
-  "existing_native_b_observed": "independent_cold_build_in_progress_started_2026-10-25T11:06:58Z",
+  "existing_native_b_observed": "FAILED_TARGET_STEP_2026-10-25T11:42Z_NOT_NATIVE_SUCCESS",
   "queued_native_transaction_run_before_this_push": 40186562685,
   "actual_native_b_audit_collected": false,
   "actual_native_delta_rollback_collected": false,
   "crash_stale_lock_recovery_proven": false,
   "phase3_complete": false,
-  "release_authorized": false
+  "release_authorized": false,
+  "helper_runtime_revision": "7bb72e0",
+  "full_runtime_ci": {
+    "run": 40189290259,
+    "conclusion": "success",
+    "all_five_jobs_success": true
+  },
+  "latest_all_extras_local_suite": {
+    "passed": 1137,
+    "seconds": 76.26,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "pip_audit": "no_known_vulnerabilities_local_project_unlisted"
+  },
+  "native_b_diagnostics": {
+    "artifact": 12597309662,
+    "artifact_bytes": 27111,
+    "artifact_download_from_sandbox": "EOF",
+    "job_log_download_from_sandbox": "EOF",
+    "dedicated_read_only_GHA_recovery_added": true,
+    "cause_known": false
+  },
+  "desktop51_clone_ast_controls_added_not_yet_executed": true
 }

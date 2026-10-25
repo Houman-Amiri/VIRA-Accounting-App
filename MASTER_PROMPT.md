@@ -1471,3 +1471,24 @@ Local full1137PASS82.54s,0fail/error/skip; Ruff/Mypy90/Bandit/pip-audit PASS.
 Phase3 ACTIVE/INCOMPLETE; crash/stale-lock recovery unproved; all6 gates OPEN;
 no publication, later phase, installed-user data or installation change authorized.
 Checkpoint:docs/dependencies/phase3-helper-clone-checkpoint.json.
+
+
+### Phase3 observed failure — NativeB is NOT accepted
+
+7bb72e0 full CI40189290259 ALL5 SUCCESS and Windows preflight40189290266/
+job121156634230 SUCCESS, including14 actual terminal-AST faults and12 actual clone
+function-AST controls. These are NOT compiled-helper/native transaction proof.
+All-extras frozen local suite rerun1137PASS76.26s,0fail/error/skip, pip-audit clean
+(local app unlisted). Add the SAME12 clone controls on Windows PowerShell5.1,
+the ps2exe host, not only pwsh;5.1 outcome pending.
+
+NativeB step of40183092030/55e65f5/source121138959651 FAILED after its independent
+cold-build attempt. Original Source21 baseline compile/audit/install/HTTP passed,
+but DO NOT infer NativeB compilation/audit or actual native transaction success.
+Original failure artifact12597309662/27111bytes exists; direct artifact AND job-log
+download EOF on sandbox. Read-only `.github/workflows/phase3-codegen-diagnostics.yml`
+authenticates exact failed producer and artifact digest and relays bounded original
+build/step logs through GitHub, without rebuilding or modifying producer evidence.
+Failure cause not yet collected; do not skip, substitute SDK/DLLs, or clear gates.
+7bb72e0 latest source run40189290222 started stock preflight; no actual transaction
+outcome yet. Phase3 INCOMPLETE; all6 gates OPEN, no release/user-install/data changes.

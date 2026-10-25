@@ -1,7 +1,7 @@
 # Actual updater function AST, synthetic filesystem faults only.
 # Opaque python.exe bytes are NEVER executed; NOT compiled/native acceptance.
 $ErrorActionPreference = 'Stop'
-if (-not $IsWindows -or $env:GITHUB_ACTIONS -ne 'true') { throw 'Disposable Windows CI only' }
+if ($env:OS -ne 'Windows_NT' -or $env:GITHUB_ACTIONS -ne 'true') { throw 'Disposable Windows CI only' }
 $tokens = $null
 $errors = $null
 $ast = [Management.Automation.Language.Parser]::ParseFile((Join-Path $PWD 'scripts/vira_updater.ps1'),[ref]$tokens,[ref]$errors)
@@ -25,7 +25,7 @@ foreach ($case in $cases) {
     [IO.File]::WriteAllBytes((Join-Path $original 'python311.zip'),[Text.Encoding]::UTF8.GetBytes('OPAQUE NOT A STDLIB'))
     [IO.File]::WriteAllBytes((Join-Path $original 'DLLs/opaque.pyd'),[Text.Encoding]::UTF8.GetBytes('OPAQUE NOT A DLL'))
     $files = @(Get-ChildItem -LiteralPath $original -Recurse -File | ForEach-Object {
-        @{path=('python/' + [IO.Path]::GetRelativePath($original,$_.FullName).Replace('\','/'));size=$_.Length;sha256=(Get-Sha256 $_.FullName)}
+        @{path=('python/' + $_.FullName.Substring($original.Length + 1).Replace('\','/'));size=$_.Length;sha256=(Get-Sha256 $_.FullName)}
     })
     # Non-Python anchored files must not be included in this subtree comparison.
     $files += @{path='backend/not-copied.py';size=1;sha256=('a'*64)}
