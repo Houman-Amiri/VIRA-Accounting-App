@@ -127,7 +127,9 @@ jobs:
   source-http-consumer:
     needs: stock-http-preflight
     runs-on: windows-latest
-    timeout-minutes: 120
+    # Two independent cache-disabled native builds plus the actual API transaction.
+    # Prior single-build source job took64min; do not squeeze two builds into120.
+    timeout-minutes: 180
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}

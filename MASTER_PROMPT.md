@@ -1437,3 +1437,16 @@ that older job. Fresh Windows outcome and ACTUAL native delta/rollback STILL
 pending, as are crash/stale-lock recovery. Phase3 ACTIVE/INCOMPLETE, all6 gates
 OPEN; no next phase, tag/release, user installation/data or math/UI/schema changes.
 [Strict checkpoint](docs/dependencies/phase3-native-transaction-client-checkpoint.json).
+
+
+Native-client dcc60bf verification: full CI40185685126 ALL5 SUCCESS; limited
+Windows40185685167/job121145863648 SUCCESS (including new client protocol/flag
+controls and complete PS driver parse). NOT native transaction execution.
+Source40183092030/55e65f5 now passed baseline cold compilation/audit and reached
+app-owned source HTTP; codegen target and actual delta still not collected.
+Fresh queued source pipeline will execute the full real transaction client.
+Follow-up:180min source-job budget for TWO independent cold builds (observed prior
+one-build job64min), and real sudo re-elevation AFTER full preservation check so
+normal5min expiry is not mistaken for data loss. No token TTL/auth bypass/relogin.
+Full local rerun1137PASS98.26s/0fail/error/skip; this follow-up's fresh Windows/native
+result is not yet observed. Phase3 still INCOMPLETE, all6 gates OPEN, no publication.

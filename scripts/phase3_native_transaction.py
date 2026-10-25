@@ -507,6 +507,14 @@ def _run_owned(
                     != receipt_before
                 ):
                     raise ValueError("Stored receipt changed during native transaction")
+                # A healthy but slow real replacement may outlive the five-minute
+                # sudo TTL. Re-elevate through the real password endpoint AFTER
+                # full-DB/session/secret preservation was checked, never relogin or
+                # extend/bypass the token. Its new audit row is legitimate activity.
+                renewed = checked(
+                    client.post("/api/v1/auth/sudo", json={"password": password}), 200
+                ).json()
+                client.headers["X-Sudo-Token"] = renewed["sudo_token"]
                 current_version = checked(client.get("/api/v1/system/status"), 200).json()[
                     "version"
                 ]
@@ -587,6 +595,10 @@ def _run_owned(
                     package=forward_packet if name == "commit" else reverse_packet,
                     terminal=terminal,
                     journal=journal,
+                    sudo_refreshed_through_real_endpoint_after_preservation_check=True,
+                    forced_failure_point="AFTER_FILE_APPLY_BEFORE_TARGET_STARTUP"
+                    if name == "rollback"
+                    else None,
                     old_pid=ready["pid"],
                     new_pid=new_ready["pid"],
                     database_fingerprint_before=before,

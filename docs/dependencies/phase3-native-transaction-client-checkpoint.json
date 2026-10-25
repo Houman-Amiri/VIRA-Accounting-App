@@ -27,5 +27,66 @@
     "fault_gate": "exact_AFTER_APPLY_only_already_owned_schema2_private_CI_scope_not_public_environment_authority",
     "observers": "HTTP_503_quarantine_is_recorded_only_if_actually_observed",
     "cleanup": "graceful_owned_process_only_no_guard_deletion_or_success_from_forced_cleanup"
+  },
+  "verified_dcc60bf_ci_and_limited_windows": [
+    {
+      "id": 40185685126,
+      "revision": "dcc60bf3df91c7e87bb10d00b5cb057d0d24244d",
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/40185685126",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121145863712,
+          "name": "Playwright e2e (native processes)",
+          "conclusion": "success"
+        },
+        {
+          "id": 121145863826,
+          "name": "Frontend \u2014 lint, types, contract, tests, build",
+          "conclusion": "success"
+        },
+        {
+          "id": 121145863832,
+          "name": "Backend \u2014 lint, type, security, tests",
+          "conclusion": "success"
+        },
+        {
+          "id": 121145863862,
+          "name": "OpenAPI contract is in sync",
+          "conclusion": "success"
+        },
+        {
+          "id": 121145863907,
+          "name": "Windows-native smoke (SQLite paths, venv, build)",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 40185685167,
+      "revision": "dcc60bf3df91c7e87bb10d00b5cb057d0d24244d",
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/40185685167",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 121145863648,
+          "name": "windows-preflight",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "followup": {
+    "local_tests": 1137,
+    "local_seconds": 98.26,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "changes": [
+      "Real sudo refresh AFTER full preservation comparison; no TTL bypass or relogin",
+      "Source job timeout180min because two independent cold builds; prior one-build job64min"
+    ],
+    "windows_observed": false,
+    "native_transaction_observed": false
   }
 }
