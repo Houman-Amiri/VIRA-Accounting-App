@@ -35,7 +35,7 @@
   "actual_native_transaction_passed": false,
   "current_failure": "verified_preflight_then_private_desktop_RuntimeError_and_PowerShell_Stop_truncated_controller_stderr",
   "underlying_timeout_cause_proven": false,
-  "recovery_executor_implemented": false,
+  "recovery_executor_implemented": true,
   "heavy_rebuild_triggered_for_log_recovery": false,
   "distribution_gates_closed": false,
   "original_native_launcher": {
@@ -94,5 +94,31 @@
       "cancelled": false,
       "other_runs_not_claimed_passed": true
     }
+  },
+  "recovery_executor": {
+    "scope": "explicit_private_disposable_Windows_CI_only_not_public_auto_startup",
+    "entry": "scripts/private_source_update.py --recover",
+    "requires": [
+      "independent_archive_sha256",
+      "independent_old_anchor_sha256",
+      "independent_database_fingerprint",
+      "prepared_owned_offline_transaction",
+      "acquired_Global_VIRA_Updater_mutex"
+    ],
+    "eligibility_revalidated_under_mutex_before_writes": true,
+    "restores": "authorized_changed_old_files_manifest_anchor_and_cold_database_snapshot",
+    "restarts_old_app_and_rechecks": "real_existing_start_readiness_gate_then_full_old_tree_database_fingerprint_session_receipt_hashes_and_exact_guard_owner",
+    "unknown_live_pid_channel_desktop_or_terminal_guard_removal": false,
+    "force_kill_by_image_name": false,
+    "locks_released_only_after_verified_restart_and_durable_terminal_receipts": true,
+    "local_full_pytest_passed": 1219,
+    "local_full_pytest_seconds": 113.97,
+    "local_focused_executor_controls_passed": 22,
+    "local_ruff_mypy_bandit": "passed",
+    "Windows_real_mutex_and_abrupt_child_SQLite_controls": "pending_new_preflight",
+    "app_startup_boundary_in_executor_controls": "mocked_not_native_application_proof",
+    "real_native_crash_recovery_proven": false,
+    "crash_during_recovery_or_partial_terminal_unlock_automatically_supported": false,
+    "public_release_ready": false
   }
 }

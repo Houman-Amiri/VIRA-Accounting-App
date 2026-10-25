@@ -19,6 +19,7 @@ import subprocess
 import time
 import urllib.request
 import zipfile
+from contextlib import contextmanager
 from pathlib import Path
 
 MAX_FILE = 256 * 1024 * 1024
@@ -625,13 +626,193 @@ def inspect_recovery(
     )
 
 
+
+@contextmanager
+def recovery_mutex():
+    """Own the SAME Windows global mutex as the compiled updater, never age locks."""
+    if os.name != "nt" or os.environ.get("GITHUB_ACTIONS") != "true":
+        raise ValueError("Private disposable Windows CI recovery only")
+    import ctypes
+    from ctypes import wintypes
+
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.CreateMutexW.argtypes = (wintypes.LPVOID, wintypes.BOOL, wintypes.LPCWSTR)
+    kernel.CreateMutexW.restype = wintypes.HANDLE
+    kernel.WaitForSingleObject.argtypes = (wintypes.HANDLE, wintypes.DWORD)
+    kernel.WaitForSingleObject.restype = wintypes.DWORD
+    kernel.ReleaseMutex.argtypes = (wintypes.HANDLE,)
+    kernel.ReleaseMutex.restype = wintypes.BOOL
+    kernel.CloseHandle.argtypes = (wintypes.HANDLE,)
+    kernel.CloseHandle.restype = wintypes.BOOL
+    handle = kernel.CreateMutexW(None, False, "Global\\VIRA-Updater")
+    if not handle:
+        raise ctypes.WinError(ctypes.get_last_error())
+    owned = False
+    try:
+        result = kernel.WaitForSingleObject(handle, 0)
+        if result not in (0, 0x80):  # Acquired or abandoned: ALWAYS revalidate below.
+            raise RuntimeError("Another updater owns the global mutex or ownership is unknown")
+        owned = True
+        yield
+    finally:
+        try:
+            if owned and not kernel.ReleaseMutex(handle):
+                raise ctypes.WinError(ctypes.get_last_error())
+        finally:
+            kernel.CloseHandle(handle)
+
+
+def recover(
+    root: Path, home: Path, attempt: Path, archive: Path,
+    archive_sha256: str, old_anchor_sha256: str, database_fingerprint: str,
+) -> dict:
+    """Explicit private recovery: restore OLD bytes/DB, restart and verify, then unlock.
+
+    No public auto-activation, stale-channel deletion, force-kill or inspection
+    ticket. The global mutex is acquired BEFORE inspection; every eligibility
+    check is repeated immediately before writes. Failure retains the guards.
+    """
+    with recovery_mutex():
+        args = (root, home, attempt, archive, archive_sha256,
+                old_anchor_sha256, database_fingerprint)
+        proof = inspect_recovery(*args)
+        lock = home / ".native-update.lock"
+        owner_raw = lock.read_bytes()
+        owner = read(owner_raw)
+        token = owner["token"]
+        guard = home / "state/data/updates/.update.lock"
+        old_raw = (attempt / "anchor-before.json").read_bytes()
+        old = read(old_raw)
+        backup = attempt / "files-before"
+        baseline = manifest((backup / "install_manifest.json").read_bytes(), old["manifest_sha256"])
+        state = home / "state"
+        bundle = attempt / "database-rollback"
+        database_metadata = (bundle / "metadata.json").read_bytes()
+        snapshot_sha256 = read(database_metadata)["sha256"]
+
+        def assets():
+            secret = state / "session.secret"
+            no_links(secret)
+            values = {"session.secret": sha(secret)}
+            for path in (state / "data/receipts").rglob("*"):
+                no_links(path)
+                if path.is_file():
+                    values[path.relative_to(state).as_posix()] = sha(path)
+            return values
+
+        preserved = assets()
+        if inspect_recovery(*args) != proof or lock.read_bytes() != owner_raw:
+            raise ValueError("Recovery eligibility changed before writes")
+        # Rebuild only the authorized changed-file set, not an arbitrary tree.
+        for name in proof["changed"]:
+            destination = root / name
+            no_links(destination)
+            if name not in baseline:
+                if destination.exists():
+                    destination.unlink()
+            else:
+                data = (backup / name).read_bytes()
+                if hashlib.sha256(data).hexdigest() != baseline[name]["sha256"]:
+                    raise ValueError("Recovery backup changed before restore")
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                atomic(destination, data)
+        atomic(root / "install_manifest.json", (backup / "install_manifest.json").read_bytes())
+        verify(root, baseline)
+        if sha(root / "install_manifest.json") != old["manifest_sha256"]:
+            raise ValueError("Restored old manifest digest differs")
+        atomic(home / "anchor.json", old_raw)
+        # Full old-tree verification ABOVE authenticates both scripts before runpy.
+        dbtool = runpy.run_path(str(root / "scripts/update_database.py"))
+        if ((bundle / "metadata.json").read_bytes() != database_metadata
+                or sha(bundle / "database.sqlite3") != snapshot_sha256):
+            raise ValueError("Recovery database snapshot changed before restore")
+        dbtool["restore"](bundle)
+        database = state / "data/data/vira.sqlite3"
+        if dbtool["fingerprint"](database) != database_fingerprint or assets() != preserved:
+            raise ValueError("Restored database/session/receipts differ")
+        bridge = runpy.run_path(str(root / "app/private_installed_source.py"))
+        old = bridge["anchor"](old)
+        with zipfile.ZipFile(archive) as packet:
+            target = bridge["anchor"](read(packet.read("private-source-anchor.json")))
+        restarted = False
+        try:
+            start(home, root, token, old, attempt / ("recovery-startup-" + secrets.token_hex(16) + ".log"))
+            restarted = True
+            # The restarted app remains write-quarantined through these checks.
+            verify(root, baseline)
+            if (dbtool["fingerprint"](database) != database_fingerprint
+                    or assets() != preserved
+                    or (home / "anchor.json").read_bytes() != old_raw
+                    or lock.read_bytes() != owner_raw
+                    or guard.read_bytes() != token.encode()
+                    or (home / ".native-channel.lock").exists()
+                    or not process_definitely_dead(owner["pid"])):
+                raise ValueError("Recovery health/data/ownership changed before terminal publication")
+            journal = read((attempt / "journal.json").read_bytes())
+            journal.update(state="rolled_back", recovery_verified=True, recovery_pid=os.getpid())
+            atomic(attempt / "result.json", (json.dumps(journal, indent=2) + "\n").encode())
+            result = dict(
+                state="rolled_back", machine_state="rolled_back", verified=False,
+                recovery_verified=True, target_version=target["version"],
+                helper_pid=os.getpid(), attempt_id=attempt.name,
+                log_path=str(attempt), error_fa="نسخه و دادهٔ قبلی پس از قطع تراکنش بازیابی و سلامت آن تأیید شد.",
+            )
+            atomic(state / "data/updates/last-result.json", (json.dumps(result) + "\n").encode())
+            # Terminal receipts alone NEVER unlock writes. Recheck exact ownership.
+            if lock.read_bytes() != owner_raw or guard.read_bytes() != token.encode():
+                raise ValueError("Recovery guard ownership changed during publication")
+            guard.unlink()
+            try:
+                lock.unlink()
+            except BaseException:
+                # A normal second-unlink I/O failure must keep the original pair.
+                # Never replace an intervening foreign guard; a surviving native
+                # guard alone also keeps the application's write gate closed.
+                if lock.exists() and lock.read_bytes() == owner_raw and not guard.exists():
+                    with guard.open("xb") as stream:
+                        stream.write(token.encode())
+                        stream.flush()
+                        os.fsync(stream.fileno())
+                raise
+            return dict(
+                role="PRIVATE_PREPARED_RECOVERY_EXECUTED_NOT_CRASH_ACCEPTANCE",
+                recovery_executed=True, restored_old_tree=True,
+                database_fingerprint=database_fingerprint, app_ready_verified=True,
+                session_and_receipts_preserved=True, locks_released=True,
+                crash_recovery_proven=False, phase3_complete=False, release_authorized=False,
+            )
+        except BaseException:
+            if restarted:
+                stop(home, root)  # Only this recovery's own gracefully restarted app.
+            raise
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ("install-root", "archive", "target-anchor", "attempt"):
+    for name in ("install-root", "archive", "attempt"):
         parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--target-anchor", type=Path)
+    parser.add_argument("--recover", action="store_true")
+    parser.add_argument("--old-anchor-sha256")
+    parser.add_argument("--database-fingerprint")
     parser.add_argument("--archive-sha256", required=True)
     parser.add_argument("--force-failure-after-apply", action="store_true")
     args = parser.parse_args()
+    if args.recover:
+        if (not args.old_anchor_sha256 or not args.database_fingerprint
+                or args.force_failure_after_apply or args.target_anchor is not None):
+            parser.error("Explicit recovery needs independent old-anchor/DB digests, not update options")
+        if os.name != "nt" or os.environ.get("GITHUB_ACTIONS") != "true":
+            raise ValueError("Private disposable Windows CI recovery only")
+        result = recover(
+            args.install_root,
+            Path(os.environ["LOCALAPPDATA"]) / "VIRA/private-native-installed",
+            args.attempt, args.archive, args.archive_sha256,
+            args.old_anchor_sha256, args.database_fingerprint,
+        )
+        print(json.dumps(result))
+        return
+    if args.target_anchor is None or args.old_anchor_sha256 or args.database_fingerprint:
+        parser.error("Update requires target-anchor; recovery is never inferred")
     if os.name != "nt" or os.environ.get("GITHUB_ACTIONS") != "true":
         raise ValueError("Private installed native updater Windows CI only")
     root, attempt = args.install_root, args.attempt
