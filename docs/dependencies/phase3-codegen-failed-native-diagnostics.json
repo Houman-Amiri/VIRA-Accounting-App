@@ -1,0 +1,22 @@
+{
+  "role": "AUTHENTICATED_FAILED_NATIVE_TARGET_COMPILER_EXCERPT_NOT_NATIVE_ACCEPTANCE",
+  "source_run": 40183092030,
+  "source_job": 121138959651,
+  "source_head": "55e65f5e79fecb9085e7a421cf5a068a801aa5d1",
+  "artifact_id": 12597309662,
+  "artifact_zip_sha256": "852e6a1b7b6cdb818115c8d6a00e82b736321d721968065f75eab7cccaacc05a",
+  "recovery_run": 40190349999,
+  "source_ninja_member": "compiler-instructions/vcpkg/buildtrees/pango/x64-vira-pdf-rel/build.ninja",
+  "source_complete_ninja_sha256": "7055c41ad7cb4543805b2b4ddeec5414c9f136a6ed051368720954431d5f26a5",
+  "excerpt_kind": "COMPLETE_pango_utils_C_COMPILER_BUILD_EDGE_AND_ARGS_NOT_ENTIRE_NINJA",
+  "excerpt_sha256": "44eee2ee2bd0bca09aba5f12ab301406c6f10cb480b10c6e47b2e863ad1e2cae",
+  "compile_block": "build pango/pango-1.0-0.dll.p/pango-utils.c.obj: c_COMPILER ../src/pango-1-5cb02b5781.clean/pango/pango-utils.c || pango/pango-enum-types.h\n DEPFILE = \"pango\\pango-1.0-0.dll.p\\pango-utils.c.obj.d\"\n DEPFILE_UNQUOTED = pango\\pango-1.0-0.dll.p\\pango-utils.c.obj.d\n ARGS = \"-Ipango\\pango-1.0-0.dll.p\" \"-Ipango\" \"-I..\\src\\pango-1-5cb02b5781.clean\\pango\" \"-I.\" \"-I..\\src\\pango-1-5cb02b5781.clean\" \"-ID:/a/_temp/phase3-codegen-native-work/installed/x64-vira-pdf/include/glib-2.0\" \"-ID:/a/_temp/phase3-codegen-native-work/installed/x64-vira-pdf/lib/glib-2.0/include\" \"-ID:/a/_temp/phase3-codegen-native-work/installed/x64-vira-pdf/include\" \"-ID:/a/_temp/phase3-codegen-native-work/installed/x64-vira-pdf/include/fribidi\" \"-ID:/a/_temp/phase3-codegen-native-work/installed/x64-vira-pdf/include/harfbuzz\" \"-ID:/a/_temp/phase3-codegen-native-work/installed/x64-vira-pdf/include/libpng16\" \"-ID:/a/_temp/phase3-codegen-native-work/installed/x64-vira-pdf/include/cairo\" \"-ID:/a/_temp/phase3-codegen-native-work/installed/x64-vira-pdf/include/pixman-1\" \"/MT\" \"/nologo\" \"/showIncludes\" \"/utf-8\" \"/W2\" \"/std:c11\" \"-D_POSIX_C_SOURCE=200809L\" \"-D_POSIX_THREAD_SAFE_FUNCTIONS\" \"-D_GNU_SOURCE\" \"-D_WIN32_WINNT=_WIN32_WINNT_WIN10\" \"-utf-8\" \"-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_82\" \"-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_82\" \"-nologo\" \"-DWIN32\" \"-D_WINDOWS\" \"-utf-8\" \"-MP\" \"-MT\" \"-O2\" \"-Oi\" \"-Gy\" \"-Z7\" \"-Od\" \"-Ob0\" \"-DNDEBUG\" \"-utf-8\" \"-DG_LOG_DOMAIN=\\\"Pango\\\"\" \"-DG_LOG_USE_STRUCTURED=1\" \"-DPANGO_COMPILATION\" \"-DSYSCONFDIR=\\\"D:/a/_temp/phase3-codegen-native-work/vcpkg/packages/pango_x64-vira-pdf/etc\\\"\" \"-DLIBDIR=\\\"D:/a/_temp/phase3-codegen-native-work/vcpkg/packages/pango_x64-vira-pdf/lib\\\"\" \"/Fdpango\\pango-1.0-0.dll.p\\pango-utils.c.pdb\"\n",
+  "observed_failure": "Actual Pango compiler instructions lack selected codegen flags",
+  "cause": "Old verifier required slash literals; actual Meson MSVC command uses -Od -Ob0 -DNDEBUG after -O2",
+  "native_compile_completed_per_original_step_log": true,
+  "full_codegen_target_admission": false,
+  "full_delta_rollback_proven": false,
+  "crash_recovery_proven": false,
+  "phase3_complete": false,
+  "release_authorized": false
+}

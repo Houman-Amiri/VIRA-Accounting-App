@@ -2,12 +2,14 @@
 
 **۲۰۲۶-۱۰-۲۵ — فعال و ناقص؛ تحویل نهایی فاز انجام نشده است.**
 
-**آخرین وضعیت:** CI کد7bb72e0 با40189290259 هر۵job موفق و preflight ویندوز
-40189290266 با۱۴کنترل terminal و۱۲کنترل clone موفق است. اما مرحلهٔ NativeB در
-40183092030/55e65f5 شکست خورده است؛ ساخت و نصب/HTTP پایه موفق بوده، نه NativeB
-و نه دلتا/rollback. artifact شکست موجود است ولی دانلود مستقیم لاگ و artifact
-از sandbox خطای EOF دارد؛ job تشخیصی فقط‌خواندنی برای بازیابی علت اضافه شد.
-فاز۳ ناقص است؛ همهٔ۶گیت باز و نصب/دادهٔ کاربر و انتشار بدون تغییر هستند.
+**آخرین وضعیت:** علت شکست NativeB در40183092030 مشخص شد: طبق لاگ اصلی همهٔ
+۳۵package در۳۴دقیقه cold-compile و audit بومی موفق‌اند، اما verifier خود ما
+شکل `/Od /Ob0 /DNDEBUG` را انتظار داشت و شکل معتبر MSVC تولیدی Meson یعنی
+`-Od -Ob0 -DNDEBUG` را رد می‌کرد. verifier با اتصال به دستور TU واقعی و ترتیب
+مؤثر گزینه‌ها اصلاح شد؛۱۱۵۰تست محلی موفق. هنوز اجرای بومی جدیدِ اصلاح را نداریم.
+کنترل clone در pwsh و Windows PowerShell5.1 هر دو موفق است؛ این جای compiled
+helper و native transaction را نمی‌گیرد. فاز۳ ناقص و هر۶گیت باز است.
+
 
 
 
@@ -425,3 +427,30 @@ EOF است. workflow جدیدِ فقط‌خواندنی metadata اجرای دق
 اجرای جدید40189290222 روی7bb72e0 فعلاً stock preflight است، نه transaction جدید.
 محلی با all-extras frozen دوباره۱۱۳۷PASS در76.26s و audit بدون آسیب‌پذیری شناخته‌شده؛
 پروژهٔ محلی در PyPI نیست. crash/stale-lock و دلتا/rollback واقعی هنوز اثبات نشده‌اند.
+
+
+## بازیابی علت دقیق و اصلاح verifier بدون ضعیف‌کردن دروازه
+
+artifact اصلی12597309662 با ZIP SHA
+`852e6a1b7b6cdb818115c8d6a00e82b736321d721968065f75eab7cccaacc05a`
+در workflowهای فقط‌خواندنی40190246599 و40190349999 احراز شد. لاگ اصلی می‌گوید
+همهٔ۳۵package طی۳۴دقیقه ساخته شده، audit بومی PASS و inputهای preferred-source
+دست‌نخورده‌اند؛ خطای دقیق در codegen_evidence خودمان و تشخیص گزینهٔ MSVC است.
+Meson در Ninja از prefix معتبر `-` استفاده کرده، در حالی که triplet prefix `/`
+دارد. این با خطای کامپایل کتابخانه یا شکست source-audit یکسان نیست؛ بااین‌حال
+گیت کامل NativeB و اجرای تابع نهایی و تراکنش هنوز قبول/احراز نشده‌اند.
+
+اصلاح اکنون فقط ARGS مربوط به edge واقعی c_COMPILER برای pango-utils.c را
+می‌پذیرد، نه هر متن در کل Ninja. هر دو prefix معتبرند، ولی آخرین گزینهٔ مؤثر
+باید Od/Ob0/DNDEBUG باشد. override بعدی O2/Ob2/UNDEBUG، comment، rule دیگر،
+quoted define ساختگی و ARGS تکراری رد می‌شوند. بلوک کامل واقعیِ TU با provenance
+و digest فایل کامل Ninja در phase3-codegen-failed-native-diagnostics.json ثبت
+و به regression test وصل شد؛ PEهای آن تست همچنان مصنوعی‌اند و اجرا نمی‌شوند.
+
+محلی all-extras frozen:۱۱۵۰PASS در82.13s، صفرfail/error/skip؛ Ruff/Mypy90/
+Bandit/audit موفق. preflight40190140965/job121159189127 همان۱۲کنترل clone را
+هم در pwsh و هم در Windows PowerShell5.1 میزبان ps2exe گذراند؛۱۴کنترل terminal
+هم موفق‌اند. این‌ها اثبات compiled helper/native/crash نیستند. Source40189290222
+روی7bb72e0 از قبل ساخت سرد را با verifier قدیمی شروع کرده؛ به اصلاح تازه نسبتش
+نمی‌دهیم و برای push جدید ساخت سرد فعال را cancel نمی‌کنیم. اجرای اصلاح در صف
+خواهد بود. فاز۳ همچنان ناقص، هر۶گیت باز و نصب/داده/انتشار کاربر بدون تغییر است.

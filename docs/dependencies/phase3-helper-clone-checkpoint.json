@@ -85,11 +85,14 @@
     "all_five_jobs_success": true
   },
   "latest_all_extras_local_suite": {
-    "passed": 1137,
-    "seconds": 76.26,
+    "passed": 1150,
+    "seconds": 82.13,
     "failures": 0,
     "errors": 0,
     "skips": 0,
+    "ruff": "PASS",
+    "mypy": "PASS90",
+    "bandit": "PASS",
     "pip_audit": "no_known_vulnerabilities_local_project_unlisted"
   },
   "native_b_diagnostics": {
@@ -98,7 +101,24 @@
     "artifact_download_from_sandbox": "EOF",
     "job_log_download_from_sandbox": "EOF",
     "dedicated_read_only_GHA_recovery_added": true,
-    "cause_known": false
+    "cause_known": true,
+    "recovery_runs": [
+      40190140988,
+      40190246599,
+      40190349999
+    ],
+    "artifact_zip_sha256": "852e6a1b7b6cdb818115c8d6a00e82b736321d721968065f75eab7cccaacc05a",
+    "compile_and_native_audit_success_per_original_log": true,
+    "failed_gate": "slash_only_verifier_rejected_Meson_equivalent_dash_MSVC_flags",
+    "corrected_gate": "actual_TU_C_COMPILER_ARGS_accepts_both_with_effective_order_checks",
+    "full_native_admission": false
   },
-  "desktop51_clone_ast_controls_added_not_yet_executed": true
+  "desktop51_clone_ast_controls_added_not_yet_executed": false,
+  "desktop51_clone_ast_controls": {
+    "run": 40190140965,
+    "job": 121159189127,
+    "conclusion": "success",
+    "cases": 12,
+    "compiled_helper_or_native_proof": false
+  }
 }

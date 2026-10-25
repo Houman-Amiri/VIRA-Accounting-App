@@ -11,6 +11,8 @@ import copy
 import hashlib
 import json
 import os
+import re
+import shlex
 from pathlib import Path
 
 
@@ -60,11 +62,57 @@ def codegen_evidence(before: bytes, after: bytes, compiler_files: list[tuple[str
         raise ValueError("Native executable code unchanged; timestamps/metadata are insufficient")
     commands = []
     for name, data in compiler_files:
-        text = data.decode("utf-8")
-        # Pango's actual generated Ninja compilation instructions, not our recipe
-        # comment or a fabricated stamp. Preserve whole files in the CI artifact.
-        if "pango-utils.c" in text and all(flag in text for flag in ("/Od", "/Ob0", "/DNDEBUG")):
-            commands.append(dict(path=name, sha256=sha(data), bytes=len(data)))
+        if Path(name.replace("\\", "/")).name != "build.ninja":
+            continue
+        # Meson translates the recipe's / flags to equivalent MSVC - options.
+        # Bind effective options to the ACTUAL translation unit, not arbitrary
+        # whole-file text, comments, another compiler rule or a recipe marker.
+        lines = data.decode("utf-8-sig").replace("$\r\n", "").replace("$\n", "").splitlines()
+        for i, line in enumerate(lines):
+            if not line.startswith("build "):
+                continue
+            edge = re.search(r": c_COMPILER (.*?)(?: \||$)", line)
+            if not edge or not re.search(r"(?:^|[/\\])pango-utils\.c(?:\s|$)", edge[1]):
+                continue
+            bindings = []
+            for following in lines[i + 1 :]:
+                if following and not following[0].isspace():
+                    break
+                match = re.fullmatch(r"\s+ARGS = (.*)", following)
+                if match:
+                    bindings.append(match[1])
+            if len(bindings) != 1:
+                continue
+            try:
+                tokens = shlex.split(bindings[0], posix=False)
+            except ValueError:
+                continue
+            tokens = [t[1:-1] if t.startswith('"') and t.endswith('"') else t for t in tokens]
+            flags = ["/" + t[1:] for t in tokens if t.startswith(("/", "-"))]
+            optimization = [f for f in flags if re.fullmatch(r"/O(?:d|[12x])", f)]
+            inline = [f for f in flags if re.fullmatch(r"/Ob[0-3]", f)]
+            ndebug = [f for f in flags if f in {"/DNDEBUG", "/UNDEBUG"}]
+            if (
+                not optimization
+                or optimization[-1] != "/Od"
+                or not inline
+                or inline[-1] != "/Ob0"
+                or not ndebug
+                or ndebug[-1] != "/DNDEBUG"
+            ):
+                continue
+            commands.append(
+                dict(
+                    path=name,
+                    sha256=sha(data),
+                    bytes=len(data),
+                    translation_unit="pango-utils.c",
+                    build_edge=line,
+                    actual_args_sha256=sha(bindings[0].encode()),
+                    effective_msvc_options=[optimization[-1], inline[-1], ndebug[-1]],
+                    slash_and_dash_msvc_options_equivalent=True,
+                )
+            )
     if not commands:
         raise ValueError("Actual Pango compiler instructions lack selected codegen flags")
     return dict(

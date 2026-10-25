@@ -1492,3 +1492,31 @@ build/step logs through GitHub, without rebuilding or modifying producer evidenc
 Failure cause not yet collected; do not skip, substitute SDK/DLLs, or clear gates.
 7bb72e0 latest source run40189290222 started stock preflight; no actual transaction
 outcome yet. Phase3 INCOMPLETE; all6 gates OPEN, no release/user-install/data changes.
+
+
+## Phase3 NativeB failure diagnosed and verifier corrected — NOT yet native acceptance
+
+Read-only recovery40190246599/40190349999 authenticated original55e65f5 producer,
+artifact12597309662 ZIP SHA852e6a1b7b6cdb818115c8d6a00e82b736321d721968065f75eab7cccaacc05a.
+Original log: ALL35packages cold-compiled in34min, fresh native audit PASS and20
+preferred-source inputs unchanged. Failure was specifically OUR slash-literal
+compiler verifier: Meson writes equivalent MSVC '-Od -Ob0 -DNDEBUG', not '/...'.
+No NativeB full admission/activation or actual delta/rollback proof is inferred.
+
+Corrected QA gate does NOT search arbitrary whole-file text. Requires actual
+pango-utils.c c_COMPILER edge's single ARGS binding; accepts both MSVC prefixes,
+requires LAST effective optimization/inline/NDEBUG choices and rejects later
+O2/Ob2/UNDEBUG overrides, unrelated rules/comments/quoted defines/duplicate ARGS.
+Preserved complete authentic translation-unit block plus immutable provenance and
+full-original-Ninja digest7055c41ad7cb4543805b2b4ddeec5414c9f136a6ed051368720954431d5f26a5
+in docs/dependencies/phase3-codegen-failed-native-diagnostics.json. Recorded compiler
+block regression plus synthetic PE-parser controls are NOT native execution proof.
+Full all-extras1150PASS82.13s/0fail/error/skip; Ruff/Mypy90/Bandit/audit PASS.
+
+Private old-Python clone actual-function controls ALSO PASS on real Windows
+PowerShell5.1 (ps2exe's host), preflight40190140965/job121159189127, in addition
+to pwsh12 cases and14terminal-AST faults. Still NOT compiled EXE/native acceptance.
+7bb72e0/source40189290222 is already cold-building baseline with OLD verifier;
+do not attribute it to this fix. New fixed pipeline will queue without cancelling
+the active cold build. Native transaction and crash/stale-lock outcomes remain
+unproved. Phase3 INCOMPLETE, all6 gates OPEN; no release/next-phase/user-data change.
