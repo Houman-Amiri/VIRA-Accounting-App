@@ -75,19 +75,20 @@ jobs:
               assert case['terminal']['verified'] is (name == 'commit')
               assert case['database_fingerprint_before'] == case['database_fingerprint_after'] == case['journal']['database_fingerprint']
               assert all(case[k] is True for k in preserved)
-              assert case['write_quarantine_http503_observed'] is True, f'HTTP503 observation missing: {name}'
               assert case['old_pid'] != case['new_pid']
               assert len(case['completed']['loaded_dlls']) == case['completed']['activation']['dll_count'] == 21
               assert case['completed']['pango_version'] == '1.58.0-vira-local-source'
               assert case['package']['unchanged_payload_files_absent'] is True
               assert case['package']['full_installer_in_package'] is False
               summary['cases'][name] = dict(state=expected, preserved={k: case[k] for k in preserved},
-                  database_fingerprint=case['database_fingerprint_after'], write_quarantine_http503_observed=True,
+                  database_fingerprint=case['database_fingerprint_after'],
+                  write_quarantine_http503_observed=case['write_quarantine_http503_observed'],
                   loaded_dll_count=21, pango_version=case['completed']['pango_version'],
                   changed_file_count=len(case['package']['changed']),
                   native_operation_count=len(case['package']['native_operations']),
                   pdf_document_count=len(case['documents']), unchanged_payload_files_absent=True,
                   full_installer_in_package=False, forced_failure_point=case['forced_failure_point'])
+          summary['live_write_quarantine_acceptance'] = all(c['write_quarantine_http503_observed'] for c in summary['cases'].values())
           encoded = json.dumps(summary, sort_keys=True).encode()
           pathlib.Path('native-success-summary.json').write_bytes(encoded + b'\n')
           packed = base64.b64encode(zlib.compress(encoded, 9)).decode()
@@ -100,3 +101,14 @@ jobs:
           path: native-success-summary.json
           if-no-files-found: error
           retention-days: 90
+      - name: Require actual live HTTP write-quarantine evidence, not a producer success inference
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          summary = json.load(open('native-success-summary.json'))
+          missing = [name for name, case in summary['cases'].items() if not case['write_quarantine_http503_observed']]
+          if missing:
+              print('::error title=Live write-quarantine acceptance still open::HTTP503 not observed in original producer cases: ' + ', '.join(missing))
+              raise SystemExit(1)
+          PY
