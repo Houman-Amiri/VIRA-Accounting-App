@@ -96,6 +96,8 @@ if ($PrivateSourceTransaction) {
     if ($entry.Count -ne 1 -or (Get-Sha256 $driver) -ne $entry[0].sha256) { throw "Old private controller not independently verified" }
     $context = Get-Content -LiteralPath $PrivateSourceTransaction -Raw -Encoding utf8 | ConvertFrom-Json
     if ($context.role -ne 'PRIVATE_SOURCE_TRANSACTION') { throw "Private transaction context required" }
+    $privateOldAnchorHash = Get-Sha256 (Join-Path $privateHome 'anchor.json')
+    $privateTargetAnchorHash = Get-Sha256 ([string]$context.target_anchor)
     $privateMutex = New-Object System.Threading.Mutex($false, 'Global\VIRA-Updater')
     if (-not $privateMutex.WaitOne(0)) { throw "another update is already running" }
     $channelLock = Join-Path $privateHome '.native-channel.lock'
@@ -132,11 +134,25 @@ if ($PrivateSourceTransaction) {
     } finally {
         try {
             if ($channelOwned) {
+                # Check ownership BEFORE publishing any result. Backend also
+                # refuses terminal receipts until all private guards are gone.
+                $owner = Get-Content -LiteralPath $channelLock -Raw -Encoding utf8 | ConvertFrom-Json
+                if ($owner.pid -ne $PID -or $owner.attempt_id -ne $privateAttempt) { throw 'Private channel lock ownership changed' }
                 $terminal = 'failed'
                 $journalPath = Join-Path ([string]$context.attempt) 'result.json'
                 if (Test-Path -LiteralPath $journalPath) {
                     $journal = Get-Content -LiteralPath $journalPath -Raw -Encoding utf8 | ConvertFrom-Json
-                    if ($journal.role -eq 'PRIVATE_NATIVE_TRANSACTION_JOURNAL' -and $journal.state -in @('committed','rolled_back')) { $terminal = [string]$journal.state }
+                    $guardsReleased = -not (Test-Path -LiteralPath (Join-Path $privateHome '.native-update.lock')) -and
+                        -not (Test-Path -LiteralPath (Join-Path $privateHome 'state/data/updates/.update.lock'))
+                    $journalBound = $journal.schema -eq 1 -and $journal.role -eq 'PRIVATE_NATIVE_TRANSACTION_JOURNAL' -and
+                        $journal.old_anchor_sha256 -ceq $privateOldAnchorHash -and
+                        $journal.target_anchor_sha256 -ceq $privateTargetAnchorHash -and
+                        $journal.archive_sha256 -ceq ([string]$context.archive_sha256)
+                    $currentAnchorHash = Get-Sha256 (Join-Path $privateHome 'anchor.json')
+                    if ($guardsReleased -and $journalBound) {
+                        if ($privateCode -eq 0 -and $journal.state -eq 'committed' -and $currentAnchorHash -ceq $privateTargetAnchorHash) { $terminal = 'committed' }
+                        elseif ($privateCode -ne 0 -and $journal.state -eq 'rolled_back' -and $currentAnchorHash -ceq $privateOldAnchorHash) { $terminal = 'rolled_back' }
+                    }
                 }
                 $stamp = Get-Content -LiteralPath (Join-Path $Stage 'version.json') -Raw -Encoding utf8 | ConvertFrom-Json
                 $reason = if ($terminal -eq 'rolled_back') { 'به‌روزرسانی ناموفق بود؛ نسخه و دادهٔ قبلی بازگردانده و سلامت آن تأیید شد.' } elseif ($terminal -eq 'failed') { 'به‌روزرسانی خصوصی تأیید نشد؛ گزارش و قفل‌های بازیابی را بررسی کنید.' } else { '' }

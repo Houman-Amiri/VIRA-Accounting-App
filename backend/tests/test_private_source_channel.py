@@ -241,6 +241,8 @@ def test_private_polling_survives_restart_and_ignores_previous_result(tmp_path, 
         machine_state="rolled_back",
     )
     (updates / "last-result.json").write_bytes(raw(current))
+    assert update.read_update_status(settings)["state"] == "applying"
+    (home / ".native-channel.lock").unlink()
     assert update.read_update_status(settings)["state"] == "rolled_back"
 
 
@@ -400,3 +402,33 @@ def test_old_helper_clone_rejects_drift_or_adopted_directory(tmp_path, monkeypat
         (root / "vira-updater.exe").write_bytes(b"CHANGED OLD HELPER")
     with pytest.raises((ValueError, FileExistsError)):
         channel.clone_installed_helper(context, run)
+
+
+@pytest.mark.parametrize("terminal", ["committed", "rolled_back", "failed"])
+@pytest.mark.parametrize("guard", ["channel", "native", "write"])
+def test_private_terminal_receipt_never_overrides_surviving_cleanup_guard(
+    tmp_path, monkeypatch, terminal, guard
+):
+    _, home, settings, _, _ = fixture(tmp_path, monkeypatch)
+    updates = home / "state/data/updates"
+    updates.mkdir(parents=True)
+    monkeypatch.setattr(update, "manager", update.UpdateManager())
+    receipt = dict(
+        state=terminal,
+        machine_state=terminal,
+        helper_pid=42,
+        attempt_id="current",
+        verified=terminal == "committed",
+    )
+    (updates / "last-result.json").write_bytes(raw(receipt))
+    lock = {
+        "channel": home / ".native-channel.lock",
+        "native": home / ".native-update.lock",
+        "write": updates / ".update.lock",
+    }[guard]
+    lock.write_bytes(raw(dict(pid=42, attempt_id="current")))
+    status = update.read_update_status(settings)
+    assert status["state"] == status["machine_state"] == "applying"
+    assert status["verified"] is False
+    lock.unlink()
+    assert update.read_update_status(settings)["state"] == terminal

@@ -1,0 +1,20 @@
+{
+  "role": "PRIVATE_HELPER_TERMINAL_RECEIPT_AND_CLEANUP_FAIL_CLOSED_LOCAL_CHECKPOINT",
+  "local_tests": 1127,
+  "local_seconds": 123.87,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "additional_synthetic_api_cases": 9,
+  "planned_actual_ast_windows_synthetic_fault_cases": 14,
+  "windows_followup_observed": false,
+  "source_codegen_run": 40183092030,
+  "source_codegen_revision": "55e65f5",
+  "source_codegen_state_last_observed": "cold_native_compilation_in_progress",
+  "source21_install_proven_for_revision": "a7c6fc87b6bb066a3e7c78766071451602b1d131",
+  "real_native_delta_rollback_proven": false,
+  "compiled_helper_fault_acceptance": false,
+  "crash_stale_lock_recovery_proven": false,
+  "phase3_complete": false,
+  "release_authorized": false
+}

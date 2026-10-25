@@ -8,7 +8,7 @@
 ۲۱DLL از مسیر نصب انتخابی، PDFهای واقعی و حفظ شناسه/session/secret تأیید شد.
 ساخت مستقلِ هدفِ بومی با codegen متفاوت اضافه شده ولی نتیجهٔ ویندوز آن هنوز
 مشاهده نشده است. update/rollback بومی واقعی و crash recovery هنوز اثبات
-نشده‌اند؛ فاز۳ همچنان فعال/ناقص است. suite محلی با lock امنیتی جدید:۱۱۱۸PASS.
+نشده‌اند؛ فاز۳ همچنان فعال/ناقص است. suite محلی با lock امنیتی جدید و اصلاح رسید:۱۱۲۷PASS.
 
 
 ادامهٔ کار مالک، مجوز همین فاز است، نه انتشار، بستن گیت حقوقی، فعال‌سازی startup
@@ -313,3 +313,20 @@ checkpoint ثبت شده‌اند؛ ادعای پاک‌بودن همهٔ DLLه�
 مسیر بعدی همین فاز: نتیجهٔ ساخت هدف بومی، transaction واقعی از API با رضایت،
 rollback و حفظ حسابداری/شناسه/session/secret/receipt، faultهای helper و
 crash/stale-lock. همهٔ۶گیت باز؛ نسخهٔ عمومی1.0.10 و نصب/دادهٔ کاربر تغییر نکرده‌اند.
+
+
+### اصلاح تکمیلی رسید terminal و cleanup (هنوز transaction بومی نیست)
+
+API خصوصی حتی رسید committed/rolled_back با PID و attempt صحیح را تا باقی‌ماندن
+هر کدام از سه guard مربوط به channel/native/write، نتیجهٔ نهایی نمی‌داند:
+applying/unverified حفظ می‌شود. helper علاوه بر role، schema و hash آرشیو و
+anchorهای قدیم/هدف، تطابق exit-code/state و anchor جاری را کنترل می‌کند و
+مالکیت channel را قبل از انتشار نتیجه و دوباره قبل از حذف قفل بررسی می‌کند.
+صرف journal پایدار دیگر کافی نیست؛ guardهای stale خودکار حذف نمی‌شوند.
+
+۹ کنترل مصنوعی جدید؛ کل suite۱۱۲۷PASS در123.87s بدونfail/error/skip.۱۴ fault
+مصنوعی نیز خود بلوک AST همان helper را در runner ویندوز اجرا خواهند کرد؛ نتیجهٔ
+جدید ویندوز هنوز مشاهده نشده است. این‌ها fault واقعی compiled-helper/native
+transaction یا اثبات crash recovery نیستند. Source40183092030 روی55e65f5 هنوز
+cold compile است؛ preflight محدود همان commit شمارهٔ40183092159 موفق شد، نه
+تأیید بومی این اصلاح بعدی. هیچ گیت انتشار/حقوقی بسته نشده است.

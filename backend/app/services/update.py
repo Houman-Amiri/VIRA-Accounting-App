@@ -599,10 +599,11 @@ def read_update_status(settings: Settings) -> dict[str, Any]:
     if source_scope is not None:
         channel_lock = source_scope.home / ".native-channel.lock"
         native_lock = source_scope.home / ".native-update.lock"
-        if channel_lock.exists():
-            lock = channel_lock
-        elif native_lock.exists():
-            lock = native_lock
+        # A durable controller journal is not proof that helper cleanup finished.
+        # Never consume even a matching terminal receipt while ANY private
+        # transaction/write guard survives (including a broken lock symlink).
+        if any(p.exists() or p.is_symlink() for p in (lock, channel_lock, native_lock)):
+            return {**status, "state": "applying", "machine_state": "applying", "verified": False}
     locked = lock.is_file()
     lock_info: dict[str, Any] = {}
     if locked:

@@ -1377,3 +1377,20 @@ minimal compatible1.43.117. Audit now0 known external-dependency vulnerabilities
 this is NOT native-DLL/CRT/security/legal clearance. Public version1.0.10, math,
 schema, UI and user installation/data unchanged. All6 gates OPEN, Phase3 INCOMPLETE,
 no Phase4/5/6/tag/release approval. [Checkpoint](docs/dependencies/phase3-installed-and-codegen-checkpoint.json).
+
+
+### Phase3 follow-up — terminal receipt is NOT cleanup completion
+
+A matching committed/rolled_back receipt no longer bypasses a surviving private
+channel/native/write guard: API remains applying/unverified until ALL3 disappear.
+The OLD helper also binds journal schema/archive/old+target-anchor hashes,
+controller exit-code/state and current anchor, and checks channel ownership BEFORE
+publishing (again before unlink). Durable journal alone cannot imply success.
+9 additional synthetic status controls; full local1127PASS123.87s/no failures,
+errors or skips; Ruff/Mypy90/BanditCI/pip-audit PASS.14 synthetic receipt fault
+cases execute the ACTUAL helper AST block on disposable Windows; fresh Windows
+outcome not yet observed. NOT compiled-helper/native transaction fault acceptance,
+NOT crash/stale-lock recovery. No automatic deletion of stale guards.
+Source/codegen run40183092030 at55e65f5 remains cold-compiling;55 limited Windows
+40183092159/job121138091366 SUCCESS. Neither certifies this later receipt fix's
+native transaction. Phase3 remains ACTIVE/INCOMPLETE; all6 gates OPEN.
