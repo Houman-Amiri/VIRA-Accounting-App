@@ -42,14 +42,6 @@ jobs:
           assert artifact['digest'] == 'sha256:' + digest
           with zipfile.ZipFile(io.BytesIO(archive)) as z:
               notice('Failed NativeB provenance', json.dumps(dict(run=run_id,job=job_id,head=run['head_sha'],artifact=artifact_id,zip_sha256=digest,zip_bytes=len(archive),members=z.namelist(),native_success=False,transaction_proven=False)))
-              for name in z.namelist():
-                  if name.split('/')[-1] not in {'build.log','rebuild-result.json','rebuild-plan.json','target-triplet.cmake'}:
-                      continue
-                  raw = z.read(name)
-                  notice('NativeB diagnostic digest', json.dumps(dict(member=name,bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest())))
-                  text = raw.decode('utf-8-sig', errors='replace')[-20000:]
-                  for i in range(0,len(text),2400):
-                      notice('Original NativeB diagnostic',json.dumps(dict(member=name,part=i//2400,text=text[i:i+2400])))
           # Original step logs can contain tool errors not mirrored in build.log.
           logs = subprocess.check_output(['gh','api',f'repos/{repo}/actions/runs/{run_id}/logs'])
           with zipfile.ZipFile(io.BytesIO(logs)) as z:
@@ -58,7 +50,14 @@ jobs:
               for name in names:
                   raw = z.read(name)
                   notice('NativeB step log digest',json.dumps(dict(member=name,bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest())))
-                  text = raw.decode('utf-8-sig',errors='replace')[-36000:]
+                  text = raw.decode('utf-8-sig',errors='replace')[-10000:]
                   for i in range(0,len(text),2400):
                       notice('Original NativeB step tail',json.dumps(dict(member=name,part=i//2400,text=text[i:i+2400])))
+          # A step retains at most ten notices. Prioritize the exception first,
+          # then small immutable build result/recipe, not pages of successful pkgconfig.
+          with zipfile.ZipFile(io.BytesIO(archive)) as z:
+              for name in z.namelist():
+                  if name.split('/')[-1] in {'rebuild-result.json','target-triplet.cmake'}:
+                      raw = z.read(name)
+                      notice('NativeB result or recipe',json.dumps(dict(member=name,sha256=hashlib.sha256(raw).hexdigest(),text=raw.decode('utf-8-sig',errors='replace')[-4000:])))
           PY
