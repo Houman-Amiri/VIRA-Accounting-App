@@ -20,8 +20,18 @@ jobs:
         shell: bash
         run: |
           python - <<'PY'
-          import base64, hashlib, io, json, os, pathlib, subprocess, zipfile, zlib
+          import base64, hashlib, io, json, os, pathlib, subprocess, sys, zipfile, zlib
           repo = os.environ['GH_REPO']
+          def failure(kind, error, trace):
+              lines = []
+              cursor = trace
+              while cursor:
+                  lines.append(cursor.tb_lineno)
+                  cursor = cursor.tb_next
+              value = json.dumps(dict(error=kind.__name__, detail=str(error)[:500], lines=lines))
+              print('::error title=Native report authentication failed::' + value.replace('%','%25').replace('\n','%0A').replace('\r','%0D'), flush=True)
+              sys.__excepthook__(kind, error, trace)
+          sys.excepthook = failure
           def api(path):
               return json.loads(subprocess.check_output(['gh', 'api', f'repos/{repo}/{path}']))
           run_id, job_id, artifact_id = 40220128706, 121250610073, 12611303055
@@ -65,7 +75,7 @@ jobs:
               assert case['terminal']['verified'] is (name == 'commit')
               assert case['database_fingerprint_before'] == case['database_fingerprint_after'] == case['journal']['database_fingerprint']
               assert all(case[k] is True for k in preserved)
-              assert case['write_quarantine_http503_observed'] is True
+              assert case['write_quarantine_http503_observed'] is True, f'HTTP503 observation missing: {name}'
               assert case['old_pid'] != case['new_pid']
               assert len(case['completed']['loaded_dlls']) == case['completed']['activation']['dll_count'] == 21
               assert case['completed']['pango_version'] == '1.58.0-vira-local-source'
