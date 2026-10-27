@@ -178,18 +178,26 @@ jobs:
               raise ValueError("v1.0.9 requires direct deltas from installed baselines 1.0.6, 1.0.7 and 1.0.8")
           if version == "1.0.10" and bases != {"1.0.7", "1.0.8", "1.0.9"}:
               raise ValueError("v1.0.10 requires direct deltas from 1.0.7, 1.0.8 and the confirmed 1.0.9 client")
+          # Any newer version must keep the three most recent direct baselines; a
+          # frozen per-version list is what silently dropped this coverage before.
+          def key(v):
+              return tuple(int(x) for x in v.split("."))
+          if key(version) > (1, 0, 10) and (len(bases) != 3 or any(key(b) >= key(version) for b in bases)):
+              raise ValueError(f"v{version} requires three direct deltas from older published baselines, got {sorted(bases)}")
           '@ | uv run python -
           if ($LASTEXITCODE -ne 0) { throw "real delta staging validation failed" }
 
-      - name: Published 1.0.9 browser to compiled 1.0.10 updater (isolated, no client injection)
-        if: env.VIRA_VERSION == '1.0.10' || env.VIRA_VERSION == 'v1.0.10'
+      - name: Published 1.0.9 client -> candidate native in-app update with compiled updater (isolated, no client injection)
+        if: ${{ !startsWith(env.VIRA_VERSION, '0.0.0') }}
         shell: pwsh
         run: |
           pnpm --dir frontend exec playwright install chromium
           if ($LASTEXITCODE -ne 0) { throw "browser install failed" }
           $baseDir = Join-Path ([IO.Path]::GetTempPath()) "vira-delta-base/base-1.0.9"
           $baseManifest = Get-ChildItem $baseDir -Recurse -Filter install_manifest.json | Select-Object -First 1
-          if (-not $baseManifest) { throw "required published 1.0.9 base missing" }
+          if (-not $baseManifest) {
+            throw "the pinned published 1.0.9 client base is missing: keep its delta baseline in the window or add the next independently pinned client digest before releasing"
+          }
           $code = 1
           $out = ""
           try {

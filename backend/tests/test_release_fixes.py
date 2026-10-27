@@ -115,3 +115,15 @@ def test_delta_coverage_requirement_follows_the_version_instead_of_a_frozen_list
     # A frozen allow-list is what silently reduced coverage for every new version.
     assert '$v -in @("1.0.9", "1.0.10")' not in smoke
     assert '$v -notin @("1.0.9", "1.0.10")' not in smoke
+
+
+def test_native_in_app_update_smoke_is_not_gated_to_one_version():
+    from pathlib import Path
+
+    workflow = (Path(__file__).resolve().parents[2] / ".github/workflows/release.yml").read_text()
+    # A version-pinned step condition silently skipped the whole real updater test
+    # for every release after 1.0.10.
+    assert "env.VIRA_VERSION == '1.0.10'" not in workflow
+    assert "!startsWith(env.VIRA_VERSION, '0.0.0')" in workflow
+    assert "keep its delta baseline in the window" in workflow
+    assert 'if key(version) > (1, 0, 10)' in workflow
