@@ -182,3 +182,12 @@ def test_in_app_audit_assertion_is_its_own_annotation():
     harness = (Path(__file__).resolve().parents[2] / "scripts/update_native_smoke.py").read_text(encoding="utf-8")
     assert "::error title=in-app-audit-assertion-" in harness
     assert ".replace(\"%\", \"%25\")" in harness
+
+
+def test_in_app_audit_records_status_reads_instead_of_orphan_promises():
+    from pathlib import Path
+
+    audit = (Path(__file__).resolve().parents[2] / "scripts/audit_in_app_update.cjs").read_text(encoding="utf-8")
+    assert "recordStatusReads(page)" in audit
+    assert 'page.waitForResponse((r) => r.url().endsWith("/api/v1/system/status")' not in audit
+    assert 'process.on("unhandledRejection"' in audit

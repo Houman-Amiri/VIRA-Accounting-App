@@ -2,21 +2,47 @@
 const { chromium, expect } = require("../frontend/node_modules/@playwright/test");
 // Bounded, header-free evidence only; never change timeouts or bypass badge checks.
 const startupChecks = [];
+// Every successful status read is recorded as a settled promise. A bare
+// waitForResponse leaves a rejected promise behind when the dialog assertion
+// fails, and Node then aborts on that rejection *before* the real assertion is
+// printed — which is exactly how a previous CI failure lost its diagnostics.
+const statusReads = [];
+function recordStatusReads(page) {
+  page.on("response", (response) => {
+    let path = "";
+    try { path = new URL(response.url()).pathname; } catch { return; }
+    if (path !== "/api/v1/system/status" || response.status() !== 200) return;
+    statusReads.push(response.json().catch(() => null));
+  });
+}
 async function stepUp(page) {
   // Historical 1.0.9 has no sudo test IDs. Use its real native dialog/form,
   // and observe the UI's authenticated request (sudo token is JS memory, not
   // a cookie that APIRequestContext can attach on our behalf).
   const dialog = page.locator('dialog[open]');
-  const status = page.waitForResponse((r) => r.url().endsWith("/api/v1/system/status") && r.status() === 200);
+  await expect(dialog).toBeVisible({ timeout: 60000 });
+  const before = statusReads.length;
   await dialog.locator('input[type="password"]').fill(process.env.VIRA_NATIVE_PASSWORD);
   await dialog.locator('button[type="submit"]').click();
-  await expect(dialog).not.toBeVisible();
-  return (await status).json();
+  // A restarting backend can reject the very first step-up request. Re-submit
+  // the product's own form while it is still open instead of failing silently.
+  const deadline = Date.now() + 120000;
+  while (Date.now() < deadline) {
+    if (statusReads.length > before) {
+      const body = await statusReads[before];
+      if (!body) throw new Error("the sudo step-up returned an unreadable status body");
+      return body;
+    }
+    await page.waitForTimeout(250);
+    if (await dialog.isVisible()) await dialog.locator('button[type="submit"]').click({ timeout: 5000 }).catch(() => {});
+  }
+  throw new Error("no 200 /api/v1/system/status after the sudo step-up (dialog still open or request rejected)");
 }
 (async () => {
   const browser = await chromium.launch();
   try {
     const page = await browser.newPage();
+    recordStatusReads(page);
     const base = process.env.VIRA_NATIVE_BASE;
     page.on("response", async (response) => {
       if (new URL(response.url()).pathname !== "/api/v1/system/check-updates") return;
@@ -97,6 +123,10 @@ async function stepUp(page) {
     expect(counters).toEqual({ delta: 1, full: 0 });
     console.log("Native in-app update:", process.env.VIRA_NATIVE_EXPECTED, "— consent, delta-only, SQLite schema/data and receipt integrity verified");
   } finally { await browser.close(); }
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled rejection:", reason);
+  process.exitCode = 1;
+});
 })().catch((error) => {
   console.error("::notice title=native browser startup evidence::" + JSON.stringify(startupChecks).replaceAll("%", "%25"));
   const raw = String(error.stack || error).split(process.env.VIRA_NATIVE_PASSWORD || "__no_password__").join("[fixture password]")
