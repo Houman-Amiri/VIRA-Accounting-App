@@ -127,3 +127,14 @@ def test_native_in_app_update_smoke_is_not_gated_to_one_version():
     assert "!startsWith(env.VIRA_VERSION, '0.0.0')" in workflow
     assert "keep its delta baseline in the window" in workflow
     assert 'if key(version) > (1, 0, 10)' in workflow
+
+
+def test_compiled_updater_install_retries_a_transient_gallery_failure_only():
+    from pathlib import Path
+
+    workflow = (Path(__file__).resolve().parents[2] / ".github/workflows/release.yml").read_text(encoding="utf-8")
+    step = workflow[workflow.index("Compile vira-updater.exe"):]
+    step = step[:step.index("- name:", 10)]
+    assert "$attempt -le 3" in step
+    assert "ps2exe could not be installed after 3 real attempts" in step
+    assert "throw" in step
