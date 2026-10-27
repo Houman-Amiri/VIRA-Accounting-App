@@ -161,3 +161,16 @@ def test_ps2exe_installation_retries_in_one_shared_place():
         text = (root / name).read_text(encoding="utf-8")
         assert "./scripts/install_ps2exe.ps1" in text
         assert text.count("Install-Module ps2exe") == 0, f"{name} still installs ps2exe inline"
+
+
+def test_windows_smoke_transcript_is_kept_and_emitted_on_failure():
+    from pathlib import Path
+
+    workflow = (Path(__file__).resolve().parents[2] / ".github/workflows/release.yml").read_text(encoding="utf-8")
+    step = workflow[workflow.index("Windows install/upgrade/rollback smoke test"):]
+    step = step[:step.index("- name:", 10)]
+    assert "Tee-Object -FilePath $log" in step
+    assert "smoke-output-" in step and "::error title=" in step
+    assert "throw \"windows smoke test failed\"" in step
+    helper = (Path(__file__).resolve().parents[2] / "scripts/install_ps2exe.ps1").read_text(encoding="utf-8")
+    assert "exit 0" not in helper, "a module helper must not terminate the caller's shell"

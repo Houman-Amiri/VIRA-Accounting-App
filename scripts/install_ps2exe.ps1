@@ -14,7 +14,8 @@ for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
         }
         Import-Module ps2exe -ErrorAction Stop
         Write-Host "[ps2exe] ready after attempt $attempt"
-        exit 0
+        $global:LASTEXITCODE = 0
+        return
     } catch {
         $last = $_
         Write-Warning "[ps2exe] attempt $attempt failed: $($_.Exception.Message)"

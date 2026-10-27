@@ -242,17 +242,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $setup = (Get-ChildItem dist-release/VIRA-Setup-*.exe | Select-Object -First 1).FullName
-          $out = ""
-          try {
-            $out = (& ./scripts/windows_smoke_test.ps1 -Setup $setup *>&1 | Out-String)
-          } catch {
-            $out += "`nEXCEPTION: " + ($_ | Out-String)
-          }
-          Write-Output $out
-          if ($out -notmatch "all legs passed") {
-            $flat = $out -replace "\r?\n", "|" -replace ",", ";"
-            if ($flat.Length -gt 3000) { $flat = $flat.Substring($flat.Length - 3000) }
-            echo "::notice title=smoke-output::$flat"
+          if (-not $setup) { throw "the installer under test is missing" }
+          # Run the smoke in a child shell and keep its whole transcript: a hard
+          # exit inside the script used to leave the job with no diagnostics at all.
+          $log = Join-Path $PWD "smoke-raw.log"
+          & pwsh -NoProfile -File ./scripts/windows_smoke_test.ps1 -Setup $setup *>&1 | Tee-Object -FilePath $log
+          $code = $LASTEXITCODE
+          $out = if (Test-Path $log) { Get-Content $log -Raw } else { "" }
+          if ($code -ne 0 -or $out -notmatch "all legs passed") {
+            $flat = ($out -replace "\r?\n", "|" -replace ",", ";")
+            if ($flat.Length -gt 6000) { $flat = $flat.Substring($flat.Length - 6000) }
+            for ($i = 0; $i -lt $flat.Length; $i += 2800) {
+              $part = $flat.Substring($i, [Math]::Min(2800, $flat.Length - $i))
+              echo "::error title=smoke-output-$([int]($i / 2800))::$part"
+            }
             throw "windows smoke test failed"
           }
 
