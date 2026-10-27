@@ -3,19 +3,20 @@
   "version": "1.0.11",
   "head": "c87bbd0",
   "built_candidate": {
-    "run": 40483352972,
+    "run": 40515124158,
     "conclusion": "success",
-    "artifact": 12725660957,
+    "artifact": 12740887385,
     "artifact_name": "release-assets-1.0.11",
-    "bytes": 622759116,
-    "sha256": "f7e66a4d766193f32d9620be213f0538f9254052a6c0e411bb67690f76617476",
+    "bytes": 622745791,
+    "sha256": "6af03f738e8e757cd50c52a39bf3a4cc7d544943672b59f89fc5a6f8a5f4588c",
     "installer_built": true,
     "three_direct_deltas_built": true,
     "windows_install_upgrade_rollback_smoke": "success",
     "final_signature_and_complete_checksums_step": "success (unsigned debug mode: no repository signing secret available to this token)",
     "github_release_published": false,
     "tag_created": false,
-    "in_app_published_client_updater_step": "skipped in that run because it was gated to exactly 1.0.10"
+    "in_app_published_client_updater_step": "success on the version-independent step",
+    "head": "6ae7050c9e9e4733e43b8d4de6183c80e3312a01"
   },
   "defects_found_and_fixed": [
     "The real in-app updater smoke was conditionally skipped for every version after 1.0.10; the condition is now version-independent and fails loudly when its pinned base is missing.",
@@ -26,18 +27,14 @@
   ],
   "open_items_blocking_publication": [
     {
-      "id": "IN_APP_UPDATER_BROWSER_AUDIT",
-      "detail": "With the step re-enabled, the real published-client upgrade reports COMMITTED and the forced rollback reports ROLLED BACK with health verified, but the browser audit still exits non-zero afterwards. The exact assertion is not yet visible in retained CI annotations; the step is left enabled and blocking rather than skipped.",
-      "product_update_executed": true,
-      "acceptance_claimed": false
-    },
-    {
       "id": "SIGNING_KEY_SECRET",
-      "detail": "Tagged publication refuses to run without VIRA_UPDATE_SIGNING_KEY. This token cannot create or read repository secrets (HTTP 403), so the owner must add it."
+      "status": "ACTION_REQUIRED_BY_OWNER",
+      "detail": "Generate the Ed25519 keypair and store the private key as the repository secret VIRA_UPDATE_SIGNING_KEY. This GitHub App token cannot read or write Actions secrets (HTTP 403), and the private key must never live in this repository or in chat. Guide: docs/releases/update-signing-key-guide-fa.md."
     },
     {
       "id": "LEGAL_GATES",
-      "detail": "COMPLETE_COMPONENT_LEGAL_REVIEW, COMPILER_CRT_TERMS, RECIPIENT_SOURCE_DELIVERY, LGPL EULA rights and installed-user acceptance remain open; no gate is closed by this candidate."
+      "status": "OPEN_NOT_CLOSED_BY_CODE",
+      "detail": "COMPLETE_COMPONENT_LEGAL_REVIEW, COMPILER_CRT_TERMS, RECIPIENT_SOURCE_DELIVERY, LGPL EULA rights and installed-user acceptance remain open; no technical change closes them."
     }
   ],
   "unchanged": [
@@ -45,5 +42,11 @@
     "no tag",
     "no public release",
     "MIT scope limited to 14 native PDF build files"
-  ]
+  ],
+  "resolved_since_last_record": [
+    "The real in-app updater browser audit now passes end to end for the published 1.0.9 client (run 40515124158).",
+    "A packaged release now bakes the Ed25519 verification key, so an installed client actually enforces latest.json signatures; previously the signature existed but no installed client would check it."
+  ],
+  "tag_created": false,
+  "github_release_published": false
 }
