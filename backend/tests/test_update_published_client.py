@@ -93,7 +93,7 @@ def test_failure_diagnostics_survive_windows_code_page(tmp_path, harness, monkey
 def test_published_client_is_seeded_on_its_own_revision_not_the_repo_head():
     from pathlib import Path
 
-    source = (Path(__file__).resolve().parents[2] / "scripts/update_native_smoke.py").read_text()
+    source = (Path(__file__).resolve().parents[2] / "scripts/update_native_smoke.py").read_text(encoding="utf-8")
     published = source.index("    if published:\n        # The installed public client must start on ITS revision")
     head_migrator = source.index('run(sys.executable, str(ROOT / "scripts/migrate_vira.py")')
     assert published < head_migrator, "the repo migrator must not seed a published client"
