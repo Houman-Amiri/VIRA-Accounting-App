@@ -102,3 +102,5 @@ def test_published_client_is_seeded_on_its_own_revision_not_the_repo_head():
     # A real upgrade migrates the released schema; byte equality would be wrong there.
     assert "target did not migrate the released schema" in source
     assert "new schema table missing after real upgrade" in source
+    # Before the commit the released schema must still be the released revision.
+    assert "database migrated before the update completed" in source

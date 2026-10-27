@@ -466,17 +466,35 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
                                 == "0006_item_catalog"
                             )
                     elif published and not rollback:
-                        # The upgraded target must migrate the released schema and keep
-                        # the data. Byte equality is NOT asserted here because a real
-                        # migration adds schema on purpose.
+                        # Before the update commits the released schema must be intact;
+                        # afterwards the target migrates it on purpose, so byte equality
+                        # is not asserted - data rows and integrity still are.
+                        result_file = data / "updates/last-result.json"
+                        machine = "pending"
+                        if result_file.is_file():
+                            try:
+                                machine = json.loads(
+                                    result_file.read_text(encoding="utf-8")
+                                ).get("machine_state") or "pending"
+                            except ValueError:
+                                machine = "pending"
                         with closing(sqlite3.connect(database)) as new_db:
                             revision = new_db.execute(
                                 "SELECT version_num FROM alembic_version"
                             ).fetchone()[0]
-                            assert revision != base_revision, "target did not migrate the released schema"
-                            assert new_db.execute(
+                            items = new_db.execute(
                                 "SELECT count(*) FROM sqlite_master WHERE name='item_types'"
-                            ).fetchone()[0] == 1, "new schema table missing after real upgrade"
+                            ).fetchone()[0]
+                            if machine == "committed":
+                                assert revision != base_revision, (
+                                    "target did not migrate the released schema"
+                                )
+                                assert items == 1, "new schema table missing after real upgrade"
+                            else:
+                                assert revision == base_revision, (
+                                    "database migrated before the update completed"
+                                )
+                                assert items == 0, "target schema appeared before the update committed"
                             assert new_db.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
                             assert new_db.execute("PRAGMA foreign_key_check").fetchall() == []
                         assert checkpoint_fingerprint is not None
