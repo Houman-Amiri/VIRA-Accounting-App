@@ -174,3 +174,11 @@ def test_windows_smoke_transcript_is_kept_and_emitted_on_failure():
     assert "throw \"windows smoke test failed\"" in step
     helper = (Path(__file__).resolve().parents[2] / "scripts/install_ps2exe.ps1").read_text(encoding="utf-8")
     assert "exit 0" not in helper, "a module helper must not terminate the caller's shell"
+
+
+def test_in_app_audit_assertion_is_its_own_annotation():
+    from pathlib import Path
+
+    harness = (Path(__file__).resolve().parents[2] / "scripts/update_native_smoke.py").read_text(encoding="utf-8")
+    assert "::error title=in-app-audit-assertion-" in harness
+    assert ".replace(\"%\", \"%25\")" in harness

@@ -612,6 +612,15 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
             print("AUDIT-FAILURE-TAIL-BEGIN")
             print(detail)
             print("AUDIT-FAILURE-TAIL-END")
+            # The enclosing workflow keeps only the tail of this step, so publish
+            # the real Playwright assertion as its own bounded annotation.
+            flat = detail.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+            flat = flat[-5600:]
+            for index in range(0, len(flat), 2800):
+                print(
+                    f"::error title=in-app-audit-assertion-{index // 2800}::"
+                    + flat[index : index + 2800]
+                )
             reports = ROOT / "reports"
             reports.mkdir(exist_ok=True)
             (reports / f"in-app-audit-failure-{'rollback' if rollback else 'success'}.txt").write_text(
