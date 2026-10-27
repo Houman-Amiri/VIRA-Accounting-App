@@ -498,6 +498,17 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
                             assert new_db.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
                             assert new_db.execute("PRAGMA foreign_key_check").fetchall() == []
                         assert checkpoint_fingerprint is not None
+                    elif published:
+                        # The updater verifies restoration by SQL fingerprint, not by
+                        # physical file bytes, so assert the same guarantee here.
+                        assert checkpoint_fingerprint is not None
+                        assert fingerprint(database) == checkpoint_fingerprint, (
+                            "restored released database differs"
+                        )
+                        with closing(sqlite3.connect(database)) as old_db:
+                            assert old_db.execute(
+                                "SELECT version_num FROM alembic_version"
+                            ).fetchone()[0] == base_revision, "restored client schema differs"
                     else:
                         assert checkpoint_hash is not None and sha(database) == checkpoint_hash, (
                             "SQLite hash changed"
