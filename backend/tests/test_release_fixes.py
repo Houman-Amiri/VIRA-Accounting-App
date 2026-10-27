@@ -135,9 +135,8 @@ def test_compiled_updater_install_retries_a_transient_gallery_failure_only():
     workflow = (Path(__file__).resolve().parents[2] / ".github/workflows/release.yml").read_text(encoding="utf-8")
     step = workflow[workflow.index("Compile vira-updater.exe"):]
     step = step[:step.index("- name:", 10)]
-    assert "$attempt -le 3" in step
-    assert "ps2exe could not be installed after 3 real attempts" in step
-    assert "throw" in step
+    assert "./scripts/install_ps2exe.ps1" in step
+    assert "refusing to build without a compiled updater" in step
 
 
 def test_in_app_updater_failure_text_is_uploaded_not_only_annotated():
@@ -149,3 +148,16 @@ def test_in_app_updater_failure_text_is_uploaded_not_only_annotated():
     assert 'in-app-audit-failure-{' in harness and 'encoding="utf-8"' in harness
     assert "in-app-updater-diagnostics" in workflow
     assert "reports/in-app-audit-failure-*.txt" in workflow
+
+
+def test_ps2exe_installation_retries_in_one_shared_place():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    helper = (root / "scripts/install_ps2exe.ps1").read_text(encoding="utf-8")
+    assert "param([int]$Attempts = 3)" in helper
+    assert "Install-Module ps2exe" in helper and "throw" in helper
+    for name in (".github/workflows/ci.yml", ".github/workflows/release.yml"):
+        text = (root / name).read_text(encoding="utf-8")
+        assert "./scripts/install_ps2exe.ps1" in text
+        assert text.count("Install-Module ps2exe") == 0, f"{name} still installs ps2exe inline"

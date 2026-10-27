@@ -379,8 +379,8 @@ jobs:
           $archive = Join-Path $env:RUNNER_TEMP "vira-schema-base-1.0.10.zip"
           gh release download v1.0.10 --repo Houman-Amiri/VIRA-Accounting-App --pattern vira-v1.0.10-app.zip --output $archive
           if ($LASTEXITCODE -ne 0) { throw "published 1.0.10 download failed" }
-          Install-Module ps2exe -Force -Scope CurrentUser -ErrorAction Stop
-          Import-Module ps2exe -ErrorAction Stop
+          ./scripts/install_ps2exe.ps1
+          if ($LASTEXITCODE -ne 0) { throw "ps2exe is unavailable" }
           $helper = Join-Path $env:RUNNER_TEMP "vira-schema-gate-updater.exe"
           Invoke-ps2exe -inputFile scripts/vira_updater.ps1 -outputFile $helper -noConsole:$false
           if (-not (Test-Path $helper)) { throw "compiled helper missing" }
