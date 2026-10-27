@@ -605,13 +605,18 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
             timeout=240,
         )
         if audit.returncode != 0:
-            # The retained CI annotation only keeps the tail of this step, so print
-            # the browser assertion itself last instead of noisy helper log lines.
-            detail = (audit.stderr or audit.stdout or "")[-1800:]
+            # CI annotations retain only part of this step's output, so the real
+            # Playwright assertion is also written to an uploaded diagnostic file.
+            detail = (audit.stderr or audit.stdout or "")[-4000:]
             detail = detail.replace(password, "[fixture password]")
             print("AUDIT-FAILURE-TAIL-BEGIN")
             print(detail)
             print("AUDIT-FAILURE-TAIL-END")
+            reports = ROOT / "reports"
+            reports.mkdir(exist_ok=True)
+            (reports / f"in-app-audit-failure-{'rollback' if rollback else 'success'}.txt").write_text(
+                detail, encoding="utf-8"
+            )
             raise RuntimeError(f"in-app updater browser audit failed ({audit.returncode})")
         if published:
             verify_payload(install, runtime=True)

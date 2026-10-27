@@ -138,3 +138,14 @@ def test_compiled_updater_install_retries_a_transient_gallery_failure_only():
     assert "$attempt -le 3" in step
     assert "ps2exe could not be installed after 3 real attempts" in step
     assert "throw" in step
+
+
+def test_in_app_updater_failure_text_is_uploaded_not_only_annotated():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    harness = (root / "scripts/update_native_smoke.py").read_text(encoding="utf-8")
+    workflow = (root / ".github/workflows/release.yml").read_text(encoding="utf-8")
+    assert 'in-app-audit-failure-{' in harness and 'encoding="utf-8"' in harness
+    assert "in-app-updater-diagnostics" in workflow
+    assert "reports/in-app-audit-failure-*.txt" in workflow

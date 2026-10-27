@@ -225,6 +225,15 @@ jobs:
             throw "published 1.0.9 browser upgrade/rollback failed"
           }
 
+      - name: Upload the real in-app updater assertion on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: in-app-updater-diagnostics
+          path: reports/in-app-audit-failure-*.txt
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Windows install/upgrade/rollback smoke test (Phase 8 §9)
         shell: pwsh
         env:
