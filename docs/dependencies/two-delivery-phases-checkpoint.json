@@ -161,7 +161,7 @@
     "phase_one_complete": false
   },
   "runtime_write_gate_patch": {
-    "status": "coordinated_runtime_and_crash_candidate_ready_for_one_integrated_native_run_acceptance_pending",
+    "status": "pushed_with_coordinated_crash_candidate_725f4e7_native_acceptance_pending",
     "uses_authenticated_private_scope_bound_once_at_factory_startup": true,
     "guards": [
       "state/data/updates/.update.lock",
@@ -177,7 +177,7 @@
     "frozen_phase2_main_preserved_without_rewriting_historical_digest": true
   },
   "native_crash_candidate": {
-    "status": "implemented_local_controls_passed_real_Windows_native_acceptance_pending",
+    "status": "pushed_coordinated_candidate_real_Windows_pipeline_running_acceptance_pending",
     "selector_scope": "explicit_GITHUB_ACTIONS_Windows_owned_schema2_only_no_public_switch",
     "cuts": [
       "FIRST_FILE",
@@ -200,6 +200,53 @@
     "release_authorized_by_this_evidence": false,
     "main_runtime_workflow_owner": ".github/workflows/pdf-desktop-source.yml",
     "redundant_main_only_stock_and_source_cold_builds_routed_to_integrated_workflow": true,
-    "standalone_module_proofs_and_manual_dispatch_retained": true
+    "standalone_module_proofs_and_manual_dispatch_retained": true,
+    "runtime_commit": "725f4e79a7d8279b5675748d53217abb9f91156e",
+    "Windows_preflight": {
+      "run": 40469951863,
+      "conclusion": "success",
+      "scope": "installer_byte_transport_actual_mutex_child_SQLite_controls_NOT_Source21_crash_acceptance"
+    },
+    "integrated_native_run": {
+      "run": 40469951991,
+      "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/40469951991",
+      "last_observed_status": "in_progress",
+      "last_observed_job": "source-http-consumer",
+      "last_observed_step": "Phase3 independently cold-build genuine native codegen target NOT delta acceptance",
+      "conclusion": null,
+      "job": 122075876445,
+      "stock_http_preflight": "success"
+    },
+    "full_CI": {
+      "run": 40469951904,
+      "head": "725f4e79a7d8279b5675748d53217abb9f91156e",
+      "passed_jobs": 5,
+      "conclusion": "success"
+    },
+    "latest_status_lookup": {
+      "result": "GitHub_API_and_git_remote_access_restored",
+      "run": 40469951991,
+      "new_native_build_triggered": false,
+      "authentication_failure_claimed": false
+    }
+  },
+  "release_asset_finalization": {
+    "status": "ready_to_push_after_network_restore_native_Windows_tests_pending",
+    "sign_final_metadata_before_checksums": true,
+    "signature_included_in_SHA256SUMS": true,
+    "tagged_release_without_key_refused": true,
+    "debug_unsigned_mode_explicit": true,
+    "stale_signature_without_key_refused": true,
+    "private_key_written_to_disk": false,
+    "finalized_again_after_packaging_and_smoke_before_upload": true,
+    "new_focused_tests": 19,
+    "full_local_pytest_passed": 1278,
+    "full_local_pytest_seconds": 88.74,
+    "ruff": "passed",
+    "mypy": "90 files passed",
+    "bandit": "passed",
+    "proves_installed_client_trusts_release_key": false,
+    "closes_license_or_native_acceptance_gates": false,
+    "public_release_created": false
   }
 }

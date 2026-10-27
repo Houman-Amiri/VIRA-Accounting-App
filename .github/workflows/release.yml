@@ -46,6 +46,16 @@ jobs:
             "VIRA_VERSION=$($versionLine.Matches[0].Groups[1].Value)" | Out-File -FilePath $env:GITHUB_ENV -Append
           }
 
+      - name: Refuse unsigned tagged publication before building assets
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          VIRA_UPDATE_SIGNING_KEY: ${{ secrets.VIRA_UPDATE_SIGNING_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:VIRA_UPDATE_SIGNING_KEY)) {
+            throw "Tagged publication requires the configured Ed25519 signing key; no unsigned fallback"
+          }
+
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
@@ -213,6 +223,14 @@ jobs:
             echo "::notice title=smoke-output::$flat"
             throw "windows smoke test failed"
           }
+
+      - name: Final signature and complete checksums after all packaging and smoke steps
+        shell: pwsh
+        env:
+          VIRA_UPDATE_SIGNING_KEY: ${{ secrets.VIRA_UPDATE_SIGNING_KEY }}
+        run: |
+          uv run python scripts/finalize_release_assets.py dist-release
+          if ($LASTEXITCODE -ne 0) { throw "Final release signing/checksum verification failed" }
 
       - name: Upload workflow artifact (full setup + assets)
         uses: actions/upload-artifact@v4

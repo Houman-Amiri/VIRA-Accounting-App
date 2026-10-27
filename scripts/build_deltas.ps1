@@ -125,17 +125,8 @@ if (Test-Path $latestPath) {
     Write-Host "[build_deltas] latest.json updated with $($deltas.Count) delta(s)"
 }
 
-# -------------------------------------------------------------- SHA256SUMS ---
-$assets = Get-ChildItem $OutDir -File | Where-Object { $_.Name -ne "SHA256SUMS.txt" }
-$sums = foreach ($a in $assets) {
-    $h = Get-FileHash -Algorithm SHA256 $a.FullName
-    "{0}  {1}" -f $h.Hash.ToLower(), $a.Name
-}
-$sums | Set-Content -Encoding ascii (Join-Path $OutDir "SHA256SUMS.txt")
-
-# ----------------------------------------------- sign latest.json (Ed25519) ---
-if ($env:VIRA_UPDATE_SIGNING_KEY) {
-    $keyPath = Join-Path $tmp "update.key"
-    Set-Content -Path $keyPath -Value $env:VIRA_UPDATE_SIGNING_KEY -Encoding ascii
-    & uv run python scripts/sign_update.py sign --key $keyPath --file $latestPath
-}
+# Sign the FINAL manifest before checksumming; never persist the signing key.
+# Tagged publication is refused without a key by the finalizer itself. Debug
+# builds can remain unsigned, but cannot silently reuse a stale signature.
+& uv run python scripts/finalize_release_assets.py $OutDir
+if ($LASTEXITCODE -ne 0) { throw "release asset signing/checksum finalization failed" }
