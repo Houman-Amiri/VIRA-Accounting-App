@@ -573,9 +573,11 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
                 time.sleep(0.5)
         else:
             raise RuntimeError("initial fixture server never became ready")
-        run(
-            "node",
-            str(ROOT / "scripts/audit_in_app_update.cjs"),
+        audit = subprocess.run(
+            [
+                "node",
+                str(ROOT / "scripts/audit_in_app_update.cjs"),
+            ],
             env={
                 **env,
                 "VIRA_NATIVE_BASE": url,
@@ -587,7 +589,19 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
                 "VIRA_NATIVE_BASE_VERSION": old_version,
                 "VIRA_NATIVE_BASE_COMMIT": published.base_commit if published else "native-old",
             },
+            capture_output=True,
+            text=True,
+            timeout=240,
         )
+        if audit.returncode != 0:
+            # The retained CI annotation only keeps the tail of this step, so print
+            # the browser assertion itself last instead of noisy helper log lines.
+            detail = (audit.stderr or audit.stdout or "")[-1800:]
+            detail = detail.replace(password, "[fixture password]")
+            print("AUDIT-FAILURE-TAIL-BEGIN")
+            print(detail)
+            print("AUDIT-FAILURE-TAIL-END")
+            raise RuntimeError(f"in-app updater browser audit failed ({audit.returncode})")
         if published:
             verify_payload(install, runtime=True)
             stamp = json.loads((install / "version.json").read_text(encoding="utf-8-sig"))
