@@ -1,0 +1,50 @@
+{
+  "role": "DISTRIBUTION_CONTEXT_FOLLOWUP_NOT_DISTRIBUTION_APPROVAL",
+  "hosted_visual_studio": {
+    "url": "https://github.com/actions/runner-images/issues/12945#issuecomment-3348002951",
+    "comment_id": 3348002951,
+    "author": "erik-bershel",
+    "author_association": "CONTRIBUTOR",
+    "created_at": "2025-09-29T16:41:14Z",
+    "body": "We use an `Enterprise` license key, which, as agreed with Microsoft, is the version for public and private use on `GitHub Actions` and `Azure DevOps` `Hosted Runners`. Downgrading to the `Community` version is not practical. Users do not need to maintain a separate personal copy of the license.",
+    "body_sha256_utf8": "457d3deca4286e9a3974d3436036c491e3bcf3eaee1ecd6975008a1722f067b4",
+    "finding": "Published runner-images contributor statement explicitly addresses public/private hosted-runner licensing and separate personal copies; stronger than inferring entitlement from an installation path.",
+    "boundary": "Not a Microsoft redistribution agreement, statutory interpretation, or clearance of the actual static CRT components; not a personal/self-hosted compiler license grant.",
+    "separate_owner_personal_VS_license_request_needed_on_this_evidence": false,
+    "COMPILER_CRT_TERMS_gate_closed": false
+  },
+  "inno_setup_6_7_1": {
+    "tag": "is-6_7_1",
+    "annotated_tag_object": "484a38a681f41ced5f8f0eb9890f7932ca6a244c",
+    "commit": "cfdf48923178df4b4f040e038b423aa555a61ffc",
+    "materials": {
+      "license.txt": {
+        "url": "https://github.com/jrsoftware/issrc/blob/cfdf48923178df4b4f040e038b423aa555a61ffc/license.txt",
+        "git_blob_sha": "ac4dfe9e6543a360c5422b6f1fb88075e8b6073d",
+        "raw_sha256": "2e5346868c2a18434489824e11d65c3031620f792fefc415d05f19cd441abf5c",
+        "lf_sha256": "3df23505b7ec00dc007a1e1e9ba32ee3895e7ce90043bcd1ac1b9b47155921a7"
+      },
+      "setup.iss": {
+        "url": "https://github.com/jrsoftware/issrc/blob/cfdf48923178df4b4f040e038b423aa555a61ffc/setup.iss",
+        "git_blob_sha": "d1f3ea78dd83d14bbb300e7a8bacdea185e33e47",
+        "raw_sha256": "7c3bd01a971597656117053fe24513afecfe8d62d7947df4aef3b02de80b97f7",
+        "lf_sha256": "c6ad6b2e69a83b01472c6f38f4ef837a616db65e0dba70fb255d3333634097f4"
+      }
+    },
+    "license_permission_excerpt": "Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter and redistribute it, provided that the following conditions are met:",
+    "installer_script_declares": "LicenseFile=license.txt",
+    "conditions_summary": [
+      "Retain existing source copyright notices and the unmodified conditions.",
+      "Retain binary copyright notices and website addresses.",
+      "Do not misrepresent origin; acknowledge that this is not VIRA-authored software.",
+      "Plainly mark modified versions and do not represent them as originals."
+    ],
+    "finding": "The exact upstream source release license explicitly includes commercial applications; the source installer script selects that same license file. Do not assert a mandatory purchase based only on an unregistered compiler banner.",
+    "boundary": "The installed compiler license bytes and applicable binary terms in the actual production build still require matching. No activation, key bypass, change to the compiler, downgrade, or entitlement inferred from source text alone.",
+    "production_binary_compiler_entitlement_closed": false
+  },
+  "complete_component_legal_review_closed": false,
+  "release_authorized_by_this_document": false,
+  "broader_MIT_grant": false,
+  "actual_user_install_modified": false
+}

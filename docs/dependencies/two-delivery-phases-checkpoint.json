@@ -212,10 +212,11 @@
       "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/40469951991",
       "last_observed_status": "in_progress",
       "last_observed_job": "source-http-consumer",
-      "last_observed_step": "Phase3 independently cold-build genuine native codegen target NOT delta acceptance",
+      "last_observed_step": "Phase3 REAL native delta rollback two controller cuts and verified recovery with live HTTP503",
       "conclusion": null,
       "job": 122075876445,
-      "stock_http_preflight": "success"
+      "stock_http_preflight": "success",
+      "independent_codegen_target": "success"
     },
     "full_CI": {
       "run": 40469951904,
@@ -231,7 +232,7 @@
     }
   },
   "release_asset_finalization": {
-    "status": "ready_to_push_after_network_restore_native_Windows_tests_pending",
+    "status": "pushed_414b049_full_CI_all_five_jobs_passed",
     "sign_final_metadata_before_checksums": true,
     "signature_included_in_SHA256SUMS": true,
     "tagged_release_without_key_refused": true,
@@ -247,6 +248,32 @@
     "bandit": "passed",
     "proves_installed_client_trusts_release_key": false,
     "closes_license_or_native_acceptance_gates": false,
-    "public_release_created": false
-  }
+    "public_release_created": false,
+    "runtime_commit": "414b049952b77c20bc1f707618b350095e444ddc",
+    "full_CI": {
+      "run": 40477759642,
+      "conclusion": "success",
+      "passed_jobs": 5
+    },
+    "real_Ed25519_CLI_tests_passed_on_Windows": true,
+    "full_tagged_packaging_pipeline_executed": false
+  },
+  "readonly_native_report_validator": {
+    "entry": "scripts/authenticate_controller_crash.py",
+    "status": "implemented_and_locally_tested_awaiting_completed_producer_and_independent_artifact_pin",
+    "focused_synthetic_controls_passed": 59,
+    "full_local_pytest_passed": 1337,
+    "full_local_pytest_seconds": 122.17,
+    "mypy": "90 files passed",
+    "ruff": "passed",
+    "bandit": "passed",
+    "application_execution": false,
+    "native_rebuild": false,
+    "accepts_missing_HTTP503": false,
+    "accepts_missing_crash_case": false,
+    "authenticates_fixed_producer_job_head_artifact_size_and_SHA256_before_reporting": true,
+    "artifact_pin_recorded": false,
+    "native_crash_acceptance_inferred_from_unit_tests": false
+  },
+  "distribution_context_followup": "docs/dependencies/distribution-context-followup.json"
 }
