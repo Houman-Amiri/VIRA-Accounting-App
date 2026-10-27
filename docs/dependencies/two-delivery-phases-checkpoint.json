@@ -177,7 +177,7 @@
     "frozen_phase2_main_preserved_without_rewriting_historical_digest": true
   },
   "native_crash_candidate": {
-    "status": "pushed_coordinated_candidate_real_Windows_pipeline_running_acceptance_pending",
+    "status": "AUTHENTICATED_FOUR_CASE_NATIVE_DELTA_ROLLBACK_TWO_CONTROLLER_CUTS_AND_LIVE_503",
     "selector_scope": "explicit_GITHUB_ACTIONS_Windows_owned_schema2_only_no_public_switch",
     "cuts": [
       "FIRST_FILE",
@@ -193,10 +193,10 @@
     "full_local_pytest_passed": 1259,
     "full_local_pytest_seconds": 85.55,
     "ruff_mypy_bandit": "passed",
-    "native_crash_recovery_proven": false,
+    "native_crash_recovery_proven": true,
     "power_loss_or_arbitrary_cut_proven": false,
     "crash_during_recovery_or_partial_terminal_unlock_auto_resumable": false,
-    "phase_one_complete": false,
+    "phase_one_complete": true,
     "release_authorized_by_this_evidence": false,
     "main_runtime_workflow_owner": ".github/workflows/pdf-desktop-source.yml",
     "redundant_main_only_stock_and_source_cold_builds_routed_to_integrated_workflow": true,
@@ -210,13 +210,16 @@
     "integrated_native_run": {
       "run": 40469951991,
       "url": "https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/40469951991",
-      "last_observed_status": "in_progress",
+      "last_observed_status": "completed",
       "last_observed_job": "source-http-consumer",
       "last_observed_step": "Phase3 REAL native delta rollback two controller cuts and verified recovery with live HTTP503",
-      "conclusion": null,
+      "conclusion": "success",
       "job": 122075876445,
       "stock_http_preflight": "success",
-      "independent_codegen_target": "success"
+      "independent_codegen_target": "success",
+      "artifact": 12723780437,
+      "artifact_bytes": 675276,
+      "artifact_sha256": "c06cb67b29f3f13cd03eb1fded3e32309b12b74e79429e5d31aed4fa9bb9bb57"
     },
     "full_CI": {
       "run": 40469951904,
@@ -229,7 +232,8 @@
       "run": 40469951991,
       "new_native_build_triggered": false,
       "authentication_failure_claimed": false
-    }
+    },
+    "authenticated_witness": "docs/dependencies/phase3-controller-cuts-authenticated.json"
   },
   "release_asset_finalization": {
     "status": "pushed_414b049_full_CI_all_five_jobs_passed",
@@ -260,7 +264,7 @@
   },
   "readonly_native_report_validator": {
     "entry": "scripts/authenticate_controller_crash.py",
-    "status": "implemented_and_locally_tested_awaiting_completed_producer_and_independent_artifact_pin",
+    "status": "executed_in_CI_and_authenticated_the_pinned_four_case_artifact",
     "focused_synthetic_controls_passed": 59,
     "full_local_pytest_passed": 1337,
     "full_local_pytest_seconds": 122.17,
@@ -272,8 +276,18 @@
     "accepts_missing_HTTP503": false,
     "accepts_missing_crash_case": false,
     "authenticates_fixed_producer_job_head_artifact_size_and_SHA256_before_reporting": true,
-    "artifact_pin_recorded": false,
-    "native_crash_acceptance_inferred_from_unit_tests": false
+    "artifact_pin_recorded": true,
+    "native_crash_acceptance_inferred_from_unit_tests": false,
+    "authentication_run": 40482486152,
+    "authentication_job": 122116002511,
+    "authentication_conclusion": "success",
+    "host_side_binary_download_blocked_so_authentication_runs_inside_CI": true
   },
-  "distribution_context_followup": "docs/dependencies/distribution-context-followup.json"
+  "distribution_context_followup": "docs/dependencies/distribution-context-followup.json",
+  "delivery_phases": {
+    "phase1_technical_candidate": "COMPLETE_AUTHENTICATED_WITH_DEFERRED_REAL_USER_DATA_ACCEPTANCE",
+    "phase2_legal_distribution_and_publication": "OPEN_BLOCKED_BY_SIGNING_SECRET_AND_LEGAL_SIGN_OFF",
+    "public_release_created": false,
+    "tag_created": false
+  }
 }

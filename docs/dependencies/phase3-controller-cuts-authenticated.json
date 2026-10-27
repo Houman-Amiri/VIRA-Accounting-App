@@ -1,0 +1,136 @@
+{
+  "role": "AUTHENTICATED_NATIVE_TWO_CONTROLLER_CUTS_AND_LIVE_QUARANTINE_NOT_RELEASE",
+  "producer": {
+    "run": 40469951991,
+    "job": 122075876445,
+    "head": "725f4e79a7d8279b5675748d53217abb9f91156e",
+    "artifact": 12723780437,
+    "sha256": "c06cb67b29f3f13cd03eb1fded3e32309b12b74e79429e5d31aed4fa9bb9bb57",
+    "bytes": 675276,
+    "succeeded_steps": [
+      "Phase3 independently cold-build genuine native codegen target NOT delta acceptance",
+      "Phase3 REAL native delta rollback two controller cuts and verified recovery with live HTTP503"
+    ]
+  },
+  "authentication": {
+    "run": 40482486152,
+    "job": 122116002511,
+    "workflow": ".github/workflows/phase3-controller-cuts-evidence.yml",
+    "script": "scripts/authenticate_controller_crash.py",
+    "reader_commit": "d872df5890045f6d0eed357127b8880dc458405a",
+    "summary_artifact": 12723685923,
+    "summary_bytes": 1227,
+    "summary_sha256": "5ba1bdcce365b4bdf8439b56518d03d736c20e79444886278c74e25bb79b25a8",
+    "report_bytes": 116955,
+    "report_sha256": "c6a9683704fd8adfc1c7624a655f4d0c886e12319660c876bb495d7c189b7ffb",
+    "binary_download_outside_github_blocked_so_authentication_ran_inside_CI": true,
+    "new_native_build": false,
+    "app_execution": false
+  },
+  "crash_scope": "controller_exit_73_after_first_file_and_after_file_apply_before_target_startup",
+  "crash_recovery_proven": true,
+  "live_write_quarantine_verified": true,
+  "power_loss_or_arbitrary_cut_proven": false,
+  "crash_during_recovery_or_partial_terminal_unlock_auto_resumable": false,
+  "cases": {
+    "commit": {
+      "state": "committed",
+      "preserved": {
+        "full_database_preserved": true,
+        "persistent_session_accepted_without_login": true,
+        "persistent_secret_preserved": true,
+        "receipt_bytes_preserved": true,
+        "posted_entry_preserved": true
+      },
+      "write_quarantine_http503_observed": true,
+      "loaded_dll_count": 21,
+      "native_operation_count": 21,
+      "changed_file_count": 25,
+      "pdf_document_count": 4,
+      "unchanged_payload_files_absent": true,
+      "full_installer_in_package": false,
+      "cut": null
+    },
+    "rollback": {
+      "state": "rolled_back",
+      "preserved": {
+        "full_database_preserved": true,
+        "persistent_session_accepted_without_login": true,
+        "persistent_secret_preserved": true,
+        "receipt_bytes_preserved": true,
+        "posted_entry_preserved": true
+      },
+      "write_quarantine_http503_observed": true,
+      "loaded_dll_count": 21,
+      "native_operation_count": 21,
+      "changed_file_count": 25,
+      "pdf_document_count": 4,
+      "unchanged_payload_files_absent": true,
+      "full_installer_in_package": false,
+      "cut": null
+    },
+    "crash-first-file": {
+      "state": "rolled_back",
+      "preserved": {
+        "full_database_preserved": true,
+        "persistent_session_accepted_without_login": true,
+        "persistent_secret_preserved": true,
+        "receipt_bytes_preserved": true,
+        "posted_entry_preserved": true
+      },
+      "write_quarantine_http503_observed": true,
+      "loaded_dll_count": 21,
+      "native_operation_count": 21,
+      "changed_file_count": 25,
+      "pdf_document_count": 4,
+      "unchanged_payload_files_absent": true,
+      "full_installer_in_package": false,
+      "cut": {
+        "point": "FIRST_FILE",
+        "exit_code": 73,
+        "applied_file_count": 1,
+        "controller_and_helper_confirmed_dead": true,
+        "independent_old_clone_verified": true,
+        "old_controller_sha256": "f04277f60816ec3cb3dca16752c3467b30bfab95e20286f3875e20d0c20b6141"
+      }
+    },
+    "crash-after-apply": {
+      "state": "rolled_back",
+      "preserved": {
+        "full_database_preserved": true,
+        "persistent_session_accepted_without_login": true,
+        "persistent_secret_preserved": true,
+        "receipt_bytes_preserved": true,
+        "posted_entry_preserved": true
+      },
+      "write_quarantine_http503_observed": true,
+      "loaded_dll_count": 21,
+      "native_operation_count": 21,
+      "changed_file_count": 25,
+      "pdf_document_count": 4,
+      "unchanged_payload_files_absent": true,
+      "full_installer_in_package": false,
+      "cut": {
+        "point": "AFTER_APPLY",
+        "exit_code": 73,
+        "applied_file_count": 25,
+        "controller_and_helper_confirmed_dead": true,
+        "independent_old_clone_verified": true,
+        "old_controller_sha256": "f04277f60816ec3cb3dca16752c3467b30bfab95e20286f3875e20d0c20b6141"
+      }
+    }
+  },
+  "installed_acceptance": {
+    "real_selected_path_installer_proven": true,
+    "native_delta_and_forced_rollback_proven": true,
+    "crash_recovery_preserving_data_ids_sessions_secrets_receipts_proven": true,
+    "actual_user_installation_touched": false,
+    "installed_business_data_acceptance": "DEFERRED_NOT_ACCEPTED"
+  },
+  "phase3_complete": false,
+  "release_authorized": false,
+  "notes": [
+    "Acceptance is scoped to the two deliberate controller cuts; it is not arbitrary power loss or a crash during recovery.",
+    "Including this file in a tag does not by itself close any legal gate or authorize public distribution."
+  ]
+}

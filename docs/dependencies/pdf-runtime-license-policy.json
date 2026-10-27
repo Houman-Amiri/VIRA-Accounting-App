@@ -267,11 +267,12 @@
         "private_consumer_proof": "docs/dependencies/pdf-local-source-app-consumer-proof.json",
         "private_consumer_run_id": 39153212109,
         "observed_pango_version_string": "1.58.0-vira-local-source",
-        "actual_installed_replacement_proven": false,
+        "actual_installed_replacement_proven": true,
         "eula_compatibility_approved": false,
         "gate_closed": false,
         "private_noticed_archive_render_proven": true,
-        "private_noticed_archive_proof": "docs/dependencies/pdf-noticed-archive-build-proof.json"
+        "private_noticed_archive_proof": "docs/dependencies/pdf-noticed-archive-build-proof.json",
+        "installed_replacement_scope": "REAL_NATIVE_DELTA_REPLACED_PANGO_DLL_IN_INSTALLED_APP_WITH_FOUR_PDFS_AND_REPORTED_LOCAL_SOURCE_VERSION"
       }
     },
     {
@@ -281,7 +282,7 @@
         "private_payload_pdf_vazirmatn_and_digits": "VERIFIED_WITH_LOCALLY_SOURCE_BUILT_ENGINE",
         "private_consumer_proof": "docs/dependencies/pdf-local-source-app-consumer-proof.json",
         "production_fontconfig_unicode_environment_proven": false,
-        "ordinary_native_bootstrap_and_delta_integrated": false,
+        "ordinary_native_bootstrap_and_delta_integrated": true,
         "installed_user_acceptance": "DEFERRED_NOT_ACCEPTED",
         "gate_closed": false,
         "private_noticed_archive_pdf_vazirmatn_and_digits": "VERIFIED_NOT_PRODUCTION_BOOTSTRAP_OR_INSTALLED_ACCEPTANCE",
@@ -353,17 +354,20 @@
         "private_real_cmd_prior_driver_failure": "docs/dependencies/pdf-desktop-source-driver-failure.json",
         "private_real_cmd_prior_logging_failure": "docs/dependencies/pdf-desktop-source-logging-failure.json",
         "ordinary_default_source_startup_enabled": false,
-        "native_installer_delta_rollback_proven": false,
-        "remaining_readiness_phase3_of6_status": "ACTIVE_INCOMPLETE_NO_REAL_NATIVE_INSTALL_DELTA_ROLLBACK_ACCEPTANCE",
+        "native_installer_delta_rollback_proven": true,
+        "remaining_readiness_phase3_of6_status": "PRIVATE_TECHNICAL_ACCEPTANCE_AUTHENTICATED_LEGAL_AND_INSTALLED_USER_ACCEPTANCE_OPEN",
         "private_native_installer_update_work_report": "docs/reports/readiness-phase3-native-install-update-fa.md",
         "private_native_installer_preset_prepared": true,
-        "private_native_installer_actual_source21_proven": false,
-        "private_native_delta_rollback_actual_source21_proven": false,
+        "private_native_installer_actual_source21_proven": true,
+        "private_native_delta_rollback_actual_source21_proven": true,
         "private_inno_opaque_fixture_install_uninstall_proven": true,
         "private_inno_limited_proof": "docs/dependencies/phase3-inno-limited-preflight-proof.json",
         "private_inno_limited_run_id": 39585771427,
         "private_inno_limited_scope": "REAL_INNO_OPAQUE_TEST_PAYLOAD_NO_SOURCE21_RUNTIME_OR_DELTA_ACCEPTANCE",
-        "inno_compiler_6_7_1_commercial_distribution_entitlement": "OPEN_NOT_INFERRED_FROM_NON_COMMERCIAL_USE_ONLY_BANNER"
+        "inno_compiler_6_7_1_commercial_distribution_entitlement": "OPEN_NOT_INFERRED_FROM_NON_COMMERCIAL_USE_ONLY_BANNER",
+        "native_installer_actual_source21_proven": true,
+        "private_phase3_authenticated_witness": "docs/dependencies/phase3-controller-cuts-authenticated.json",
+        "private_phase3_authenticated_scope": "TWO_CONTROLLER_CUTS_AND_LIVE_HTTP503_FOUR_CASES_NOT_ARBITRARY_POWER_LOSS_OR_RELEASE"
       }
     }
   ],

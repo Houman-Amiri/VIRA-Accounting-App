@@ -551,3 +551,29 @@ recovery پیاده شدند. ۱۲۵۹تست کامل/۸۵٫۵۵ثانیه، Ruf
 پذیرش native جدید هنوز pending است، نه شاهد power-loss یا انتشار.
 پوشش stock/source در workflow یکپارچه حفظ و main.py به همان یک اجرای سنگین
 سپرده شد؛ جزئیات در گزارش دو تحویل نهایی و checkpoint موجود است.
+
+
+## پذیرش فنی فاز۳ — احرازشده، با دامنهٔ محدود
+
+اجرای `40469951991` (head `725f4e7`) با هر دو job موفق پایان یافت. مرحلهٔ
+`Phase3 independently cold-build genuine native codegen target` و مرحلهٔ
+`Phase3 REAL native delta rollback two controller cuts and verified recovery with live HTTP503`
+هر دو `success` هستند. آرتیفکت `12723780437` با اندازهٔ ۶۷۵۲۷۶بایت و
+SHA256 `c06cb67b…bb57` از داخل CI با پین مستقل احراز شد؛ اجرای فقط‌خواندنی
+`40482486152` هیچ build بومی یا اجرای برنامه‌ای انجام نداد.
+
+| مورد | نتیجه | فایل تغییرکرده | عملیات بومی | PDF | DLL | 503 واقعی | cut |
+|---|---|---|---|---|---|---|---|
+| commit | committed | ۲۵ | ۲۱ | ۴ | ۲۱ | بله | — |
+| rollback | rolled_back | ۲۵ | ۲۱ | ۴ | ۲۱ | بله | — |
+| crash-first-file | rolled_back | ۲۵ | ۲۱ | ۴ | ۲۱ | بله | exit73،۱فایل |
+| crash-after-apply | rolled_back | ۲۵ | ۲۱ | ۴ | ۲۱ | بله | exit73،۲۵فایل |
+
+در هر چهار مورد: fingerprint کامل دیتابیس یکسان، ورودی ثبت‌شده و IDها،
+session بدون لاگین مجدد، secret ماندگار و receipt حفظ شدند؛ payload بدون
+فایل بی‌تغییر، بدون Setup کامل؛ recovery با clone مستقل و تأییدشدهٔ کنترلر
+قدیم. دامنه **همان دو قطع عمدی** است: نه قطع برق، نه crash هنگام recovery،
+نه unlock خودکار نیمه‌کاره. پذیرش با دادهٔ واقعی کاربر همچنان انجام‌نشده و
+انتشار عمومی هنوز مجاز نیست.
+
+شاهد: `docs/dependencies/phase3-controller-cuts-authenticated.json`.
