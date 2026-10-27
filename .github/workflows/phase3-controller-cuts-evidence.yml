@@ -1,0 +1,65 @@
+name: Authenticate controller cut recovery without rebuilding
+
+on:
+  push:
+    paths: ['.github/workflows/phase3-controller-cuts-evidence.yml']
+
+permissions:
+  contents: read
+  actions: read
+
+# Read-only: no native rebuild, no installer execution, no app imports, no changed
+# producer files. Only the pinned successful producer artifact is authenticated.
+jobs:
+  authenticate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d872df5890045f6d0eed357127b8880dc458405a
+      - name: Write the independent producer pin
+        shell: bash
+        run: |
+          cat > controller-crash-pin.json <<'JSON'
+          {
+            "run": 40469951991,
+            "job": 122075876445,
+            "head": "725f4e79a7d8279b5675748d53217abb9f91156e",
+            "artifact": 12723780437,
+            "sha256": "c06cb67b29f3f13cd03eb1fded3e32309b12b74e79429e5d31aed4fa9bb9bb57",
+            "bytes": 675276
+          }
+          JSON
+      - name: Authenticate producer, artifact bytes and all four real cases
+        shell: bash
+        run: |
+          set -o pipefail
+          python scripts/authenticate_controller_crash.py \
+            --pin controller-crash-pin.json \
+            --output controller-crash-authenticated.json 2>&1 | tee authenticate.log
+      - name: Fail unless the authenticated report proves both real cuts and live quarantine
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          summary = json.load(open('controller-crash-authenticated.json'))
+          assert summary['role'] == 'AUTHENTICATED_NATIVE_TWO_CONTROLLER_CUTS_AND_LIVE_QUARANTINE_NOT_RELEASE'
+          assert summary['crash_recovery_proven'] is True
+          assert summary['live_write_quarantine_verified'] is True
+          assert summary['power_loss_or_arbitrary_cut_proven'] is False
+          assert summary['phase3_complete'] is False and summary['release_authorized'] is False
+          assert all(case['cut'] is not None for name, case in summary['cases'].items()
+                     if name.startswith('crash-'))
+          print('Authenticated four cases:', ', '.join(f"{k}={v['state']}" for k, v in summary['cases'].items()))
+          PY
+      - name: Upload authenticated bounded summary only
+        uses: actions/upload-artifact@v4
+        with:
+          name: private-authenticated-controller-cuts-summary-NOT-release
+          path: controller-crash-authenticated.json
+          if-no-files-found: error
+          retention-days: 90
