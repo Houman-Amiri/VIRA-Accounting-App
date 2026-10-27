@@ -16,6 +16,20 @@ from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+def default_update_public_key() -> str:
+    """A packaged release may bake the Ed25519 verification key beside the payload.
+
+    The installed launcher passes no environment for this, so without the file an
+    installed client would accept an unsigned ``latest.json``. An explicit
+    ``UPDATE_PUBLIC_KEY`` environment value always wins over this default.
+    """
+    for base in (Path(__file__).resolve().parents[1], Path(__file__).resolve().parents[2]):
+        candidate = base / "update-public-key.pem"
+        if candidate.is_file():
+            return str(candidate)
+    return ""
+
+
 def default_data_dir() -> Path:
     if os.name == "nt":  # pragma: no cover - windows only
         base = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
@@ -62,7 +76,8 @@ class Settings(BaseSettings):
     update_github_repo: str = "Houman-Amiri/VIRA-Accounting-App"
     # --- update channel (Phase 8 §3/§8) ---
     app_update_url: str = ""  # APP_UPDATE_URL self-hosted mirror override
-    update_public_key: str = ""  # Ed25519 PEM (inline or path) for latest.json
+    # Ed25519 PEM (inline or path) for latest.json; a release bakes the public key.
+    update_public_key: str = Field(default_factory=default_update_public_key)
 
     # --- scheduler ---
     scheduler_enabled: bool = False

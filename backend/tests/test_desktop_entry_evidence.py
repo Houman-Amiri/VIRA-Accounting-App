@@ -50,7 +50,16 @@ def test_authenticated_real_cmd_windows_witness_and_frozen_code(tmp_path):
     assert proof["all_six_distribution_gates_still_open"] is True
     # Phase3 extends the private modules, write gate and workflow. Retain exact OLD bytes rather than
     # rewriting historical proof hashes or claiming old Windows evidence for new code.
-    extended = {"backend/app/private_pdf_bootstrap.py", "backend/app/desktop_entry.py", "backend/app/main.py", ".github/workflows/pdf-desktop-source.yml"}
+    extended = {
+        "backend/app/private_pdf_bootstrap.py",
+        "backend/app/desktop_entry.py",
+        "backend/app/main.py",
+        ".github/workflows/pdf-desktop-source.yml",
+        # v1.0.11 bakes the update verification key into the payload; the historical
+        # Phase2 bytes are archived instead of rewriting the old witness hashes.
+        "backend/app/config.py",
+        "scripts/stage_app_payload.ps1",
+    }
     for name, digest in proof["frozen_implementation_git_blob_sha256"].items():
         source = (DATA / "phase2-frozen-implementation" / Path(name).name) if name in extended else ROOT / name
         assert hashlib.sha256(source.read_bytes().replace(b"\r\n", b"\n")).hexdigest() == digest

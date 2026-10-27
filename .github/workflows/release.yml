@@ -117,6 +117,19 @@ jobs:
         shell: pwsh
         run: ./scripts/package_release.ps1 -Version "${{ env.VIRA_VERSION }}" -OutDir dist-release
 
+      - name: Bake the update verification key into the payload
+        shell: pwsh
+        env:
+          VIRA_UPDATE_SIGNING_KEY: ${{ secrets.VIRA_UPDATE_SIGNING_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:VIRA_UPDATE_SIGNING_KEY)) {
+            Write-Host "No signing secret available: this build cannot verify update signatures (not publishable as a tagged release)."
+            exit 0
+          }
+          uv run python scripts/export_update_public_key.py --out dist-release/update-public-key.pem
+          if ($LASTEXITCODE -ne 0) { throw "cannot derive the update verification key" }
+          "VIRA_UPDATE_PUBLIC_KEY_FILE=$PWD/dist-release/update-public-key.pem" | Out-File -FilePath $env:GITHUB_ENV -Append
+
       - name: Stage app payload (backend + SPA + scripts + manifests)
         shell: pwsh
         run: |

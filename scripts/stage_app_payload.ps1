@@ -76,6 +76,13 @@ if (-not $spaBuild) {
 } | ConvertTo-Json | Set-Content -Encoding utf8 (Join-Path $OutDir "version.json")
 Write-Host "[stage_app_payload] version.json: version=$v commit=$commit spa_build=$spaBuild"
 
+# update verification key — a packaged client must reject an unsigned latest.json
+# and must accept the release signature. Absent key keeps the previous behaviour.
+if ($env:VIRA_UPDATE_PUBLIC_KEY_FILE -and (Test-Path -LiteralPath $env:VIRA_UPDATE_PUBLIC_KEY_FILE)) {
+    Copy-Item -LiteralPath $env:VIRA_UPDATE_PUBLIC_KEY_FILE -Destination (Join-Path $OutDir "update-public-key.pem")
+    Write-Host "[stage_app_payload] baked the update verification key"
+}
+
 # per-file manifest — the delta baseline (Phase 8 §1/§5)
 uv run python scripts/build_manifest.py $OutDir
 if ($LASTEXITCODE -ne 0) { throw "payload manifest generation failed" }
