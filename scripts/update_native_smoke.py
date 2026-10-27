@@ -606,18 +606,21 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--published-base", type=Path)
     parser.add_argument("--packages", type=Path)
+    parser.add_argument("--target-version", default=os.environ.get("VIRA_VERSION") or PublishedUpgrade.target_version)
     args = parser.parse_args()
     published = None
     if args.published_base or args.packages:
         if not args.published_base or not args.packages:
             parser.error("both --published-base and --packages are required")
-        published = PublishedUpgrade(args.published_base.resolve(), args.packages.resolve())
+        published = PublishedUpgrade(
+            args.published_base.resolve(), args.packages.resolve(), target_version=args.target_version
+        )
         published.validate()
     with tempfile.TemporaryDirectory(prefix="vira-in-app-", dir=os.environ["RUNNER_TEMP"]) as tmp:
         scenario(Path(tmp) / "success", False, published)
         scenario(Path(tmp) / "rollback", True, published)
     print(
-        "Published 1.0.9 client -> candidate 1.0.10 PASS"
+        f"Published {published.base_version} client -> candidate {published.target_version} PASS"
         if published
         else "Native in-app consent/download/apply/restart and real rollback PASS; private current-code fixtures only"
     )

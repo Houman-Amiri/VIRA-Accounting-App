@@ -90,3 +90,28 @@ def test_gen_delta_packs_updater_manifest_pair(tmp_path: Path) -> None:
         packed = json.loads(zf.read("install_manifest.json"))
         assert packed["files_manifest_sha256"]
         assert any(n.startswith("files/") or n.startswith("patches/") for n in names)
+
+
+def test_single_source_of_version_keeps_lock_and_persian_notes_aligned():
+    import re
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    pyproject = re.search(r'^version = "([^"]+)"', (root / "pyproject.toml").read_text(), re.M).group(1)
+    locked = re.search(r'\[\[package\]\]\nname = "vira-accounting"\nversion = "([^"]+)"', (root / "uv.lock").read_text()).group(1)
+    assert pyproject == locked, "uv.lock drifted from the project version"
+    assert (root / f"docs/releases/v{pyproject}-fa.md").is_file(), "Persian notes must exist before tagging"
+    workflow = (root / ".github/workflows/release.yml").read_text()
+    assert "--target-version $env:VIRA_VERSION" in workflow
+    assert "Refuse unsigned tagged publication" in workflow
+
+
+def test_delta_coverage_requirement_follows_the_version_instead_of_a_frozen_list():
+    from pathlib import Path
+
+    smoke = (Path(__file__).resolve().parents[2] / "scripts/windows_smoke_test.ps1").read_text()
+    assert "$multiBase = $false" in smoke and "\\d+" in smoke
+    assert "$exercisedBases.Count -ne 3" in smoke
+    # A frozen allow-list is what silently reduced coverage for every new version.
+    assert '$v -in @("1.0.9", "1.0.10")' not in smoke
+    assert '$v -notin @("1.0.9", "1.0.10")' not in smoke

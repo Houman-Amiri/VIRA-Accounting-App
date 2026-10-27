@@ -98,17 +98,20 @@ if ($v -eq "1.0.9") {
         }
     }
 }
-if ($v -eq "1.0.10") {
-    foreach ($base in @("1.0.7", "1.0.8", "1.0.9")) {
-        if (-not ($deltaZips | Where-Object { $_.Name -eq "VIRA-v$v-delta-from-v$base.zip" })) {
-            throw "required $base -> $v delta missing"
-        }
-    }
+# Every version from 1.0.10 on must exercise all three direct baselines; a new
+# version must never quietly fall back to a single delta.
+$multiBase = $false
+if ($v -match '^1\.0\.(\d+)$' -and [int]$Matches[1] -ge 10) { $multiBase = $true }
+if ($multiBase -and -not $deltaZips) {
+    throw "v$v must ship direct deltas from the three previous releases"
 }
 $exercisedBases = @()
 foreach ($delta in $deltaZips) {
     if ($delta.Name -notmatch "delta-from-v([\d.]+)\.zip") { continue }
     $fromV = $Matches[1]
+    if ($multiBase -and -not $delta.Name.StartsWith("VIRA-v$v-delta-from-v")) {
+        throw "delta $($delta.Name) does not target the built version v$v"
+    }
     if ($delta.Length -ge $setupSize) { throw "delta ($($delta.Length)) is not smaller than the setup ($setupSize)" }
     # fetch the previous release's portable zip (same probe as build_deltas)
     $tag = "v$fromV"
@@ -173,9 +176,9 @@ foreach ($delta in $deltaZips) {
     Write-Output "[smoke] legacy $tag -> v$v OK — version + manifest rewritten, files verified"
     $upgraded = $true
     $exercisedBases += $fromV
-    if ($v -notin @("1.0.9", "1.0.10")) { break }
+    if (-not $multiBase -and $v -ne "1.0.9") { break }
 }
-if ($v -in @("1.0.9", "1.0.10") -and $exercisedBases.Count -ne 3) {
+if ($multiBase -and $exercisedBases.Count -ne 3) {
     throw "v$v must exercise all three direct deltas; exercised: $($exercisedBases -join ', ')"
 }
 if (-not $upgraded) {

@@ -193,7 +193,7 @@ jobs:
           $code = 1
           $out = ""
           try {
-            $out = (& uv run python scripts/update_native_smoke.py --published-base $baseManifest.Directory.FullName --packages dist-release *>&1 | Out-String)
+            $out = (& uv run python scripts/update_native_smoke.py --published-base $baseManifest.Directory.FullName --packages dist-release --target-version $env:VIRA_VERSION *>&1 | Out-String)
             $code = $LASTEXITCODE
           } catch { $out += "`n" + ($_ | Out-String) }
           Write-Host $out

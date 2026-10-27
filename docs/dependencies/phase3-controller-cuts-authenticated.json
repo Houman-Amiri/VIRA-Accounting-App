@@ -132,5 +132,6 @@
   "notes": [
     "Acceptance is scoped to the two deliberate controller cuts; it is not arbitrary power loss or a crash during recovery.",
     "Including this file in a tag does not by itself close any legal gate or authorize public distribution."
-  ]
+  ],
+  "gate5_progress_note": "The frozen docs/dependencies/pdf-runtime-license-policy.json and its historical review witness stay byte-identical by design; native install/delta/rollback and controller-cut recovery progress is recorded here and in the checkpoint, while every legal gate remains OPEN."
 }
