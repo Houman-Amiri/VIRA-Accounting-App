@@ -323,9 +323,11 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
     }
     # Seed genuine schema/chart/owner + persisted operational data, not an empty DB.
     password = secrets.token_urlsafe(24)
-    if published and published.schema_rollback:
+    if published:
         # The installed public client must start on ITS revision and use ITS ORM,
         # never the newer source migrator/models before the upgrade under test.
+        # Seeding a published client with the repo migrator planted a revision the
+        # released app cannot resolve (real 1.0.11 run: Can't locate '0006_item_catalog').
         baseline_env = {**env, "PYTHONPATH": str(install)}
         run(sys.executable, str(install / "scripts/migrate_vira.py"), "--database", str(database), env=baseline_env, cwd=install)
         run(sys.executable, "-m", "app.seed", env={**baseline_env, "VIRA_ADMIN_PASSWORD": password}, cwd=install)
@@ -349,6 +351,10 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
     checkpoint_fingerprint = None
     if published and published.schema_rollback:
         env["VIRA_SCHEMA_PROOF_REPORT"] = str(root / "migration-proof.json")
+    base_revision = None
+    if published:
+        with closing(sqlite3.connect(database)) as probe:
+            base_revision = probe.execute("SELECT version_num FROM alembic_version").fetchone()[0]
     counts = dict(delta=0, full=0)
 
     class Feed(BaseHTTPRequestHandler):
@@ -459,6 +465,21 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
                                 ).fetchone()[0]
                                 == "0006_item_catalog"
                             )
+                    elif published and not rollback:
+                        # The upgraded target must migrate the released schema and keep
+                        # the data. Byte equality is NOT asserted here because a real
+                        # migration adds schema on purpose.
+                        with closing(sqlite3.connect(database)) as new_db:
+                            revision = new_db.execute(
+                                "SELECT version_num FROM alembic_version"
+                            ).fetchone()[0]
+                            assert revision != base_revision, "target did not migrate the released schema"
+                            assert new_db.execute(
+                                "SELECT count(*) FROM sqlite_master WHERE name='item_types'"
+                            ).fetchone()[0] == 1, "new schema table missing after real upgrade"
+                            assert new_db.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+                            assert new_db.execute("PRAGMA foreign_key_check").fetchall() == []
+                        assert checkpoint_fingerprint is not None
                     else:
                         assert checkpoint_hash is not None and sha(database) == checkpoint_hash, (
                             "SQLite hash changed"

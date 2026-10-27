@@ -88,3 +88,17 @@ def test_failure_diagnostics_survive_windows_code_page(tmp_path, harness, monkey
     assert r"\u062e" in text
     assert r"\u2014" in text
     assert "100%25%0Anext" in text
+
+
+def test_published_client_is_seeded_on_its_own_revision_not_the_repo_head():
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[2] / "scripts/update_native_smoke.py").read_text()
+    published = source.index("    if published:\n        # The installed public client must start on ITS revision")
+    head_migrator = source.index('run(sys.executable, str(ROOT / "scripts/migrate_vira.py")')
+    assert published < head_migrator, "the repo migrator must not seed a published client"
+    block = source[published:head_migrator]
+    assert 'str(install / "scripts/migrate_vira.py")' in block
+    # A real upgrade migrates the released schema; byte equality would be wrong there.
+    assert "target did not migrate the released schema" in source
+    assert "new schema table missing after real upgrade" in source
