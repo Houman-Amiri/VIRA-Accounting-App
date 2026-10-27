@@ -1,10 +1,12 @@
 name: Private noticed-source no-site HTTP PDF proof
 
 on:
+  workflow_dispatch:
+  # main.py and workflow-only edits: integrated pdf-desktop-source or manual dispatch.
   push:
-    paths: ['.github/workflows/pdf-source-http.yml', 'scripts/pdf_source_http_bind.py', 'backend/tests/test_pdf_source_http.py', 'scripts/pdf_private_launcher.py', 'scripts/pdf_private_http_probe.py', 'scripts/pdf_http_verify.py', 'scripts/pdf_launcher_smoke.ps1', 'scripts/prepare_pdf_consumer_candidate.py', 'scripts/pdf_owned_http_bind.py', 'backend/app/services/pdf_rendering.py', 'backend/app/main.py', 'backend/app/api/operations.py', 'backend/tests/test_pdf_owned_http.py']
+    paths: ['scripts/pdf_source_http_bind.py', 'backend/tests/test_pdf_source_http.py', 'scripts/pdf_private_launcher.py', 'scripts/pdf_private_http_probe.py', 'scripts/pdf_http_verify.py', 'scripts/pdf_launcher_smoke.ps1', 'scripts/prepare_pdf_consumer_candidate.py', 'scripts/pdf_owned_http_bind.py', 'backend/app/services/pdf_rendering.py', 'backend/app/api/operations.py', 'backend/tests/test_pdf_owned_http.py']
   pull_request:
-    paths: ['.github/workflows/pdf-source-http.yml', 'scripts/pdf_source_http_bind.py', 'backend/tests/test_pdf_source_http.py', 'scripts/pdf_private_launcher.py', 'scripts/pdf_private_http_probe.py', 'scripts/pdf_http_verify.py', 'scripts/pdf_launcher_smoke.ps1', 'scripts/prepare_pdf_consumer_candidate.py', 'scripts/pdf_owned_http_bind.py', 'backend/app/services/pdf_rendering.py', 'backend/app/main.py', 'backend/app/api/operations.py', 'backend/tests/test_pdf_owned_http.py']
+    paths: ['scripts/pdf_source_http_bind.py', 'backend/tests/test_pdf_source_http.py', 'scripts/pdf_private_launcher.py', 'scripts/pdf_private_http_probe.py', 'scripts/pdf_http_verify.py', 'scripts/pdf_launcher_smoke.ps1', 'scripts/prepare_pdf_consumer_candidate.py', 'scripts/pdf_owned_http_bind.py', 'backend/app/services/pdf_rendering.py', 'backend/app/api/operations.py', 'backend/tests/test_pdf_owned_http.py']
 
 permissions:
   contents: read

@@ -26,10 +26,14 @@ param(
     [string]$ResultPath = "",
     [int]$HealthTimeoutSeconds = 90,
     [string]$PrivateSourceTransaction = "",       # explicit private CI context, NEVER public auto-selection
-    [switch]$ForceFailure                           # CI forced-failure rollback test
+    [switch]$ForceFailure,                          # CI forced-failure rollback test
+    [ValidateSet('','FIRST_FILE','AFTER_APPLY')][string]$PrivateSourceCrashPoint = ""
 )
 
 $ErrorActionPreference = "Stop"
+if ($PrivateSourceCrashPoint -and (-not $PrivateSourceTransaction -or $ForceFailure)) {
+    throw 'Crash selection is exclusive to the explicit private CI transaction'
+}
 $logPath = if ($Log) { $Log } else { Join-Path $Stage "update.log" }
 
 function Write-Log([string]$msg) {
@@ -190,6 +194,10 @@ if ($PrivateSourceTransaction) {
             '--install-root',$installFull,'--archive',[string]$context.archive,'--archive-sha256',[string]$context.archive_sha256,
             '--target-anchor',[string]$context.target_anchor,'--attempt',[string]$context.attempt)
         if ($ForceFailure) { $privateArgs += '--force-failure-after-apply' }
+        if ($PrivateSourceCrashPoint) {
+            if ($pin.schema -ne 2) { throw 'Schema2 private CI crash selection required' }
+            $privateArgs += @('--crash-point', $PrivateSourceCrashPoint)
+        }
         Start-Sleep -Seconds 2 # let the authenticated apply HTTP response complete
         $privateCode = Invoke-PrivateController (Join-Path $external 'python\python.exe') $privateArgs
     } finally {
@@ -217,7 +225,7 @@ if ($PrivateSourceTransaction) {
                 }
                 $stamp = Get-Content -LiteralPath (Join-Path $Stage 'version.json') -Raw -Encoding utf8 | ConvertFrom-Json
                 $reason = if ($terminal -eq 'rolled_back') { 'به‌روزرسانی ناموفق بود؛ نسخه و دادهٔ قبلی بازگردانده و سلامت آن تأیید شد.' } elseif ($terminal -eq 'failed') { 'به‌روزرسانی خصوصی تأیید نشد؛ گزارش و قفل‌های بازیابی را بررسی کنید.' } else { '' }
-                $result = @{state=$terminal;target_version=$stamp.version;log_path=$logPath;error_fa=$reason;verified=($terminal -eq 'committed');machine_state=$terminal;helper_pid=$PID;attempt_id=$privateAttempt}
+                $result = @{state=$terminal;target_version=$stamp.version;log_path=$logPath;error_fa=$reason;verified=($terminal -eq 'committed');machine_state=$terminal;helper_pid=$PID;attempt_id=$privateAttempt;controller_exit_code=$privateCode}
                 $temp = $ResultPath + '.' + [guid]::NewGuid().ToString('N') + '.tmp'
                 [IO.File]::WriteAllText($temp,($result | ConvertTo-Json),(New-Object Text.UTF8Encoding($false)))
                 Move-Item -LiteralPath $temp -Destination $ResultPath -Force

@@ -109,3 +109,61 @@ async def test_controller_child_can_become_ready_without_acknowledging_user_writ
             app.state.database.dispose()
     assert not (state / ".desktop.lock").exists()
     assert native.exists()  # The entry never removes the controller's ownership lock.
+
+
+@pytest.mark.parametrize("guard_name", [".native-channel.lock", ".native-update.lock", ".update.lock"])
+async def test_verified_private_factory_blocks_writes_for_each_guard_independently(
+    tmp_path, monkeypatch, guard_name
+):
+    from .test_private_source_channel import fixture
+
+    root, home, settings, _, _ = fixture(tmp_path, monkeypatch)
+    monkeypatch.setenv("VIRA_APP_DIR", str(root))
+    guard = (home / "state/data/updates/.update.lock" if guard_name == ".update.lock"
+             else home / guard_name)
+    guard.parent.mkdir(parents=True, exist_ok=True)
+    app = create_app(settings)
+    try:
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            guard.write_bytes(b"opaque ownership is not read or deleted by middleware")
+            assert app.state.update_write_blocked() is True
+            assert (await client.get("/api/v1/health/live")).status_code == 200
+            for path in ("/api/v1/orders", "/api/v1/auth/login", "/api/v1/auth/sudo"):
+                response = await client.post(path, json={})
+                assert response.status_code == 503
+                assert response.json()["code"] == "update_in_progress"
+                assert response.headers["retry-after"] == "3"
+            # Even a changed payload manifest cannot turn OFF the already bound
+            # lifetime write gate (no app handler or dynamic scope revalidation).
+            (root / "install_manifest.json").write_bytes(b"temporarily replaced during update")
+            assert (await client.post("/api/v1/orders", json={})).status_code == 503
+            guard.unlink()  # Only this test's own synthetic guard.
+            assert app.state.update_write_blocked() is False
+            assert (await client.post("/api/v1/orders", json={})).status_code == 403
+    finally:
+        app.state.database.dispose()
+
+
+async def test_private_partial_unlock_keeps_write_gate_closed_until_all_guards_gone(tmp_path, monkeypatch):
+    from .test_private_source_channel import fixture
+
+    root, home, settings, _, _ = fixture(tmp_path, monkeypatch)
+    monkeypatch.setenv("VIRA_APP_DIR", str(root))
+    guards = [home / ".native-channel.lock", home / ".native-update.lock",
+              home / "state/data/updates/.update.lock"]
+    guards[-1].parent.mkdir(parents=True, exist_ok=True)
+    app = create_app(settings)
+    try:
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+            for path in guards:
+                path.write_bytes(b"owned synthetic guard")
+            for path in reversed(guards):
+                assert (await client.post("/api/v1/orders", json={})).status_code == 503
+                assert app.state.update_write_blocked() is True  # Scheduler uses this SAME callable.
+                path.unlink()
+            assert (await client.post("/api/v1/orders", json={})).status_code == 403
+            assert app.state.update_write_blocked() is False
+    finally:
+        app.state.database.dispose()

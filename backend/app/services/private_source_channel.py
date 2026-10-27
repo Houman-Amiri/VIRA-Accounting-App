@@ -136,7 +136,7 @@ def command(context: SourceScope, stage: Path) -> tuple[list[str], Path]:
     try:
         fault = os.environ.get("VIRA_PRIVATE_SOURCE_FORCE_FAILURE", "")
         if fault and (
-            fault != "AFTER_APPLY"
+            fault not in {"AFTER_APPLY", "CRASH_FIRST_FILE", "CRASH_AFTER_APPLY"}
             or context.pin["schema"] != 2
             or os.environ.get("GITHUB_ACTIONS") != "true"
             or os.environ.get("VIRA_PRIVATE_INSTALLED_SOURCE") != "1"
@@ -200,8 +200,10 @@ def command(context: SourceScope, stage: Path) -> tuple[list[str], Path]:
             "-PrivateSourceTransaction",
             str(transaction),
         ]
-        if fault:
+        if fault == "AFTER_APPLY":
             argv.append("-ForceFailure")
+        elif fault:
+            argv += ["-PrivateSourceCrashPoint", fault.removeprefix("CRASH_")]
         return argv, log
     except (OSError, ValueError, KeyError, TypeError, zipfile.BadZipFile) as exc:
         raise DomainError(

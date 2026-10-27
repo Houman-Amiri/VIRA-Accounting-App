@@ -434,7 +434,7 @@ def test_private_terminal_receipt_never_overrides_surviving_cleanup_guard(
     assert update.read_update_status(settings)["state"] == terminal
 
 
-@pytest.mark.parametrize("fault", ["", "AFTER_APPLY", "UNKNOWN"])
+@pytest.mark.parametrize("fault", ["", "AFTER_APPLY", "CRASH_FIRST_FILE", "CRASH_AFTER_APPLY", "UNKNOWN"])
 @pytest.mark.parametrize("schema", [1, 2])
 def test_private_fault_selector_requires_owned_schema2_and_exact_explicit_mode(
     tmp_path, monkeypatch, fault, schema
@@ -473,11 +473,14 @@ def test_private_fault_selector_requires_owned_schema2_and_exact_explicit_mode(
         )
     )
     monkeypatch.setenv("VIRA_PRIVATE_SOURCE_FORCE_FAILURE", fault)
-    if fault and (schema != 2 or fault != "AFTER_APPLY"):
+    if fault and (schema != 2 or fault == "UNKNOWN"):
         with pytest.raises(DomainError):
             update._updater_command(settings, str(stage))
         assert not list(updates.glob("private-transaction-*.json"))
     else:
         argv, _ = update._updater_command(settings, str(stage))
-        assert ("-ForceFailure" in argv) == bool(fault)
+        assert ("-ForceFailure" in argv) == (fault == "AFTER_APPLY")
+        assert ("-PrivateSourceCrashPoint" in argv) == fault.startswith("CRASH_")
+        if fault.startswith("CRASH_"):
+            assert argv[argv.index("-PrivateSourceCrashPoint") + 1] == fault.removeprefix("CRASH_")
         assert Path(argv[0]).read_bytes() == (root / "vira-updater.exe").read_bytes()

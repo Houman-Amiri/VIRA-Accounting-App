@@ -63,8 +63,8 @@
       "run": 40220128706,
       "stock_sdk_preflight": "success",
       "source_job": 121250610073,
-      "last_observed_stage": "cold_compile_local_preferred_source_trees",
-      "conclusion": "pending"
+      "last_observed_stage": "actual_native_delta_and_forced_rollback_completed_historical_producer_no_live503",
+      "conclusion": "success_scoped_to_original_producer_not_new_crash_candidate"
     },
     "Windows_PowerShell_5_1_and_7_controls": "passed_actual_native_stdout_stderr_exit_launch_failure_controls",
     "local_validation": {
@@ -161,7 +161,7 @@
     "phase_one_complete": false
   },
   "runtime_write_gate_patch": {
-    "status": "implemented_and_tested_locally_not_yet_pushed_to_avoid_duplicate_cold_build_before_combined_native_crash_run",
+    "status": "coordinated_runtime_and_crash_candidate_ready_for_one_integrated_native_run_acceptance_pending",
     "uses_authenticated_private_scope_bound_once_at_factory_startup": true,
     "guards": [
       "state/data/updates/.update.lock",
@@ -170,10 +170,36 @@
     ],
     "same_callable_for_HTTP_and_scheduler": true,
     "partial_unlock_remains_write_blocked": true,
-    "full_local_pytest_passed": 1223,
-    "full_local_pytest_seconds": 105.04,
+    "full_local_pytest_passed": 1259,
+    "full_local_pytest_seconds": 85.55,
     "ruff_mypy_bandit": "passed",
     "current_native_acceptance": false,
     "frozen_phase2_main_preserved_without_rewriting_historical_digest": true
+  },
+  "native_crash_candidate": {
+    "status": "implemented_local_controls_passed_real_Windows_native_acceptance_pending",
+    "selector_scope": "explicit_GITHUB_ACTIONS_Windows_owned_schema2_only_no_public_switch",
+    "cuts": [
+      "FIRST_FILE",
+      "AFTER_APPLY"
+    ],
+    "mechanism": "real_os_exit_73_bypasses_exception_rollback_and_finally",
+    "recovery": "independent_archive_old_anchor_full_SQL_fingerprint_and_verified_old_external_Python_controller_clone",
+    "reverifies_clone_immediately_before_execution": true,
+    "requires_dead_controller_and_helper_handles": true,
+    "removes_unknown_or_aged_guards": false,
+    "HTTP503_mandatory_for_all_four_cases": true,
+    "all_cases_recheck": "full_DB_posted_entry_IDs_existing_session_no_login_secret_receipt_full_manifest_Source21_DLLs_and_four_real_PDFs",
+    "full_local_pytest_passed": 1259,
+    "full_local_pytest_seconds": 85.55,
+    "ruff_mypy_bandit": "passed",
+    "native_crash_recovery_proven": false,
+    "power_loss_or_arbitrary_cut_proven": false,
+    "crash_during_recovery_or_partial_terminal_unlock_auto_resumable": false,
+    "phase_one_complete": false,
+    "release_authorized_by_this_evidence": false,
+    "main_runtime_workflow_owner": ".github/workflows/pdf-desktop-source.yml",
+    "redundant_main_only_stock_and_source_cold_builds_routed_to_integrated_workflow": true,
+    "standalone_module_proofs_and_manual_dispatch_retained": true
   }
 }

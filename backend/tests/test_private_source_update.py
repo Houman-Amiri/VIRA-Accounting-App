@@ -329,6 +329,8 @@ def test_imports_are_stdlib_only_and_no_native_or_installer_claim():
         "preflight-failure",
         "commit-receipt-failure",
         "rollback-receipt-failure",
+        "crash-first-file-denied",
+        "crash-after-apply-denied",
     ],
 )
 def test_synthetic_transaction_with_real_sqlite_snapshot_restore(tmp_path, monkeypatch, mode):
@@ -442,6 +444,17 @@ def test_synthetic_transaction_with_real_sqlite_snapshot_restore(tmp_path, monke
     ]
     if mode in {"force-after-apply", "rollback-receipt-failure"}:
         args.append("--force-failure-after-apply")
+    if mode.startswith("crash-"):
+        args += ["--crash-point", "FIRST_FILE" if mode == "crash-first-file-denied" else "AFTER_APPLY"]
+        monkeypatch.setattr(sys, "argv", args)
+        with pytest.raises(ValueError, match="schema2 private CI"):
+            controller()
+        assert not attempt.exists() and not preflight_calls and not starts
+        assert all((base / name).read_bytes() == data for name, data in before.items())
+        assert (home / "anchor.json").read_bytes() == old_bytes
+        assert not (home / ".native-update.lock").exists()
+        assert not (home / "state/data/updates/.update.lock").exists()
+        return
     monkeypatch.setattr(sys, "argv", args)
     if mode == "commit":
         controller()
@@ -531,3 +544,52 @@ def test_rejected_target_preserves_startup_diagnostics_without_overwriting(tmp_p
     with pytest.raises(FileExistsError):
         start(home, root, "a" * 64, {"port": 8787}, log)
     assert len(calls) == 1 and log.read_bytes() == expected
+
+
+@pytest.mark.parametrize("point", ["FIRST_FILE", "AFTER_APPLY"])
+def test_actual_checkpoint_exit_bypasses_finally_but_is_not_windows_native_proof(tmp_path, point):
+    """Actual os._exit, SIMULATED Windows/CI gate; no executable/DLL/app fixture."""
+    import subprocess
+    import sys
+
+    attempt = tmp_path / "attempt"
+    attempt.mkdir()
+    marker = tmp_path / "finally-must-not-run"
+    token = "e" * 64
+    code = f"""
+import os, runpy
+from pathlib import Path
+from types import SimpleNamespace
+m = runpy.run_path({str(ROOT / 'scripts/private_source_update.py')!r})
+f = m['crash_checkpoint']
+f.__globals__['os'] = SimpleNamespace(name='nt', environ={{'GITHUB_ACTIONS':'true'}},
+    getpid=os.getpid, fsync=os.fsync, _exit=os._exit)
+try:
+    f({point!r}, {point!r}, Path({str(attempt)!r}), {token!r}, 1)
+finally:
+    Path({str(marker)!r}).write_text('THIS MUST NOT HAPPEN')
+"""
+    child = subprocess.run([sys.executable, "-I", "-S", "-B", "-c", code], capture_output=True, timeout=15)
+    assert child.returncode == 73, child.stderr.decode()
+    assert not marker.exists()
+    receipt = json.loads((attempt / "process-cut.json").read_bytes())
+    assert receipt == dict(role="PRIVATE_CONTROLLER_ABRUPT_EXIT_73", point=point,
+        pid=receipt["pid"], applied_file_count=1,
+        guard_token_sha256=hashlib.sha256(token.encode()).hexdigest())
+    assert token not in json.dumps(receipt) and receipt["pid"] > 0
+
+
+@pytest.mark.parametrize("platform,ci", [("posix", "true"), ("nt", "false"), ("nt", "")])
+def test_checkpoint_denies_nonprivate_environment_without_writing(tmp_path, monkeypatch, platform, ci):
+    from types import SimpleNamespace
+
+    checkpoint = runpy.run_path(str(ROOT / "scripts/private_source_update.py"))["crash_checkpoint"]
+    monkeypatch.setitem(checkpoint.__globals__, "os", SimpleNamespace(name=platform, environ={"GITHUB_ACTIONS": ci}))
+    with pytest.raises(ValueError, match="private Windows"):
+        checkpoint("FIRST_FILE", "FIRST_FILE", tmp_path, "e" * 64, 1)
+    assert not list(tmp_path.iterdir())
+
+
+def test_unselected_checkpoint_is_a_pure_noop_without_platform_override(tmp_path):
+    MODULE["crash_checkpoint"](None, "FIRST_FILE", tmp_path, "e" * 64, 1)
+    assert not list(tmp_path.iterdir())

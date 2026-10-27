@@ -431,8 +431,8 @@ def inspect_recovery(
     Only a prepared, cold, owned schema2 transaction with independent external
     archive/old-anchor/DB fingerprints can qualify. Live/inaccessible PID, desktop
     or channel guards, terminal receipts, partial/missing backups and corruption
-    are rejected. A future recovery executor must reacquire the global mutex and
-    repeat validation; this result is NOT a reusable authorization capability.
+    are rejected. The recovery executor acquires the global mutex and repeats validation;
+    this result is NOT a reusable authorization capability.
     """
     if os.name != "nt" or os.environ.get("GITHUB_ACTIONS") != "true":
         raise ValueError("Private disposable Windows CI inspection only")
@@ -786,6 +786,21 @@ def recover(
                 stop(home, root)  # Only this recovery's own gracefully restarted app.
             raise
 
+
+def crash_checkpoint(selected: str | None, point: str, attempt: Path, token: str, applied: int) -> None:
+    """Private CI process cut at a durable boundary; never normal rollback/success."""
+    if selected != point:
+        return
+    if (point not in {"FIRST_FILE", "AFTER_APPLY"} or os.name != "nt"
+            or os.environ.get("GITHUB_ACTIONS") != "true"):
+        raise ValueError("Explicit private Windows crash checkpoint required")
+    atomic(attempt / "process-cut.json", (json.dumps(dict(
+        role="PRIVATE_CONTROLLER_ABRUPT_EXIT_73", point=point, pid=os.getpid(),
+        applied_file_count=applied, guard_token_sha256=hashlib.sha256(token.encode()).hexdigest(),
+    )) + "\n").encode())
+    os._exit(73)  # Deliberately bypass except/finally; the external client must recover.
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("install-root", "archive", "attempt"):
@@ -796,10 +811,11 @@ def main() -> None:
     parser.add_argument("--database-fingerprint")
     parser.add_argument("--archive-sha256", required=True)
     parser.add_argument("--force-failure-after-apply", action="store_true")
+    parser.add_argument("--crash-point", choices=("FIRST_FILE", "AFTER_APPLY"))
     args = parser.parse_args()
     if args.recover:
         if (not args.old_anchor_sha256 or not args.database_fingerprint
-                or args.force_failure_after_apply or args.target_anchor is not None):
+                or args.force_failure_after_apply or args.crash_point or args.target_anchor is not None):
             parser.error("Explicit recovery needs independent old-anchor/DB digests, not update options")
         if os.name != "nt" or os.environ.get("GITHUB_ACTIONS") != "true":
             raise ValueError("Private disposable Windows CI recovery only")
@@ -854,6 +870,9 @@ def main() -> None:
     )
     bridge = runpy.run_path(str(root / "app/private_installed_source.py"))
     old, target = [bridge["anchor"](read(raw)) for raw in (old_raw, target_raw)]
+    if args.crash_point and (old["schema"] != 2 or target["schema"] != 2
+                             or args.force_failure_after_apply):
+        raise ValueError("Crash selection requires schema2 private CI and excludes forced rollback")
     attempt.mkdir(parents=True, exist_ok=False)
     token = secrets.token_hex(32)
     lock = home / ".native-update.lock"
@@ -920,7 +939,7 @@ def main() -> None:
         )
         atomic(attempt / "journal.json", (json.dumps(journal, indent=2) + "\n").encode())
         mutated = True
-        for name in changed:
+        for applied, name in enumerate(changed, 1):
             destination = root / name
             no_links(destination)
             if name not in final:
@@ -928,9 +947,12 @@ def main() -> None:
             else:
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 atomic(destination, (assembled / name).read_bytes())
+            if applied == 1:
+                crash_checkpoint(args.crash_point, "FIRST_FILE", attempt, token, applied)
         atomic(root / "install_manifest.json", (assembled / "install_manifest.json").read_bytes())
         verify(root, final)
         atomic(pin, target_raw)
+        crash_checkpoint(args.crash_point, "AFTER_APPLY", attempt, token, len(changed))
         if args.force_failure_after_apply:
             raise RuntimeError("Forced private failure after actual file operations")
         start(home, root, token, target, attempt / "target-startup.log")

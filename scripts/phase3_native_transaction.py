@@ -24,6 +24,8 @@ from pathlib import Path
 
 from desktop_launcher_probe import checked, dump, exercise_http, read, verify_events, wait_file
 from pdf_native_smoke import inspect_pdf
+from private_source_update import manifest as parse_manifest
+from private_source_update import no_links, process_definitely_dead
 
 REPO = Path(__file__).resolve().parents[1]
 
@@ -260,12 +262,168 @@ def stop_owned(home: Path, root: Path) -> tuple[Path, dict]:
     raise TimeoutError("Owned transaction app did not stop gracefully; no force-kill success")
 
 
+def probe_write_quarantine(client) -> bool:
+    """An invalid business request can observe the gate but can never create rows."""
+    response = client.post("/api/v1/orders", json={})
+    if response.status_code == 503:
+        if response.json().get("code") != "update_in_progress" or response.headers.get("Retry-After") != "3":
+            raise ValueError("Actual write quarantine response differs")
+        return True
+    if response.status_code != 422:
+        raise ValueError("Unexpected invalid-write response during native update")
+    return False
+
+
+def clone_recovery_runtime(root: Path, destination: Path, manifest_sha256: str) -> dict:
+    """Copy verified OLD Python/controller outside replaced files BEFORE apply."""
+    runner = Path(os.environ["RUNNER_TEMP"])
+    for path in (root, destination):
+        no_links(path)
+        if not path.is_absolute() or ".." in path.parts or not path.is_relative_to(runner) or path == runner:
+            raise ValueError("Disposable recovery clone paths required")
+    if root.is_relative_to(destination) or destination.is_relative_to(root):
+        raise ValueError("Recovery clone must be disjoint from installed payload")
+    no_links(root / "install_manifest.json")
+    manifest_raw = (root / "install_manifest.json").read_bytes()
+    files = parse_manifest(manifest_raw, manifest_sha256)
+    controller_name = "scripts/private_source_update.py"
+    python_files = {n: f for n, f in files.items() if n.startswith("python/")}
+    if "python/python.exe" not in python_files or controller_name not in files:
+        raise ValueError("Anchored old Python/controller required")
+    no_links(root / "python")
+    actual = set()
+    for path in (root / "python").rglob("*"):
+        no_links(path)
+        if path.is_file():
+            actual.add(path.relative_to(root).as_posix())
+    if actual != set(python_files):
+        raise ValueError("Old Python subtree contains missing/unowned files")
+    for name in [*python_files, controller_name]:
+        path = root / name
+        no_links(path)
+        if path.stat().st_size != files[name]["size"] or sha(path) != files[name]["sha256"]:
+            raise ValueError("Old recovery source differs from independent manifest")
+    destination.mkdir()  # Never adopt an existing clone.
+    shutil.copytree(root / "python", destination / "python")
+    (destination / "scripts").mkdir()
+    shutil.copyfile(root / controller_name, destination / controller_name)
+    (destination / "install_manifest.json").write_bytes(manifest_raw)
+    return verify_recovery_runtime(destination, manifest_sha256)
+
+
+def verify_recovery_runtime(clone: Path, manifest_sha256: str) -> dict:
+    """Recheck the whole OLD clone immediately before interpreter execution."""
+    no_links(clone)
+    no_links(clone / "install_manifest.json")
+    files = parse_manifest((clone / "install_manifest.json").read_bytes(), manifest_sha256)
+    controller_name = "scripts/private_source_update.py"
+    wanted = {n for n in files if n.startswith("python/")} | {controller_name}
+    if "python/python.exe" not in wanted or controller_name not in files:
+        raise ValueError("Anchored recovery interpreter/controller missing")
+    actual = set()
+    for path in clone.rglob("*"):
+        no_links(path)
+        if path.is_file():
+            actual.add(path.relative_to(clone).as_posix())
+    if actual != wanted | {"install_manifest.json"}:
+        raise ValueError("Recovery clone contains missing/unowned files")
+    for name in wanted:
+        path = clone / name
+        if path.stat().st_size != files[name]["size"] or sha(path) != files[name]["sha256"]:
+            raise ValueError("Copied recovery runtime differs from independent old manifest")
+    return dict(controller_sha256=sha(clone / controller_name), python_file_count=len(wanted) - 1,
+                old_manifest_sha256=manifest_sha256)
+
+
+def wait_cold_cut(client, home: Path, stage: Path, root: Path, archive_sha256: str,
+                  old_anchor_sha256: str, db_fingerprint: str, point: str) -> tuple[dict, bool]:
+    """Observe a REAL exited controller/helper; never delete or age out a guard."""
+    import httpx
+
+    deadline, saw_gate = time.monotonic() + 240, False
+    while time.monotonic() < deadline:
+        # A deliberately stopped app cannot answer TCP.
+        with suppress(httpx.TransportError):
+            saw_gate = probe_write_quarantine(client) or saw_gate
+        contexts = list(stage.parent.glob("private-transaction-*.json"))
+        if len(contexts) > 1:
+            raise ValueError("Ambiguous crash transaction context")
+        if len(contexts) == 1:
+            no_links(contexts[0])
+            context = read(contexts[0])
+            nonce = contexts[0].stem.removeprefix("private-transaction-")
+            attempt = Path(os.environ["RUNNER_TEMP"]) / ("VIRA تراکنش خصوصی ! & " + nonce)
+            if (len(nonce) != 32 or any(c not in "0123456789abcdef" for c in nonce)
+                    or context.get("role") != "PRIVATE_SOURCE_TRANSACTION"
+                    or context.get("attempt") != str(attempt)
+                    or context.get("archive") != str(stage.parent / "package.zip")
+                    or context.get("archive_sha256") != archive_sha256):
+                raise ValueError("Crash context is not this approved attempt")
+            no_links(attempt)
+            cut_path = attempt / "process-cut.json"
+            if cut_path.exists():
+                for path in (cut_path, attempt / "journal.json", home / ".native-update.lock",
+                             home / "state/data/updates/.update.lock"):
+                    no_links(path)
+                cut, journal = read(cut_path), read(attempt / "journal.json")
+                owner = read(home / ".native-update.lock")
+                if (cut.get("role") != "PRIVATE_CONTROLLER_ABRUPT_EXIT_73" or cut.get("point") != point
+                        or cut.get("pid") != owner.get("pid")
+                        or journal.get("state") != "prepared"
+                        or journal.get("old_anchor_sha256") != old_anchor_sha256
+                        or journal.get("archive_sha256") != archive_sha256
+                        or journal.get("database_fingerprint") != db_fingerprint
+                        or journal.get("recovery_context", {}).get("install_root") != str(root)
+                        or cut.get("guard_token_sha256") != hashlib.sha256(owner["token"].encode()).hexdigest()
+                        or (home / "state/data/updates/.update.lock").read_bytes() != owner["token"].encode()
+                        or cut.get("applied_file_count") != (1 if point == "FIRST_FILE" else len(journal["changed"]))):
+                    raise ValueError("Real crash boundary/ownership/snapshot differs")
+                last_path = home / "state/data/updates/last-result.json"
+                if last_path.exists():
+                    no_links(last_path)
+                    last = read(last_path)
+                    if (last.get("attempt_id") == attempt.name and last.get("state") == "failed"
+                            and last.get("controller_exit_code") == 73
+                            and not any(p.exists() or p.is_symlink() for p in (home / ".native-channel.lock",
+                                home / "active-launch.json", home / "state/.desktop.lock"))
+                            and process_definitely_dead(owner["pid"])
+                            and process_definitely_dead(last["helper_pid"])):
+                        return dict(attempt=str(attempt), cut=cut, controller_exit_code=73,
+                                    controller_and_helper_handles_confirmed_dead=True), saw_gate
+        time.sleep(0.05)
+    raise TimeoutError("Real controller cut did not become independently owned cold recovery state")
+
+
+def recover_cold_cut(clone: Path, root: Path, home: Path, crash: dict, stage: Path,
+                     archive_sha256: str, old_anchor_sha256: str, db_fingerprint: str,
+                     environment: dict, report: Path, clone_proof: dict) -> dict:
+    """Run only the reverified OLD external clone, not the target tree."""
+    if verify_recovery_runtime(clone, clone_proof["old_manifest_sha256"]) != clone_proof:
+        raise ValueError("Independent old recovery clone proof differs")
+    with report.open("xb") as stream:
+        subprocess.run([
+            str(clone / "python/python.exe"), "-I", "-S", "-B", "-X", "utf8",
+            str(clone / "scripts/private_source_update.py"), "--recover", "--install-root", str(root),
+            "--attempt", crash["attempt"], "--archive", str(stage.parent / "package.zip"),
+            "--archive-sha256", archive_sha256, "--old-anchor-sha256", old_anchor_sha256,
+            "--database-fingerprint", db_fingerprint,
+        ], cwd=home, env=environment, stdout=stream, stderr=subprocess.STDOUT, check=True, timeout=180)
+    result = json.loads(report.read_text(encoding="utf-8").strip().splitlines()[-1])
+    if (not all(result.get(k) is True for k in ("recovery_executed", "restored_old_tree",
+            "app_ready_verified", "session_and_receipts_preserved", "locks_released"))
+            or result.get("database_fingerprint") != db_fingerprint
+            or result.get("crash_recovery_proven") is not False):
+        raise ValueError("Recovery executor did not confirm its exact limited contract")
+    return result
+
+
 def wait_terminal(client, home: Path, expected: str, old_attempt: str | None) -> tuple[dict, bool]:
     import httpx
 
     deadline, saw_gate = time.monotonic() + 240, False
     while time.monotonic() < deadline:
         try:
+            saw_gate = probe_write_quarantine(client) or saw_gate
             response = client.get("/api/v1/system/update/status")
             if response.status_code == 200:
                 status = response.json()
@@ -280,7 +438,7 @@ def wait_terminal(client, home: Path, expected: str, old_attempt: str | None) ->
                     ):
                         raise ValueError("Actual native update terminal result differs")
                     if any(
-                        p.exists()
+                        p.exists() or p.is_symlink()
                         for p in (
                             home / ".native-channel.lock",
                             home / ".native-update.lock",
@@ -289,18 +447,6 @@ def wait_terminal(client, home: Path, expected: str, old_attempt: str | None) ->
                     ):
                         raise ValueError("Terminal result returned before cleanup")
                     return status, saw_gate
-                # Deliberately invalid business request: cannot create rows if
-                # admitted; lets a real HTTP observer see the write quarantine.
-                probe = client.post("/api/v1/orders", json={})
-                if probe.status_code == 503:
-                    if (
-                        probe.json().get("code") != "update_in_progress"
-                        or probe.headers.get("Retry-After") != "3"
-                    ):
-                        raise ValueError("Actual write quarantine response differs")
-                    saw_gate = True
-                elif probe.status_code not in (422,):
-                    raise ValueError("Unexpected invalid-write response during native update")
         except (httpx.TransportError, FileNotFoundError):
             pass  # A real process replacement necessarily interrupts TCP.
         time.sleep(0.05)
@@ -381,13 +527,18 @@ def _run_owned(
         for name, archive, version, expected in [
             ("commit", forward_zip, "99.30.1", "committed"),
             ("rollback", reverse_zip, "99.30.2", "rolled_back"),
+            ("crash-first-file", reverse_zip, "99.30.2", "rolled_back"),
+            ("crash-after-apply", reverse_zip, "99.30.2", "rolled_back"),
         ]:
             out = reports / ("native-" + name)
             out.mkdir()
             package = feed.publish(archive, read(root / "version.json")["version"], version)
             case_env = dict(env)
+            crash_point = {"crash-first-file": "FIRST_FILE", "crash-after-apply": "AFTER_APPLY"}.get(name)
             if name == "rollback":
                 case_env["VIRA_PRIVATE_SOURCE_FORCE_FAILURE"] = "AFTER_APPLY"
+            elif crash_point:
+                case_env["VIRA_PRIVATE_SOURCE_FORCE_FAILURE"] = "CRASH_" + crash_point
             process, _, ready = launch(root, home, case_env, out / "launcher.log")
             with httpx.Client(
                 base_url=ready["url"], cookies=sessions, trust_env=False, timeout=10
@@ -487,8 +638,26 @@ def _run_owned(
                 ).json()
                 last = home / "state/data/updates/last-result.json"
                 previous_attempt = read(last)["attempt_id"] if last.exists() else None
+                old_anchor_sha256 = sha(home / "anchor.json")
+                stage = Path(staged["staged_path"])
+                clone = work / ("recovery-clone-" + name)
+                clone_proof = crash_proof = recovery_result = None
+                if crash_point:
+                    clone_proof = clone_recovery_runtime(root, clone, read(home / "anchor.json")["manifest_sha256"])
                 checked(client.post("/api/v1/system/update/apply"), 200)
+                saw_cut_gate = False
+                if crash_point:
+                    crash_proof, saw_cut_gate = wait_cold_cut(
+                        client, home, stage, root, package["sha256"], old_anchor_sha256, before, crash_point,
+                    )
+                    recovery_result = recover_cold_cut(
+                        clone, root, home, crash_proof, stage, package["sha256"], old_anchor_sha256,
+                        before, case_env, out / "recovery-controller.log", clone_proof,
+                    )
                 terminal, saw_gate = wait_terminal(client, home, expected, previous_attempt)
+                saw_gate = saw_gate or saw_cut_gate
+                if not saw_gate:
+                    raise ValueError("Live HTTP503 write quarantine was never observed; native acceptance refused")
                 if process.wait(timeout=30) != 0:
                     raise ValueError("Old real app bridge exited abnormally")
                 after_fingerprint = fingerprint(database)
@@ -592,6 +761,10 @@ def _run_owned(
                 dump(out / "transaction-journal.json", journal)
                 results[name] = dict(
                     discovery=discovery,
+                    crash=crash_proof,
+                    recovery_executor=recovery_result,
+                    old_external_recovery_clone=clone_proof,
+                    crash_recovery_proven=bool(crash_point),
                     package=forward_packet if name == "commit" else reverse_packet,
                     terminal=terminal,
                     journal=journal,
@@ -626,7 +799,11 @@ def _run_owned(
         requests=feed.requests,
         full_setup_requested=False,
         real_native_delta_and_forced_rollback=True,
-        crash_recovery_proven=False,
+        crash_recovery_proven=all(results[n]["crash_recovery_proven"] for n in ("crash-first-file", "crash-after-apply")),
+        crash_scope="controller_exit_73_after_first_file_and_after_file_apply_before_target_startup",
+        power_loss_or_arbitrary_cut_proven=False,
+        crash_during_recovery_or_partial_terminal_unlock_auto_resumable=False,
+        live_write_quarantine_verified=all(c["write_quarantine_http503_observed"] for c in results.values()),
         phase3_complete=False,
         release_authorized=False,
     )
@@ -668,7 +845,13 @@ def collect_failure_diagnostics(home: Path, reports: Path, runner: Path) -> None
                 or value.get("attempt") != str(attempt)):
             continue
         safe(attempt)
-        for name in ("target-startup.log", "rollback-startup.log"):
+        recovery_logs = sorted(attempt.glob("recovery-startup-*.log"))[:8]
+        names = ["target-startup.log", "rollback-startup.log"]
+        for path in recovery_logs:
+            nonce_part = path.stem.removeprefix("recovery-startup-")
+            if len(nonce_part) == 32 and all(c in "0123456789abcdef" for c in nonce_part):
+                names.append(path.name)
+        for name in names:
             log = attempt / name
             safe(log)
             if not log.is_file():

@@ -50,8 +50,10 @@ from .api.errors import install_error_handlers
 from .config import Settings, load_settings
 from .db import Database
 from .security.session import SessionManager
+from .services import private_source_channel
 from .services.pdf_rendering import PdfRenderer, PrivatePdfPolicy
 from .services.scheduler import SchedulerManager
+from .version import app_root
 
 log = logging.getLogger(__name__)
 
@@ -99,6 +101,17 @@ def create_app(
     )
     scheduler: SchedulerManager | None = None
     update_lock = settings.data_dir / "updates" / ".update.lock"
+    # Authenticate private ownership once at factory startup, while the installed
+    # manifest/anchor agree. Never re-read a partially replaced manifest merely
+    # to decide whether a write should be quarantined.
+    source_scope = private_source_channel.scope(settings, app_root())
+    update_guards = [update_lock]
+    if source_scope is not None:
+        update_guards += [source_scope.home / ".native-channel.lock",
+                          source_scope.home / ".native-update.lock"]
+
+    def update_write_blocked() -> bool:
+        return any(path.exists() or path.is_symlink() for path in update_guards)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -106,7 +119,7 @@ def create_app(
         pragmas = database.verify()
         log.info("SQLite pragmas verified: %s", pragmas)
         if settings.scheduler_enabled:
-            scheduler = SchedulerManager(database.session_factory, write_gate=update_lock.is_file)
+            scheduler = SchedulerManager(database.session_factory, write_gate=update_write_blocked)
             scheduler.start()
         app.state.scheduler = scheduler  # surfaced by /health/ready + /system/status
         try:
@@ -128,6 +141,7 @@ def create_app(
     app.state.settings = settings
     app.state.database = database
     app.state.session_manager = session_manager
+    app.state.update_write_blocked = update_write_blocked
 
     origins = [settings.frontend_origin]
     app.add_middleware(
@@ -180,7 +194,7 @@ def create_app(
             # No user writes may be acknowledged in the target before the
             # updater commits: a subsequent schema rollback would discard them.
             # Health/status GETs remain available to the verified apply protocol.
-            if scope.get("method") not in {"GET", "HEAD", "OPTIONS"} and update_lock.is_file():
+            if scope.get("method") not in {"GET", "HEAD", "OPTIONS"} and update_write_blocked():
                 from starlette.responses import JSONResponse
 
                 response = JSONResponse(

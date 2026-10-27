@@ -266,7 +266,8 @@ def test_recovery_rejects_database_metadata_race_before_any_restore(executor, mo
     assert r.guard.exists() and not r.starts
 
 
-@pytest.mark.parametrize("extra", [[], ["--old-anchor-sha256", "a" * 64], ["--force-failure-after-apply"]])
+@pytest.mark.parametrize("extra", [[], ["--old-anchor-sha256", "a" * 64], ["--force-failure-after-apply"],
+    ["--old-anchor-sha256", "a" * 64, "--database-fingerprint", "b" * 64, "--crash-point", "FIRST_FILE"]])
 def test_recovery_cli_never_infers_missing_independent_authority(tmp_path, monkeypatch, extra):
     module = runpy.run_path(str(ROOT / "scripts/private_source_update.py"))
     monkeypatch.setattr(sys, "argv", [

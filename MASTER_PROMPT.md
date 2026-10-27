@@ -1627,3 +1627,14 @@ rollback موفق شدند؛ artifact12611303055 و report۵۸۳۴۱بایتی �
 تست موفق آماده است؛ همراه harness نهایی native crash باید یک‌جا اثبات شود.
 اثبات تاریخی main با حفظ دقیق فایل قدیمی نگه داشته شد، نه تغییر hash شاهد یا
 نسبت‌دادن آن به main جدید. فاز اول/گیت توزیع/انتشار هنوز کامل اعلام نمی‌شوند.
+
+
+### ادامهٔ candidate نهاییِ دو تحویل — قطع کنترلر و write gate
+
+اصلاح سه‌قفل HTTP/scheduler با دو cut صریح خصوصی Windows CI (اولین فایل و
+پس از apply) و recovery با clone مستقل قدیمی یکپارچه شد. نتیجهٔ محلی:
+۱۲۵۹تست کامل، Ruff/Mypy90/Bandit موفق؛ native crash و live HTTP503 هنوز
+منتظر اجرای واقعی همان candidate هستند. main.py یک workflow سنگین یکپارچه
+با حفظ پوشش stock/source دارد. این نتیجه پایان فاز اول، مجوز حقوقی جدید،
+power-loss proof یا انتشار نیست؛ MIT۱۴فایل و نصب واقعی دست‌نخورده‌اند.
+مرجع: `docs/dependencies/two-delivery-phases-checkpoint.json`.
