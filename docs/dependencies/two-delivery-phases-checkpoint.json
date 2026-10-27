@@ -286,8 +286,13 @@
   "distribution_context_followup": "docs/dependencies/distribution-context-followup.json",
   "delivery_phases": {
     "phase1_technical_candidate": "COMPLETE_AUTHENTICATED_WITH_DEFERRED_REAL_USER_DATA_ACCEPTANCE",
-    "phase2_legal_distribution_and_publication": "OPEN_BLOCKED_BY_SIGNING_SECRET_AND_LEGAL_SIGN_OFF",
+    "phase2_legal_distribution_and_publication": "OPEN_THREE_BLOCKERS",
     "public_release_created": false,
-    "tag_created": false
-  }
+    "tag_created": false,
+    "release_candidate_built_unpublished": true,
+    "release_candidate_artifact": 12725660957,
+    "in_app_published_updater_audit": "OPEN_FAILING_STEP_ENABLED_AND_BLOCKING",
+    "signing_secret_available_to_this_token": false
+  },
+  "release_candidate_1_0_11": "docs/dependencies/release-1.0.11-candidate.json"
 }
