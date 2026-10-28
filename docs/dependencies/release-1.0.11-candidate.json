@@ -1,5 +1,5 @@
 {
- "role": "RELEASE_AUTHORIZED_BY_OWNER_UNSIGNED_PUBLICATION",
+ "role": "RELEASED_UNSIGNED_UNDER_DATED_OWNER_AUTHORIZATION",
  "version": "1.0.11",
  "head": "54cac6a",
  "built_candidate": {
@@ -34,12 +34,12 @@
   {
    "id": "SIGNING_KEY_SECRET",
    "status": "OWNER_ACTION_PENDING_FOR_NEXT_RELEASE",
-   "detail": "Store VIRA_UPDATE_SIGNING_KEY to enable signature enforcement from the next release (docs/releases/update-signing-key-guide-fa.md). This release ships unsigned under a dated owner authorization."
+   "detail": "1.0.11 shipped unsigned. Store VIRA_UPDATE_SIGNING_KEY and delete VIRA_UNSIGNED_PUBLICATION_APPROVAL from release.yml so the next release bakes the public key and enforces signatures."
   },
   {
    "id": "LEGAL_GATES",
    "status": "OPEN_NOT_CLOSED_BY_CODE",
-   "detail": "COMPLETE_COMPONENT_LEGAL_REVIEW, COMPILER_CRT_TERMS, RECIPIENT_SOURCE_DELIVERY, LGPL EULA rights and installed-user acceptance remain open; publication does not close them."
+   "detail": "CRT/LGPL review, recipient corresponding-source delivery, LGPL EULA terms and installed-user acceptance stay open; this publication does not close them."
   }
  ],
  "unchanged": [
@@ -52,9 +52,9 @@
   "The real in-app updater browser audit now passes end to end for the published 1.0.9 client (run 40515124158).",
   "A packaged release now bakes the Ed25519 verification key, so an installed client actually enforces latest.json signatures; previously the signature existed but no installed client would check it."
  ],
- "tag_created": false,
- "github_release_published": false,
- "last_verified": "2026-10-28 dry-run 40658262870 at head 54cac6a: all six jobs green, deltas 31.1 MB each, tag_created=false, github_release_published=false.",
+ "tag_created": true,
+ "github_release_published": true,
+ "last_verified": "2026-10-28 run 40668191601 (tag v1.0.11) all jobs and every packaging step success; GitHub Release published and reported as latest.",
  "delta_sizes_bytes": {
   "from_v1.0.10": 31112608,
   "from_v1.0.9": 31120372,
@@ -76,5 +76,60 @@
    "outcome": "FAILED before publishing: the version-independent in-app updater audit compared the tag value 'v1.0.11' with the packaged '1.0.11' and raised 'candidate version mismatch'. No GitHub Release, no draft and no asset was ever created from that tag, and nothing was published.",
    "remedy": "The tag was deleted and will be re-created once at the fixed commit; no published artifact existed to rewrite, so no released bytes and no released immutability claim are affected."
   }
+ },
+ "published": {
+  "tag": "v1.0.11",
+  "tag_commit": "06881947994d9ddcf8e0876d5f32ce791fb6c608",
+  "run": 40668191601,
+  "conclusion": "success",
+  "github_release_published": true,
+  "is_latest": true,
+  "published_at": "2026-10-28T10:25:41Z",
+  "signed": false,
+  "signature_asset_present": false,
+  "artifact": 12808946232,
+  "assets": {
+   "latest.json": {
+    "bytes": null,
+    "sha256": "29c66263f46d66b7bde319f715c1b229d6f9d3f0c6b12fc2533844ea856b470f"
+   },
+   "release-notes-fa.md": {
+    "sha256": "e1163097b9bef03e62c319846dc0eb91a6daa013c9aa9a0a233ed7520fe44ceb"
+   },
+   "SHA256SUMS.txt": {
+    "sha256": "a40236a13797aab92f61ae88844a0ba495f6b392f1967d72c9534599898c264d"
+   },
+   "VIRA-Setup-v1.0.11.exe": {
+    "bytes": 128183000,
+    "sha256": "51d63cf4ed1e2de32e15bdc1ae9e3e9d598c3f9d45d478fe87e4c5bcd2201749"
+   },
+   "vira-updater.exe": {
+    "sha256": "97f7813387097375f10625e2ca6e195a9a7101f3ac6f5bb727f971fe846bb900"
+   },
+   "vira-v1.0.11-app.zip": {
+    "sha256": "47dce592a33e038c58c4a0c109390e2f48e9f0bca0b3f1cad085a36079f13be2"
+   },
+   "VIRA-v1.0.11-delta-from-v1.0.10.zip": {
+    "bytes": 31112608,
+    "sha256": "626b43ac13be58c52a8c8d50aae81873e671a783a628e1b27a39cbf91fbb0cc4"
+   },
+   "VIRA-v1.0.11-delta-from-v1.0.8.zip": {
+    "sha256": "d2f082e3e0298f5873687a83b6d2b784a30568cad33c07bc28d019032ba6d0db"
+   },
+   "VIRA-v1.0.11-delta-from-v1.0.9.zip": {
+    "sha256": "d9c564ee3a2e0d1f2b86312dc64edb9123c5f4a9aebe90506577df92a52f26df"
+   },
+   "vira-v1.0.11-portable.zip": {
+    "sha256": "505ea77664c7fbfddd488a1e72090d5aaec7f5b155204619aab6605b4dface7e"
+   }
+  },
+  "verified_steps": [
+   "full CI (backend, frontend, contract, Playwright, Windows-native)",
+   "real published 1.0.9 client -> 1.0.11 candidate in-app updater audit",
+   "Windows install/upgrade/rollback smoke",
+   "delta validation with the shipped staging validator",
+   "final checksums over every published asset"
+  ],
+  "notes_body_matches": "docs/releases/v1.0.11-fa.md"
  }
 }
