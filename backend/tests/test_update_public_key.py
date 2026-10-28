@@ -138,3 +138,13 @@ def test_newer_release_notes_and_version_agree():
     notes = (root / f"docs/releases/v{version}-fa.md").read_text(encoding="utf-8")
     assert "۱.۰.۱۱" in notes or version in notes
     assert "انتشار" in notes
+
+
+def test_bundled_interpreter_is_pinned_so_routine_deltas_stay_small():
+    """v1.0.11 shipped a 30 MB delta because the runtime silently changed."""
+    stage = (ROOT / "scripts/stage_app_payload.ps1").read_text(encoding="utf-8")
+    assert 'uv python install 3.11 | Out-Null' not in stage, "a floating minor lets upstream swap the whole runtime"
+    assert "$pinnedPython" in stage and "$env:VIRA_PINNED_PYTHON" in stage
+    assert 'uv python find --managed-python $pinnedPython' in stage
+    assert 'bundled interpreter drifted from the pinned CPython' in stage, "drift must fail loudly, not silently ship"
+    assert '--system --managed-python' not in stage, "a system interpreter can change with the runner image"

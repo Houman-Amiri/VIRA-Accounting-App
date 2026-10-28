@@ -15,11 +15,22 @@ New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 
 # bundled CPython 3.11 (python-build-standalone via uv) — the installed app
 # must run on machines without a system Python (v1.0.3 fix)
-uv python install 3.11 | Out-Null
-if ($LASTEXITCODE -ne 0) { throw "managed CPython install failed" }
-$pyExe = (uv python find --system --managed-python 3.11).Trim()
+# The bundled interpreter is PINNED on purpose. Routine deltas must carry
+# changed parts only: a silent upstream runtime bump replaces every file
+# under python/ and turned the v1.0.11 delta into 30 MB (3.11.17 quietly
+# became 3.11.18). Bump the pin deliberately and state the size cost.
+$pinnedPython = $env:VIRA_PINNED_PYTHON
+if (-not $pinnedPython) { $pinnedPython = "3.11.17" }
+uv python install $pinnedPython | Out-Null
+if ($LASTEXITCODE -ne 0) { throw "managed CPython $pinnedPython install failed" }
+$pyExe = (uv python find --managed-python $pinnedPython).Trim()
 if ($LASTEXITCODE -ne 0) { throw "managed CPython discovery failed" }
-if (-not (Test-Path $pyExe)) { throw "uv python find 3.11 returned nothing" }
+if (-not (Test-Path $pyExe)) { throw "uv python find $pinnedPython returned nothing" }
+$pyReported = (& $pyExe -VV 2>&1 | Out-String).Trim()
+if ($pyReported -notmatch [regex]::Escape("Python $pinnedPython ")) {
+    throw "bundled interpreter drifted from the pinned CPython $pinnedPython ($pyReported); update the pin deliberately"
+}
+Write-Host "[stage_app_payload] pinned interpreter: $pyReported"
 $pyDir = Split-Path -Parent $pyExe
 Copy-Item -Recurse $pyDir "$OutDir/python"
 Write-Host "[stage_app_payload] bundled CPython from $pyDir"
