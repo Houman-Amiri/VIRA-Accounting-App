@@ -163,6 +163,23 @@ def verify_payload(root: Path, *, runtime: bool = False) -> None:
             raise ValueError(f"payload file hash mismatch: {relative}")
 
 
+def normalize_target_version(value: str | None) -> str:
+    """A tag names its version ``vX.Y.Z``; packaging always writes ``X.Y.Z``.
+
+    The release workflow passes ``VIRA_VERSION`` straight from the tag
+    (``v1.0.11``) while payload ``version.json`` carries ``1.0.11``. Comparing
+    the two shapes verbatim failed the real updater audit on the first tagged
+    run of a version-independent smoke.
+    """
+    text = (value or "").strip()
+    if text[:1] in {"v", "V"}:
+        text = text[1:]
+    parts = text.split(".")
+    if len(parts) != 3 or not all(part.isdigit() for part in parts):
+        raise SystemExit(f"Refusing: '{value}' is not a plain X.Y.Z version")
+    return text
+
+
 @dataclass(frozen=True)
 class PublishedUpgrade:
     base: Path
@@ -684,14 +701,20 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--published-base", type=Path)
     parser.add_argument("--packages", type=Path)
-    parser.add_argument("--target-version", default=os.environ.get("VIRA_VERSION") or PublishedUpgrade.target_version)
+    parser.add_argument(
+        "--target-version",
+        default=os.environ.get("VIRA_VERSION") or PublishedUpgrade.target_version,
+        type=normalize_target_version,
+    )
     args = parser.parse_args()
     published = None
     if args.published_base or args.packages:
         if not args.published_base or not args.packages:
             parser.error("both --published-base and --packages are required")
         published = PublishedUpgrade(
-            args.published_base.resolve(), args.packages.resolve(), target_version=args.target_version
+            args.published_base.resolve(),
+            args.packages.resolve(),
+            target_version=normalize_target_version(args.target_version),
         )
         published.validate()
     with tempfile.TemporaryDirectory(prefix="vira-in-app-", dir=os.environ["RUNNER_TEMP"]) as tmp:

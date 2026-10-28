@@ -15,6 +15,8 @@ import sys
 import zipfile
 from pathlib import Path
 
+import pytest
+
 from app.main import spa_static_dir
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -191,3 +193,32 @@ def test_in_app_audit_records_status_reads_instead_of_orphan_promises():
     assert "recordStatusReads(page)" in audit
     assert 'page.waitForResponse((r) => r.url().endsWith("/api/v1/system/status")' not in audit
     assert 'process.on("unhandledRejection"' in audit
+
+
+def _native_smoke_module():
+    import importlib.util
+
+    path = REPO_ROOT / "scripts/update_native_smoke.py"
+    spec = importlib.util.spec_from_file_location("vira_native_smoke_under_test", path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module  # dataclasses need a registered module
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_tagged_version_is_normalized_before_comparing_with_version_json():
+    """A tag says v1.0.11 while packaging writes 1.0.11; that broke the tag run."""
+    normalize = _native_smoke_module().normalize_target_version
+    assert normalize("v1.0.11") == "1.0.11"
+    assert normalize("1.0.11") == "1.0.11"
+    assert normalize(" v1.0.11 ") == "1.0.11"
+    assert normalize("V1.0.11") == "1.0.11"
+    for bad in ("", "v", "1.0", "vv1.0.11", "1.0.11x", "1.0.11.1", "latest"):
+        with pytest.raises(SystemExit):
+            normalize(bad)
+
+
+def test_release_workflow_normalizes_the_target_version_for_the_updater_audit():
+    workflow = (REPO_ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
+    assert "update_native_smoke.py" in workflow
+    assert "type=normalize_target_version" in (REPO_ROOT / "scripts/update_native_smoke.py").read_text(encoding="utf-8")

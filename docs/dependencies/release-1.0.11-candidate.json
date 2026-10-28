@@ -27,7 +27,8 @@
   "build_deltas wrote SHA256SUMS before signing and never included the signature; signing now happens first and the signature is checksummed.",
   "Two CI diagnostics holes hid real failures: a module helper ended the caller's shell with `exit 0`, and the in-app audit left an orphan waitForResponse promise whose rejection killed node before the real assertion printed.",
   "The Windows smoke ran in-process, so a hard exit dropped its transcript; it now runs in a child shell with a tee'd log and bounded error annotations.",
-  "The bundled CPython was unpinned: `uv python install 3.11` silently moved from 3.11.17 to 3.11.18 between two builds, so the whole python/ tree counted as changed. The interpreter is now pinned (VIRA_PINNED_PYTHON) with a loud drift guard; measured on run 40658262870 this did NOT shrink the 1.0.11 delta (31.1 MB) because that growth is genuine content change, so the benefit applies from the next release."
+  "The bundled CPython was unpinned: `uv python install 3.11` silently moved from 3.11.17 to 3.11.18 between two builds, so the whole python/ tree counted as changed. The interpreter is now pinned (VIRA_PINNED_PYTHON) with a loud drift guard; measured on run 40658262870 this did NOT shrink the 1.0.11 delta (31.1 MB) because that growth is genuine content change, so the benefit applies from the next release.",
+  "The version-independent in-app updater audit compares its --target-version with the payload version.json. The release workflow passes VIRA_VERSION straight from the tag (v1.0.11) while packaging writes 1.0.11, so the first tagged run failed with 'candidate version mismatch'. The audit now normalizes the value and refuses anything that is not exactly X.Y.Z."
  ],
  "open_items_blocking_publication": [
   {
@@ -67,6 +68,13 @@
   "record": "VIRA_UNSIGNED_PUBLICATION_APPROVAL: owner-authorized-2026-10-28 in .github/workflows/release.yml",
   "reason": "A GitHub App token cannot create Actions secrets (HTTP 403), so the owner-supplied signing key cannot be stored by this session. Every earlier 1.0.x release was unsigned and no installed client has a baked verification key, so this publication preserves the existing state instead of weakening it.",
   "effect": "No latest.json.sig in this release; clients verify SHA-256 only. The first release built after the secret exists bakes the public key and starts enforcing signatures; deleting the approval line restores the fail-closed guard.",
-  "legal_gates": "Still open and NOT closed by this publication: complete CRT/LGPL review, recipient corresponding-source delivery, LGPL EULA terms, and installed-user acceptance."
+  "legal_gates": "Still open and NOT closed by this publication: complete CRT/LGPL review, recipient corresponding-source delivery, LGPL EULA terms, and installed-user acceptance.",
+  "first_tag_attempt": {
+   "tag": "v1.0.11",
+   "pointed_at": "c092b75",
+   "run": 40663728781,
+   "outcome": "FAILED before publishing: the version-independent in-app updater audit compared the tag value 'v1.0.11' with the packaged '1.0.11' and raised 'candidate version mismatch'. No GitHub Release, no draft and no asset was ever created from that tag, and nothing was published.",
+   "remedy": "The tag was deleted and will be re-created once at the fixed commit; no published artifact existed to rewrite, so no released bytes and no released immutability claim are affected."
+  }
  }
 }
