@@ -16,9 +16,10 @@ New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 # bundled CPython 3.11 (python-build-standalone via uv) — the installed app
 # must run on machines without a system Python (v1.0.3 fix)
 # The bundled interpreter is PINNED on purpose. Routine deltas must carry
-# changed parts only: a silent upstream runtime bump replaces every file
-# under python/ and turned the v1.0.11 delta into 30 MB (3.11.17 quietly
-# became 3.11.18). Bump the pin deliberately and state the size cost.
+# changed parts only, and an unpinned `uv python install 3.11` silently
+# swapped 3.11.17 for 3.11.18 between two builds, replacing every file
+# under python/. The pin makes the runtime identical build-to-build; an
+# intentional bump is now a reviewable decision with a known size cost.
 $pinnedPython = $env:VIRA_PINNED_PYTHON
 if (-not $pinnedPython) { $pinnedPython = "3.11.17" }
 uv python install $pinnedPython | Out-Null
