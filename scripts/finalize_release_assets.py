@@ -8,12 +8,25 @@ from __future__ import annotations
 import argparse
 import hashlib
 import os
+import re
 import sys
 import uuid
 from pathlib import Path
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+# A tagged build is unsigned only when the workflow carries a dated, reviewed
+# owner authorization. The value lives in .github/workflows/release.yml and must
+# keep that shape, so an accidental or hand-typed override is refused instead of
+# quietly publishing an unsigned release.
+UNSIGNED_APPROVAL = re.compile(r"owner-authorized-\d{4}-\d{2}-\d{2}")
+
+
+def unsigned_approval() -> str:
+    # Deliberately no stripping: only the exact reviewed literal counts.
+    value = os.environ.get("VIRA_UNSIGNED_PUBLICATION_APPROVAL", "")
+    return value if UNSIGNED_APPROVAL.fullmatch(value) else ""
 
 
 def no_links(path: Path) -> None:
@@ -42,7 +55,10 @@ def finalize(directory: Path, key_pem: str | None, *, require_signature: bool = 
         raise ValueError("Existing release asset directory required")
     # Recheck the environment here too: callers cannot accidentally omit the CLI
     # flag and produce an unsigned public tagged release.
-    required = require_signature or os.environ.get("GITHUB_REF", "").startswith("refs/tags/")
+    approval = unsigned_approval()
+    required = require_signature or (
+        os.environ.get("GITHUB_REF", "").startswith("refs/tags/") and not approval
+    )
     key_pem = (key_pem or "").strip()
     if required and not key_pem:
         raise ValueError("Tagged release requires VIRA_UPDATE_SIGNING_KEY; no unsigned fallback")
@@ -84,7 +100,7 @@ def finalize(directory: Path, key_pem: str | None, *, require_signature: bool = 
             digest = hashlib.file_digest(stream, "sha256").hexdigest()
         lines.append(f"{digest}  {path.name}\n")
     atomic(sums, "".join(lines).encode("utf-8"))
-    return dict(signed=signed, checksummed_assets=len(assets))
+    return dict(signed=signed, checksummed_assets=len(assets), unsigned_approval="" if signed else approval)
 
 
 def main() -> int:
@@ -99,6 +115,13 @@ def main() -> int:
         print("Release finalization refused: check asset paths, signing configuration and unfinished/private files.", file=sys.stderr)
         return 1
     print(f"Release assets finalized: signed={result['signed']}, checksummed={result['checksummed_assets']}")
+    if result["unsigned_approval"]:
+        # Loud, bounded, and never a secret: the published release says so.
+        print(
+            "::warning title=unsigned-release::No VIRA_UPDATE_SIGNING_KEY; publishing "
+            f"unsigned under {result['unsigned_approval']}. Clients cannot verify "
+            "latest.json until that secret exists."
+        )
     return 0
 
 

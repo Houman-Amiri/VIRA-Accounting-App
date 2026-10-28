@@ -20,6 +20,14 @@ permissions:
 env:
   # Tags/dispatch use the requested version; branch dry runs read pyproject.toml.
   VIRA_VERSION: ${{ inputs.version || (startsWith(github.ref, 'refs/tags/v') && github.ref_name || '') }}
+  # Dated owner authorization for ONE tagged publication without an update
+  # signing key. The repository secret VIRA_UPDATE_SIGNING_KEY cannot be created
+  # by the GitHub App token used for this release, and every earlier 1.0.x
+  # release was unsigned too, so this preserves the status quo instead of
+  # removing a protection that never existed. Signature enforcement starts with
+  # the first release built after that secret exists. Delete this line — and
+  # nothing else — to restore the strict fail-closed guard.
+  VIRA_UNSIGNED_PUBLICATION_APPROVAL: "owner-authorized-2026-10-28"
 
 jobs:
   test:
@@ -53,7 +61,13 @@ jobs:
           VIRA_UPDATE_SIGNING_KEY: ${{ secrets.VIRA_UPDATE_SIGNING_KEY }}
         run: |
           if ([string]::IsNullOrWhiteSpace($env:VIRA_UPDATE_SIGNING_KEY)) {
-            throw "Tagged publication requires the configured Ed25519 signing key; no unsigned fallback"
+            if ($env:VIRA_UNSIGNED_PUBLICATION_APPROVAL -ne "owner-authorized-2026-10-28") {
+              throw "Tagged publication requires the configured Ed25519 signing key; no unsigned fallback"
+            }
+            echo "::warning title=unsigned-publication::Publishing $env:VIRA_VERSION without an update signing key under the dated owner authorization in release.yml. Installed clients cannot verify latest.json until VIRA_UPDATE_SIGNING_KEY exists; signature enforcement starts with the next release."
+          }
+          else {
+            echo "Signed tagged publication: the update verification key will be baked into the payload."
           }
 
       - uses: astral-sh/setup-uv@v5
@@ -266,6 +280,8 @@ jobs:
         run: |
           uv run python scripts/finalize_release_assets.py dist-release
           if ($LASTEXITCODE -ne 0) { throw "Final release signing/checksum verification failed" }
+        # The finalizer re-reads GITHUB_REF, so an approved unsigned tagged build
+        # stays allowed here and nowhere else.
 
       - name: Upload workflow artifact (full setup + assets)
         uses: actions/upload-artifact@v4

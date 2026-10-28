@@ -51,7 +51,7 @@ def test_finalizer_signs_raw_final_bytes_then_includes_signature_in_all_checksum
     key = Ed25519PrivateKey.generate()
     raw = (assets / "latest.json").read_bytes()
     result = MODULE["finalize"](assets, pem(key), require_signature=True)
-    assert result == dict(signed=True, checksummed_assets=5)
+    assert result == dict(signed=True, checksummed_assets=5, unsigned_approval="")
     key.public_key().verify((assets / "latest.json.sig").read_bytes(), raw)
     assert "latest.json.sig" in checked_sums(assets)
     before = {p.name: p.read_bytes() for p in assets.iterdir() if p.is_file()}
@@ -84,7 +84,7 @@ def test_tagged_release_never_falls_back_to_unsigned_assets(assets, monkeypatch,
 
 def test_debug_unsigned_assets_are_explicit_and_cannot_adopt_a_stale_signature(assets):
     result = MODULE["finalize"](assets, None)
-    assert result == dict(signed=False, checksummed_assets=4)
+    assert result == dict(signed=False, checksummed_assets=4, unsigned_approval="")
     checked_sums(assets)
     (assets / "latest.json.sig").write_bytes(b"UNVERIFIED OLD SIGNATURE")
     before = (assets / "SHA256SUMS.txt").read_bytes()
@@ -161,3 +161,53 @@ def test_actual_release_workflow_finalizes_after_smoke_and_before_upload_or_publ
     assert delta.index("latest.json updated") < delta.index("scripts/finalize_release_assets.py")
     assert "Set-Content -Path $keyPath" not in delta
     assert 'throw "release asset signing/checksum finalization failed"' in delta
+
+
+def test_dated_owner_authorization_allows_one_unsigned_tagged_publication(assets, monkeypatch):
+    """The secret cannot be created by an App token; the owner authorized this."""
+    monkeypatch.setenv("GITHUB_REF", "refs/tags/v1.0.11")
+    monkeypatch.setenv("VIRA_UNSIGNED_PUBLICATION_APPROVAL", "owner-authorized-2026-10-28")
+    result = MODULE["finalize"](assets, None)
+    assert result == dict(signed=False, checksummed_assets=4, unsigned_approval="owner-authorized-2026-10-28")
+    assert not (assets / "latest.json.sig").exists()
+    assert "latest.json" in checked_sums(assets)
+
+
+@pytest.mark.parametrize(
+    "approval",
+    ["", "yes", "owner-authorized", "owner-authorized-2026-10", "owned-authorized-2026-10-28",
+     "owner-authorized-2026-10-28-extra", " owner-authorized-2026-10-28 ", "true", "1"],
+)
+def test_a_hand_typed_or_partial_authorization_never_publishes_unsigned_labels(assets, monkeypatch, approval):
+    monkeypatch.setenv("GITHUB_REF", "refs/tags/v1.0.11")
+    monkeypatch.setenv("VIRA_UNSIGNED_PUBLICATION_APPROVAL", approval)
+    before = {p.name: p.read_bytes() for p in assets.iterdir() if p.is_file()}
+    with pytest.raises(ValueError, match="no unsigned fallback"):
+        MODULE["finalize"](assets, None)
+    assert before == {p.name: p.read_bytes() for p in assets.iterdir() if p.is_file()}
+
+
+def test_unsigned_publication_is_announced_loudly_and_never_leaks_a_key(assets, monkeypatch):
+    monkeypatch.setenv("GITHUB_REF", "refs/tags/v1.0.11")
+    monkeypatch.setenv("VIRA_UNSIGNED_PUBLICATION_APPROVAL", "owner-authorized-2026-10-28")
+    child = subprocess.run(
+        [sys.executable, str(ROOT / "scripts/finalize_release_assets.py"), str(assets)],
+        capture_output=True, text=True, encoding="utf-8", cwd=ROOT,
+        env={k: v for k, v in os.environ.items() if k != "VIRA_UPDATE_SIGNING_KEY"},
+    )
+    assert child.returncode == 0, child.stderr
+    assert "::warning title=unsigned-release::" in child.stdout
+    assert "refs/tags" not in child.stdout
+    assert "PRIVATE KEY" not in child.stdout + child.stderr
+
+
+def test_the_workflow_carries_exactly_this_dated_authorization_and_keeps_failing_closed():
+    text = (ROOT / ".github/workflows/release.yml").read_text()
+    assert 'VIRA_UNSIGNED_PUBLICATION_APPROVAL: "owner-authorized-2026-10-28"' in text
+    guard = text[text.index("Refuse unsigned tagged publication"):]
+    guard = guard[:guard.index("- uses:")]
+    assert 'throw "Tagged publication requires the configured Ed25519 signing key; no unsigned fallback"' in guard
+    assert "::warning title=unsigned-publication::" in guard
+    token = '"owner-authorized-2026-10-28"'
+    assert text.count(token) == 2, "the dated token appears once as env and once as the guard comparison"
+    assert "-ne " + token in guard
