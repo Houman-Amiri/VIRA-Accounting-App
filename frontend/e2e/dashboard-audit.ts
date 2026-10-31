@@ -108,7 +108,6 @@ export async function auditDashboard(page: Page): Promise<void> {
   });
 
   const balance = await get(`/api/v1/reports/balance-sheet?as_of=${today}`);
-  const inventory = await get("/api/v1/warehouse/summary");
   // Read the same explicit period the SPA actually requested (no hard-coded year).
   const financialRequest = page.waitForResponse(
     (r) => r.url().includes("/reports/income-statement?") && r.ok(),
@@ -128,7 +127,8 @@ export async function auditDashboard(page: Page): Promise<void> {
     liabilities: rendered(balance.total_liabilities),
     equity: rendered(new Decimal(balance.total_equity).plus(balance.retained_earnings).toString()),
     profit: rendered(income.net_income),
-    stock: rendered(inventory.total_value, false),
+    // Item 10 removed the inventory-value KPI; `kpi-stock` is asserted absent
+    // below so it cannot quietly come back as a sixth card.
   };
   for (const [name, value] of Object.entries(expected))
     await expect(page.getByTestId(`kpi-${name}`).locator(".num")).toContainText(value);
