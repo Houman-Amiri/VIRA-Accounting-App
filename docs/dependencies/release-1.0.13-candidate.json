@@ -1,0 +1,83 @@
+{
+  "role": "RELEASED_UNSIGNED_UNDER_DATED_OWNER_AUTHORIZATION",
+  "version": "1.0.13",
+  "tag": "v1.0.13",
+  "tag_commit": "280da8d",
+  "tag_type": "annotated (immutable; one tag per release)",
+  "published_at": "2026-10-31T17:54:29Z",
+  "release_run": 41224326599,
+  "release_jobs": {
+    "Full test suite / Frontend — lint, types, contract, tests, build": "success",
+    "Full test suite / Backend — lint, type, security, tests": "success",
+    "Full test suite / OpenAPI contract is in sync": "success",
+    "Full test suite / Playwright e2e (native processes)": "success",
+    "Full test suite / Windows-native smoke (SQLite paths, venv, build)": "success",
+    "Build & publish release assets": "success"
+  },
+  "release_artifact": {
+    "name": "release-assets-v1.0.13",
+    "id": 13052410030,
+    "bytes": 573776514,
+    "sha256": "5a11f8a69e328ce6b2619d38288264ccb2abe488a1709c45bce01d665b558d54"
+  },
+  "published_assets": {
+    "VIRA-Setup-v1.0.13.exe": 128327663,
+    "vira-v1.0.13-app.zip": 201975474,
+    "VIRA-v1.0.13-delta-from-v1.0.10.zip": 31387686,
+    "VIRA-v1.0.13-delta-from-v1.0.11.zip": 4789567,
+    "VIRA-v1.0.13-delta-from-v1.0.12.zip": 4749649,
+    "vira-v1.0.13-portable.zip": 5622804,
+    "vira-updater.exe": 57344,
+    "latest.json": 1521,
+    "SHA256SUMS.txt": 821,
+    "release-notes-fa.md": 14269,
+    "latest.json.sig": null
+  },
+  "windows_native_pdf_witnesses": {
+    "artifact": {
+      "name": "native-pdf-proof",
+      "id": 13051801033,
+      "bytes": 305183
+    },
+    "single_page": {
+      "bytes": 148125,
+      "sha256": "48f383eb6772349fdacc26800dcde4d1a55a139e15b2dc9722f19e96ac53951e"
+    },
+    "multi_page": {
+      "pages": 4,
+      "bytes": 159639,
+      "sha256": "48cf995590b9de29510c24e7337a6061cd6a138581fba7bdc8bf9f9eb8c5de47"
+    },
+    "scope": "Synthetic native rendering only; NOT installed payload or business/visual acceptance"
+  },
+  "unsigned_authorization": {
+    "record": "VIRA_UNSIGNED_PUBLICATION_APPROVAL: owner-authorized-2026-10-31 in .github/workflows/release.yml",
+    "owner_instruction": "«نسخه رو منتشر کن» (2026-10-31), after reading docs/releases/v1.0.13-fa.md",
+    "why": "The repository secret VIRA_UPDATE_SIGNING_KEY cannot be created by the GitHub App token used here; every 1.0.x release so far shipped unsigned.",
+    "unchanged_protection": "The dated-token guard still fails closed on any other value, and SHA-256 is verified for every asset and for SHA256SUMS.txt. Signature enforcement starts with the first release built after that secret exists."
+  },
+  "scope": [
+    "real financial statements (101x/102x cash accounts, exact balance check) instead of placeholder numbers",
+    "drill-down: GET /api/v1/accounts/{id}/ledger and an editable ledger drawer (post/unpost/edit/void, 422 when unbalanced)",
+    "«حساب‌ها» replaces «چارت حساب‌ها», with thousands-free account codes",
+    "logo and the name V.I.R.A at the top of every generated invoice: order proforma and registered sale/purchase invoice, one shared inlined data: header under the strict CSP",
+    "GET /api/v1/journal-entries/{id}/invoice.pdf, plus the draw's print link only when the entry is invoice-shaped",
+    "no database change: schema stays 0007_production_filaments"
+  ],
+  "defects_found_and_fixed_in_this_cycle": [
+    "The Windows PDF engine refused the logo: the bundled-resource allowlist admitted only font files, so the document fell back to HTML silently. Exactly the VIRA logo data URI is now allowed and every other address is still refused.",
+    "Printable documents printed a Latin date (1405/08/09) next to Persian amounts; persian.jalali() now returns Persian digits (۱۴۰۵/۰۸/۰۹) with the raw ISO value only as a fallback.",
+    "Account codes were printed with a thousands separator (۱٬۰۱۰); a code is not an amount.",
+    "backend/openapi.json carried one trailing newline the CI regeneration never writes, so the contract job compared raw bytes and failed; the file was regenerated with the exact CI script and a test now locks the bytes.",
+    "The native in-app upgrade gate read the pinned published 1.0.9 payload out of the delta cache, which only holds the three most recent tags; 1.0.9 left that window with 1.0.13 and the tag run failed 24 s in. The payload is now restored by its pinned digest.",
+    "That same gate then had no 1.0.9 delta to apply, because the release ships three direct deltas (from 1.0.10, 1.0.11, 1.0.12). A gate-only delta is generated into RUNNER_TEMP with the same generator, so the real old-client upgrade stays covered and latest.json/SHA256SUMS keep exactly the packaged assets.",
+    "The gate step uploaded no diagnostics when it failed before the Playwright audit; the step output and a crash report are now always uploaded and also emitted as annotations."
+  ],
+  "not_claimed": {
+    "signed_latest_json": false,
+    "installed_user_acceptance": false,
+    "legal_gates_closed": false,
+    "native_source_build_proven": false,
+    "branded_invoice_visual_acceptance": false
+  }
+}
