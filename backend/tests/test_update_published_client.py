@@ -169,3 +169,52 @@ def test_real_upgrade_fixture_no_longer_depends_on_the_delta_window():
     assert "--fetch-published-base $baseRoot" in workflow
     assert "reports/in-app-step-output.txt" in workflow
     assert "reports/in-app-crash-report.txt" in workflow
+
+
+def test_gate_delta_outside_the_shipped_assets_satisfies_the_pinned_upgrade(tmp_path, harness):
+    base = tmp_path / "vira-delta-base/base-1.0.9"
+    payload(base)
+    (base / "version.json").write_text(
+        json.dumps(dict(version="1.0.9", commit="7d78720abc", spa_build="x"))
+    )
+    manifest = json.loads((base / "install_manifest.json").read_text())
+    manifest["files"].append(
+        dict(path="version.json", size=(base / "version.json").stat().st_size,
+             sha256=harness.sha(base / "version.json"))
+    )
+    (base / "install_manifest.json").write_text(json.dumps(manifest))
+    archive = tmp_path / "vira-delta-base/base-1.0.9.zip"
+    archive.write_bytes(b"pinned public payload")
+    packages = tmp_path / "dist-release"
+    (packages / "app").mkdir(parents=True)
+    (packages / "app/version.json").write_text(json.dumps(dict(version="1.0.13")))
+    gate = tmp_path / "vira-gate-delta/VIRA-v1.0.13-delta-from-v1.0.9.zip"
+    gate.parent.mkdir()
+    gate.write_bytes(b"gate only delta")
+    # The release keeps three direct deltas, so nothing from 1.0.9 is shipped.
+    published = harness.PublishedUpgrade(
+        base, packages, target_version="1.0.13", archive_sha256=harness.sha(archive)
+    )
+    with pytest.raises(ValueError, match="mandatory direct delta missing"):
+        published.validate()
+    harness.PublishedUpgrade(
+        base,
+        packages,
+        target_version="1.0.13",
+        archive_sha256=harness.sha(archive),
+        gate_delta=gate,
+    ).validate()
+
+
+def test_workflow_builds_the_gate_delta_outside_the_shipped_assets():
+    from pathlib import Path
+
+    workflow = (
+        Path(__file__).resolve().parents[2] / ".github/workflows/release.yml"
+    ).read_text(encoding="utf-8")
+    step = workflow[workflow.index("Published 1.0.9 client ->"):]
+    step = step[: step.index("- name:", 10)]
+    assert "--published-delta $gateDelta" in step
+    assert "scripts/gen_delta.py" in step and "--base-version 1.0.9" in step
+    assert '$gateDeltaDir = Join-Path $env:RUNNER_TEMP "vira-gate-delta"' in step
+    assert "$gateDeltaDir *>&1" in step, "the gate delta must never be written into dist-release"

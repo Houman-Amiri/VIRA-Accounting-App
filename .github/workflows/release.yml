@@ -247,9 +247,24 @@ jobs:
             $out | Out-File -FilePath reports/in-app-step-output.txt -Encoding utf8
             throw "the pinned published 1.0.9 client base is missing: keep its delta baseline in the window or add the next independently pinned client digest before releasing"
           }
+          # The published release keeps three direct deltas, so the pinned client
+          # is outside that window and has no shipped delta. Build the gate delta
+          # with the same generator, OUTSIDE dist-release, so the shipped
+          # latest.json/SHA256SUMS stay exactly as packaged.
+          $version = $env:VIRA_VERSION.TrimStart('v')
+          $gateDeltaDir = Join-Path $env:RUNNER_TEMP "vira-gate-delta"
+          New-Item -ItemType Directory -Force -Path $gateDeltaDir | Out-Null
+          $gateDelta = Join-Path $gateDeltaDir "VIRA-v$version-delta-from-v1.0.9.zip"
+          if (-not (Test-Path $gateDelta)) {
+            $out += (& uv run python scripts/gen_delta.py --base-manifest $baseManifest.FullName --base-dir $baseManifest.Directory.FullName --target-dir dist-release/app --base-version 1.0.9 --target-version $version --out $gateDeltaDir *>&1 | Out-String)
+            if ($LASTEXITCODE -ne 0 -or -not (Test-Path $gateDelta)) {
+              $out | Out-File -FilePath reports/in-app-step-output.txt -Encoding utf8
+              throw "gate delta from the pinned 1.0.9 client could not be built: $gateDelta"
+            }
+          }
           $code = 1
           try {
-            $out += (& uv run python scripts/update_native_smoke.py --published-base $baseManifest.Directory.FullName --packages dist-release --target-version $env:VIRA_VERSION *>&1 | Out-String)
+            $out += (& uv run python scripts/update_native_smoke.py --published-base $baseManifest.Directory.FullName --packages dist-release --published-delta $gateDelta --target-version $env:VIRA_VERSION *>&1 | Out-String)
             $code = $LASTEXITCODE
           } catch { $out += "`n" + ($_ | Out-String) }
           Write-Host $out

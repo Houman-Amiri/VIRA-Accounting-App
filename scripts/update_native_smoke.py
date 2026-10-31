@@ -260,10 +260,19 @@ class PublishedUpgrade:
     base_commit: str = PUBLISHED_BASE_COMMIT
     archive_sha256: str = LEGACY_SHA256
     schema_rollback: bool = False
+    # The published release keeps three direct deltas (the delta window), so the
+    # pinned old client is no longer inside it. This gate still upgrades that
+    # REAL published client with a delta built by the same generator, kept out of
+    # the shipped assets so latest.json/SHA256SUMS stay exactly as packaged.
+    gate_delta: Path | None = None
 
     @property
     def delta_name(self) -> str:
         return f"VIRA-v{self.target_version}-delta-from-v{self.base_version}.zip"
+
+    @property
+    def delta(self) -> Path:
+        return self.gate_delta or (self.packages / self.delta_name)
 
     def validate(self) -> None:
         archive = self.base.parent / f"base-{self.base_version}.zip"
@@ -278,8 +287,8 @@ class PublishedUpgrade:
         target = json.loads((self.packages / "app/version.json").read_text(encoding="utf-8-sig"))
         if target["version"] != self.target_version:
             raise ValueError("candidate version mismatch")
-        if not (self.packages / self.delta_name).is_file():
-            raise ValueError("mandatory direct delta missing")
+        if not self.delta.is_file():
+            raise ValueError(f"mandatory direct delta missing: {self.delta}")
 
 
 def published_fixture(
@@ -288,7 +297,7 @@ def published_fixture(
     install = root / "install with spaces"
     # No source replacement, bootstrap injection or patched launcher in the base.
     shutil.copytree(published.base, install)
-    archive = published.packages / published.delta_name
+    archive = published.delta
     if rollback and not published.schema_rollback:
         # Separate private broken target; never replace the candidate ZIP.
         target = root / "intentionally broken target"
@@ -777,8 +786,14 @@ def write_crash_report(error: BaseException) -> Path | None:
         reports = ROOT / "reports"
         reports.mkdir(exist_ok=True)
         path = reports / "in-app-crash-report.txt"
-        detail = "".join(traceback.format_exception(error))
-        path.write_text(detail[-20000:], encoding="utf-8")
+        detail = "".join(traceback.format_exception(error))[-20000:]
+        path.write_text(detail, encoding="utf-8")
+        # Annotations survive even when the artifact cannot be read from CI, so
+        # the real pre-audit reason is never invisible again.
+        flat = detail.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+        for index in range(0, len(flat), 2800):
+            chunk = flat[index : index + 2800].encode("ascii", "backslashreplace").decode()
+            print(f"::error title=in-app-crash-{index // 2800}::{chunk}", flush=True)
         return path
     except OSError:
         return None
@@ -790,6 +805,11 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--published-base", type=Path)
     parser.add_argument("--packages", type=Path)
+    parser.add_argument(
+        "--published-delta",
+        type=Path,
+        help="gate-only delta from the pinned published client (not a shipped asset)",
+    )
     parser.add_argument(
         "--fetch-published-base",
         type=Path,
@@ -813,6 +833,7 @@ def main() -> None:
             args.published_base.resolve(),
             args.packages.resolve(),
             target_version=normalize_target_version(args.target_version),
+            gate_delta=args.published_delta.resolve() if args.published_delta else None,
         )
         published.validate()
     with tempfile.TemporaryDirectory(prefix="vira-in-app-", dir=os.environ["RUNNER_TEMP"]) as tmp:
