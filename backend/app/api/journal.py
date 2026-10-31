@@ -16,9 +16,11 @@ from sqlalchemy.orm import Session
 from ..models import JournalEntry
 from ..schemas.ledger import (
     InvoiceCreate,
+    InvoiceEntryUpdate,
     InvoiceRead,
     JournalEntryCreate,
     JournalEntryRead,
+    JournalEntryUpdate,
     SplitRead,
 )
 from ..services.idempotency import (
@@ -26,7 +28,7 @@ from ..services.idempotency import (
     claim_or_replay,
     request_hash,
 )
-from ..services.invoice import create_invoice
+from ..services.invoice import create_invoice, update_invoice_entry
 from ..services.ledger import LedgerService
 from .deps import enforce_csrf, get_db, require_roles, require_user_or_ingest
 
@@ -169,6 +171,38 @@ def create_entry(
 
     entry = service.create_draft(payload)
     return _read(entry)
+
+
+@router.put("/{entry_id}", response_model=JournalEntryRead)
+def update_entry(
+    entry_id: str,
+    payload: JournalEntryUpdate,
+    session: Annotated[Session, Depends(get_db)],
+    _user: Annotated[object, Depends(require_roles("OWNER", "BOOKKEEPER"))],
+) -> JournalEntryRead:
+    """Correct an existing entry, keeping its status and versioning the change."""
+    return _read(LedgerService(session).correct_entry(entry_id, payload))
+
+
+@router.put("/{entry_id}/invoice", response_model=InvoiceRead)
+def update_invoice(
+    entry_id: str,
+    payload: InvoiceEntryUpdate,
+    session: Annotated[Session, Depends(get_db)],
+    _user: Annotated[object, Depends(require_roles("OWNER", "BOOKKEEPER"))],
+) -> InvoiceRead:
+    """Edit an invoice-shaped entry; the server re-derives its balanced splits."""
+    return update_invoice_entry(session, entry_id, payload)
+
+
+@router.post("/{entry_id}/unpost", response_model=JournalEntryRead)
+def unpost_entry(
+    entry_id: str,
+    session: Annotated[Session, Depends(get_db)],
+    _user: Annotated[object, Depends(require_roles("OWNER",))],
+) -> JournalEntryRead:
+    """Return a posted entry to draft so it can be corrected («برگشت از ثبت»)."""
+    return _read(LedgerService(session).unpost(entry_id))
 
 
 @router.post("/{entry_id}/post", response_model=JournalEntryRead)

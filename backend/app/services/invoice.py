@@ -12,6 +12,7 @@ misleading entry.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
@@ -23,9 +24,11 @@ from ..models import Account, JournalEntry
 from ..money import parse_money_str
 from ..schemas.ledger import (
     InvoiceCreate,
+    InvoiceEntryUpdate,
     InvoiceLineRead,
     InvoiceRead,
     JournalEntryCreate,
+    JournalEntryUpdate,
     SplitCreate,
 )
 from .errors import DomainError
@@ -79,8 +82,10 @@ def _money(value: Decimal) -> str:
     return f"{value.quantize(QUANT):.4f}"
 
 
-def create_invoice(session: Session, data: InvoiceCreate) -> InvoiceRead:
-    """Build, post and return a balanced entry derived from an invoice."""
+def build_invoice_payload(
+    session: Session, data: InvoiceCreate
+) -> tuple[JournalEntryCreate, InvoiceTotals, Account, Account]:
+    """Derive the balanced entry an invoice describes (no persistence)."""
     totals = invoice_totals(data)
     debit_code, credit_code, debit_label, credit_label = MAPPING[data.kind]
     debit = _account_by_code(session, debit_code, debit_label)
@@ -123,6 +128,13 @@ def create_invoice(session: Session, data: InvoiceCreate) -> InvoiceRead:
             SplitCreate(account_id=credit.id, credit=_money(totals.total), memo=memo),
         ],
     )
+    return payload, totals, debit, credit
+
+
+def create_invoice(session: Session, data: InvoiceCreate) -> InvoiceRead:
+    """Build, post and return a balanced entry derived from an invoice."""
+    payload, totals, debit, credit = build_invoice_payload(session, data)
+    metadata = payload.metadata
     entry: JournalEntry = LedgerService(session).create_draft(payload, post=True)
     return InvoiceRead(
         entry=_entry_read(entry),
@@ -139,15 +151,72 @@ def create_invoice(session: Session, data: InvoiceCreate) -> InvoiceRead:
             )
             for title, quantity, unit_price, line_total in totals.lines
         ],
-        debit_account=f"{debit_code} — {debit_label}",
-        credit_account=f"{credit_code} — {credit_label}",
+        debit_account=f"{debit.code} — {MAPPING[data.kind][2]}",
+        credit_account=f"{credit.code} — {MAPPING[data.kind][3]}",
+    )
+
+
+def update_invoice_entry(
+    session: Session, entry_id: str, data: InvoiceEntryUpdate
+) -> InvoiceRead:
+    """Correct an invoice-shaped entry; the server re-derives its splits.
+
+    The entry keeps its status (a posted invoice stays posted) and its previous
+    content is kept as a version snapshot by the ledger service.
+    """
+    entry = LedgerService(session).get_entry(entry_id)
+    invoice_meta = (json.loads(entry.metadata_json or "{}") or {}).get("invoice")
+    if not isinstance(invoice_meta, dict):
+        raise DomainError(
+            f"سند شماره {entry.entry_number} از فاکتور ساخته نشده است و با فرم فاکتور "
+            "قابل ویرایش نیست"
+        )
+    payload, totals, debit, credit = build_invoice_payload(
+        session,
+        InvoiceCreate(
+            transaction_date=data.transaction_date,
+            kind=data.kind,
+            seller=data.seller,
+            buyer=data.buyer,
+            description=data.description,
+            note=data.note,
+            lines=data.lines,
+        ),
+    )
+    updated = LedgerService(session).correct_entry(
+        entry_id,
+        JournalEntryUpdate(
+            transaction_date=payload.transaction_date,
+            payee=payload.payee,
+            description=payload.description,
+            metadata=payload.metadata,
+            splits=payload.splits,
+            version_id=data.version_id,
+        ),
+    )
+    metadata = payload.metadata
+    return InvoiceRead(
+        entry=_entry_read(updated),
+        kind=data.kind,
+        seller=metadata["invoice"]["seller"],
+        buyer=metadata["invoice"]["buyer"],
+        total=_money(totals.total),
+        lines=[
+            InvoiceLineRead(
+                title=title,
+                quantity=f"{quantity:.4f}",
+                unit_price=_money(unit_price),
+                line_total=_money(line_total),
+            )
+            for title, quantity, unit_price, line_total in totals.lines
+        ],
+        debit_account=f"{debit.code} — {MAPPING[data.kind][2]}",
+        credit_account=f"{credit.code} — {MAPPING[data.kind][3]}",
     )
 
 
 def _entry_read(entry: JournalEntry) -> Any:
     """Reuse the API's read model without importing the router (no cycle)."""
-    import json
-
     from ..schemas.ledger import JournalEntryRead, SplitRead
 
     return JournalEntryRead(

@@ -178,6 +178,7 @@ export async function auditMenuThemes(page: Page): Promise<void> {
         ["/warehouse", 5],
         ["/bank-import", 5],
         ["/settings", 1],
+        ["/journal", 0],
         ["/statements", 0],
         ["/system", 0],
       ] as const) {
@@ -190,6 +191,19 @@ export async function auditMenuThemes(page: Page): Promise<void> {
             .fill(process.env.VIRA_E2E_PASSWORD || "e2e-owner-password");
           await page.getByTestId("sudo-confirm").click();
           await expect(page.getByTestId("sudo-dialog")).not.toBeVisible();
+        }
+        if (path === "/journal") {
+          // The ledger book must let the owner open an entry and change it.
+          const open = page.getByTestId(/^entry-open-/).first();
+          if ((await open.count()) > 0) {
+            await open.click();
+            await expect(page.getByTestId("entry-drawer")).toBeVisible();
+            await expect(
+              page.getByTestId("entry-drawer").getByTestId("entry-status"),
+            ).toBeVisible();
+            await page.getByTestId("entry-drawer-close").click();
+            await expect(page.getByTestId("entry-drawer")).toHaveCount(0);
+          }
         }
         if (path === "/statements") {
           // The three statements must show real report data, never the old

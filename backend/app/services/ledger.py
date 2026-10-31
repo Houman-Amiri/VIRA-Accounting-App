@@ -31,11 +31,14 @@ from ..schemas.ledger import (
     AccountLedgerRow,
     AccountUpdate,
     JournalEntryCreate,
+    JournalEntryUpdate,
 )
 from ..services.audit import attach_old_snapshot
 from ..services.errors import (
     ClosedFiscalPeriodError,
+    DomainError,
     EntryNotDraftError,
+    EntryReconciledError,
     InsufficientSplitsError,
     NotFoundError,
     PlaceholderAccountError,
@@ -150,6 +153,124 @@ class LedgerService:
         self._replace_splits(entry, data)
         self.session.flush()
         return entry
+
+    def update_entry(self, entry_id: str, data: JournalEntryUpdate) -> JournalEntry:
+        """Correct an existing entry in place, keeping its status.
+
+        The books are never rewritten silently: the previous content is kept as
+        a version snapshot (``attach_old_snapshot``), ``version_id`` is bumped,
+        and edits are refused when either the old or the new date falls in a
+        closed fiscal period, when the entry is voided, or when a bank
+        reconciliation has already cleared one of its lines.
+        """
+        entry = self.get_entry(entry_id)
+        if entry.status == "VOIDED":
+            raise EntryNotDraftError(
+                f"سند شماره {entry.entry_number} ابطال شده است و قابل ویرایش نیست"
+            )
+        if entry.status == "POSTED":
+            # Posted entries are immutable in the database itself (triggers).
+            # Corrections go through correct_entry / unpost first.
+            raise EntryNotDraftError(
+                f"سند شماره {entry.entry_number} ثبت شده است؛ نخست آن را از ثبت برگردانید"
+            )
+        if data.version_id is not None and data.version_id != entry.version_id:
+            raise StaleVersionError(
+                f"سند شماره {entry.entry_number} توسط کاربر دیگری تغییر کرده است"
+            )
+        self._assert_period_open(entry.transaction_date)
+        self._assert_period_open(data.transaction_date)
+        self._assert_correctable(entry)
+
+        attach_old_snapshot(entry)
+        entry.transaction_date = data.transaction_date
+        entry.payee = data.payee
+        entry.description = data.description
+        if data.metadata is not None:
+            entry.metadata_json = json.dumps(data.metadata, ensure_ascii=False)
+        if data.splits is not None:
+            for sp in list(entry.splits):
+                self.session.delete(sp)
+            self.session.flush()
+            self._replace_splits(entry, JournalEntryCreate(
+                transaction_date=data.transaction_date,
+                payee=data.payee,
+                description=data.description,
+                metadata=data.metadata or {},
+                splits=data.splits,
+            ))
+            self.session.flush()
+            # The replaced rows are gone; drop the cached collection so the
+            # response (and any later reader) sees the new lines, not the old.
+            self.session.expire(entry, ["splits"])
+        entry.updated_at = utc_now_iso()
+        entry.version_id += 1
+        self.session.flush()
+        return entry
+
+    def correct_entry(
+        self, entry_id: str, data: JournalEntryUpdate, *, repost: bool = True
+    ) -> JournalEntry:
+        """Edit an entry, lifting a posted one out of the books and back in.
+
+        The database refuses to change a posted entry's date or splits, so a
+        correction is: unpost → edit → post again, all inside one transaction.
+        ``repost=False`` leaves the corrected entry as a draft for review.
+        """
+        entry = self.get_entry(entry_id)
+        # The client's version must match before we bump it ourselves: the
+        # unpost below owns one version increment of its own.
+        if data.version_id is not None and data.version_id != entry.version_id:
+            raise StaleVersionError(
+                f"سند شماره {entry.entry_number} توسط کاربر دیگری تغییر کرده است"
+            )
+        was_posted = entry.status == "POSTED"
+        if was_posted:
+            self.unpost(entry_id)
+        updated = self.update_entry(entry_id, data.model_copy(update={"version_id": None}))
+        if was_posted and repost:
+            return self.post(entry_id)
+        return updated
+
+    def unpost(self, entry_id: str) -> JournalEntry:
+        """Return a posted entry to draft («برگشت از ثبت») so it can be corrected."""
+        entry = self.get_entry(entry_id)
+        if entry.status != "POSTED":
+            raise EntryNotDraftError(
+                f"فقط سند ثبت‌شده را می‌توان برگشت داد (این سند {entry.status} است)"
+            )
+        self._assert_period_open(entry.transaction_date)
+        self._assert_correctable(entry)
+        contra = self.session.scalar(
+            select(JournalEntry).where(JournalEntry.reversed_entry_id == entry.id)
+        )
+        if contra is not None:
+            raise DomainError(
+                f"برای سند شماره {entry.entry_number} سند برگشتی ثبت شده است؛ "
+                "ویرایش آن ممکن نیست"
+            )
+        attach_old_snapshot(entry)
+        entry.status = "DRAFT"
+        entry.updated_at = utc_now_iso()
+        entry.version_id += 1
+        self.session.flush()
+        return entry
+
+    def _assert_correctable(self, entry: JournalEntry) -> None:
+        cleared = [
+            sp
+            for sp in self.session.scalars(
+                select(TransactionSplit).where(
+                    TransactionSplit.journal_entry_id == entry.id,
+                    TransactionSplit.reconciliation_status != "UNRECONCILED",
+                )
+            )
+        ]
+        if cleared:
+            raise EntryReconciledError(
+                f"سند شماره {entry.entry_number} در صورت‌مغایرت بانکی تطبیق شده است؛ "
+                "نخست تطبیق آن را بازگردانید"
+            )
 
     def post(self, entry_id: str) -> JournalEntry:
         entry = self.get_entry(entry_id)

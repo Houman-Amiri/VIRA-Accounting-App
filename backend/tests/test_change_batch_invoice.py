@@ -152,3 +152,76 @@ async def test_retried_invoice_with_same_idempotency_key_does_not_post_twice(cli
     )
     assert changed.status_code == 409, changed.text
     assert changed.json()["code"] == "idempotency_key_reuse"
+
+
+async def test_a_posted_invoice_can_be_corrected_without_debit_credit_input(client):
+    """ویرایش سند: the owner fixes the invoice; the server re-derives the splits."""
+    await seed_chart(client)
+    created = (
+        await client.post("/api/v1/journal-entries/invoice", json=sale_payload())
+    ).json()
+    entry_id = created["entry"]["id"]
+
+    response = await client.put(
+        f"/api/v1/journal-entries/{entry_id}/invoice",
+        json={
+            "kind": "sale",
+            "transaction_date": "2026-10-21",
+            "seller": "فروشگاه ویرا",
+            "buyer": "آقای مشتری",
+            "note": "اصلاح مبلغ",
+            "lines": [{"title": "مجسمهٔ روباه", "quantity": "1", "unit_price": "2000000"}],
+        },
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert Decimal(body["total"]) == Decimal("2000000.0000")
+    assert body["entry"]["status"] == "POSTED"
+    assert body["entry"]["transaction_date"] == "2026-10-21"
+    assert body["entry"]["metadata"]["invoice"]["lines"][0]["title"] == "مجسمهٔ روباه"
+    debit = sum(Decimal(s["debit"] or 0) for s in body["entry"]["splits"])
+    credit = sum(Decimal(s["credit"] or 0) for s in body["entry"]["splits"])
+    assert debit == credit == Decimal("2000000.0000")
+
+    # The books carry the corrected amount once — nothing was double posted.
+    income = await client.get(
+        "/api/v1/reports/income-statement", params={"start": "2026-04-01", "end": "2026-12-31"}
+    )
+    assert income.status_code == 200
+    body = income.json()
+    assert Decimal(body["total_income"]) == Decimal("2000000.0000")
+    entries = (await client.get("/api/v1/journal-entries")).json()
+    assert len(entries) == 1
+
+
+async def test_invoice_edit_refuses_a_hand_written_entry(client):
+    await seed_chart(client)
+    cash = (
+        await client.post(
+            "/api/v1/accounts", json={"code": "1010", "name": "صندوق", "account_type": "ASSET"}
+        )
+    ).json()
+    equity = (
+        await client.post(
+            "/api/v1/accounts", json={"code": "3010", "name": "سرمایه", "account_type": "EQUITY"}
+        )
+    ).json()
+    raw = (
+        await client.post(
+            "/api/v1/journal-entries",
+            json={
+                "transaction_date": "2026-10-20",
+                "description": "سند دستی",
+                "splits": [
+                    {"account_id": cash["id"], "debit": "10.0000"},
+                    {"account_id": equity["id"], "credit": "10.0000"},
+                ],
+            },
+        )
+    ).json()
+    response = await client.put(
+        f"/api/v1/journal-entries/{raw['id']}/invoice",
+        json=sale_payload(),
+    )
+    assert response.status_code == 400
+    assert response.headers["content-type"].startswith("application/problem+json")

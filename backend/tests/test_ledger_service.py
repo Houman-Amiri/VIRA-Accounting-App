@@ -7,10 +7,16 @@ from sqlalchemy.exc import IntegrityError
 
 from app.ids import uuid7
 from app.models import FiscalPeriod, JournalEntry
-from app.schemas.ledger import AccountCreate, JournalEntryCreate, SplitCreate
+from app.schemas.ledger import (
+    AccountCreate,
+    JournalEntryCreate,
+    JournalEntryUpdate,
+    SplitCreate,
+)
 from app.services.errors import (
     ClosedFiscalPeriodError,
     EntryNotDraftError,
+    EntryReconciledError,
     InsufficientSplitsError,
     NotFoundError,
     PlaceholderAccountError,
@@ -18,6 +24,7 @@ from app.services.errors import (
     UnbalancedJournalEntryError,
 )
 from app.services.ledger import LedgerService
+from app.services.reporting import ReportingService
 
 
 def _accounts(service: LedgerService) -> dict[str, object]:
@@ -204,3 +211,173 @@ def test_not_found(session) -> None:
     service = LedgerService(session)
     with pytest.raises(NotFoundError):
         service.get_entry("missing")
+
+
+def test_edit_draft_replaces_lines_and_keeps_history(session) -> None:
+    service = LedgerService(session)
+    accs = _accounts(service)
+    entry = service.create_draft(_entry(accs["cash"].id, accs["equity"].id, amount="1000"))
+    session.commit()
+    before_version = entry.version_id
+
+    updated = service.update_entry(
+        entry.id,
+        JournalEntryUpdate(
+            transaction_date="2026-10-15",
+            description="اصلاح شرح",
+            payee="آقای رضایی",
+            version_id=before_version,
+            splits=[
+                SplitCreate(account_id=accs["cash"].id, debit="2500"),
+                SplitCreate(account_id=accs["equity"].id, credit="2500"),
+            ],
+        ),
+    )
+    session.commit()
+    assert updated.transaction_date == "2026-10-15"
+    assert updated.description == "اصلاح شرح"
+    assert updated.version_id == before_version + 1
+    assert sum(s.debit for s in updated.splits) == 25_000_000  # 2500 × 10^4
+
+
+def test_stale_edit_is_refused(session) -> None:
+    service = LedgerService(session)
+    accs = _accounts(service)
+    entry = service.create_draft(_entry(accs["cash"].id, accs["equity"].id))
+    with pytest.raises(StaleVersionError):
+        service.update_entry(
+            entry.id,
+            JournalEntryUpdate(
+                transaction_date="2026-10-14", description="x", version_id=entry.version_id + 1
+            ),
+        )
+
+
+def test_posted_entry_can_only_be_corrected_through_unpost(session) -> None:
+    service = LedgerService(session)
+    accs = _accounts(service)
+    entry = service.post(service.create_draft(_entry(accs["cash"].id, accs["equity"].id)).id)
+    session.commit()
+
+    with pytest.raises(EntryNotDraftError):
+        service.update_entry(
+            entry.id, JournalEntryUpdate(transaction_date="2026-10-14", description="x")
+        )
+
+    corrected = service.correct_entry(
+        entry.id,
+        JournalEntryUpdate(
+            transaction_date="2026-10-16",
+            description="اصلاح مبلغ",
+            splits=[
+                SplitCreate(account_id=accs["cash"].id, debit="700"),
+                SplitCreate(account_id=accs["equity"].id, credit="700"),
+            ],
+        ),
+    )
+    session.commit()
+    assert corrected.status == "POSTED"
+    assert corrected.transaction_date == "2026-10-16"
+    assert sum(s.debit for s in corrected.splits) == 7_000_000
+
+
+def test_unpost_returns_a_posted_entry_to_draft(session) -> None:
+    service = LedgerService(session)
+    accs = _accounts(service)
+    entry = service.post(service.create_draft(_entry(accs["cash"].id, accs["equity"].id)).id)
+    session.commit()
+    unposted = service.unpost(entry.id)
+    session.commit()
+    assert unposted.status == "DRAFT"
+    # the books no longer count it
+    rows = ReportingService(session).trial_balance(as_of="2026-12-31")
+    assert rows == []
+
+
+def test_unpost_refused_when_the_line_is_reconciled(session) -> None:
+    service = LedgerService(session)
+    accs = _accounts(service)
+    entry = service.post(service.create_draft(_entry(accs["cash"].id, accs["equity"].id)).id)
+    session.commit()
+    entry.splits[0].reconciliation_status = "CLEARED"
+    session.commit()
+
+    with pytest.raises(EntryReconciledError):
+        service.unpost(entry.id)
+    session.rollback()
+
+
+def test_unpost_refused_after_a_reversal_exists(session) -> None:
+    service = LedgerService(session)
+    accs = _accounts(service)
+    entry = service.post(service.create_draft(_entry(accs["cash"].id, accs["equity"].id)).id)
+    service.reverse(entry.id, transaction_date="2026-10-20")
+    session.commit()
+    from app.services.errors import DomainError
+
+    with pytest.raises(DomainError):
+        service.unpost(entry.id)
+    session.rollback()
+
+
+def test_voided_entry_cannot_be_edited(session) -> None:
+    service = LedgerService(session)
+    accs = _accounts(service)
+    entry = service.post(service.create_draft(_entry(accs["cash"].id, accs["equity"].id)).id)
+    service.void(entry.id, reason="اشتباه")
+    session.commit()
+    with pytest.raises(EntryNotDraftError):
+        service.update_entry(
+            entry.id, JournalEntryUpdate(transaction_date="2026-10-14", description="x")
+        )
+    session.rollback()
+
+
+def test_edit_refused_into_a_closed_period(session) -> None:
+    service = LedgerService(session)
+    accs = _accounts(service)
+    entry = service.create_draft(_entry(accs["cash"].id, accs["equity"].id, date="2026-10-20"))
+    session.add(
+        FiscalPeriod(
+            id=uuid7(),
+            name="مهر ۱۴۰۵",
+            start_date="2026-09-23",
+            end_date="2026-10-22",
+            is_closed=1,
+            closed_at="2026-10-23T00:00:00Z",
+        )
+    )
+    session.flush()
+    with pytest.raises(ClosedFiscalPeriodError):
+        service.update_entry(
+            entry.id, JournalEntryUpdate(transaction_date="2026-10-14", description="x")
+        )
+    session.rollback()
+
+
+def test_correct_entry_accepts_the_current_version_and_refuses_a_stale_one(session) -> None:
+    service = LedgerService(session)
+    accs = _accounts(service)
+    entry = service.post(service.create_draft(_entry(accs["cash"].id, accs["equity"].id)).id)
+    session.commit()
+    current = entry.version_id
+
+    with pytest.raises(StaleVersionError):
+        service.correct_entry(
+            entry.id,
+            JournalEntryUpdate(
+                transaction_date="2026-10-14", description="x", version_id=current + 5
+            ),
+        )
+    fresh = LedgerService(session).get_entry(entry.id)
+    start_version = fresh.version_id
+    corrected = service.correct_entry(
+        fresh.id,
+        JournalEntryUpdate(
+            transaction_date="2026-10-17", description="اصلاح", version_id=start_version
+        ),
+    )
+    session.commit()
+    assert corrected.status == "POSTED"
+    assert corrected.description == "اصلاح"
+    assert corrected.version_id > start_version

@@ -266,7 +266,11 @@ export interface paths {
         };
         /** Get Entry */
         get: operations["get_entry_api_v1_journal_entries__entry_id__get"];
-        put?: never;
+        /**
+         * Update Entry
+         * @description Correct an existing entry, keeping its status and versioning the change.
+         */
+        put: operations["update_entry_api_v1_journal_entries__entry_id__put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -297,6 +301,46 @@ export interface paths {
          *     entry for the same paper invoice.
          */
         post: operations["create_invoice_entry_api_v1_journal_entries_invoice_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/journal-entries/{entry_id}/invoice": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update Invoice
+         * @description Edit an invoice-shaped entry; the server re-derives its balanced splits.
+         */
+        put: operations["update_invoice_api_v1_journal_entries__entry_id__invoice_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/journal-entries/{entry_id}/unpost": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Unpost Entry
+         * @description Return a posted entry to draft so it can be corrected («برگشت از ثبت»).
+         */
+        post: operations["unpost_entry_api_v1_journal_entries__entry_id__unpost_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2012,6 +2056,31 @@ export interface components {
             lines: components["schemas"]["InvoiceLineIn"][];
         };
         /**
+         * InvoiceEntryUpdate
+         * @description Edit of an invoice-shaped entry: the server re-derives the splits.
+         */
+        InvoiceEntryUpdate: {
+            /** Transaction Date */
+            transaction_date: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "sale" | "purchase";
+            /** Seller */
+            seller?: string | null;
+            /** Buyer */
+            buyer?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Note */
+            note?: string | null;
+            /** Lines */
+            lines: components["schemas"]["InvoiceLineIn"][];
+            /** Version Id */
+            version_id?: number | null;
+        };
+        /**
          * InvoiceLineIn
          * @description One invoice row the user actually sees: title, count, price.
          */
@@ -2105,6 +2174,30 @@ export interface components {
             version_id: number;
             /** Splits */
             splits: components["schemas"]["SplitRead"][];
+        };
+        /**
+         * JournalEntryUpdate
+         * @description An edit of an existing entry — status is preserved, history is versioned.
+         *
+         *     ``splits`` replaces the entry's lines (double-entry validated as on create);
+         *     omit it to change only the date/description/counterparty. ``version_id``
+         *     turns the call into an optimistic-concurrency update.
+         */
+        JournalEntryUpdate: {
+            /** Transaction Date */
+            transaction_date: string;
+            /** Payee */
+            payee?: string | null;
+            /** Description */
+            description: string;
+            /** Metadata */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+            /** Splits */
+            splits?: components["schemas"]["SplitCreate"][] | null;
+            /** Version Id */
+            version_id?: number | null;
         };
         /** LoginRequest */
         LoginRequest: {
@@ -3755,6 +3848,47 @@ export interface operations {
             };
         };
     };
+    update_entry_api_v1_journal_entries__entry_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                entry_id: string;
+            };
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JournalEntryUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JournalEntryRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     create_invoice_entry_api_v1_journal_entries_invoice_post: {
         parameters: {
             query?: never;
@@ -3782,6 +3916,84 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InvoiceRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_invoice_api_v1_journal_entries__entry_id__invoice_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                entry_id: string;
+            };
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvoiceEntryUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unpost_entry_api_v1_journal_entries__entry_id__unpost_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                entry_id: string;
+            };
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JournalEntryRead"];
                 };
             };
             /** @description Validation Error */

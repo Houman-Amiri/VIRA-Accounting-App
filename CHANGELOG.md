@@ -7,6 +7,26 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### دفتر اسناد: an entry can finally be edited and its status changed
+- The list was read-only: no way to post a draft, take a posted entry back out
+  of the books, void it, or correct it. It also compared the status against
+  lowercase strings while the API returns `POSTED`/`DRAFT`, so every entry was
+  labelled «پیش‌نویس».
+- Every row now opens the entry: status badge, the invoice it carries, and the
+  actions that apply. پیش‌نویس → «ثبت در دفاتر»; ثبت‌شده → «برگشت به پیش‌نویس»,
+  «ویرایش سند», «ابطال سند» (a reason is required).
+- Editing an invoice-shaped entry is done as the invoice (date, seller/buyer,
+  items, prices); the server re-derives the balanced lines, so بدهکار/بستانکار
+  still never appears. A plain two-line entry gets a single «مبلغ سند» field
+  that moves both sides together; anything more line-heavy only exposes its
+  date/description/counterparty, with the reason spelled out.
+- New API: `PUT /api/v1/journal-entries/{id}`, `PUT /{id}/invoice`,
+  `POST /{id}/unpost`. A posted entry is corrected as unpost → edit → post in
+  one transaction (the database triggers still forbid editing posted rows), the
+  previous content stays in the audit history, and the edit is refused when the
+  period is closed, a bank line is already reconciled, a reversal exists, or the
+  entry was voided.
+
 ### Financial statements show real numbers (the 1.0.12 page still had placeholders)
 - «صورت‌های مالی» was a stub: the balance sheet, income statement and cash flow
   tabs printed "داده‌ها از … بارگذاری می‌شوند (Phase 5)" instead of a report.

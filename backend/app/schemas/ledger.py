@@ -211,12 +211,6 @@ class AccountLedgerRead(BaseModel):
     rows: list[AccountLedgerRow]
 
 
-class JournalEntryUpdate(BaseModel):
-    description: str | None = Field(default=None, min_length=1, max_length=500)
-    payee: str | None = None
-    version_id: int = Field(ge=1)
-
-
 class TrialBalanceRow(BaseModel):
     account_id: str
     code: str
@@ -306,6 +300,62 @@ class InvoiceCreate(BaseModel):
     @model_validator(mode="after")
     def _counterparty(self) -> InvoiceCreate:
         # Whom the money is owed by/to is not optional on a real invoice.
+        if self.kind == "sale" and not (self.buyer or "").strip():
+            raise ValueError("برای فاکتور فروش، نام خریدار را وارد کنید")
+        if self.kind == "purchase" and not (self.seller or "").strip():
+            raise ValueError("برای فاکتور خرید، نام فروشنده را وارد کنید")
+        return self
+
+
+class JournalEntryUpdate(BaseModel):
+    """An edit of an existing entry — status is preserved, history is versioned.
+
+    ``splits`` replaces the entry's lines (double-entry validated as on create);
+    omit it to change only the date/description/counterparty. ``version_id``
+    turns the call into an optimistic-concurrency update.
+    """
+
+    transaction_date: ISODate
+    payee: str | None = None
+    description: str = Field(min_length=1, max_length=500)
+    metadata: dict[str, Any] | None = None
+    splits: list[SplitCreate] | None = None
+    version_id: int | None = Field(default=None, ge=1)
+
+    @model_validator(mode="after")
+    def _balanced_per_currency(self) -> JournalEntryUpdate:
+        if self.splits is None:
+            return self
+        if len(self.splits) < 2:
+            raise ValueError("at least two split lines are required")
+        totals: dict[str, list[int]] = {}
+        for sp in self.splits:
+            side = "debit" if (parse_money_str(sp.debit) or 0) > 0 else "credit"
+            amount = to_scaled(parse_money_str(sp.debit if side == "debit" else sp.credit) or 0)
+            totals.setdefault(sp.currency, []).append(amount if side == "debit" else -amount)
+        unbalanced = {cur: sum(vals) for cur, vals in totals.items() if sum(vals) != 0}
+        if unbalanced:
+            raise ValueError(
+                "journal entry is unbalanced per currency: "
+                + ", ".join(f"{cur} delta={delta}" for cur, delta in sorted(unbalanced.items()))
+            )
+        return self
+
+
+class InvoiceEntryUpdate(BaseModel):
+    """Edit of an invoice-shaped entry: the server re-derives the splits."""
+
+    transaction_date: ISODate
+    kind: Literal["sale", "purchase"]
+    seller: str | None = Field(default=None, max_length=200)
+    buyer: str | None = Field(default=None, max_length=200)
+    description: str | None = Field(default=None, max_length=500)
+    note: str | None = Field(default=None, max_length=500)
+    lines: list[InvoiceLineIn] = Field(min_length=1, max_length=100)
+    version_id: int | None = Field(default=None, ge=1)
+
+    @model_validator(mode="after")
+    def _counterparty(self) -> InvoiceEntryUpdate:
         if self.kind == "sale" and not (self.buyer or "").strip():
             raise ValueError("برای فاکتور فروش، نام خریدار را وارد کنید")
         if self.kind == "purchase" and not (self.seller or "").strip():

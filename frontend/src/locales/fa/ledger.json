@@ -39,7 +39,10 @@
     "statusDraft": "پیش‌نویس",
     "statusPosted": "ثبت‌شده",
     "statusVoid": "ابطال‌شده",
-    "statusReversed": "برگشت‌خورده"
+    "statusReversed": "برگشت‌خورده",
+    "actions": "عملیات",
+    "open": "باز کردن",
+    "hint": "برای دیدن، ویرایش یا تغییر وضعیت هر سند، روی همان ردیف کلیک کنید."
   },
   "accounts": {
     "title": "چارت حساب‌ها",

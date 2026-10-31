@@ -46,6 +46,12 @@ class EntryNotDraftError(DomainError):
     status = 409
 
 
+class EntryReconciledError(DomainError):
+    code = "entry_reconciled"
+    title = "Journal entry touches a reconciled bank line"
+    status = 409
+
+
 class StaleVersionError(DomainError):
     code = "stale_version"
     title = "Concurrent modification detected"

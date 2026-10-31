@@ -188,3 +188,74 @@ async def test_account_ledger_endpoint_serves_the_statement_drill_down(client) -
 
     missing = await client.get("/api/v1/accounts/01a19160-0000-7000-8000-000000000000/ledger")
     assert missing.status_code == 404
+
+
+async def test_entry_status_can_change_and_drafts_can_be_edited(client) -> None:
+    """دفتر اسناد: an entry can be corrected and its status changed over HTTP."""
+    cash = await _create_account(client, "1010", "صندوق", "ASSET")
+    eq = await _create_account(client, "3010", "سرمایه", "EQUITY")
+    resp = await client.post("/api/v1/journal-entries", json=_entry_payload(cash["id"], eq["id"]))
+    entry = resp.json()
+
+    # edit the draft (description only, lines untouched)
+    resp = await client.put(
+        f"/api/v1/journal-entries/{entry['id']}",
+        json={
+            "transaction_date": "2026-10-15",
+            "description": "افتتاح حساب اصلاح‌شده",
+            "payee": "آقای رضایی",
+            "version_id": entry["version_id"],
+        },
+    )
+    assert resp.status_code == 200, resp.text
+    edited = resp.json()
+    assert edited["description"] == "افتتاح حساب اصلاح‌شده"
+    assert edited["transaction_date"] == "2026-10-15"
+    assert edited["status"] == "DRAFT"
+    assert edited["version_id"] > entry["version_id"]
+
+    # post, then take it back out of the books
+    assert (await client.post(f"/api/v1/journal-entries/{entry['id']}/post")).status_code == 200
+    resp = await client.post(f"/api/v1/journal-entries/{entry['id']}/unpost")
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["status"] == "DRAFT"
+
+    # a posted entry is corrected through the same call: unpost → edit → post
+    await client.post(f"/api/v1/journal-entries/{entry['id']}/post")
+    resp = await client.put(
+        f"/api/v1/journal-entries/{entry['id']}",
+        json={
+            "transaction_date": "2026-10-16",
+            "description": "مبلغ اصلاح شد",
+            "splits": [
+                {"account_id": cash["id"], "debit": "700.0000"},
+                {"account_id": eq["id"], "credit": "700.0000"},
+            ],
+        },
+    )
+    assert resp.status_code == 200, resp.text
+    corrected = resp.json()
+    assert corrected["status"] == "POSTED"
+    assert sum(float(s["debit"]) for s in corrected["splits"]) == 700.0
+    assert all(s["debit"] == "0.0000" for s in corrected["splits"][1:])
+
+
+async def test_unbalanced_edit_is_refused_and_the_entry_keeps_its_lines(client) -> None:
+    cash = await _create_account(client, "1010", "صندوق", "ASSET")
+    eq = await _create_account(client, "3010", "سرمایه", "EQUITY")
+    resp = await client.post("/api/v1/journal-entries", json=_entry_payload(cash["id"], eq["id"]))
+    entry = resp.json()
+    resp = await client.put(
+        f"/api/v1/journal-entries/{entry['id']}",
+        json={
+            "transaction_date": "2026-10-14",
+            "description": "نامتوازن",
+            "splits": [
+                {"account_id": cash["id"], "debit": "10.0000"},
+                {"account_id": eq["id"], "credit": "9.0000"},
+            ],
+        },
+    )
+    assert resp.status_code == 422
+    fresh = (await client.get(f"/api/v1/journal-entries/{entry['id']}")).json()
+    assert sum(float(s["debit"]) for s in fresh["splits"]) == 500.25
