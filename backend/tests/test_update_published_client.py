@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import importlib
 import json
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -106,3 +107,65 @@ def test_published_client_is_seeded_on_its_own_revision_not_the_repo_head():
     assert "database migrated before the update completed" in source
     # A restore is proven by SQL fingerprint, exactly like the shipped updater.
     assert "restored released database differs" in source
+
+
+def published_zip(tmp_path: Path, *, nested: bool = True) -> Path:
+    """A published-looking payload ZIP; the real asset is digest-pinned."""
+    root = tmp_path / "zip-root" / ("vira-1.0.9" if nested else "")
+    payload(root)
+    archive = tmp_path / "published.zip"
+    outer = root.parent if nested else root
+    with zipfile.ZipFile(archive, "w") as bundle:
+        for file in root.rglob("*"):
+            if file.is_file():
+                bundle.write(file, file.relative_to(outer))
+    return archive
+
+
+def test_missing_published_base_is_restored_from_the_pinned_asset(tmp_path, harness):
+    archive = published_zip(tmp_path)
+    cache = tmp_path / "vira-delta-base"
+    restored = harness.ensure_published_base(
+        cache, url=archive.as_uri(), archive_sha256=harness.sha(archive)
+    )
+    assert restored == cache / "base-1.0.9"
+    assert (restored / "install_manifest.json").is_file()
+    # The digest check in PublishedUpgrade.validate() reads the sibling archive.
+    assert harness.sha(cache / "base-1.0.9.zip") == harness.sha(archive)
+    harness.verify_payload(restored)
+    # Second call reuses the cache instead of re-downloading.
+    reused = harness.ensure_published_base(
+        cache, url="file:///nonexistent.zip", archive_sha256=harness.sha(archive)
+    )
+    assert reused == restored
+
+
+def test_restored_published_base_rejects_a_different_digest(tmp_path, harness):
+    archive = published_zip(tmp_path)
+    with pytest.raises(ValueError, match="ZIP digest mismatch"):
+        harness.ensure_published_base(
+            tmp_path / "cache", url=archive.as_uri(), archive_sha256="0" * 64
+        )
+    assert not (tmp_path / "cache" / "base-1.0.9.zip").exists()
+
+
+def test_published_asset_with_an_escaping_member_is_refused(tmp_path, harness):
+    archive = tmp_path / "hostile.zip"
+    with zipfile.ZipFile(archive, "w") as bundle:
+        bundle.writestr("../outside.txt", "escape")
+    with pytest.raises(ValueError, match="unsafe published ZIP member"):
+        harness.ensure_published_base(
+            tmp_path / "cache", url=archive.as_uri(), archive_sha256=harness.sha(archive)
+        )
+    assert not (tmp_path / "outside.txt").exists()
+
+
+def test_real_upgrade_fixture_no_longer_depends_on_the_delta_window():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    workflow = (root / ".github/workflows/release.yml").read_text(encoding="utf-8")
+    # build_deltas.ps1 keeps three tags, so a pinned 1.0.9 base is gone by 1.0.13.
+    assert "--fetch-published-base $baseRoot" in workflow
+    assert "reports/in-app-step-output.txt" in workflow
+    assert "reports/in-app-crash-report.txt" in workflow

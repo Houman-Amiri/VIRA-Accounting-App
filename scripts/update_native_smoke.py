@@ -21,6 +21,9 @@ import sys
 import tempfile
 import threading
 import time
+import traceback
+import urllib.request
+import zipfile
 from contextlib import closing
 from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -135,6 +138,71 @@ def seed_business() -> None:
 
 # Pinned public asset digest from GitHub release v1.0.9; not a rebuilt baseline.
 LEGACY_SHA256 = "5b5ddba7656a35c7ab14d2f92d0d0263f442f1d1890d4ba74e1d27e632928e16"
+PUBLISHED_BASE_VERSION = "1.0.9"
+PUBLISHED_BASE_COMMIT = "7d78720"
+DEFAULT_REPOSITORY = "Houman-Amiri/VIRA-Accounting-App"
+
+
+def published_base_url(repository: str | None = None) -> str:
+    """Public release asset of the pinned client; never a locally rebuilt tree."""
+    repo = repository or os.environ.get("GITHUB_REPOSITORY") or DEFAULT_REPOSITORY
+    return (
+        f"https://github.com/{repo}/releases/download/v{PUBLISHED_BASE_VERSION}"
+        f"/vira-v{PUBLISHED_BASE_VERSION}-app.zip"
+    )
+
+
+def ensure_published_base(
+    cache: Path,
+    *,
+    url: str | None = None,
+    archive_sha256: str = LEGACY_SHA256,
+) -> Path:
+    """Restore the pinned published client payload the native upgrade starts from.
+
+    ``build_deltas.ps1`` only downloads the three most recent tags, so the pinned
+    baseline disappears from the delta cache as soon as it is more than three
+    releases old — which is what failed the first v1.0.13 tag run *before* any
+    updater code ran. Fetching it here, digest-pinned and never rebuilt, keeps the
+    real old-client upgrade covered for every later release.
+    """
+    cache = Path(cache)
+    archive = cache / f"base-{PUBLISHED_BASE_VERSION}.zip"
+    base = cache / f"base-{PUBLISHED_BASE_VERSION}"
+    if archive.is_file() and sha(archive) == archive_sha256 and (base / "install_manifest.json").is_file():
+        return base
+    cache.mkdir(parents=True, exist_ok=True)
+    pending = archive.with_suffix(".zip.part")
+    try:
+        with urllib.request.urlopen(url or published_base_url(), timeout=120) as response, pending.open("wb") as stream:
+            shutil.copyfileobj(response, stream)
+    except Exception:
+        pending.unlink(missing_ok=True)
+        raise
+    if sha(pending) != archive_sha256:
+        pending.unlink(missing_ok=True)
+        raise ValueError(f"published {PUBLISHED_BASE_VERSION} ZIP digest mismatch")
+    pending.replace(archive)
+    staging = cache / f"base-{PUBLISHED_BASE_VERSION}.extract"
+    if staging.exists():
+        shutil.rmtree(staging)
+    with zipfile.ZipFile(archive) as bundle:
+        for member in bundle.namelist():
+            relative = Path(member)
+            if relative.is_absolute() or ".." in relative.parts or ":" in member or "\\" in member:
+                raise ValueError(f"unsafe published ZIP member: {member}")
+        bundle.extractall(staging)
+    manifest = next(staging.rglob("install_manifest.json"), None)
+    if manifest is None:
+        raise ValueError(f"published {PUBLISHED_BASE_VERSION} ZIP has no install_manifest.json")
+    # Flatten any wrapping folder so ``--published-base`` is always the payload
+    # root whose sibling ``base-<version>.zip`` carries the pinned bytes.
+    if base.exists():
+        shutil.rmtree(base)
+    manifest.parent.replace(base)
+    if staging.exists():
+        shutil.rmtree(staging, ignore_errors=True)
+    return base
 
 
 def emit_diagnostic(path: Path) -> None:
@@ -187,9 +255,9 @@ def normalize_target_version(value: str | None) -> str:
 class PublishedUpgrade:
     base: Path
     packages: Path
-    base_version: str = "1.0.9"
+    base_version: str = PUBLISHED_BASE_VERSION
     target_version: str = "1.0.10"
-    base_commit: str = "7d78720"
+    base_commit: str = PUBLISHED_BASE_COMMIT
     archive_sha256: str = LEGACY_SHA256
     schema_rollback: bool = False
 
@@ -698,18 +766,45 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
         feed.server_close()
 
 
-if __name__ == "__main__":
+def write_crash_report(error: BaseException) -> Path | None:
+    """Persist a pre-audit failure so CI can upload it instead of only annotating.
+
+    The v1.0.13 tag run failed 24 s into the step, before any Playwright
+    assertion existed, so the diagnostics artifact was never created and the
+    real reason was invisible in the workflow log.
+    """
+    try:
+        reports = ROOT / "reports"
+        reports.mkdir(exist_ok=True)
+        path = reports / "in-app-crash-report.txt"
+        detail = "".join(traceback.format_exception(error))
+        path.write_text(detail[-20000:], encoding="utf-8")
+        return path
+    except OSError:
+        return None
+
+
+def main() -> None:
     if sys.platform != "win32" or os.environ.get("GITHUB_ACTIONS") != "true":
         raise SystemExit("Refusing: isolated Windows GitHub Actions runner required")
     parser = argparse.ArgumentParser()
     parser.add_argument("--published-base", type=Path)
     parser.add_argument("--packages", type=Path)
     parser.add_argument(
+        "--fetch-published-base",
+        type=Path,
+        metavar="CACHE_DIR",
+        help="restore the digest-pinned published client payload into CACHE_DIR and exit",
+    )
+    parser.add_argument(
         "--target-version",
         default=os.environ.get("VIRA_VERSION") or PublishedUpgrade.target_version,
         type=normalize_target_version,
     )
     args = parser.parse_args()
+    if args.fetch_published_base:
+        print(ensure_published_base(args.fetch_published_base.resolve()))
+        return
     published = None
     if args.published_base or args.packages:
         if not args.published_base or not args.packages:
@@ -728,3 +823,12 @@ if __name__ == "__main__":
         if published
         else "Native in-app consent/download/apply/restart and real rollback PASS; private current-code fixtures only"
     )
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except BaseException as error:
+        report = write_crash_report(error)
+        print(f"::error title=in-app-crash::see {report.name if report else 'stdout'}", flush=True)
+        raise

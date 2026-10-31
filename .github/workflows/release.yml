@@ -220,20 +220,40 @@ jobs:
         if: ${{ !startsWith(env.VIRA_VERSION, '0.0.0') }}
         shell: pwsh
         run: |
-          pnpm --dir frontend exec playwright install chromium
-          if ($LASTEXITCODE -ne 0) { throw "browser install failed" }
-          $baseDir = Join-Path ([IO.Path]::GetTempPath()) "vira-delta-base/base-1.0.9"
-          $baseManifest = Get-ChildItem $baseDir -Recurse -Filter install_manifest.json | Select-Object -First 1
+          New-Item -ItemType Directory -Force -Path reports | Out-Null
+          # The step output itself is uploaded on failure; a 24 s early failure
+          # left no artifact at all on the first v1.0.13 tag run.
+          $out = (& pnpm --dir frontend exec playwright install chromium *>&1 | Out-String)
+          Write-Host $out
+          if ($LASTEXITCODE -ne 0) {
+            $out | Out-File -FilePath reports/in-app-step-output.txt -Encoding utf8
+            throw "browser install failed"
+          }
+          # build_deltas.ps1 only fetches the three most recent tags, so the
+          # pinned 1.0.9 client leaves the delta cache after three releases.
+          # Restore the published (never rebuilt) payload by its pinned digest.
+          $baseRoot = Join-Path ([IO.Path]::GetTempPath()) "vira-delta-base"
+          $baseDir = Join-Path $baseRoot "base-1.0.9"
+          $baseManifest = $null
+          if (Test-Path $baseDir) {
+            $baseManifest = Get-ChildItem $baseDir -Recurse -Filter install_manifest.json -ErrorAction SilentlyContinue | Select-Object -First 1
+          }
           if (-not $baseManifest) {
+            $fetch = (& uv run python scripts/update_native_smoke.py --fetch-published-base $baseRoot *>&1 | Out-String)
+            $out += "`n" + $fetch
+            $baseManifest = Get-ChildItem $baseDir -Recurse -Filter install_manifest.json -ErrorAction SilentlyContinue | Select-Object -First 1
+          }
+          if (-not $baseManifest) {
+            $out | Out-File -FilePath reports/in-app-step-output.txt -Encoding utf8
             throw "the pinned published 1.0.9 client base is missing: keep its delta baseline in the window or add the next independently pinned client digest before releasing"
           }
           $code = 1
-          $out = ""
           try {
-            $out = (& uv run python scripts/update_native_smoke.py --published-base $baseManifest.Directory.FullName --packages dist-release --target-version $env:VIRA_VERSION *>&1 | Out-String)
+            $out += (& uv run python scripts/update_native_smoke.py --published-base $baseManifest.Directory.FullName --packages dist-release --target-version $env:VIRA_VERSION *>&1 | Out-String)
             $code = $LASTEXITCODE
           } catch { $out += "`n" + ($_ | Out-String) }
           Write-Host $out
+          $out | Out-File -FilePath reports/in-app-step-output.txt -Encoding utf8
           if ($code -ne 0) {
             $tail = $out.Substring([Math]::Max(0, $out.Length - 3000))
             $tail = $tail.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
@@ -246,7 +266,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: in-app-updater-diagnostics
-          path: reports/in-app-audit-failure-*.txt
+          path: |
+            reports/in-app-audit-failure-*.txt
+            reports/in-app-step-output.txt
+            reports/in-app-crash-report.txt
           if-no-files-found: warn
           retention-days: 14
 
