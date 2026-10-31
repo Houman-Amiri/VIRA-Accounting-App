@@ -7,6 +7,25 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### «چارت حساب‌ها» became «حساب‌ها» — the page now says something
+- The old page listed codes and names only: its «type» badge read a field the API
+  never sends (so every badge was blank), it showed no balance, and it printed
+  «در حال بارگذاری…» forever when the list was empty or the request failed.
+- Accounts themselves stay — the statements and the invoice mapping (1040/4010,
+  1030/2010) are built on them — but the screen is now in the owner's language:
+  دارایی‌ها / بدهی‌ها / سرمایه / درآمدها / هزینه‌ها, each account with a plain
+  sentence («پولی که مشتری‌ها به شما بدهکارند») and its real balance from the
+  trial balance, shown on the side a human reads (a credit-normal liability is
+  not shown as a negative number).
+- Header cards show دارایی‌ها, بدهی‌ها and خالص دارایی; every section carries its
+  own total. Placeholder («کمکی») accounts are structural and are not listed.
+- An account with no movement is never shown as a fake zero: it says «بدون گردش»
+  and stays behind «نمایش N حساب بدون گردش» (on a fresh install, where nothing
+  has moved, everything is listed so the page is not blank).
+- Loading/error states are honest: a failed request says the state is unknown and
+  offers a retry instead of spinning forever. Account codes render without a
+  thousands separator (۱٬۰۱۰ → ۱۰۱۰).
+
 ### دفتر اسناد: an entry can finally be edited and its status changed
 - The list was read-only: no way to post a draft, take a posted entry back out
   of the books, void it, or correct it. It also compared the status against

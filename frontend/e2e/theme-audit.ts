@@ -179,6 +179,7 @@ export async function auditMenuThemes(page: Page): Promise<void> {
         ["/bank-import", 5],
         ["/settings", 1],
         ["/journal", 0],
+        ["/accounts", 0],
         ["/statements", 0],
         ["/system", 0],
       ] as const) {
@@ -204,6 +205,12 @@ export async function auditMenuThemes(page: Page): Promise<void> {
             await page.getByTestId("entry-drawer-close").click();
             await expect(page.getByTestId("entry-drawer")).toHaveCount(0);
           }
+        }
+        if (path === "/accounts") {
+          // Plain language only: no English account types, real balances.
+          await expect(page.locator("body")).not.toContainText(/\b(ASSET|LIABILITY|EQUITY)\b/);
+          await expect(page.locator("body")).not.toContainText("در حال بارگذاری…");
+          await expect(page.getByTestId("accounts-row-1010")).toBeVisible();
         }
         if (path === "/statements") {
           // The three statements must show real report data, never the old
