@@ -61,22 +61,22 @@ test("command palette opens with Ctrl+K and navigates", async ({ page }) => {
 
 test.describe("calendar in a non-Tehran browser", () => {
   test.use({ timezoneId: "America/Los_Angeles" });
-  test("journal form enforces zero-balance before submit", async ({ page }) => {
+  test("new entry is an invoice form with a computed total", async ({ page }) => {
     test.setTimeout(120_000);
     await login(page);
     await page.clock.setFixedTime(new Date("2026-10-16T21:00:00Z"));
     await page.goto("/journal/new");
+    // Item 11: no debit/credit anywhere on this page.
+    await expect(page.getByTestId("split-debit-0")).toHaveCount(0);
+    await expect(page.getByTestId("split-credit-0")).toHaveCount(0);
+    await page.getByTestId("invoice-buyer").fill("مشتری آزمایشی");
     await page.getByTestId("entry-description").fill("سند آزمایشی");
-    // pick real accounts (seeded chart) — the balance rule runs only when the
-    // per-split schema (account required) passes
-    await page.getByTestId("split-account-0").selectOption({ label: "1010 — صندوق" });
-    await page.getByTestId("split-account-1").selectOption({ label: "1020 — بانک" });
-    await page.getByTestId("split-debit-0").fill("100");
-    await page.getByTestId("split-credit-1").fill("75");
-    await expect(page.getByTestId("balance-error")).toBeVisible();
     await expect(page.getByTestId("submit-entry")).toBeDisabled();
-    await page.getByTestId("auto-balance").click();
-    await expect(page.getByTestId("balanced-badge")).toBeVisible();
+    await page.getByTestId("invoice-title-0").fill("مجسمه");
+    await page.getByTestId("invoice-quantity-0").fill("2");
+    await page.getByTestId("invoice-price-0").fill("1500000");
+    await expect(page.getByTestId("invoice-line-total-0")).toContainText("۳٬۰۰۰٬۰۰۰");
+    await expect(page.getByTestId("invoice-grand-total")).toContainText("۳٬۰۰۰٬۰۰۰");
     await expect(page.getByTestId("submit-entry")).toBeEnabled();
     await auditCalendar(page);
     await auditOperations(page);
@@ -163,19 +163,26 @@ test("pricing reproduces the original Excel cells for single and multiple quanti
     await page.reload();
     await expect(page.getByTestId("const-filamentPerGram")).toHaveValue("9000.0000");
     await page.goto("/price-calc");
+    // Item 8: the page starts empty and only computes after the user types.
+    await expect(page.getByTestId("price-empty")).toBeVisible();
+    await expect(page.getByTestId("row-productionTotal")).toHaveCount(0);
+    await page.getByTestId("input-weight").fill("240");
+    await page.getByTestId("input-hours").fill("10");
+    await page.getByTestId("input-qty").fill("1");
     await expect(page.getByTestId("row-productionTotal")).toContainText("۲٬۲۷۴٬۰۰۰");
+    await expect(page.getByTestId("row-unitFinalPrice")).toContainText("۷٬۲۳۹٬۵۰۸.۵");
     await page.getByTestId("input-qty").fill("۱۰");
-    await page.getByRole("button", { name: "بازنشانی ورودی‌ها" }).click();
-    await expect(page.getByTestId("input-qty")).toHaveValue("1");
-    await expect(page.getByTestId("row-productionTotal")).toContainText("۲٬۲۷۴٬۰۰۰");
-    // A different pricing consumer must use the saved values, too.
-    await page.goto("/orders");
-    await page.getByTestId("order-channel").selectOption("marketplace");
-    const line = page.getByTestId("line-0");
-    await line.getByPlaceholder("وزن (گرم)").fill("240");
-    await line.getByPlaceholder("زمان (ساعت)").fill("10");
-    await line.getByRole("button", { name: "محاسبهٔ قیمت" }).click();
-    await expect(line.getByPlaceholder("قیمت واحد")).toHaveValue("7239508.5000");
+    await expect(page.getByTestId("row-unitFinalPrice")).toContainText("۷۳۹٬۰۷۰.۸۵");
+    await page.getByRole("button", { name: "پاک کردن ورودی‌ها" }).click();
+    await expect(page.getByTestId("input-qty")).toHaveValue("");
+    await expect(page.getByTestId("price-empty")).toBeVisible();
+    // Reload: the saved constants are used again, and nothing is remembered.
+    await page.reload();
+    await expect(page.getByTestId("price-empty")).toBeVisible();
+    await page.getByTestId("input-weight").fill("240");
+    await page.getByTestId("input-hours").fill("10");
+    await page.getByTestId("input-qty").fill("1");
+    await expect(page.getByTestId("row-unitFinalPrice")).toContainText("۷٬۲۳۹٬۵۰۸.۵");
   } finally {
     await page.goto("/settings");
     await page.getByTestId("const-filamentPerGram").fill("3000");
@@ -183,7 +190,11 @@ test("pricing reproduces the original Excel cells for single and multiple quanti
     await expect(page.getByText("ثابت‌های قیمت‌گذاری ذخیره شدند.")).toBeVisible();
   }
   await page.goto("/price-calc");
-  await expect(page.getByTestId("row-unitFinalPrice")).toContainText("۲٬۷۸۰٬۷۴۸.۵");
+  // Back on the shared constants, the same entry reproduces the sheet amount.
+  await page.getByTestId("input-weight").fill("240");
+  await page.getByTestId("input-hours").fill("10");
+  await page.getByTestId("input-qty").fill("1");
+  await expect(page.getByTestId("row-unitFinalPrice")).toContainText("۲٬۷۶۰٬۷۴۸.۵");
 });
 
 // Only the update HTTP boundary is simulated; login, sudo, hooks and dialog are real.

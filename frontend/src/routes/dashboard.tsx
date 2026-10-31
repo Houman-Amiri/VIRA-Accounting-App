@@ -8,13 +8,7 @@ import { api, throwIfError } from "@/api/client";
 import { sumMoney, toDecimal, type MoneyLike } from "@/lib/money";
 import { faNumber } from "@/lib/fa";
 import { fiscalYearFor } from "@/lib/fiscal";
-import {
-  chartToman,
-  dashboardDate,
-  daysBefore,
-  tehranDay,
-  trialDifference,
-} from "@/lib/dashboard";
+import { chartToman, dashboardDate, daysBefore, tehranDay, trialDifference } from "@/lib/dashboard";
 import { useUpdateCheck } from "@/lib/update";
 import { EChart, type ChartTheme } from "@/components/echart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

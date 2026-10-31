@@ -50,17 +50,16 @@ export async function auditOperations(page: Page): Promise<void> {
   await page.getByTestId("order-customer").fill(base);
   await page.getByTestId("order-channel").selectOption("direct");
   await page.getByRole("button", { name: "+ افزودن قلم" }).click();
-  for (const [i, name, qty, grams, price, cost] of [
-    [0, first.name, "۲", "۱۲.۵", "۱۲۳.۴۵۶۷", "۲۳.۴۵۶۷"],
-    [1, second.name, "۱", "۲۰", "۴۵۶.۱۲۳۴", "۵۶.۱۲۳۴"],
+  // Item 3: no grams/time on an order line; item 7: the product comes from the
+  // warehouse, so the line is a select of stocked products, not a free name.
+  for (const [i, product, qty, price, cost] of [
+    [0, first, "۲", "۱۲۳.۴۵۶۷", "۲۳.۴۵۶۷"],
+    [1, second, "۱", "۴۵۶.۱۲۳۴", "۵۶.۱۲۳۴"],
   ] as const) {
-    const line = page.getByTestId(`line-${i}`);
-    await line.getByPlaceholder("نام محصول").fill(name);
-    await line.getByPlaceholder("تعداد", { exact: true }).fill(qty);
-    await line.getByPlaceholder("وزن (گرم)").fill(grams);
-    await line.getByPlaceholder("زمان (ساعت)").fill("۱");
-    await line.getByPlaceholder("قیمت واحد", { exact: true }).fill(price);
-    await line.getByPlaceholder("بهای تمام‌شده واحد").fill(cost);
+    await page.getByTestId(`line-product-${i}`).selectOption(product.id);
+    await page.getByTestId(`line-quantity-${i}`).fill(qty);
+    await page.getByTestId(`line-price-${i}`).fill(price);
+    await page.getByTestId(`line-cost-${i}`).fill(cost);
   }
   const orderResponse = waitWrite("orders");
   await page.getByTestId("order-submit").click();
@@ -71,8 +70,10 @@ export async function auditOperations(page: Page): Promise<void> {
     await page.getByRole("link", { name: "تولید", exact: true }).click();
     await page.getByTestId("job-order").selectOption(order.id);
     await page.getByTestId("job-order-line").selectOption(order.items[index].id);
-    await page.getByTestId("job-filament").selectOption(filament.id);
     await page.getByTestId("job-product-item").selectOption(product.id);
+    // Item 6: each spool of the job is chosen with its own grams per piece.
+    await page.getByTestId("job-spool-0-item").selectOption(filament.id);
+    await page.getByTestId("job-spool-0-grams").fill(index === 0 ? "۱۲.۵" : "۲۰");
     const response = waitWrite("production/jobs");
     await page.getByTestId("job-submit").click();
     const job = await (await response).json();

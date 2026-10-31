@@ -93,7 +93,9 @@ describe("pricing page — literal Excel model", () => {
     const row = within(screen.getByTestId("row-unitFinalPrice"));
     expect(row.getByText("۲۹۱٬۱۹۴.۸۵")).toBeInTheDocument();
     expect(row.getByText("۳۱۱٬۱۹۴.۸۵")).toBeInTheDocument();
-    expect(within(screen.getByTestId("row-productionTotal")).getByText("۹۱۴٬۰۰۰")).toBeInTheDocument();
+    expect(
+      within(screen.getByTestId("row-productionTotal")).getByText("۹۱۴٬۰۰۰"),
+    ).toBeInTheDocument();
   });
 
   it("clears only product inputs, keeping the saved pricing constants", () => {

@@ -9,6 +9,26 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReceiptViewer } from "@/components/receipt-viewer";
 import { Badge } from "@/components/ui/badge";
 import { FileUp, ScanText } from "lucide-react";
+import { StepGuide } from "@/components/guide-steps";
+
+export const RECEIPTS_GUIDE = [
+  {
+    title: "تصویر یا PDF رسید را آماده کنید",
+    body: "عکس واضح رسید کارت‌خوان، فیش بانکی یا PDF صورتحساب؛ حداکثر ۱۰ مگابایت.",
+  },
+  {
+    title: "فایل را در کادر بالا رها کنید",
+    body: "رسید در همین نصب ذخیره می‌شود و فایل تکراری دوباره ذخیره نمی‌شود.",
+  },
+  {
+    title: "رسید را باز کنید",
+    body: "با کلیک روی هر رسید، پیش‌نمایش باز می‌شود و وضعیت استخراج متن (OCR) را می‌بینید.",
+  },
+  {
+    title: "اسناد را از «سند جدید» ثبت کنید",
+    body: "رسید پشتوانهٔ سند است؛ خودِ سند با فرم فاکتور (تاریخ، فروشنده، خریدار، کالاها) ثبت می‌شود.",
+  },
+];
 
 interface ReceiptMeta {
   id: string;
@@ -46,6 +66,13 @@ export function ReceiptsPage(): React.JSX.Element {
   return (
     <div className="space-y-4" dir="rtl">
       <h1 className="text-xl font-bold">اسناد و رسیدها</h1>
+
+      <StepGuide
+        id="receipts"
+        title="راهنمای ثبت رسید"
+        intro="رسید را نگه می‌داریم تا هنگام ثبت سند به آن برگردید."
+        steps={RECEIPTS_GUIDE}
+      />
 
       <div
         {...getRootProps()}

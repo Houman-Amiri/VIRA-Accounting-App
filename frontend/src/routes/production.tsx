@@ -323,16 +323,13 @@ export function ProductionPage(): React.JSX.Element {
       product_item_id: line?.inventory_item_id ?? "",
     }));
   };
-  const totalGramsPerUnit = form.filaments.reduce(
-    (sum, row) => {
-      try {
-        return row.grams.trim() ? sum.plus(toDecimal(row.grams)) : sum;
-      } catch {
-        return sum;
-      }
-    },
-    toDecimal("0"),
-  );
+  const totalGramsPerUnit = form.filaments.reduce((sum, row) => {
+    try {
+      return row.grams.trim() ? sum.plus(toDecimal(row.grams)) : sum;
+    } catch {
+      return sum;
+    }
+  }, toDecimal("0"));
   const selectedOrder = ordersQuery.data?.find((o) => o.id === form.order_id);
   const selectedLine = selectedOrder?.items.find((l) => l.id === form.order_item_id);
 
@@ -462,7 +459,9 @@ export function ProductionPage(): React.JSX.Element {
                                 <Button
                                   size="sm"
                                   data-testid={`job-${job.id}-finish`}
-                                  disabled={act.isPending || !job.filament_ready || !job.product_item_id}
+                                  disabled={
+                                    act.isPending || !job.filament_ready || !job.product_item_id
+                                  }
                                   onClick={() => act.mutate({ job, action: "finish" })}
                                 >
                                   پایان (کسر فیلامنت)
@@ -538,9 +537,7 @@ export function ProductionPage(): React.JSX.Element {
                         setEditingJob({
                           ...editingJob,
                           filaments: editingJob.filaments.map((r, i) =>
-                            i === index
-                              ? { ...r, filament_item_id: e.target.value || null }
-                              : r,
+                            i === index ? { ...r, filament_item_id: e.target.value || null } : r,
                           ),
                         })
                       }
@@ -818,7 +815,10 @@ export function ProductionPage(): React.JSX.Element {
                 data-testid="job-spool-add"
                 disabled={form.filaments.length >= 20}
                 onClick={() =>
-                  setForm((f) => ({ ...f, filaments: [...f.filaments, { item_id: "", grams: "" }] }))
+                  setForm((f) => ({
+                    ...f,
+                    filaments: [...f.filaments, { item_id: "", grams: "" }],
+                  }))
                 }
               >
                 + افزودن فیلامنت

@@ -230,9 +230,7 @@ export function OrdersPage(): React.JSX.Element {
             variant: line.variant,
             quantity: parseNum(line.quantity || "1").toString(),
             // 0 means "use the warehouse price", decided by the server
-            unit_price: line.unit_price.trim()
-              ? parseNum(line.unit_price).toString()
-              : "0",
+            unit_price: line.unit_price.trim() ? parseNum(line.unit_price).toString() : "0",
             unit_cost: line.unit_cost.trim() ? parseNum(line.unit_cost).toString() : "0",
           })),
         },
@@ -251,9 +249,7 @@ export function OrdersPage(): React.JSX.Element {
       }));
       const warnings = created.warnings ?? [];
       setMessage(
-        warnings.length
-          ? `سفارش ثبت شد ✓ — هشدار: ${warnings.join(" | ")}`
-          : "سفارش ثبت شد ✓",
+        warnings.length ? `سفارش ثبت شد ✓ — هشدار: ${warnings.join(" | ")}` : "سفارش ثبت شد ✓",
       );
       setCreateWarnings(warnings);
       invalidate();

@@ -216,9 +216,7 @@ it("one failed query hides its stale values; other sections remain usable and re
   fireEvent.click(
     within(screen.getByTestId("kpi-cash")).getByRole("button", { name: "تلاش دوباره" }),
   );
-  await waitFor(() =>
-    expect(screen.getByTestId("kpi-cash")).toHaveTextContent(faNumber("800")),
-  );
+  await waitFor(() => expect(screen.getByTestId("kpi-cash")).toHaveTextContent(faNumber("800")));
 });
 
 it("failed trial/alarms/orders/production never claim healthy or empty", async () => {

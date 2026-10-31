@@ -23,20 +23,39 @@ export async function auditCalendar(page: Page): Promise<void> {
   await expect(page.getByTestId("entry-date")).toHaveValue("1405/07/25");
   await page.getByTestId("entry-date").fill("۱۴۰۵/۰۷/۲۵");
   await expect(page.getByTestId("entry-date-preview")).toHaveText("۱۴۰۵/۰۷/۲۵");
-  const created = write("journal-entries");
-  page.once("dialog", (d) => d.accept());
+  // Item 11: the entry is an invoice; only the invoice fields are filled.
+  await page.getByTestId("invoice-buyer").fill("خریدار آزمون تقویم");
+  await page.getByTestId("invoice-title-0").fill("نمونه تقویم");
+  await page.getByTestId("invoice-quantity-0").fill("۱");
+  await page.getByTestId("invoice-price-0").fill("۱۲۳.۴۵۶۷");
+  const created = write("journal-entries/invoice");
   await page.getByTestId("submit-entry").click();
   const entryResponse = await created;
   expect(entryResponse.status(), await entryResponse.text()).toBe(201);
-  const entry = await entryResponse.json();
+  const entry = (await entryResponse.json()).entry;
   expect(entry.transaction_date).toBe("2026-10-17");
+  // A stocked warehouse product is required for an order line (item 7).
+  const token = (await page.context().cookies()).find((c) => c.name === "vira_csrf")!.value;
+  const headers = { "X-CSRF-Token": decodeURIComponent(token), Origin: new URL(page.url()).origin };
+  const productResponse = await page.request.post("/api/v1/warehouse/items", {
+    headers,
+    data: {
+      name: "محصول تقویم",
+      kind: "PRODUCT",
+      unit: "PCS",
+      quantity: "100",
+      unit_price: "123.4567",
+    },
+  });
+  expect(productResponse.status(), await productResponse.text()).toBe(201);
+  const product = await productResponse.json();
   await page.goto("/orders");
   await mobileDate("order-date");
   await expect(page.getByTestId("order-date")).toHaveValue("1405/07/25");
   await page.getByTestId("order-date").fill("۱۴۰۴/۰۱/۰۱");
   await page.getByTestId("order-customer").fill("آزمون تقویم نوروز");
-  await page.getByTestId("line-0").getByPlaceholder("نام محصول").fill("نمونه تقویم");
-  await page.getByTestId("line-0").getByPlaceholder("قیمت واحد", { exact: true }).fill("۱۲۳.۴۵۶۷");
+  await page.getByTestId("line-product-0").selectOption(product.id);
+  await page.getByTestId("line-quantity-0").fill("2");
   let response = write("orders");
   await page.getByTestId("order-submit").click();
   const order = await (await response).json();
@@ -74,7 +93,7 @@ export async function auditCalendar(page: Page): Promise<void> {
   await expect(page.getByTestId("orders-to")).toHaveValue("2025/03/21");
   await expect(page.getByTestId(`order-${order.id}`)).toContainText("۲۰۲۵/۰۳/۲۱");
   await page.getByTestId("order-customer").fill("آزمون روز ثابت پس از تغییر تقویم");
-  await page.getByTestId("line-0").getByPlaceholder("نام محصول").fill("نمونه دوم");
+  await page.getByTestId("line-product-0").selectOption(product.id);
   response = write("orders");
   await page.getByTestId("order-submit").click();
   expect((await (await response).json()).order_date).toBe("2026-10-17");

@@ -172,8 +172,8 @@ export async function auditMenuThemes(page: Page): Promise<void> {
       await expect(page.locator("html")).toHaveClass(dark ? /dark/ : /^(?!.*\bdark\b)/);
       for (const [path, count] of [
         ["/price-calc", 1],
-        ["/journal/new", 2],
-        ["/orders", 5],
+        ["/journal/new", 1],
+        ["/orders", 6],
         ["/production", 6],
         ["/warehouse", 5],
         ["/bank-import", 5],

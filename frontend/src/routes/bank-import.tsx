@@ -9,7 +9,29 @@ import Papa from "papaparse";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Upload, FileSpreadsheet, CheckCircle2 } from "lucide-react";
+import { Upload, FileSpreadsheet, CheckCircle2, TriangleAlert } from "lucide-react";
+import { api, parseError } from "@/api/client";
+import { StepGuide } from "@/components/guide-steps";
+import { faNumber } from "@/lib/fa";
+
+export const BANK_IMPORT_GUIDE = [
+  {
+    title: "صورت‌حساب را از بانک بگیرید",
+    body: "از اینترنت‌بانک، خروجی CSV (یا OFX) صورت‌حساب را ذخیره کنید.",
+  },
+  {
+    title: "فایل را اینجا رها کنید",
+    body: "فایل در همین نصب خوانده می‌شود؛ نام ستون‌ها فرقی نمی‌کند.",
+  },
+  {
+    title: "ستون تاریخ و مبلغ را انتخاب کنید",
+    body: "این دو ستون برای ساخت ردیف‌های بانکی لازم‌اند؛ بقیه اختیاری است.",
+  },
+  {
+    title: "«ثبت صورت‌حساب» را بزنید",
+    body: "ردیف‌ها با شناسهٔ یکتا ذخیره می‌شوند؛ فایل تکراری دوباره ثبت نمی‌شود.",
+  },
+];
 
 interface ParsedCsv {
   fileName: string;
@@ -19,6 +41,10 @@ interface ParsedCsv {
 
 export function BankImportPage(): React.JSX.Element {
   const [parsed, setParsed] = React.useState<ParsedCsv | null>(null);
+  const [file, setFile] = React.useState<File | null>(null);
+  const [result, setResult] = React.useState<{ lines: number; batchId: string } | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
+  const [busy, setBusy] = React.useState(false);
   const [mapping, setMapping] = React.useState<Record<string, string>>({
     date: "",
     amount: "",
@@ -30,6 +56,9 @@ export function BankImportPage(): React.JSX.Element {
   const onDrop = React.useCallback((accepted: File[]) => {
     const file = accepted[0];
     if (!file) return;
+    setFile(file);
+    setResult(null);
+    setError(null);
     Papa.parse<string[]>(file, {
       skipEmptyLines: true,
       complete: (result) => {
@@ -46,9 +75,36 @@ export function BankImportPage(): React.JSX.Element {
     multiple: false,
   });
 
+  const importStatement = async (): Promise<void> => {
+    if (!file) return;
+    setBusy(true);
+    setError(null);
+    setResult(null);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const res = await api.POST("/api/v1/imports/bank", { body: body as never });
+      if (res.error) throw await parseError(res.response);
+      const data = res.data as unknown as { batch_id: string; lines_imported: number };
+      setResult({ lines: data.lines_imported, batchId: data.batch_id });
+      trackEvent("bank_statement_imported", { route: "/bank-import", status: "stored" });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "ثبت صورت‌حساب ناموفق بود.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="space-y-4" dir="rtl">
       <h1 className="text-xl font-bold">ورود صورت‌حساب بانکی</h1>
+
+      <StepGuide
+        id="bank-import"
+        title="راهنمای ورود صورت‌حساب"
+        intro="چهار گام تا این‌که ردیف‌های بانکی برای تطبیق آماده شوند."
+        steps={BANK_IMPORT_GUIDE}
+      />
 
       <div
         {...getRootProps()}
@@ -109,14 +165,39 @@ export function BankImportPage(): React.JSX.Element {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <CheckCircle2 className="h-4 w-4 text-positive" />
-                نگاشت ستون‌ها در سمت کلاینت انجام می‌شود
+                نگاشت ستون‌ها برای پیش‌نمایش است؛ سرور خودِ فایل را می‌خواند
               </div>
-              <Button data-testid="submit-import" disabled={!mapping.date || !mapping.amount}>
-                ادامه و بررسی تطبیق
+              <Button
+                data-testid="submit-import"
+                disabled={!mapping.date || !mapping.amount || busy}
+                onClick={() => void importStatement()}
+              >
+                ثبت صورت‌حساب
               </Button>
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {result && (
+        <p
+          className="flex items-center gap-2 rounded-md bg-positive/10 px-3 py-2 text-sm"
+          data-testid="import-result"
+        >
+          <CheckCircle2 className="h-4 w-4 text-positive" />
+          <span className="num">{faNumber(String(result.lines))}</span> ردیف ثبت شد و برای تطبیق
+          آماده است.
+        </p>
+      )}
+      {error && (
+        <p
+          role="alert"
+          className="flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          data-testid="import-error"
+        >
+          <TriangleAlert className="h-4 w-4" />
+          {error}
+        </p>
       )}
     </div>
   );
