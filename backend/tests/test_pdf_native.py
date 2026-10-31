@@ -105,7 +105,12 @@ def test_native_fetcher_allows_only_exact_bundled_fonts(monkeypatch):
     fonts.FontConfiguration = object
     class URLFetcher:
         def __init__(self, **kwargs):
-            assert kwargs == {"allowed_protocols": {"file"}, "allow_redirects": False, "fail_on_errors": True}
+            # data: is admitted for exactly one URL: the inlined logo.
+            assert kwargs == {
+                "allowed_protocols": {"file", "data"},
+                "allow_redirects": False,
+                "fail_on_errors": True,
+            }
 
     class Response:
         def __init__(self, url, body, headers):
@@ -147,6 +152,16 @@ def test_native_fetcher_allows_only_exact_bundled_fonts(monkeypatch):
     for forbidden in ("https://example.invalid/a.ttf", "http://127.0.0.1/", (pdf.FONTS_DIR.parent / "not-a-font.txt").as_uri(), "data:text/plain,not-a-font"):
         with pytest.raises(ValueError, match="Only the bundled"):
             fetch(forbidden)
+
+    # The inlined logo is the one allowed data: URL, and it is a real PNG.
+    logo = fetch(pdf.logo_data_uri())
+    assert logo.body == (pdf.BRANDING_DIR / pdf.LOGO_FILENAME).read_bytes()
+    assert logo.headers == {"Content-Type": "image/png"}
+    assert logo.body.startswith(b"\x89PNG")
+    # A different data: image is still refused — the allowlist is exact.
+    other = "data:image/png;base64," + __import__("base64").b64encode(b"\x89PNG\r\n\x1a\nother").decode()
+    with pytest.raises(ValueError, match="Only the bundled"):
+        fetch(other)
 
     injected = object()
     pdf.render_pdf("proforma.html", context, font_configuration=injected)

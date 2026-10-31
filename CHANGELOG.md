@@ -25,6 +25,14 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
   the UI/favicon copy is a 160 px derivative.
 - Persian number/date formatting moved to `app/services/persian.py` so both
   documents format money and dates through one implementation.
+- The native PDF allowlist had to change with it: WeasyPrint's fetcher admitted
+  `file:` only, so an inlined `data:` logo would have been refused and the
+  native render would have fallen back to HTML. `data:` is now admitted for
+  exactly one URL — the logo — while every other http/file/data resource is
+  still rejected (`backend/tests/test_pdf_native.py`).
+- `app/services/pdf.py` is part of the private native-PDF witness list, so the
+  next release's Windows PDF evidence (fonts/logo/fetch policy) must be
+  re-produced rather than reused from an earlier run.
 
 ### «چارت حساب‌ها» became «حساب‌ها» — the page now says something
 - The old page listed codes and names only: its «type» badge read a field the API

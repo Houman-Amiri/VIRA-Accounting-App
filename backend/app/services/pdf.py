@@ -66,6 +66,35 @@ def render_html(
     return template.render(**context, **font_urls)
 
 
+def bundled_resources() -> dict[str, tuple[bytes, str]]:
+    """The complete set of resources a rendered document may load.
+
+    Two Vazirmatn weights (file URIs, because WeasyPrint needs a real file for
+    the font face) and the inlined logo (the exact data: URI render_html put in
+    the HTML). Nothing else — no network, no other file on the machine.
+    """
+    resources: dict[str, tuple[bytes, str]] = {}
+    for weight in ("Regular", "Bold"):
+        path = FONTS_DIR / f"Vazirmatn-{weight}.ttf"
+        resources[path.as_uri()] = (path.read_bytes(), "font/ttf")
+    logo = BRANDING_DIR / LOGO_FILENAME
+    resources[logo_data_uri()] = (logo.read_bytes(), "image/png")
+    return resources
+
+
+def read_bundled(
+    url: str, resources: dict[str, tuple[bytes, str]] | None = None
+) -> tuple[bytes, str]:
+    """Return (bytes, content-type) for a bundled URL, or refuse it."""
+    table = bundled_resources() if resources is None else resources
+    try:
+        return table[url]
+    except KeyError:
+        raise ValueError(
+            "Only the bundled Vazirmatn font files and the V.I.R.A logo may be fetched"
+        ) from None
+
+
 def render_pdf(
     template_name: str, context: dict[str, Any], *, font_configuration: Any | None = None
 ) -> bytes:
@@ -84,22 +113,19 @@ def render_pdf(
             "Native PDF engine could not be imported; check the WeasyPrint version "
             "and Pango/Fontconfig/HarfBuzz runtime (see chained cause)"
         ) from exc
-    allowed_urls = {
-        (FONTS_DIR / f"Vazirmatn-{weight}.ttf").as_uri(): FONTS_DIR / f"Vazirmatn-{weight}.ttf"
-        for weight in ("Regular", "Bold")
-    }
+    resources = bundled_resources()
 
-    class BundledFontFetcher(URLFetcher):
+    class BundledFetcher(URLFetcher):
         def fetch(self, url: str, headers: dict[str, str] | None = None) -> Any:
-            # No network/openers: read only the two exact bundled font paths.
-            if url not in allowed_urls:
-                raise ValueError("Only the bundled Vazirmatn font files may be fetched")
-            return URLFetcherResponse(
-                url, allowed_urls[url].read_bytes(), {"Content-Type": "font/ttf"}
-            )
+            # No network/openers: read only the two exact bundled font files and
+            # the exact inlined logo. Everything else (http, any other file, any
+            # other data: URI) is refused.
+            body, content_type = read_bundled(url, resources)
+            return URLFetcherResponse(url, body, {"Content-Type": content_type})
 
-    fetcher = BundledFontFetcher(
-        allowed_protocols={"file"}, allow_redirects=False, fail_on_errors=True
+    # data: is allowed for exactly one URL — the logo this module inlined.
+    fetcher = BundledFetcher(
+        allowed_protocols={"file", "data"}, allow_redirects=False, fail_on_errors=True
     )
     try:
         return HTML(string=html, base_url=str(TEMPLATES_DIR), url_fetcher=fetcher).write_pdf(
