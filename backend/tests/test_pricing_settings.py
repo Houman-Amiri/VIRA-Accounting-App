@@ -6,6 +6,7 @@ from sqlalchemy import select, text
 
 from app.models import User
 from app.models.pricing import PricingSettings
+from tests.order_helpers import make_product
 
 PATH = "/api/v1/settings/pricing"
 
@@ -76,9 +77,10 @@ async def test_roles_enforced_on_server(client, database, role, read_status, wri
 
 
 async def test_changing_settings_does_not_rewrite_saved_order_prices(client):
+    product = await make_product(client, "retained price", quantity="1")
     order = await client.post("/api/v1/orders", json={
         "order_date": "2026-10-16", "customer_name": "fixture",
-        "items": [{"product_name": "retained price", "quantity": "1", "unit_price": "123.4567", "unit_cost": "23.4567"}],
+        "items": [{"product_name": "retained price", "quantity": "1", "unit_price": "123.4567", "unit_cost": "23.4567", "inventory_item_id": product["id"]}],
     })
     assert order.status_code == 201, order.text
     original = order.json()
@@ -94,9 +96,10 @@ async def test_new_migration_preserves_existing_records_and_downgrades(client, d
     from alembic import command
     from tests.conftest import BACKEND_DIR
 
+    product = await make_product(client, "saved before migration", quantity="2")
     order = await client.post("/api/v1/orders", json={
         "order_date": "2026-10-16", "customer_name": "migration fixture",
-        "items": [{"product_name": "saved before migration", "quantity": "2", "unit_price": "123.4567", "unit_cost": "23.4567"}],
+        "items": [{"product_name": "saved before migration", "quantity": "2", "unit_price": "123.4567", "unit_cost": "23.4567", "inventory_item_id": product["id"]}],
     })
     assert order.status_code == 201, order.text
     order_before = order.json()

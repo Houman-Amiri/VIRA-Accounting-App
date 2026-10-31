@@ -222,6 +222,10 @@ class OrderItem(Base):
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     order: Mapped[Order] = relationship(back_populates="items")
+    # Kept for reads (the order page shows the warehouse name); never cascades.
+    inventory_item: Mapped[InventoryItem | None] = relationship(
+        lazy="selectin", viewonly=True
+    )
 
 
 class ProductionJob(Base, TimestampMixin):
@@ -278,3 +282,45 @@ class ProductionJob(Base, TimestampMixin):
     started_at: Mapped[str | None] = mapped_column(Text, nullable=True)
     finished_at: Mapped[str | None] = mapped_column(Text, nullable=True)
     version_id: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+
+    filaments: Mapped[list[ProductionFilament]] = relationship(
+        back_populates="job",
+        cascade="all, delete-orphan",
+        order_by="ProductionFilament.position",
+    )
+
+
+class ProductionFilament(Base):
+    """One filament a production job consumes, with its own grams and price.
+
+    A printed model is often made of several spools (base colour + accent).
+    ``filament_grams``/``filament_item_id`` on the job stay as the legacy single
+    spool and as a denormalised total for lists; the authoritative quantity per
+    spool lives here and is what finishing deducts from stock.
+    """
+
+    __tablename__ = "production_job_filaments"
+    __table_args__ = (
+        CheckConstraint("grams_per_unit >= 0", name="grams_non_negative"),
+        CheckConstraint("unit_cost >= 0", name="cost_non_negative"),
+        Index("ix_production_job_filaments_job", "job_id", "position"),
+    )
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    job_id: Mapped[str] = mapped_column(
+        Text, ForeignKey("production_jobs.id", ondelete="CASCADE"), nullable=False
+    )
+    position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    filament_item_id: Mapped[str | None] = mapped_column(
+        Text, ForeignKey("inventory_items.id", ondelete="SET NULL"), nullable=True
+    )
+    grams_per_unit: Mapped[Decimal] = mapped_column(
+        ScaledMoneyType, nullable=False, default=Decimal(0)
+    )
+    unit_cost: Mapped[Decimal] = mapped_column(
+        ScaledMoneyType, nullable=False, default=Decimal(0)
+    )
+    created_at: Mapped[str] = mapped_column(Text, nullable=False)
+
+    job: Mapped[ProductionJob] = relationship(back_populates="filaments")
+    item: Mapped[InventoryItem | None] = relationship(lazy="selectin")

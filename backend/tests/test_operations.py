@@ -151,14 +151,33 @@ async def test_inventory_summary_counts_kinds(client) -> None:
 
 
 # -------------------------------------------------------------------- orders ---
+async def _stocked(client, name: str, pieces: Decimal, unit_price: str) -> dict:
+    """Return an active PRODUCT item with enough stock for an order line."""
+    existing = {i["name"]: i for i in (await client.get("/api/v1/warehouse/items")).json()}
+    item = existing.get(name)
+    if item is not None and Decimal(item["quantity"]) >= pieces:
+        return item
+    if item is None:
+        return await _item(
+            client,
+            name,
+            kind="PRODUCT",
+            unit="PCS",
+            quantity=str(pieces + 10),
+            min_quantity="0",
+            unit_price=unit_price,
+        )
+    await client.post(
+        f"/api/v1/warehouse/items/{item['id']}/movements",
+        json={"kind": "IN", "quantity": str(pieces + 10 - Decimal(item["quantity"]))},
+    )
+    return {i["name"]: i for i in (await client.get("/api/v1/warehouse/items")).json()}[name]
+
+
 async def _order(client, **kw) -> dict:
-    payload = {
-        "order_date": "2026-10-15",
-        "customer_name": "مشتری نمونه",
-        "customer_phone": "09120000000",
-        "customer_address": "تهران، خیابان نمونه",
-        "channel": "marketplace",
-        "items": [
+    raw_items = kw.pop(
+        "items",
+        [
             {
                 "product_name": "مجسمهٔ روباه",
                 "variant": "chain",
@@ -169,6 +188,26 @@ async def _order(client, **kw) -> dict:
                 "print_hours": "10",
             }
         ],
+    )
+    items = []
+    for line in raw_items:
+        line = dict(line)
+        if not line.get("inventory_item_id"):
+            item = await _stocked(
+                client,
+                line["product_name"],
+                Decimal(line["quantity"]),
+                line.get("unit_price") or "0",
+            )
+            line["inventory_item_id"] = item["id"]
+        items.append(line)
+    payload = {
+        "order_date": "2026-10-15",
+        "customer_name": "مشتری نمونه",
+        "customer_phone": "09120000000",
+        "customer_address": "تهران، خیابان نمونه",
+        "channel": "marketplace",
+        "items": items,
         **kw,
     }
     resp = await client.post("/api/v1/orders", json=payload)
@@ -202,6 +241,7 @@ async def test_order_lifecycle_totals_and_sales_report(client) -> None:
                     "quantity": "1",
                     "unit_price": "2760748.5",
                     "unit_cost": "834000",
+                    "inventory_item_id": order["items"][0]["inventory_item_id"],
                 }
             ],
         },
@@ -248,9 +288,20 @@ async def test_proforma_document_renders(client, pdf_inspector) -> None:
 async def test_production_consumes_filament_and_yields_products(client) -> None:
     filament = await _item(client, "فیلامنت PETG سبز", quantity="1000", min_quantity="100")
     product = await _item(
-        client, "مجسمهٔ گربه", kind="PRODUCT", unit="PCS", quantity="0", unit_price="1500000"
+        client, "مجسمهٔ گربه", kind="PRODUCT", unit="PCS", quantity="3", unit_price="1500000"
     )
-    order = await _order(client, items=[{"product_name": "مجسمهٔ گربه", "quantity": "3", "unit_price": "2760748.5", "unit_cost": "1200000"}])
+    order = await _order(
+        client,
+        items=[
+            {
+                "product_name": "مجسمهٔ گربه",
+                "quantity": "3",
+                "unit_price": "2760748.5",
+                "unit_cost": "1200000",
+                "inventory_item_id": product["id"],
+            }
+        ],
+    )
 
     job = await client.post(
         "/api/v1/production/jobs",
@@ -284,10 +335,10 @@ async def test_production_consumes_filament_and_yields_products(client) -> None:
     assert finished.json()["status"] == "DONE"
     assert finished.json()["finished_at"]
 
-    # 1000 − 3×120 = 640 g left; 3 produced models in stock
+    # 1000 − 3×120 = 640 g left; the 3 printed models join the 3 already stocked
     items = {i["name"]: i for i in (await client.get("/api/v1/warehouse/items")).json()}
     assert Decimal(items["فیلامنت PETG سبز"]["quantity"]) == Decimal("640")
-    assert Decimal(items["مجسمهٔ گربه"]["quantity"]) == Decimal("3")
+    assert Decimal(items["مجسمهٔ گربه"]["quantity"]) == Decimal("6")
     assert items["فیلامنت PETG سبز"]["low_stock"] is False
 
     # the order flips to READY once every job is done

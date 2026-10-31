@@ -12,7 +12,6 @@ import {
   chartToman,
   dashboardDate,
   daysBefore,
-  inventoryValue,
   tehranDay,
   trialDifference,
 } from "@/lib/dashboard";
@@ -263,14 +262,6 @@ export function DashboardPage(): React.JSX.Element {
       return sumMoney(reports.map((r) => r.closing_balance)).toFixed(4);
     },
   });
-  const inventory = useQuery({
-    queryKey: ["dashboard", "inventory"],
-    queryFn: async () => {
-      const res = await api.GET("/api/v1/warehouse/summary");
-      await throwIfError(res);
-      return res.data!;
-    },
-  });
   const alarms = useQuery({
     queryKey: ["dashboard", "alarms"],
     queryFn: async () => {
@@ -329,7 +320,6 @@ export function DashboardPage(): React.JSX.Element {
     balance,
     income,
     cash,
-    inventory,
     alarms,
     production,
     orders,
@@ -354,15 +344,6 @@ export function DashboardPage(): React.JSX.Element {
     { label: "هزینه", value: income.data?.total_expenses ?? "0" },
     { label: "سود / زیان خالص", value: income.data?.net_income ?? "0" },
   ];
-  // Sort by exact value, not Number; grams and pieces must not share a quantity axis.
-  const stock = [...(inventory.data?.items ?? [])]
-    .sort((a, b) => toDecimal(inventoryValue(b)).comparedTo(inventoryValue(a)))
-    .slice(0, 8)
-    .map((i) => ({
-      key: i.id,
-      label: `${i.name} (${itemUnitLabel(i)})`,
-      value: inventoryValue(i),
-    }));
   // Include zero-sales days for a continuous 30-day time axis.
   const daily = Array.from({ length: 30 }, (_, i) => {
     const day = daysBefore(today, 29 - i);
@@ -448,14 +429,6 @@ export function DashboardPage(): React.JSX.Element {
           value={income.data?.net_income ?? "0"}
           query={income}
           hint={periodHint}
-        />
-        <Kpi
-          id="kpi-stock"
-          title="ارزش موجودی انبار"
-          value={inventory.data?.total_value ?? "0"}
-          unit="TOMAN"
-          query={inventory}
-          hint="موجودی فعلی × قیمت ثبت‌شدهٔ هر واحد"
         />
         <Kpi
           id="kpi-cash"
@@ -564,14 +537,6 @@ export function DashboardPage(): React.JSX.Element {
           unit="TOMAN"
           query={sales}
           line
-        />
-        <MoneyChart
-          id="chart-stock"
-          title="ارزش ۸ قلم اول انبار — قیمت ثبت‌شده"
-          rows={stock}
-          horizontal
-          unit="TOMAN"
-          query={inventory}
         />
       </section>
       <div className="grid gap-4 lg:grid-cols-2">

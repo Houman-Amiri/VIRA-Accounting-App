@@ -11,7 +11,6 @@ import {
   BREAKDOWN_ROWS,
   computePrice,
   SALE_ROWS,
-  SHEET_EXAMPLE_INPUTS,
   type PriceBreakdown,
   type PriceInputs,
 } from "@/lib/priceCalc";
@@ -23,6 +22,19 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
 import { Link } from "@tanstack/react-router";
 import { pricingConstants, usePricingSettings } from "@/lib/pricing-settings";
+
+/**
+ * Empty by default (item 8 of the owner's change list): the calculator never
+ * shows a price the user did not ask for, and it keeps no drafts — returning to
+ * the page shows empty inputs again.
+ */
+const EMPTY_INPUTS: PriceInputs = {
+  weightG: "",
+  printHours: "",
+  quantity: "",
+  variant: "plain",
+  channel: "marketplace",
+};
 
 // Presentation only: keep the workbook formulas and numeric values unchanged.
 const REPORT_ROW_HIGHLIGHTS: Partial<Record<keyof PriceBreakdown, string>> = {
@@ -37,25 +49,31 @@ export function PriceCalcPage(): React.JSX.Element {
     () => (settings.data ? pricingConstants(settings.data) : null),
     [settings.data],
   );
-  const [inputs, setInputs] = React.useState<PriceInputs>(SHEET_EXAMPLE_INPUTS);
+  const [inputs, setInputs] = React.useState<PriceInputs>(EMPTY_INPUTS);
+
+  // «محاسبه فقط پس از ورود»: nothing is computed until weight, time and run
+  // size are filled in by the user.
+  const filled = [inputs.weightG, inputs.printHours, inputs.quantity].every(
+    (value) => String(value).trim() !== "",
+  );
 
   const plain = React.useMemo<PriceBreakdown | null>(() => {
-    if (!constants) return null;
+    if (!constants || !filled) return null;
     try {
       return computePrice({ ...inputs, variant: "plain" }, constants);
     } catch {
       return null;
     }
-  }, [inputs, constants]);
+  }, [inputs, constants, filled]);
 
   const chain = React.useMemo<PriceBreakdown | null>(() => {
-    if (!constants) return null;
+    if (!constants || !filled) return null;
     try {
       return computePrice({ ...inputs, variant: "chain" }, constants);
     } catch {
       return null;
     }
-  }, [inputs, constants]);
+  }, [inputs, constants, filled]);
 
   const rows = [...BREAKDOWN_ROWS, ...SALE_ROWS];
 
@@ -93,10 +111,10 @@ export function PriceCalcPage(): React.JSX.Element {
               type="button"
               className="text-xs text-primary underline-offset-2 hover:underline"
               onClick={() => {
-                setInputs(SHEET_EXAMPLE_INPUTS);
+                setInputs(EMPTY_INPUTS);
               }}
             >
-              بازنشانی ورودی‌ها
+              پاک کردن ورودی‌ها
             </button>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2">
@@ -107,6 +125,7 @@ export function PriceCalcPage(): React.JSX.Element {
                 id="price-weight"
                 data-testid="input-weight"
                 value={String(inputs.weightG)}
+                placeholder="مثلاً ۲۴۰"
                 onChange={(e) => setInputs((i) => ({ ...i, weightG: e.target.value }))}
               />
             </div>
@@ -117,6 +136,7 @@ export function PriceCalcPage(): React.JSX.Element {
                 id="price-hours"
                 data-testid="input-hours"
                 value={String(inputs.printHours)}
+                placeholder="مثلاً ۱۰"
                 onChange={(e) => setInputs((i) => ({ ...i, printHours: e.target.value }))}
               />
             </div>
@@ -127,6 +147,7 @@ export function PriceCalcPage(): React.JSX.Element {
                 id="price-qty"
                 data-testid="input-qty"
                 value={String(inputs.quantity)}
+                placeholder="مثلاً ۱"
                 onChange={(e) => setInputs((i) => ({ ...i, quantity: e.target.value }))}
               />
             </div>
@@ -204,6 +225,10 @@ export function PriceCalcPage(): React.JSX.Element {
                 </tbody>
               </table>
             </div>
+          ) : !filled ? (
+            <p className="p-6 text-center text-muted-foreground" data-testid="price-empty">
+              برای دیدن محاسبه، وزن محصول، مدت پرینت و تیراژ را وارد کنید.
+            </p>
           ) : (
             <p className="p-6 text-center text-destructive">
               ورودی نامعتبر است — مقدارها باید عدد باشند (تیراژ بزرگ‌تر از صفر).

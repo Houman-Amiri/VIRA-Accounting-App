@@ -1541,6 +1541,114 @@
         }
       }
     },
+    "/api/v1/journal-entries/invoice": {
+      "post": {
+        "tags": [
+          "journal"
+        ],
+        "summary": "Create Invoice Entry",
+        "description": "Register a sale/purchase invoice as one balanced posted entry.\n\nThe client sends what a paper invoice carries; the debit/credit mapping is\nderived here from the chart of accounts (1040/4010 for sales,\n1030/2010 for purchases) and the line detail is stored in the entry\nmetadata.",
+        "operationId": "create_invoice_entry_api_v1_journal_entries_invoice_post",
+        "parameters": [
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          },
+          {
+            "name": "vira_csrf",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Csrf"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/journal-entries/{entry_id}/post": {
       "post": {
         "tags": [
@@ -7458,6 +7566,121 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "warehouse"
+        ],
+        "summary": "Delete Item",
+        "description": "Delete a warehouse item; used items are deactivated to keep history.",
+        "operationId": "delete_item_api_v1_warehouse_items__item_id__delete",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Item Id"
+            }
+          },
+          {
+            "name": "version_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "title": "Version Id"
+            }
+          },
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          },
+          {
+            "name": "vira_csrf",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Csrf"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogDeletion"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/warehouse/items/{item_id}/movements": {
@@ -8444,6 +8667,113 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SalesReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{order_id}/production": {
+      "post": {
+        "tags": [
+          "orders"
+        ],
+        "summary": "Plan Order Production",
+        "description": "«افزودن به خط تولید» — plan jobs for the order's un-built lines.",
+        "operationId": "plan_order_production_api_v1_orders__order_id__production_post",
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Order Id"
+            }
+          },
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          },
+          {
+            "name": "vira_csrf",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Csrf"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderProductionResult"
                 }
               }
             }
@@ -10968,6 +11298,223 @@
         ],
         "title": "InventorySummary"
       },
+      "InvoiceCreate": {
+        "properties": {
+          "transaction_date": {
+            "type": "string",
+            "title": "Transaction Date"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "sale",
+              "purchase"
+            ],
+            "title": "Kind"
+          },
+          "seller": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seller"
+          },
+          "buyer": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buyer"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/InvoiceLineIn"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Lines"
+          }
+        },
+        "type": "object",
+        "required": [
+          "transaction_date",
+          "kind",
+          "lines"
+        ],
+        "title": "InvoiceCreate",
+        "description": "Invoice-shaped entry — the server derives the double-entry itself.\n\nThe user fills what a paper invoice has (date, seller, buyer, lines); the\nchart-of-accounts mapping stays a server decision so the ledger's balance\ninvariant is never exposed as a form field."
+      },
+      "InvoiceLineIn": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quantity",
+            "default": "1.0000"
+          },
+          "unit_price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Price",
+            "default": "0.0000"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "InvoiceLineIn",
+        "description": "One invoice row the user actually sees: title, count, price."
+      },
+      "InvoiceLineRead": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "quantity": {
+            "type": "string",
+            "title": "Quantity"
+          },
+          "unit_price": {
+            "type": "string",
+            "title": "Unit Price"
+          },
+          "line_total": {
+            "type": "string",
+            "title": "Line Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "quantity",
+          "unit_price",
+          "line_total"
+        ],
+        "title": "InvoiceLineRead"
+      },
+      "InvoiceRead": {
+        "properties": {
+          "entry": {
+            "$ref": "#/components/schemas/JournalEntryRead"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "sale",
+              "purchase"
+            ],
+            "title": "Kind"
+          },
+          "seller": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seller"
+          },
+          "buyer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buyer"
+          },
+          "total": {
+            "type": "string",
+            "title": "Total"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/InvoiceLineRead"
+            },
+            "type": "array",
+            "title": "Lines"
+          },
+          "debit_account": {
+            "type": "string",
+            "title": "Debit Account"
+          },
+          "credit_account": {
+            "type": "string",
+            "title": "Credit Account"
+          }
+        },
+        "type": "object",
+        "required": [
+          "entry",
+          "kind",
+          "seller",
+          "buyer",
+          "total",
+          "lines",
+          "debit_account",
+          "credit_account"
+        ],
+        "title": "InvoiceRead"
+      },
       "JournalEntryCreate": {
         "properties": {
           "transaction_date": {
@@ -11242,8 +11789,8 @@
           "product_name": {
             "type": "string",
             "maxLength": 200,
-            "minLength": 1,
-            "title": "Product Name"
+            "title": "Product Name",
+            "default": ""
           },
           "variant": {
             "type": "string",
@@ -11292,32 +11839,6 @@
             "title": "Unit Cost",
             "default": "0"
           },
-          "weight_g": {
-            "anyOf": [
-              {
-                "type": "number",
-                "minimum": 0.0
-              },
-              {
-                "type": "string"
-              }
-            ],
-            "title": "Weight G",
-            "default": "0"
-          },
-          "print_hours": {
-            "anyOf": [
-              {
-                "type": "number",
-                "minimum": 0.0
-              },
-              {
-                "type": "string"
-              }
-            ],
-            "title": "Print Hours",
-            "default": "0"
-          },
           "inventory_item_id": {
             "anyOf": [
               {
@@ -11343,17 +11864,23 @@
         },
         "type": "object",
         "required": [
-          "product_name",
           "quantity"
         ],
-        "title": "OrderItemIn"
+        "title": "OrderItemIn",
+        "description": "A line the user writes on the order page.\n\nThe product is chosen from the warehouse (``inventory_item_id``); its name\ndefaults to that item's name. Grams and print hours are no longer asked on\nthe order page (item 3) — they belong to the production job."
       },
       "OrderItemRead": {
         "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
           "product_name": {
             "type": "string",
-            "maxLength": 200,
-            "minLength": 1,
             "title": "Product Name"
           },
           "variant": {
@@ -11362,8 +11889,7 @@
               "plain",
               "chain"
             ],
-            "title": "Variant",
-            "default": "plain"
+            "title": "Variant"
           },
           "quantity": {
             "type": "string",
@@ -11371,13 +11897,11 @@
           },
           "unit_price": {
             "type": "string",
-            "title": "Unit Price",
-            "default": "0"
+            "title": "Unit Price"
           },
           "unit_cost": {
             "type": "string",
-            "title": "Unit Cost",
-            "default": "0"
+            "title": "Unit Cost"
           },
           "weight_g": {
             "type": "string",
@@ -11400,6 +11924,17 @@
             ],
             "title": "Inventory Item Id"
           },
+          "inventory_item_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inventory Item Name"
+          },
           "notes": {
             "anyOf": [
               {
@@ -11410,24 +11945,47 @@
               }
             ],
             "title": "Notes"
-          },
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "position": {
-            "type": "integer",
-            "title": "Position"
           }
         },
         "type": "object",
         "required": [
-          "product_name",
-          "quantity",
           "id",
-          "position"
+          "position",
+          "product_name",
+          "variant",
+          "quantity",
+          "unit_price",
+          "unit_cost"
         ],
         "title": "OrderItemRead"
+      },
+      "OrderProductionResult": {
+        "properties": {
+          "created": {
+            "items": {
+              "$ref": "#/components/schemas/PlannedJob"
+            },
+            "type": "array",
+            "title": "Created"
+          },
+          "skipped": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Skipped"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "type": "object",
+        "title": "OrderProductionResult",
+        "description": "Outcome of «افزودن به خط تولید» — created jobs plus honest warnings."
       },
       "OrderRead": {
         "properties": {
@@ -11531,6 +12089,13 @@
           "profit": {
             "type": "string",
             "title": "Profit"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
           }
         },
         "type": "object",
@@ -11794,6 +12359,41 @@
         ],
         "title": "PeriodRead"
       },
+      "PlannedJob": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "title": "Job Id"
+          },
+          "job_number": {
+            "type": "integer",
+            "title": "Job Number"
+          },
+          "product_name": {
+            "type": "string",
+            "title": "Product Name"
+          },
+          "quantity": {
+            "type": "string",
+            "title": "Quantity"
+          },
+          "filaments": {
+            "items": {
+              "$ref": "#/components/schemas/ProductionFilamentRead"
+            },
+            "type": "array",
+            "title": "Filaments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "job_id",
+          "job_number",
+          "product_name",
+          "quantity"
+        ],
+        "title": "PlannedJob"
+      },
       "PricingRead": {
         "properties": {
           "filamentPerGram": {
@@ -11962,6 +12562,100 @@
         ],
         "title": "PricingUpdate"
       },
+      "ProductionFilamentIn": {
+        "properties": {
+          "filament_item_id": {
+            "type": "string",
+            "title": "Filament Item Id"
+          },
+          "grams_per_unit": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Grams Per Unit"
+          },
+          "unit_cost": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Cost"
+          }
+        },
+        "type": "object",
+        "required": [
+          "filament_item_id",
+          "grams_per_unit"
+        ],
+        "title": "ProductionFilamentIn",
+        "description": "One spool consumed by a job, with its own grams and price per gram."
+      },
+      "ProductionFilamentRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "filament_item_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filament Item Id"
+          },
+          "filament_item_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filament Item Name"
+          },
+          "grams_per_unit": {
+            "type": "string",
+            "title": "Grams Per Unit"
+          },
+          "unit_cost": {
+            "type": "string",
+            "title": "Unit Cost"
+          },
+          "grams_total": {
+            "type": "string",
+            "title": "Grams Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "filament_item_id",
+          "filament_item_name",
+          "grams_per_unit",
+          "unit_cost",
+          "grams_total"
+        ],
+        "title": "ProductionFilamentRead"
+      },
       "ProductionJobCreate": {
         "properties": {
           "product_name": {
@@ -12056,6 +12750,14 @@
             ],
             "title": "Filament Grams",
             "default": "0"
+          },
+          "filaments": {
+            "items": {
+              "$ref": "#/components/schemas/ProductionFilamentIn"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Filaments"
           },
           "print_hours": {
             "anyOf": [
@@ -12239,6 +12941,18 @@
           "filament_grams": {
             "type": "string",
             "title": "Filament Grams"
+          },
+          "filaments": {
+            "items": {
+              "$ref": "#/components/schemas/ProductionFilamentRead"
+            },
+            "type": "array",
+            "title": "Filaments"
+          },
+          "filament_ready": {
+            "type": "boolean",
+            "title": "Filament Ready",
+            "default": false
           },
           "print_hours": {
             "type": "string",
@@ -12438,6 +13152,21 @@
               }
             ],
             "title": "Filament Grams"
+          },
+          "filaments": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ProductionFilamentIn"
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filaments"
           },
           "print_hours": {
             "anyOf": [

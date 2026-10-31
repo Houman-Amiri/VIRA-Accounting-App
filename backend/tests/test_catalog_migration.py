@@ -105,7 +105,11 @@ def test_catalog_migration_preserves_every_old_row_and_references(db_path):
     before = dump(db_path)
     command.upgrade(cfg(), "head")
     after = dump(db_path)
-    assert set(after) - set(before) == {"item_types", "item_units"}
+    assert set(after) - set(before) == {
+        "item_types",
+        "item_units",
+        "production_job_filaments",
+    }
     for table, rows in before.items():
         if table != "alembic_version":
             assert after[table] == rows, table

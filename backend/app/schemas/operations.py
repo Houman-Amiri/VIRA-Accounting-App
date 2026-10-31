@@ -187,20 +187,36 @@ class InventorySummary(BaseModel):
 
 # ------------------------------------------------------------------- orders ---
 class OrderItemIn(BaseModel):
-    product_name: str = Field(min_length=1, max_length=200)
+    """A line the user writes on the order page.
+
+    The product is chosen from the warehouse (``inventory_item_id``); its name
+    defaults to that item's name. Grams and print hours are no longer asked on
+    the order page (item 3) — they belong to the production job.
+    """
+
+    product_name: str = Field(default="", max_length=200)
     variant: Variant = "plain"
     quantity: Amount = Field(gt=0)
     unit_price: Amount = Field(default=Decimal(0), ge=0)
     unit_cost: Amount = Field(default=Decimal(0), ge=0)
-    weight_g: Amount = Field(default=Decimal(0), ge=0)
-    print_hours: Amount = Field(default=Decimal(0), ge=0)
     inventory_item_id: str | None = None
     notes: str | None = None
 
 
-class OrderItemRead(OrderItemIn):
+class OrderItemRead(BaseModel):
     id: str
     position: int
+    product_name: str
+    variant: Variant
+    quantity: Amount
+    unit_price: Amount
+    unit_cost: Amount
+    # Kept for reading orders saved before item 3; new lines store zero.
+    weight_g: Amount = Decimal(0)
+    print_hours: Amount = Decimal(0)
+    inventory_item_id: str | None = None
+    inventory_item_name: str | None = None
+    notes: str | None = None
 
 
 class OrderCreate(BaseModel):
@@ -251,6 +267,8 @@ class OrderRead(BaseModel):
     total: Amount
     total_cost: Amount
     profit: Amount
+    # «کمبود موجودی» notices; the order is saved, production covers the gap.
+    warnings: list[str] = Field(default_factory=list)
 
 
 class SalesReportRow(BaseModel):
@@ -275,6 +293,24 @@ class SalesReport(BaseModel):
 
 
 # --------------------------------------------------------------- production ---
+class ProductionFilamentIn(BaseModel):
+    """One spool consumed by a job, with its own grams and price per gram."""
+
+    filament_item_id: str
+    grams_per_unit: Amount = Field(gt=0)
+    # Absent price means "use the spool's current warehouse price" (snapshot).
+    unit_cost: Amount | None = Field(default=None, ge=0)
+
+
+class ProductionFilamentRead(BaseModel):
+    id: str
+    filament_item_id: str | None
+    filament_item_name: str | None
+    grams_per_unit: Amount
+    unit_cost: Amount
+    grams_total: Amount
+
+
 class ProductionJobCreate(BaseModel):
     product_name: str = Field(min_length=1, max_length=200)
     quantity: Amount = Field(gt=0)
@@ -285,10 +321,19 @@ class ProductionJobCreate(BaseModel):
     filament_item_id: str | None = None
     product_item_id: str | None = None
     filament_grams: Amount = Field(default=Decimal(0), ge=0)
+    filaments: list[ProductionFilamentIn] = Field(default_factory=list, max_length=20)
     print_hours: Amount = Field(default=Decimal(0), ge=0)
     unit_cost: Amount = Field(default=Decimal(0), ge=0)
     unit_price: Amount = Field(default=Decimal(0), ge=0)
     note: str | None = None
+
+    @field_validator("filaments")
+    @classmethod
+    def distinct_spools(cls, value: list[ProductionFilamentIn]) -> list[ProductionFilamentIn]:
+        ids = [row.filament_item_id for row in value]
+        if len(ids) != len(set(ids)):
+            raise ValueError("هر فیلامنت فقط یک بار در یک کار تولید قابل انتخاب است")
+        return value
 
 
 class ProductionJobUpdate(BaseModel):
@@ -301,6 +346,7 @@ class ProductionJobUpdate(BaseModel):
     filament_item_id: str | None = None
     product_item_id: str | None = None
     filament_grams: Amount | None = Field(default=None, ge=0)
+    filaments: list[ProductionFilamentIn] | None = Field(default=None, max_length=20)
     print_hours: Amount | None = Field(default=None, ge=0)
     unit_cost: Amount | None = Field(default=None, ge=0)
     unit_price: Amount | None = Field(default=None, ge=0)
@@ -331,6 +377,8 @@ class ProductionJobRead(BaseModel):
     product_item_id: str | None
     product_item_name: str | None
     filament_grams: Amount
+    filaments: list[ProductionFilamentRead] = Field(default_factory=list)
+    filament_ready: bool = False
     print_hours: Amount
     unit_cost: Amount
     unit_price: Amount
@@ -348,6 +396,22 @@ class ProductionSummary(BaseModel):
     done: int
     filament_grams_planned: Amount
     jobs: list[ProductionJobRead]
+
+
+class PlannedJob(BaseModel):
+    job_id: str
+    job_number: int
+    product_name: str
+    quantity: Amount
+    filaments: list[ProductionFilamentRead] = Field(default_factory=list)
+
+
+class OrderProductionResult(BaseModel):
+    """Outcome of «افزودن به خط تولید» — created jobs plus honest warnings."""
+
+    created: list[PlannedJob] = Field(default_factory=list)
+    skipped: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
 
 
 class OrderSummary(BaseModel):

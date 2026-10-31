@@ -300,7 +300,7 @@ try {
     # Row test ids are composed at runtime (`row-${row.key}`), so the full DOM
     # id is not a literal in the compiled JS. Browser e2e verifies rendered ids
     # and colors; here verify stable keys AND exact served/payload SHA-256.
-    foreach ($marker in @("chart-stock", "job-submit", "order-submit", "movement-submit", "dashboard-alerts", "pricing-constants", "unitFinalPrice")) {
+    foreach ($marker in @("chart-sales", "job-submit", "order-submit", "movement-submit", "dashboard-alerts", "pricing-constants", "unitFinalPrice")) {
         if ($assetContent -notmatch $marker) { throw "the served bundle lacks the new UI marker '$marker' — the installed SPA is not the one that was built" }
     }
     $warehouse = Invoke-WebRequest -UseBasicParsing -SkipHttpErrorCheck "http://127.0.0.1:8787/api/v1/warehouse/items" -TimeoutSec 10

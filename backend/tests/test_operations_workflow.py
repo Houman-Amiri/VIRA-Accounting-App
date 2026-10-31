@@ -31,12 +31,19 @@ async def setup_stock(client, quantity="1000"):
 
 
 async def setup_order(client, quantities=("2", "1")):
-    return await post(
-        client,
-        "orders",
-        order_date="2026-10-16",
-        customer_name="مشتری آزمون",
-        items=[
+    """Order lines reference real warehouse products (item 7 of the change list)."""
+    items = []
+    for i, q in enumerate(quantities):
+        product = await post(
+            client,
+            "warehouse/items",
+            name=f"قلم {i}",
+            kind="PRODUCT",
+            unit="PCS",
+            quantity=q,
+            unit_price="500",
+        )
+        items.append(
             dict(
                 product_name=f"قلم {i}",
                 quantity=q,
@@ -44,9 +51,15 @@ async def setup_order(client, quantities=("2", "1")):
                 unit_cost="23.4567",
                 weight_g="12.5",
                 print_hours="1",
+                inventory_item_id=product["id"],
             )
-            for i, q in enumerate(quantities)
-        ],
+        )
+    return await post(
+        client,
+        "orders",
+        order_date="2026-10-16",
+        customer_name="مشتری آزمون",
+        items=items,
     )
 
 
@@ -322,7 +335,24 @@ async def test_computed_values_over_limit_fail_cleanly_and_roll_back(client):
             "order_date": "2026-10-16",
             "channel": "direct",
             "customer_name": "limit",
-            "items": [{"product_name": "huge", "quantity": "99999999999999", "unit_price": "2"}],
+            "items": [
+                {
+                    "product_name": "huge",
+                    "quantity": "99999999999999",
+                    "unit_price": "2",
+                    "inventory_item_id": (
+                        await post(
+                            client,
+                            "warehouse/items",
+                            name="huge",
+                            kind="PRODUCT",
+                            unit="PCS",
+                            quantity="10",
+                            unit_price="2",
+                        )
+                    )["id"],
+                }
+            ],
         },
     )
     assert response.status_code == 400, response.text
@@ -356,13 +386,40 @@ async def test_proforma_fallback_keeps_exact_snapshot_and_escapes_customer(clien
         order_date="2026-10-16",
         customer_name="<script>آزمون</script>",
         items=[
-            dict(product_name="مدل اول", quantity="2", unit_price="123.4567", unit_cost="23.4567"),
+            dict(
+                product_name="مدل اول",
+                quantity="2",
+                unit_price="123.4567",
+                unit_cost="23.4567",
+                inventory_item_id=(
+                    await post(
+                        client,
+                        "warehouse/items",
+                        name="مدل اول",
+                        kind="PRODUCT",
+                        unit="PCS",
+                        quantity="2",
+                        unit_price="123.4567",
+                    )
+                )["id"],
+            ),
             dict(
                 product_name="مدل دوم",
                 variant="chain",
                 quantity="1",
                 unit_price="456.1234",
                 unit_cost="56.1234",
+                inventory_item_id=(
+                    await post(
+                        client,
+                        "warehouse/items",
+                        name="مدل دوم",
+                        kind="PRODUCT",
+                        unit="PCS",
+                        quantity="1",
+                        unit_price="456.1234",
+                    )
+                )["id"],
             ),
         ],
     )

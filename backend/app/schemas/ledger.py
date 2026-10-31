@@ -242,3 +242,64 @@ class CashFlowReport(BaseModel):
     inflows: str
     outflows: str
     net_change: str
+
+
+# ------------------------------------------------------------- simple invoice ---
+class InvoiceLineIn(BaseModel):
+    """One invoice row the user actually sees: title, count, price."""
+
+    title: str = Field(min_length=1, max_length=200)
+    quantity: MoneyStr = "1.0000"
+    unit_price: MoneyStr = "0.0000"
+
+    @model_validator(mode="after")
+    def _positive_quantity(self) -> InvoiceLineIn:
+        if (parse_money_str(self.quantity) or 0) <= 0:
+            raise ValueError("تعداد هر ردیف فاکتور باید بزرگ‌تر از صفر باشد")
+        if (parse_money_str(self.unit_price) or 0) < 0:
+            raise ValueError("مبلغ واحد نمی‌تواند منفی باشد")
+        return self
+
+
+class InvoiceCreate(BaseModel):
+    """Invoice-shaped entry — the server derives the double-entry itself.
+
+    The user fills what a paper invoice has (date, seller, buyer, lines); the
+    chart-of-accounts mapping stays a server decision so the ledger's balance
+    invariant is never exposed as a form field.
+    """
+
+    transaction_date: ISODate
+    kind: Literal["sale", "purchase"]
+    seller: str | None = Field(default=None, max_length=200)
+    buyer: str | None = Field(default=None, max_length=200)
+    description: str | None = Field(default=None, max_length=500)
+    note: str | None = Field(default=None, max_length=500)
+    lines: list[InvoiceLineIn] = Field(min_length=1, max_length=100)
+
+    @model_validator(mode="after")
+    def _counterparty(self) -> InvoiceCreate:
+        # Whom the money is owed by/to is not optional on a real invoice.
+        if self.kind == "sale" and not (self.buyer or "").strip():
+            raise ValueError("برای فاکتور فروش، نام خریدار را وارد کنید")
+        if self.kind == "purchase" and not (self.seller or "").strip():
+            raise ValueError("برای فاکتور خرید، نام فروشنده را وارد کنید")
+        return self
+
+
+class InvoiceLineRead(BaseModel):
+    title: str
+    quantity: str
+    unit_price: str
+    line_total: str
+
+
+class InvoiceRead(BaseModel):
+    entry: JournalEntryRead
+    kind: Literal["sale", "purchase"]
+    seller: str | None
+    buyer: str | None
+    total: str
+    lines: list[InvoiceLineRead]
+    debit_account: str
+    credit_account: str

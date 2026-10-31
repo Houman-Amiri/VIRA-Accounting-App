@@ -50,10 +50,24 @@ const job = {
   order_id: null,
   order_item_id: null,
   filament_item_id: null,
+  filament_item_name: null,
   product_item_id: null,
-  filament_grams: "10",
+  product_item_name: null,
+  filament_grams: "0",
+  filaments: [],
+  filament_ready: false,
+  print_hours: "0",
+  unit_cost: "0",
   quantity: "1",
   unit_price: "12",
+  variant: "plain",
+  channel: "direct",
+  order_number: null,
+  note: null,
+  started_at: null,
+  finished_at: null,
+  created_at: "2026-10-20T00:00:00.000Z",
+  updated_at: "2026-10-20T00:00:00.000Z",
   version_id: 1,
 };
 const queries: Record<string, unknown> = {
@@ -113,6 +127,8 @@ it("selects any order line and preserves its old cost, price, variant and direct
   fireEvent.change(screen.getByTestId("job-order-line"), { target: { value: "l2" } });
   expect(screen.getByTestId("job-product")).toHaveValue("محصول دوم");
   expect(screen.getByTestId("job-price-snapshot")).toHaveTextContent("۴۵۶.۱۲۳۴");
+  fireEvent.change(screen.getByTestId("job-spool-0-item"), { target: { value: "f" } });
+  fireEvent.change(screen.getByTestId("job-spool-0-grams"), { target: { value: "12.5" } });
   fireEvent.click(screen.getByTestId("job-submit"));
   await waitFor(() => expect(api.POST).toHaveBeenCalled());
   const args = vi.mocked(api.POST).mock.calls as unknown as Array<
@@ -125,7 +141,8 @@ it("selects any order line and preserves its old cost, price, variant and direct
     channel: "direct",
     unit_cost: "56.1234",
     unit_price: "456.1234",
-    filament_grams: "20",
+    filaments: [{ filament_item_id: "f", grams_per_unit: "12.5" }],
+    filament_grams: "12.5",
   });
 });
 
@@ -134,9 +151,10 @@ it("repairs a saved job's stock mapping using its current optimistic revision", 
   await screen.findByTestId("job-j1-configure");
   expect(screen.getByTestId("job-j1-finish")).toBeDisabled();
   fireEvent.click(screen.getByTestId("job-j1-configure"));
-  fireEvent.change(screen.getByTestId("job-mapping-filament"), { target: { value: "f" } });
+  fireEvent.click(screen.getByTestId("job-mapping-add"));
+  fireEvent.change(screen.getByTestId("job-mapping-filament-0"), { target: { value: "f" } });
   fireEvent.change(screen.getByTestId("job-mapping-product"), { target: { value: "p" } });
-  fireEvent.change(screen.getByTestId("job-mapping-grams"), { target: { value: "۱۲.۵" } });
+  fireEvent.change(screen.getByTestId("job-mapping-grams-0"), { target: { value: "۱۲.۵" } });
   fireEvent.click(screen.getByTestId("job-mapping-save"));
   await waitFor(() => expect(api.PATCH).toHaveBeenCalled());
   const calls = vi.mocked(api.PATCH).mock.calls as unknown as Array<
@@ -144,9 +162,8 @@ it("repairs a saved job's stock mapping using its current optimistic revision", 
   >;
   expect(calls[0][1].body).toMatchObject({
     version_id: 1,
-    filament_item_id: "f",
     product_item_id: "p",
-    filament_grams: "12.5",
+    filaments: [{ filament_item_id: "f", grams_per_unit: "12.5" }],
   });
   await waitFor(() => expect(screen.queryByTestId("job-stock-editor")).not.toBeInTheDocument());
 });
@@ -162,7 +179,8 @@ it("never creates a zero-priced manual job after malformed pricing input", async
   mount();
   await screen.findByTestId("job-j1-configure");
   fireEvent.change(screen.getByTestId("job-product"), { target: { value: "bad" } });
-  fireEvent.change(screen.getByTestId("job-grams"), { target: { value: "bad-number" } });
+  fireEvent.change(screen.getByTestId("job-spool-0-item"), { target: { value: "f" } });
+  fireEvent.change(screen.getByTestId("job-spool-0-grams"), { target: { value: "bad-number" } });
   fireEvent.click(screen.getByTestId("job-submit"));
   await waitFor(() => expect(screen.getByTestId("production-message")).toBeInTheDocument());
   expect(api.POST).not.toHaveBeenCalled();

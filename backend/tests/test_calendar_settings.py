@@ -9,6 +9,7 @@ from sqlalchemy import select, text
 from app.api.calendar import _read
 from app.models import User
 from tests.conftest import alembic_head
+from tests.order_helpers import make_product
 
 PATH = "/api/v1/settings/calendar"
 
@@ -181,6 +182,7 @@ async def test_preference_does_not_rewrite_operational_records(client, database)
     assert entry.status_code == 201, entry.text
     entry = await client.post(f"/api/v1/journal-entries/{entry.json()['id']}/post")
     assert entry.status_code == 200, entry.text
+    product = await make_product(client, "calendar sample", quantity="10")
     order = await client.post(
         "/api/v1/orders",
         json={
@@ -192,6 +194,7 @@ async def test_preference_does_not_rewrite_operational_records(client, database)
                     "quantity": "2",
                     "unit_price": "1234.5678",
                     "unit_cost": "111.1111",
+                    "inventory_item_id": product["id"],
                 }
             ],
         },

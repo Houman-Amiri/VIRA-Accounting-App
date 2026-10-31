@@ -38,6 +38,15 @@ type Job = {
   product_item_id: string | null;
   product_item_name: string | null;
   filament_grams: string;
+  filaments: Array<{
+    id: string;
+    filament_item_id: string | null;
+    filament_item_name: string | null;
+    grams_per_unit: string;
+    unit_cost: string;
+    grams_total: string;
+  }>;
+  filament_ready: boolean;
   print_hours: string;
   unit_cost: string;
   unit_price: string;
@@ -66,8 +75,6 @@ type OrderOption = {
     product_name: string;
     variant: "plain" | "chain";
     quantity: string;
-    weight_g: string;
-    print_hours: string;
     unit_cost: string;
     unit_price: string;
     inventory_item_id?: string | null;
@@ -92,6 +99,8 @@ function errText(error: unknown): string {
   return error instanceof Error ? error.message : "خطای نامشخص";
 }
 
+type SpoolRow = { item_id: string; grams: string };
+
 export function ProductionPage(): React.JSX.Element {
   const pricingQuery = usePricingSettings();
   const queryClient = useQueryClient();
@@ -106,10 +115,10 @@ export function ProductionPage(): React.JSX.Element {
     variant: "plain" as "plain" | "chain",
     channel: "marketplace" as "direct" | "marketplace",
     quantity: "1",
-    filament_item_id: "",
     product_item_id: "",
-    filament_grams: "",
     print_hours: "",
+    // item 6: a printed model may need several spools, each with its own grams
+    filaments: [{ item_id: "", grams: "" }] as SpoolRow[],
   });
 
   const jobsQuery = useQuery({
@@ -179,8 +188,20 @@ export function ProductionPage(): React.JSX.Element {
       const line = order?.items.find((line) => line.id === form.order_item_id);
       if (form.order_id && (!line || ordersQuery.isError))
         throw new Error("ردیف سفارش معتبر در دسترس نیست.");
+      const spools = form.filaments
+        .filter((row) => row.item_id && row.grams.trim() !== "")
+        .map((row) => ({
+          filament_item_id: row.item_id,
+          grams_per_unit: parseNum(row.grams).toString(),
+        }));
+      if (new Set(spools.map((row) => row.filament_item_id)).size !== spools.length)
+        throw new Error("هر فیلامنت فقط یک بار در یک کار تولید قابل انتخاب است.");
+      const totalGrams = spools.reduce(
+        (sum, row) => sum.plus(toDecimal(row.grams_per_unit)),
+        toDecimal("0"),
+      );
       const inputs: PriceInputs = {
-        weightG: form.filament_grams || "0",
+        weightG: totalGrams.toString(),
         printHours: form.print_hours || "0",
         quantity: form.quantity || "1",
         variant: form.variant,
@@ -206,9 +227,9 @@ export function ProductionPage(): React.JSX.Element {
           channel: form.channel,
           order_id: form.order_id || null,
           order_item_id: form.order_item_id || null,
-          filament_item_id: form.filament_item_id || null,
           product_item_id: form.product_item_id || null,
-          filament_grams: parseNum(form.filament_grams || "0").toString(),
+          filaments: spools,
+          filament_grams: totalGrams.toString(),
           print_hours: parseNum(form.print_hours || "0").toString(),
           unit_cost: unitCost,
           unit_price: unitPrice,
@@ -227,8 +248,8 @@ export function ProductionPage(): React.JSX.Element {
         order_item_id: "",
         product_name: "",
         quantity: "1",
-        filament_grams: "",
         print_hours: "",
+        filaments: [{ item_id: "", grams: "" }],
       }));
       invalidate();
     },
@@ -258,9 +279,21 @@ export function ProductionPage(): React.JSX.Element {
         body: {
           version_id: editingJob.version_id,
           order_item_id: editingJob.order_item_id,
-          filament_item_id: editingJob.filament_item_id,
           product_item_id: editingJob.product_item_id,
-          filament_grams: parseNum(editingJob.filament_grams).toString(),
+          filaments: editingJob.filaments
+            .filter((row) => {
+              if (!row.filament_item_id) return false;
+              try {
+                return parseNum(row.grams_per_unit).gt(0);
+              } catch {
+                throw new Error(`گرم فیلامنت نامعتبر است: ${row.grams_per_unit}`);
+              }
+            })
+            .map((row) => ({
+              filament_item_id: row.filament_item_id!,
+              grams_per_unit: parseNum(row.grams_per_unit).toString(),
+              unit_cost: parseNum(row.unit_cost).toString(),
+            })),
         },
       });
       if (res.error) throw await parseError(res.response);
@@ -287,11 +320,19 @@ export function ProductionPage(): React.JSX.Element {
       variant: line?.variant ?? f.variant,
       channel: order?.channel ?? f.channel,
       quantity: line?.quantity ?? f.quantity,
-      filament_grams: line?.weight_g ?? f.filament_grams,
-      print_hours: line?.print_hours ?? f.print_hours,
       product_item_id: line?.inventory_item_id ?? "",
     }));
   };
+  const totalGramsPerUnit = form.filaments.reduce(
+    (sum, row) => {
+      try {
+        return row.grams.trim() ? sum.plus(toDecimal(row.grams)) : sum;
+      } catch {
+        return sum;
+      }
+    },
+    toDecimal("0"),
+  );
   const selectedOrder = ordersQuery.data?.find((o) => o.id === form.order_id);
   const selectedLine = selectedOrder?.items.find((l) => l.id === form.order_item_id);
 
@@ -380,15 +421,18 @@ export function ProductionPage(): React.JSX.Element {
                           {job.order_number ? faNumber(String(job.order_number)) : "—"}
                         </td>
                         <td className="num py-2">{faNumber(job.quantity)}</td>
-                        <td className="py-2 text-xs">
-                          {job.filament_item_name ?? "—"}
-                          {toDecimal(job.filament_grams).gt(0) && (
-                            <div className="num text-muted-foreground">
-                              {faNumber(job.filament_grams)} گرم × {faNumber(job.quantity)} ={" "}
-                              {faNumber(
-                                toDecimal(job.filament_grams).times(job.quantity).toString(),
-                              )}{" "}
-                              گرم
+                        <td className="py-2 text-xs" data-testid={`job-${job.id}-spools`}>
+                          {job.filaments.length === 0 && (job.filament_item_name ?? "—")}
+                          {job.filaments.map((row) => (
+                            <div key={row.id} className="num text-muted-foreground">
+                              {row.filament_item_name ?? "فیلامنت حذف‌شده"}:{" "}
+                              {faNumber(row.grams_per_unit)} گرم × {faNumber(job.quantity)} ={" "}
+                              {faNumber(row.grams_total)} گرم
+                            </div>
+                          ))}
+                          {!job.filament_ready && (
+                            <div className="text-[11px] text-amber-700 dark:text-amber-400">
+                              فیلامنت‌ها انتخاب نشده‌اند؛ پایان تولید ممکن نیست.
                             </div>
                           )}
                         </td>
@@ -418,12 +462,7 @@ export function ProductionPage(): React.JSX.Element {
                                 <Button
                                   size="sm"
                                   data-testid={`job-${job.id}-finish`}
-                                  disabled={
-                                    act.isPending ||
-                                    !job.filament_item_id ||
-                                    !job.product_item_id ||
-                                    !toDecimal(job.filament_grams).gt(0)
-                                  }
+                                  disabled={act.isPending || !job.filament_ready || !job.product_item_id}
                                   onClick={() => act.mutate({ job, action: "finish" })}
                                 >
                                   پایان (کسر فیلامنت)
@@ -489,21 +528,83 @@ export function ProductionPage(): React.JSX.Element {
                       ))}
                   </select>
                 )}
-                <select
-                  aria-label="فیلامنت کار تولید"
-                  data-testid="job-mapping-filament"
-                  value={editingJob.filament_item_id ?? ""}
-                  onChange={(e) =>
-                    setEditingJob({ ...editingJob, filament_item_id: e.target.value || null })
+                {editingJob.filaments.map((row, index) => (
+                  <div key={row.id} className="grid grid-cols-[1fr_6rem_auto] gap-1">
+                    <select
+                      aria-label={`فیلامنت ${faNumber(String(index + 1))} کار تولید`}
+                      data-testid={`job-mapping-filament-${index}`}
+                      value={row.filament_item_id ?? ""}
+                      onChange={(e) =>
+                        setEditingJob({
+                          ...editingJob,
+                          filaments: editingJob.filaments.map((r, i) =>
+                            i === index
+                              ? { ...r, filament_item_id: e.target.value || null }
+                              : r,
+                          ),
+                        })
+                      }
+                    >
+                      <option value="">فیلامنت را انتخاب کنید</option>
+                      {filaments.map((i) => (
+                        <option key={i.id} value={i.id}>
+                          {i.name}
+                        </option>
+                      ))}
+                    </select>
+                    <Input
+                      className="num"
+                      aria-label={`گرم فیلامنت هر عدد ردیف ${faNumber(String(index + 1))}`}
+                      data-testid={`job-mapping-grams-${index}`}
+                      value={row.grams_per_unit}
+                      onChange={(e) =>
+                        setEditingJob({
+                          ...editingJob,
+                          filaments: editingJob.filaments.map((r, i) =>
+                            i === index ? { ...r, grams_per_unit: e.target.value } : r,
+                          ),
+                        })
+                      }
+                    />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      aria-label={`حذف فیلامنت ردیف ${faNumber(String(index + 1))}`}
+                      data-testid={`job-mapping-remove-${index}`}
+                      onClick={() =>
+                        setEditingJob({
+                          ...editingJob,
+                          filaments: editingJob.filaments.filter((_r, i) => i !== index),
+                        })
+                      }
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  data-testid="job-mapping-add"
+                  onClick={() =>
+                    setEditingJob({
+                      ...editingJob,
+                      filaments: [
+                        ...editingJob.filaments,
+                        {
+                          id: `new-${editingJob.filaments.length}`,
+                          filament_item_id: null,
+                          filament_item_name: null,
+                          grams_per_unit: "",
+                          unit_cost: "0",
+                          grams_total: "0",
+                        },
+                      ],
+                    })
                   }
                 >
-                  <option value="">فیلامنت را انتخاب کنید</option>
-                  {filaments.map((i) => (
-                    <option key={i.id} value={i.id}>
-                      {i.name}
-                    </option>
-                  ))}
-                </select>
+                  + افزودن فیلامنت
+                </Button>
                 <select
                   aria-label="محصول مقصد کار تولید"
                   data-testid="job-mapping-product"
@@ -519,12 +620,6 @@ export function ProductionPage(): React.JSX.Element {
                     </option>
                   ))}
                 </select>
-                <Input
-                  aria-label="گرم فیلامنت هر عدد"
-                  data-testid="job-mapping-grams"
-                  value={editingJob.filament_grams}
-                  onChange={(e) => setEditingJob({ ...editingJob, filament_grams: e.target.value })}
-                />
                 <Button
                   data-testid="job-mapping-save"
                   disabled={saveMapping.isPending || !itemsQuery.isSuccess}
@@ -588,7 +683,7 @@ export function ProductionPage(): React.JSX.Element {
                 onChange={(e) => setForm((f) => ({ ...f, product_name: e.target.value }))}
               />
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <div>
                 <Label className="text-xs">تعداد</Label>
                 <Input
@@ -599,16 +694,7 @@ export function ProductionPage(): React.JSX.Element {
                 />
               </div>
               <div>
-                <Label className="text-xs">وزن هر عدد (گرم)</Label>
-                <Input
-                  className="num"
-                  data-testid="job-grams"
-                  value={form.filament_grams}
-                  onChange={(e) => setForm((f) => ({ ...f, filament_grams: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label className="text-xs">زمان چاپ (ساعت)</Label>
+                <Label className="text-xs">زمان چاپ هر عدد (ساعت)</Label>
                 <Input
                   className="num"
                   value={form.print_hours}
@@ -646,21 +732,97 @@ export function ProductionPage(): React.JSX.Element {
                 </select>
               </div>
             </div>
-            <div>
-              <Label className="text-xs">فیلامنت مصرفی (از انبار)</Label>
-              <select
-                className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
-                value={form.filament_item_id}
-                data-testid="job-filament"
-                onChange={(e) => setForm((f) => ({ ...f, filament_item_id: e.target.value }))}
+            <div className="space-y-2 rounded-md border p-2" data-testid="job-filaments">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">فیلامنت‌های مصرفی (از انبار)</Label>
+                <span className="num text-xs text-muted-foreground">
+                  جمع هر عدد: {faNumber(totalGramsPerUnit.toString())} گرم
+                </span>
+              </div>
+              {form.filaments.map((row, index) => {
+                const item = filaments.find((f) => f.id === row.item_id);
+                const needed = (() => {
+                  try {
+                    return toDecimal(row.grams || "0").times(toDecimal(form.quantity || "1"));
+                  } catch {
+                    return toDecimal("0");
+                  }
+                })();
+                const short = item ? needed.gt(toDecimal(item.quantity)) : false;
+                return (
+                  <div key={index} className="space-y-1" data-testid={`job-spool-${index}`}>
+                    <div className="grid grid-cols-[1fr_6rem_auto] gap-1">
+                      <select
+                        aria-label={`فیلامنت ردیف ${faNumber(String(index + 1))}`}
+                        data-testid={`job-spool-${index}-item`}
+                        className="flex h-8 w-full rounded-md border border-input bg-background px-2 text-xs text-foreground"
+                        value={row.item_id}
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            filaments: f.filaments.map((r, i) =>
+                              i === index ? { ...r, item_id: e.target.value } : r,
+                            ),
+                          }))
+                        }
+                      >
+                        <option value="">— فیلامنت —</option>
+                        {filaments.map((f) => (
+                          <option key={f.id} value={f.id}>
+                            {f.name} ({faNumber(f.quantity)} گرم)
+                          </option>
+                        ))}
+                      </select>
+                      <Input
+                        className="num h-8 text-xs"
+                        aria-label={`گرم هر عدد ردیف ${faNumber(String(index + 1))}`}
+                        data-testid={`job-spool-${index}-grams`}
+                        placeholder="گرم/عدد"
+                        value={row.grams}
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            filaments: f.filaments.map((r, i) =>
+                              i === index ? { ...r, grams: e.target.value } : r,
+                            ),
+                          }))
+                        }
+                      />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        aria-label={`حذف فیلامنت ردیف ${faNumber(String(index + 1))}`}
+                        data-testid={`job-spool-${index}-remove`}
+                        disabled={form.filaments.length === 1}
+                        onClick={() =>
+                          setForm((f) => ({
+                            ...f,
+                            filaments: f.filaments.filter((_r, i) => i !== index),
+                          }))
+                        }
+                      >
+                        ×
+                      </Button>
+                    </div>
+                    {short && (
+                      <p className="text-[11px] text-amber-700 dark:text-amber-400">
+                        نیاز این کار {faNumber(needed.toString())} گرم است؛ موجودی کافی نیست.
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+              <Button
+                size="sm"
+                variant="ghost"
+                data-testid="job-spool-add"
+                disabled={form.filaments.length >= 20}
+                onClick={() =>
+                  setForm((f) => ({ ...f, filaments: [...f.filaments, { item_id: "", grams: "" }] }))
+                }
               >
-                <option value="">—</option>
-                {filaments.map((i) => (
-                  <option key={i.id} value={i.id}>
-                    {i.name} ({faNumber(i.quantity)} گرم موجود)
-                  </option>
-                ))}
-              </select>
+                + افزودن فیلامنت
+              </Button>
             </div>
             <div>
               <Label className="text-xs">افزودن به محصولات انبار</Label>
@@ -693,7 +855,11 @@ export function ProductionPage(): React.JSX.Element {
             <Button
               className="w-full"
               data-testid="job-submit"
-              disabled={createJob.isPending || !form.product_name.trim()}
+              disabled={
+                createJob.isPending ||
+                !form.product_name.trim() ||
+                form.filaments.some((row) => !row.item_id || !row.grams.trim())
+              }
               onClick={() => createJob.mutate()}
             >
               ثبت کار تولید

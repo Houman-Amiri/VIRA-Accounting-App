@@ -158,7 +158,7 @@ export async function auditDashboard(page: Page): Promise<void> {
       await page
         .getByRole("button", { name: dark ? "حالت تاریک" : "حالت روشن", exact: true })
         .click();
-    for (const name of ["structure", "pnl", "sales", "stock"]) {
+    for (const name of ["structure", "pnl", "sales"]) {
       const svg = page.getByTestId(`chart-${name}`).locator("svg");
       await expect(svg).toBeVisible();
       expect(await svg.locator("path").count()).toBeGreaterThan(0);
@@ -172,8 +172,10 @@ export async function auditDashboard(page: Page): Promise<void> {
     await expect(tooltip).toHaveCSS("font-family", /Vazirmatn/);
     if (dark) await page.screenshot({ path: "test-results/dashboard-dark.png", fullPage: true });
   }
+  await expect(page.getByTestId("kpi-stock")).toHaveCount(0);
+  await expect(page.getByTestId("chart-stock")).toHaveCount(0);
   await page.screenshot({ path: "test-results/dashboard-light.png", fullPage: true });
-  const chart = page.getByTestId("chart-stock");
+  const chart = page.getByTestId("chart-sales");
   await chart.evaluate((el) => {
     el.style.width = "280px";
   });
@@ -190,16 +192,16 @@ export async function auditDashboard(page: Page): Promise<void> {
   await page.setViewportSize({ width: 1440, height: 900 });
 
   // A failed refresh must not turn into zero or false "healthy"; real data recovers.
-  await page.route("**/api/v1/warehouse/summary", (route) =>
+  await page.route("**/api/v1/reports/cash-flow**", (route) =>
     route.fulfill({ status: 503, json: { detail: "test offline" } }),
   );
   await page.getByRole("button", { name: "تازه‌سازی داده‌ها" }).click();
-  await expect(page.getByTestId("kpi-stock").getByRole("alert")).toBeVisible({ timeout: 15000 });
-  await expect(page.getByTestId("kpi-stock").locator(".num")).toHaveCount(0);
+  await expect(page.getByTestId("kpi-cash").getByRole("alert")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("kpi-cash").locator(".num")).toHaveCount(0);
   await expect(page.getByTestId("chart-structure")).toBeVisible();
-  await page.unroute("**/api/v1/warehouse/summary");
-  await page.getByTestId("kpi-stock").getByRole("button", { name: "تلاش دوباره" }).click();
-  await expect(page.getByTestId("chart-stock")).toBeVisible();
+  await page.unroute("**/api/v1/reports/cash-flow**");
+  await page.getByTestId("kpi-cash").getByRole("button", { name: "تلاش دوباره" }).click();
+  await expect(page.getByTestId("chart-sales")).toBeVisible();
   await page
     .getByTestId("alert-trial")
     .getByRole("button", { name: "بررسی اسناد حسابداری" })

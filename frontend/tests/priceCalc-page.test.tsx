@@ -6,9 +6,49 @@ import { PriceCalcPage } from "@/routes/price-calc";
 // Includes Persian RTL formatting and the real Money component (no pricing mocks).
 afterEach(cleanup);
 
+/** Fill the three numeric inputs the calculator waits for (item 8). */
+function fillInputs(values: { weight?: string; hours?: string; qty?: string } = {}): void {
+  fireEvent.change(screen.getByTestId("input-weight"), {
+    target: { value: values.weight ?? "240" },
+  });
+  fireEvent.change(screen.getByTestId("input-hours"), {
+    target: { value: values.hours ?? "10" },
+  });
+  fireEvent.change(screen.getByTestId("input-qty"), { target: { value: values.qty ?? "1" } });
+}
+
 describe("pricing page — literal Excel model", () => {
-  it("renders the actual cached workbook amounts without cell addresses", () => {
+  it("starts empty and computes nothing before the user fills the inputs", () => {
     renderWithPricing(<PriceCalcPage />);
+    expect(screen.getByTestId("input-weight")).toHaveValue("");
+    expect(screen.getByTestId("input-hours")).toHaveValue("");
+    expect(screen.getByTestId("input-qty")).toHaveValue("");
+    expect(screen.getByTestId("price-empty")).toBeInTheDocument();
+    expect(screen.queryByTestId("row-unitFinalPrice")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("final-badge")).not.toBeInTheDocument();
+  });
+
+  it.each([
+    { weight: "240", hours: "10" },
+    { weight: "240", qty: "1" },
+    { hours: "10", qty: "1" },
+  ])("stays empty while any single input is missing (%o)", (partial) => {
+    renderWithPricing(<PriceCalcPage />);
+    for (const [testId, value] of Object.entries(partial)) {
+      const map: Record<string, string> = {
+        weight: "input-weight",
+        hours: "input-hours",
+        qty: "input-qty",
+      };
+      fireEvent.change(screen.getByTestId(map[testId]), { target: { value } });
+    }
+    expect(screen.getByTestId("price-empty")).toBeInTheDocument();
+    expect(screen.queryByTestId("row-unitFinalPrice")).not.toBeInTheDocument();
+  });
+
+  it("renders the actual cached workbook amounts once the inputs are entered", () => {
+    renderWithPricing(<PriceCalcPage />);
+    fillInputs();
     const row = within(screen.getByTestId("row-unitFinalPrice"));
     expect(screen.getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual([
       "شرح ردیف",
@@ -30,6 +70,7 @@ describe("pricing page — literal Excel model", () => {
     ["unitFinalPrice", "red"],
   ])("highlights the whole %s row in %s without helper columns", (key, color) => {
     renderWithPricing(<PriceCalcPage />);
+    fillInputs();
     const row = screen.getByTestId(`row-${key}`);
     expect(within(row).getAllByRole("cell")).toHaveLength(3);
     expect(row).toHaveClass(`bg-${color}-100`, `dark:bg-${color}-900/40`, "font-semibold");
@@ -39,6 +80,7 @@ describe("pricing page — literal Excel model", () => {
 
   it("does not color unrelated rows or the derived batch final price", () => {
     renderWithPricing(<PriceCalcPage />);
+    fillInputs();
     const batchFinal = screen.getByTestId("row-batchFinalPrice");
     expect(batchFinal).toHaveClass("bg-muted/40");
     expect(batchFinal).not.toHaveClass("bg-red-100");
@@ -47,25 +89,22 @@ describe("pricing page — literal Excel model", () => {
 
   it("recalculates quantity > 1 and Persian input using authored formulas", () => {
     renderWithPricing(<PriceCalcPage />);
-    fireEvent.change(screen.getByLabelText(/تیراژ/), { target: { value: "۱۰" } });
+    fillInputs({ qty: "۱۰" });
     const row = within(screen.getByTestId("row-unitFinalPrice"));
     expect(row.getByText("۲۹۱٬۱۹۴.۸۵")).toBeInTheDocument();
     expect(row.getByText("۳۱۱٬۱۹۴.۸۵")).toBeInTheDocument();
-    expect(
-      within(screen.getByTestId("row-productionTotal")).getByText("۹۱۴٬۰۰۰"),
-    ).toBeInTheDocument();
+    expect(within(screen.getByTestId("row-productionTotal")).getByText("۹۱۴٬۰۰۰")).toBeInTheDocument();
   });
 
-  it("resets only product inputs, keeping the saved pricing constants", () => {
+  it("clears only product inputs, keeping the saved pricing constants", () => {
     const { client } = renderWithPricing(<PriceCalcPage />, { filamentPerGram: "4000.0000" });
-    fireEvent.change(screen.getByTestId("input-qty"), { target: { value: "10" } });
+    fillInputs({ qty: "10" });
     fireEvent.change(screen.getByTestId("select-channel"), { target: { value: "direct" } });
-    fireEvent.click(screen.getByRole("button", { name: "بازنشانی ورودی‌ها" }));
-    expect(screen.getByTestId("input-qty")).toHaveValue("1");
+    fireEvent.click(screen.getByRole("button", { name: "پاک کردن ورودی‌ها" }));
+    expect(screen.getByTestId("input-qty")).toHaveValue("");
+    expect(screen.getByTestId("input-weight")).toHaveValue("");
     expect(screen.getByTestId("select-channel")).toHaveValue("marketplace");
-    expect(
-      within(screen.getByTestId("row-productionTotal")).getByText("۱٬۰۷۴٬۰۰۰"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("price-empty")).toBeInTheDocument();
     expect(client.getQueryData(["pricing-settings"])).toMatchObject({
       filamentPerGram: "4000.0000",
     });
@@ -78,6 +117,7 @@ describe("pricing page — literal Excel model", () => {
 
   it("keeps shared commission, unavailable chain amount and moved constant editors", () => {
     renderWithPricing(<PriceCalcPage />);
+    fillInputs();
     const commission = within(screen.getByTestId("row-unitCommission"));
     const amounts = commission.getAllByRole("cell").slice(1);
     expect(amounts[0].textContent).toBe(amounts[1].textContent);
@@ -91,10 +131,21 @@ describe("pricing page — literal Excel model", () => {
 
   it("shows invalid input rather than an obsolete price, and can recover", () => {
     renderWithPricing(<PriceCalcPage />);
-    fireEvent.change(screen.getByTestId("input-qty"), { target: { value: "0" } });
+    fillInputs({ qty: "0" });
     expect(screen.getByText(/ورودی نامعتبر است/)).toBeInTheDocument();
     expect(screen.queryByTestId("row-unitFinalPrice")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "بازنشانی ورودی‌ها" }));
+    fireEvent.change(screen.getByTestId("input-qty"), { target: { value: "1" } });
     expect(screen.getByTestId("row-unitFinalPrice")).toBeInTheDocument();
+  });
+
+  it("does not restore the previous values when the page is opened again", () => {
+    const first = renderWithPricing(<PriceCalcPage />);
+    fillInputs({ qty: "25" });
+    expect(screen.getByTestId("input-qty")).toHaveValue("25");
+    first.unmount();
+    renderWithPricing(<PriceCalcPage />);
+    expect(screen.getByTestId("input-qty")).toHaveValue("");
+    expect(screen.getByTestId("input-weight")).toHaveValue("");
+    expect(screen.getByTestId("price-empty")).toBeInTheDocument();
   });
 });

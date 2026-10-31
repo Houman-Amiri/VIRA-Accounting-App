@@ -243,11 +243,16 @@ def exercise_http(app, state, out, password, reuse, audit):
             fixtures = json.loads(manifest.read_text(encoding='utf-8'))
         else:
             fixtures = {}
+            # Order lines must reference a real warehouse product (v1.0.12 rule).
+            model = checked(client.post('/api/v1/warehouse/items', json={
+                'name': 'مدل ' + DIGITS, 'kind': 'PRODUCT', 'unit': 'PCS',
+                'quantity': '0', 'unit_price': '1234567890.1'}), 201).json()
             for name, count in [('single-page', 1), ('multi-page', 100)]:
                 payload = {'order_date': '2026-10-19', 'customer_name': 'آزمایش خصوصی ' + DIGITS,
                            'customer_phone': DIGITS, 'customer_address': 'فقط داده ساختگی تهران',
                            'items': [{'product_name': 'مدل ' + DIGITS, 'quantity': '1',
-                                      'unit_price': '1234567890.1', 'unit_cost': '10'} for _ in range(count)]}
+                                      'unit_price': '1234567890.1', 'unit_cost': '10',
+                                      'inventory_item_id': model['id']} for _ in range(count)]}
                 order = checked(client.post('/api/v1/orders', json=payload), 201).json()
                 fixtures[name] = order['id']
             manifest.write_text(json.dumps(fixtures), encoding='utf-8')

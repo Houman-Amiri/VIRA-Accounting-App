@@ -254,6 +254,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/journal-entries/invoice": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Invoice Entry
+         * @description Register a sale/purchase invoice as one balanced posted entry.
+         *
+         *     The client sends what a paper invoice carries; the debit/credit mapping is
+         *     derived here from the chart of accounts (1040/4010 for sales,
+         *     1030/2010 for purchases) and the line detail is stored in the entry
+         *     metadata.
+         */
+        post: operations["create_invoice_entry_api_v1_journal_entries_invoice_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/journal-entries/{entry_id}/post": {
         parameters: {
             query?: never;
@@ -1122,7 +1147,11 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete Item
+         * @description Delete a warehouse item; used items are deactivated to keep history.
+         */
+        delete: operations["delete_item_api_v1_warehouse_items__item_id__delete"];
         options?: never;
         head?: never;
         /** Update Item */
@@ -1246,6 +1275,26 @@ export interface paths {
         get: operations["sales_report_api_v1_orders_reports_sales_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/{order_id}/production": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Plan Order Production
+         * @description «افزودن به خط تولید» — plan jobs for the order's un-built lines.
+         */
+        post: operations["plan_order_production_api_v1_orders__order_id__production_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1863,6 +1912,83 @@ export interface components {
             /** Items */
             items: components["schemas"]["InventoryItemRead"][];
         };
+        /**
+         * InvoiceCreate
+         * @description Invoice-shaped entry — the server derives the double-entry itself.
+         *
+         *     The user fills what a paper invoice has (date, seller, buyer, lines); the
+         *     chart-of-accounts mapping stays a server decision so the ledger's balance
+         *     invariant is never exposed as a form field.
+         */
+        InvoiceCreate: {
+            /** Transaction Date */
+            transaction_date: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "sale" | "purchase";
+            /** Seller */
+            seller?: string | null;
+            /** Buyer */
+            buyer?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Note */
+            note?: string | null;
+            /** Lines */
+            lines: components["schemas"]["InvoiceLineIn"][];
+        };
+        /**
+         * InvoiceLineIn
+         * @description One invoice row the user actually sees: title, count, price.
+         */
+        InvoiceLineIn: {
+            /** Title */
+            title: string;
+            /**
+             * Quantity
+             * @default 1.0000
+             */
+            quantity: string | null;
+            /**
+             * Unit Price
+             * @default 0.0000
+             */
+            unit_price: string | null;
+        };
+        /** InvoiceLineRead */
+        InvoiceLineRead: {
+            /** Title */
+            title: string;
+            /** Quantity */
+            quantity: string;
+            /** Unit Price */
+            unit_price: string;
+            /** Line Total */
+            line_total: string;
+        };
+        /** InvoiceRead */
+        InvoiceRead: {
+            entry: components["schemas"]["JournalEntryRead"];
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "sale" | "purchase";
+            /** Seller */
+            seller: string | null;
+            /** Buyer */
+            buyer: string | null;
+            /** Total */
+            total: string;
+            /** Lines */
+            lines: components["schemas"]["InvoiceLineRead"][];
+            /** Debit Account */
+            debit_account: string;
+            /** Credit Account */
+            credit_account: string;
+        };
         /** JournalEntryCreate */
         JournalEntryCreate: {
             /** Transaction Date */
@@ -1953,9 +2079,19 @@ export interface components {
             /** Items */
             items: components["schemas"]["OrderItemIn"][];
         };
-        /** OrderItemIn */
+        /**
+         * OrderItemIn
+         * @description A line the user writes on the order page.
+         *
+         *     The product is chosen from the warehouse (``inventory_item_id``); its name
+         *     defaults to that item's name. Grams and print hours are no longer asked on
+         *     the order page (item 3) — they belong to the production job.
+         */
         OrderItemIn: {
-            /** Product Name */
+            /**
+             * Product Name
+             * @default
+             */
             product_name: string;
             /**
              * Variant
@@ -1975,16 +2111,6 @@ export interface components {
              * @default 0
              */
             unit_cost: number | string;
-            /**
-             * Weight G
-             * @default 0
-             */
-            weight_g: number | string;
-            /**
-             * Print Hours
-             * @default 0
-             */
-            print_hours: number | string;
             /** Inventory Item Id */
             inventory_item_id?: string | null;
             /** Notes */
@@ -1992,25 +2118,22 @@ export interface components {
         };
         /** OrderItemRead */
         OrderItemRead: {
+            /** Id */
+            id: string;
+            /** Position */
+            position: number;
             /** Product Name */
             product_name: string;
             /**
              * Variant
-             * @default plain
              * @enum {string}
              */
             variant: "plain" | "chain";
             /** Quantity */
             quantity: string;
-            /**
-             * Unit Price
-             * @default 0
-             */
+            /** Unit Price */
             unit_price: string;
-            /**
-             * Unit Cost
-             * @default 0
-             */
+            /** Unit Cost */
             unit_cost: string;
             /**
              * Weight G
@@ -2024,12 +2147,22 @@ export interface components {
             print_hours: string;
             /** Inventory Item Id */
             inventory_item_id?: string | null;
+            /** Inventory Item Name */
+            inventory_item_name?: string | null;
             /** Notes */
             notes?: string | null;
-            /** Id */
-            id: string;
-            /** Position */
-            position: number;
+        };
+        /**
+         * OrderProductionResult
+         * @description Outcome of «افزودن به خط تولید» — created jobs plus honest warnings.
+         */
+        OrderProductionResult: {
+            /** Created */
+            created?: components["schemas"]["PlannedJob"][];
+            /** Skipped */
+            skipped?: string[];
+            /** Warnings */
+            warnings?: string[];
         };
         /** OrderRead */
         OrderRead: {
@@ -2071,6 +2204,8 @@ export interface components {
             total_cost: string;
             /** Profit */
             profit: string;
+            /** Warnings */
+            warnings?: string[];
         };
         /**
          * OrderSummary
@@ -2139,6 +2274,19 @@ export interface components {
             /** Closed At */
             closed_at: string | null;
         };
+        /** PlannedJob */
+        PlannedJob: {
+            /** Job Id */
+            job_id: string;
+            /** Job Number */
+            job_number: number;
+            /** Product Name */
+            product_name: string;
+            /** Quantity */
+            quantity: string;
+            /** Filaments */
+            filaments?: components["schemas"]["ProductionFilamentRead"][];
+        };
         /** PricingRead */
         PricingRead: {
             /** Filamentpergram */
@@ -2179,6 +2327,33 @@ export interface components {
             /** Version Id */
             version_id: number;
         };
+        /**
+         * ProductionFilamentIn
+         * @description One spool consumed by a job, with its own grams and price per gram.
+         */
+        ProductionFilamentIn: {
+            /** Filament Item Id */
+            filament_item_id: string;
+            /** Grams Per Unit */
+            grams_per_unit: number | string;
+            /** Unit Cost */
+            unit_cost?: number | string | null;
+        };
+        /** ProductionFilamentRead */
+        ProductionFilamentRead: {
+            /** Id */
+            id: string;
+            /** Filament Item Id */
+            filament_item_id: string | null;
+            /** Filament Item Name */
+            filament_item_name: string | null;
+            /** Grams Per Unit */
+            grams_per_unit: string;
+            /** Unit Cost */
+            unit_cost: string;
+            /** Grams Total */
+            grams_total: string;
+        };
         /** ProductionJobCreate */
         ProductionJobCreate: {
             /** Product Name */
@@ -2210,6 +2385,8 @@ export interface components {
              * @default 0
              */
             filament_grams: number | string;
+            /** Filaments */
+            filaments?: components["schemas"]["ProductionFilamentIn"][];
             /**
              * Print Hours
              * @default 0
@@ -2269,6 +2446,13 @@ export interface components {
             product_item_name: string | null;
             /** Filament Grams */
             filament_grams: string;
+            /** Filaments */
+            filaments?: components["schemas"]["ProductionFilamentRead"][];
+            /**
+             * Filament Ready
+             * @default false
+             */
+            filament_ready: boolean;
             /** Print Hours */
             print_hours: string;
             /** Unit Cost */
@@ -2308,6 +2492,8 @@ export interface components {
             product_item_id?: string | null;
             /** Filament Grams */
             filament_grams?: number | string | null;
+            /** Filaments */
+            filaments?: components["schemas"]["ProductionFilamentIn"][] | null;
             /** Print Hours */
             print_hours?: number | string | null;
             /** Unit Cost */
@@ -3441,6 +3627,45 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["JournalEntryRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_invoice_entry_api_v1_journal_entries_invoice_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvoiceCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceRead"];
                 };
             };
             /** @description Validation Error */
@@ -5571,6 +5796,45 @@ export interface operations {
             };
         };
     };
+    delete_item_api_v1_warehouse_items__item_id__delete: {
+        parameters: {
+            query: {
+                version_id: number;
+            };
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                item_id: string;
+            };
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogDeletion"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     update_item_api_v1_warehouse_items__item_id__patch: {
         parameters: {
             query?: never;
@@ -5905,6 +6169,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SalesReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    plan_order_production_api_v1_orders__order_id__production_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                order_id: string;
+            };
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderProductionResult"];
                 };
             };
             /** @description Validation Error */

@@ -30,9 +30,11 @@ from ..schemas.operations import (
     InventorySummary,
     OrderCreate,
     OrderItemRead,
+    OrderProductionResult,
     OrderRead,
     OrderSummary,
     OrderUpdate,
+    ProductionFilamentRead,
     ProductionJobCreate,
     ProductionJobRead,
     ProductionJobUpdate,
@@ -140,8 +142,30 @@ def _order_item_read(line: Any) -> OrderItemRead:
         weight_g=Decimal(line.weight_g),
         print_hours=Decimal(line.print_hours),
         inventory_item_id=line.inventory_item_id,
+        inventory_item_name=(
+            line.inventory_item.name
+            if getattr(line, "inventory_item", None) is not None
+            else None
+        ),
         notes=line.notes,
     )
+
+
+def _order_warnings(order: Any) -> list[str]:
+    """Shortages the user must see before confirming a printed-on-demand order."""
+    warnings: list[str] = []
+    for line in order.items:
+        item = getattr(line, "inventory_item", None)
+        available = Decimal(item.quantity) if item is not None else Decimal(0)
+        ordered = Decimal(line.quantity)
+        if item is not None and not item.is_active:
+            warnings.append(f"«{line.product_name}» در انبار غیرفعال شده است.")
+        elif ordered > available:
+            warnings.append(
+                f"«{line.product_name}»: سفارش {ordered.normalize()} عدد، موجودی "
+                f"{available.normalize()} عدد — کمبود باید تولید شود."
+            )
+    return warnings
 
 
 def _order_read(order: Any) -> OrderRead:
@@ -149,6 +173,7 @@ def _order_read(order: Any) -> OrderRead:
     total = sum((i.quantity * i.unit_price for i in items), Decimal(0))
     cost = sum((i.quantity * i.unit_cost for i in items), Decimal(0))
     return OrderRead(
+        warnings=_order_warnings(order),
         id=order.id,
         order_number=order.order_number,
         order_date=order.order_date,
@@ -187,6 +212,23 @@ def _job_read(session: Session, job: Any) -> ProductionJobRead:
 
         item = session.get(InventoryItem, job.product_item_id)
         product_name = item.name if item is not None else None
+    quantity = Decimal(job.quantity)
+    filament_rows: list[ProductionFilamentRead] = []
+    for row in getattr(job, "filaments", []) or []:
+        item = getattr(row, "item", None)
+        filament_rows.append(
+            ProductionFilamentRead(
+                id=row.id,
+                filament_item_id=row.filament_item_id,
+                filament_item_name=item.name if item is not None else None,
+                grams_per_unit=Decimal(row.grams_per_unit),
+                unit_cost=Decimal(row.unit_cost),
+                grams_total=Decimal(row.grams_per_unit) * quantity,
+            )
+        )
+    filament_ready = bool(filament_rows) or bool(
+        job.filament_item_id and Decimal(job.filament_grams) > 0
+    )
     return ProductionJobRead(
         id=job.id,
         job_number=job.job_number,
@@ -196,13 +238,15 @@ def _job_read(session: Session, job: Any) -> ProductionJobRead:
         product_name=job.product_name,
         variant=job.variant,
         channel=job.channel,
-        quantity=Decimal(job.quantity),
+        quantity=quantity,
         status=job.status,
         filament_item_id=job.filament_item_id,
         filament_item_name=filament_name,
         product_item_id=job.product_item_id,
         product_item_name=product_name,
         filament_grams=Decimal(job.filament_grams),
+        filaments=filament_rows,
+        filament_ready=filament_ready,
         print_hours=Decimal(job.print_hours),
         unit_cost=Decimal(job.unit_cost),
         unit_price=Decimal(job.unit_price),
@@ -365,6 +409,19 @@ def create_movement(
     return _movement_read(movement)
 
 
+@warehouse.delete("/items/{item_id}", response_model=CatalogDeletion)
+def delete_item(
+    item_id: str,
+    session: Annotated[Session, Depends(get_db)],
+    user: Annotated[SessionUser, Depends(require_roles(*WRITE_ROLES))],
+    version_id: Annotated[int, Query(ge=1)],
+) -> CatalogDeletion:
+    """Delete a warehouse item; used items are deactivated to keep history."""
+    return OperationsService(session).delete_item(
+        item_id, version_id, actor_id=getattr(user, "id", None)
+    )
+
+
 @warehouse.get("/movements", response_model=list[StockMovementRead])
 def list_movements(
     session: Annotated[Session, Depends(get_db)],
@@ -487,6 +544,17 @@ def sales_report(
         end=date_to or today.isoformat(),
     )
     return SalesReport(**report)
+
+
+@orders.post("/{order_id}/production", response_model=OrderProductionResult, status_code=201)
+def plan_order_production(
+    order_id: str,
+    session: Annotated[Session, Depends(get_db)],
+    _user: Annotated[SessionUser, Depends(require_roles(*WRITE_ROLES))],
+) -> OrderProductionResult:
+    """«افزودن به خط تولید» — plan jobs for the order's un-built lines."""
+    result = OperationsService(session).plan_order_production(order_id)
+    return OrderProductionResult(**result)
 
 
 @orders.get("/{order_id}", response_model=OrderRead)

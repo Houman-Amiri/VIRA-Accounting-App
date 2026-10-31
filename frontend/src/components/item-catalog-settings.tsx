@@ -7,6 +7,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Badge } from "./ui/badge";
+import { faNumber } from "@/lib/fa";
 
 type Category = "types" | "units" | "suppliers";
 type Choice = { id: string; name: string; is_active: boolean; version_id: number };
@@ -220,6 +221,150 @@ function CatalogPanel({ category, canWrite }: { category: Category; canWrite: bo
   );
 }
 
+type WarehouseRow = {
+  id: string;
+  name: string;
+  kind: string;
+  unit: string;
+  quantity: string;
+  is_active: boolean;
+  version_id: number;
+};
+
+/**
+ * «حذف مورد انبار» (item 1 of the owner's change list).
+ * A warehouse item that was ever used is only deactivated, so the stock history
+ * and old orders keep pointing at a real row; a brand-new unused item is deleted.
+ */
+function WarehouseItemsPanel({ canWrite }: { canWrite: boolean }) {
+  const cache = useQueryClient();
+  const [confirmation, setConfirmation] = useState<WarehouseRow | null>(null);
+  const [message, setMessage] = useState("");
+  const query = useQuery({
+    queryKey: ["warehouse", "items", "settings"],
+    queryFn: async () => {
+      const res = await api.GET("/api/v1/warehouse/items");
+      if (res.error) throw await parseError(res.response);
+      return res.data as unknown as WarehouseRow[];
+    },
+  });
+  const remove = useMutation({
+    mutationFn: async (row: WarehouseRow) => {
+      const res = await api.DELETE("/api/v1/warehouse/items/{item_id}", {
+        params: { path: { item_id: row.id }, query: { version_id: row.version_id } },
+      });
+      if (res.error) throw await parseError(res.response);
+      return res.data!;
+    },
+    onMutate: () => setMessage(""),
+    onSuccess: async (result) => {
+      setConfirmation(null);
+      setMessage(result.reason);
+      await cache.invalidateQueries({ queryKey: ["warehouse"] });
+      await cache.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+    onError: (error) =>
+      setMessage(error instanceof Error ? error.message : "حذف ناموفق بود؛ فهرست را تازه کنید."),
+  });
+  return (
+    <section
+      className="min-w-0 space-y-3 rounded-lg border p-3"
+      aria-label="کالاهای انبار"
+      data-testid="catalog-inventory-items"
+    >
+      <h3 className="font-semibold">کالاهای انبار</h3>
+      <p className="text-xs text-muted-foreground">
+        کالایی که گردش دارد یا در سفارش/تولید استفاده شده، پاک نمی‌شود و فقط از انتخاب‌ها خارج
+        می‌شود؛ این کار سوابق انبار و فاکتورهای قبلی را دست‌نخورده نگه می‌دارد.
+      </p>
+      {query.isPending ? (
+        <p role="status">دریافت فهرست…</p>
+      ) : query.error ? (
+        <div role="alert">
+          <p>دریافت فهرست ناموفق بود.</p>
+          <Button variant="outline" onClick={() => void query.refetch()}>
+            تلاش مجدد
+          </Button>
+        </div>
+      ) : (
+        <>
+          <ul className="max-h-72 space-y-2 overflow-y-auto">
+            {(query.data ?? []).map((row) => (
+              <li
+                key={row.id}
+                className="flex flex-wrap items-center gap-2 rounded-md bg-muted/40 p-2 text-sm"
+                data-testid={`inventory-row-${row.id}`}
+              >
+                <span className="min-w-0 flex-1 break-words">
+                  {row.name}
+                  <span className="num text-xs text-muted-foreground">
+                    {" "}
+                    — {faNumber(row.quantity)} {row.kind === "FILAMENT" ? "گرم" : "عدد"}
+                  </span>
+                </span>
+                <Badge variant={row.is_active ? "success" : "secondary"}>
+                  {row.is_active ? "فعال" : "غیرفعال"}
+                </Badge>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!canWrite || remove.isPending}
+                  aria-label={`حذف کالای ${row.name}`}
+                  onClick={() => {
+                    setMessage("");
+                    setConfirmation(row);
+                  }}
+                >
+                  حذف
+                </Button>
+              </li>
+            ))}
+          </ul>
+          {(query.data ?? []).length === 0 && <p>کالایی در انبار ثبت نشده است.</p>}
+          {confirmation && (
+            <div
+              role="alertdialog"
+              aria-label={`تأیید حذف کالای ${confirmation.name}`}
+              className="space-y-2 rounded-md border border-destructive/50 p-3 text-sm"
+            >
+              <p>
+                «{confirmation.name}» از انبار حذف شود؟ اگر گردش انبار یا سفارش/تولید داشته باشد،
+                فقط غیرفعال می‌شود و سوابق باقی می‌ماند.
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="destructive"
+                  data-testid="inventory-delete-confirm"
+                  disabled={remove.isPending || !canWrite}
+                  onClick={() => remove.mutate(confirmation)}
+                >
+                  تأیید حذف
+                </Button>
+                <Button
+                  variant="outline"
+                  disabled={remove.isPending}
+                  onClick={() => setConfirmation(null)}
+                >
+                  انصراف
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+      {message && (
+        <p
+          role={remove.isError ? "alert" : "status"}
+          className={remove.isError ? "text-sm text-destructive" : "text-sm text-foreground"}
+          data-testid="inventory-delete-message"
+        >
+          {message}
+        </p>
+      )}
+    </section>
+  );
+}
+
 export function ItemCatalogSettings() {
   const user = useQuery({
     queryKey: ["session-user"],
@@ -254,6 +399,7 @@ export function ItemCatalogSettings() {
           <CatalogPanel category="types" canWrite={canWrite} />
           <CatalogPanel category="units" canWrite={canWrite} />
           <CatalogPanel category="suppliers" canWrite={canWrite} />
+          <WarehouseItemsPanel canWrite={canWrite} />
         </div>
       </CardContent>
     </Card>

@@ -124,18 +124,22 @@ it("keeps money exact until plotting, with one unit conversion", () => {
   );
 });
 
-it("shows six real KPIs, four plots, supplier/action links, and correct order units", async () => {
+it("shows five real KPIs, three plots, supplier/action links, and correct order units", async () => {
   mount();
   await waitFor(() => expect(screen.getByTestId("kpi-assets")).toHaveTextContent(faNumber("800")));
-  expect(screen.getByLabelText("شاخص‌های کلیدی").children).toHaveLength(6);
+  expect(screen.getByLabelText("شاخص‌های کلیدی").children).toHaveLength(5);
   expect(screen.getByTestId("kpi-equity")).toHaveTextContent(faNumber("700"));
-  expect(screen.getByTestId("kpi-stock")).toHaveTextContent(faNumber("1,200"));
+  // item 10: the warehouse-value card and the 8-item value chart are gone
+  expect(screen.queryByTestId("kpi-stock")).not.toBeInTheDocument();
+  expect(screen.queryByText("ارزش موجودی انبار")).not.toBeInTheDocument();
+  expect(screen.queryByTestId("chart-stock")).not.toBeInTheDocument();
+  expect(screen.queryByText(/ارزش ۸ قلم/)).not.toBeInTheDocument();
   expect(screen.getByTestId("kpi-cash")).toHaveTextContent(faNumber("800"));
   expect(screen.getByTestId("dash-order-order")).toHaveTextContent(faNumber("1,200"));
   expect(screen.getByTestId("alert-orders")).toHaveTextContent(faNumber("203"));
   expect(screen.getByTestId("alert-stock")).toHaveTextContent("فروشندهٔ پیشنهادی");
   expect(screen.getByTestId("dash-job-job")).toHaveTextContent(faNumber("25.25"));
-  for (const id of ["chart-structure", "chart-pnl", "chart-sales", "chart-stock"])
+  for (const id of ["chart-structure", "chart-pnl", "chart-sales"])
     expect(screen.getByTestId(id)).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "رسیدگی به موجودی" }));
   expect(mocks.navigate).toHaveBeenCalledWith({ to: "/warehouse" });
@@ -176,7 +180,6 @@ it("converts plot values only once and fills all 30 dates without altering reven
   const theme = { primary: "#123", muted: "#456", border: "#789" };
   expect(props("chart-structure").buildOption(theme).series[0].data).toEqual([800, 100, 700]);
   expect(props("chart-pnl").buildOption(theme).series[0].data).toEqual([300, 100, 200]);
-  expect(props("chart-stock").buildOption(theme).series[0].data).toEqual([1200]);
   const daily = props("chart-sales").buildOption(theme).series[0].data;
   expect(daily).toHaveLength(30);
   expect(daily[29]).toBe(1200);
@@ -195,26 +198,27 @@ it("loading has no money, healthy alert, empty-queue claim or plot", () => {
 
 it("one failed query hides its stale values; other sections remain usable and retry recovers", async () => {
   const client = mount();
-  await screen.findByTestId("chart-stock");
+  await screen.findByTestId("chart-sales");
   vi.mocked(api.GET).mockImplementation((async (path: string) => {
-    if (path === "/api/v1/warehouse/summary") throw new Error("offline");
+    if (path === "/api/v1/reports/cash-flow") throw new Error("offline");
     return { data: data[path], response: new Response() };
   }) as typeof api.GET);
-  await client.invalidateQueries({ queryKey: ["dashboard", "inventory"] });
+  await client.invalidateQueries({ queryKey: ["dashboard", "cash"] });
   await waitFor(() =>
-    expect(within(screen.getByTestId("kpi-stock")).getByRole("alert")).toBeInTheDocument(),
+    expect(within(screen.getByTestId("kpi-cash")).getByRole("alert")).toBeInTheDocument(),
   );
-  expect(screen.getByTestId("kpi-stock")).not.toHaveTextContent(faNumber("1,200"));
-  expect(screen.queryByTestId("chart-stock")).not.toBeInTheDocument();
+  expect(screen.getByTestId("kpi-cash")).not.toHaveTextContent(faNumber("800"));
   expect(screen.getByTestId("chart-structure")).toBeInTheDocument();
   vi.mocked(api.GET).mockImplementation((async (path: string) => ({
     data: data[path],
     response: new Response(),
   })) as typeof api.GET);
   fireEvent.click(
-    within(screen.getByTestId("kpi-stock")).getByRole("button", { name: "تلاش دوباره" }),
+    within(screen.getByTestId("kpi-cash")).getByRole("button", { name: "تلاش دوباره" }),
   );
-  await screen.findByTestId("chart-stock");
+  await waitFor(() =>
+    expect(screen.getByTestId("kpi-cash")).toHaveTextContent(faNumber("800")),
+  );
 });
 
 it("failed trial/alarms/orders/production never claim healthy or empty", async () => {
@@ -239,7 +243,7 @@ it("flags even a four-decimal trial difference instead of treating it as zero", 
   await screen.findByText("اختلاف در تراز حسابداری");
 });
 
-it("successful empty data shows genuine zeroes and four honest empty chart panels", async () => {
+it("successful empty data shows genuine zeroes and three honest empty chart panels", async () => {
   const empty: Record<string, unknown> = {
     ...data,
     "/api/v1/reports/trial-balance": [],
@@ -270,7 +274,7 @@ it("successful empty data shows genuine zeroes and four honest empty chart panel
   mount();
   await screen.findByText("تراز بدهکار و بستانکار برابر است.");
   expect(screen.getByTestId("kpi-assets")).toHaveTextContent("۰تومان");
-  expect(screen.getAllByText("برای این بازه مبلغ غیرصفر ثبت نشده است.")).toHaveLength(4);
+  expect(screen.getAllByText("برای این بازه مبلغ غیرصفر ثبت نشده است.")).toHaveLength(3);
   expect(screen.queryByTestId("chart-structure")).not.toBeInTheDocument();
   expect(screen.getByText("هنوز سفارشی ثبت نشده است.")).toBeInTheDocument();
   expect(screen.getByText("کار تولیدی در جریان نیست.")).toBeInTheDocument();

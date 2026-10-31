@@ -14,12 +14,19 @@ from fastapi import APIRouter, Depends, Header, Query, Response
 from sqlalchemy.orm import Session
 
 from ..models import JournalEntry
-from ..schemas.ledger import JournalEntryCreate, JournalEntryRead, SplitRead
+from ..schemas.ledger import (
+    InvoiceCreate,
+    InvoiceRead,
+    JournalEntryCreate,
+    JournalEntryRead,
+    SplitRead,
+)
 from ..services.idempotency import (
     IdempotencyReplay,
     claim_or_replay,
     request_hash,
 )
+from ..services.invoice import create_invoice
 from ..services.ledger import LedgerService
 from .deps import enforce_csrf, get_db, require_roles, require_user_or_ingest
 
@@ -92,6 +99,22 @@ def get_entry(
     session: Annotated[Session, Depends(get_db)],
 ) -> JournalEntryRead:
     return _read(LedgerService(session).get_entry(entry_id))
+
+
+@router.post("/invoice", response_model=InvoiceRead, status_code=201)
+def create_invoice_entry(
+    payload: InvoiceCreate,
+    session: Annotated[Session, Depends(get_db)],
+    _user: Annotated[object, Depends(require_roles("OWNER", "BOOKKEEPER"))],
+) -> InvoiceRead:
+    """Register a sale/purchase invoice as one balanced posted entry.
+
+    The client sends what a paper invoice carries; the debit/credit mapping is
+    derived here from the chart of accounts (1040/4010 for sales,
+    1030/2010 for purchases) and the line detail is stored in the entry
+    metadata.
+    """
+    return create_invoice(session, payload)
 
 
 @router.post("", response_model=JournalEntryRead, status_code=201)
