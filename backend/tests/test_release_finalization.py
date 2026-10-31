@@ -166,9 +166,9 @@ def test_actual_release_workflow_finalizes_after_smoke_and_before_upload_or_publ
 def test_dated_owner_authorization_allows_one_unsigned_tagged_publication(assets, monkeypatch):
     """The secret cannot be created by an App token; the owner authorized this."""
     monkeypatch.setenv("GITHUB_REF", "refs/tags/v1.0.11")
-    monkeypatch.setenv("VIRA_UNSIGNED_PUBLICATION_APPROVAL", "owner-authorized-2026-10-28")
+    monkeypatch.setenv("VIRA_UNSIGNED_PUBLICATION_APPROVAL", "owner-authorized-2026-10-31")
     result = MODULE["finalize"](assets, None)
-    assert result == dict(signed=False, checksummed_assets=4, unsigned_approval="owner-authorized-2026-10-28")
+    assert result == dict(signed=False, checksummed_assets=4, unsigned_approval="owner-authorized-2026-10-31")
     assert not (assets / "latest.json.sig").exists()
     assert "latest.json" in checked_sums(assets)
 
@@ -176,7 +176,7 @@ def test_dated_owner_authorization_allows_one_unsigned_tagged_publication(assets
 @pytest.mark.parametrize(
     "approval",
     ["", "yes", "owner-authorized", "owner-authorized-2026-10", "owned-authorized-2026-10-28",
-     "owner-authorized-2026-10-28-extra", " owner-authorized-2026-10-28 ", "true", "1"],
+     "owner-authorized-2026-10-31-extra", " owner-authorized-2026-10-31 ", "true", "1"],
 )
 def test_a_hand_typed_or_partial_authorization_never_publishes_unsigned_labels(assets, monkeypatch, approval):
     monkeypatch.setenv("GITHUB_REF", "refs/tags/v1.0.11")
@@ -189,7 +189,7 @@ def test_a_hand_typed_or_partial_authorization_never_publishes_unsigned_labels(a
 
 def test_unsigned_publication_is_announced_loudly_and_never_leaks_a_key(assets, monkeypatch):
     monkeypatch.setenv("GITHUB_REF", "refs/tags/v1.0.11")
-    monkeypatch.setenv("VIRA_UNSIGNED_PUBLICATION_APPROVAL", "owner-authorized-2026-10-28")
+    monkeypatch.setenv("VIRA_UNSIGNED_PUBLICATION_APPROVAL", "owner-authorized-2026-10-31")
     child = subprocess.run(
         [sys.executable, str(ROOT / "scripts/finalize_release_assets.py"), str(assets)],
         capture_output=True, text=True, encoding="utf-8", cwd=ROOT,
@@ -203,11 +203,11 @@ def test_unsigned_publication_is_announced_loudly_and_never_leaks_a_key(assets, 
 
 def test_the_workflow_carries_exactly_this_dated_authorization_and_keeps_failing_closed():
     text = (ROOT / ".github/workflows/release.yml").read_text()
-    assert 'VIRA_UNSIGNED_PUBLICATION_APPROVAL: "owner-authorized-2026-10-28"' in text
+    assert 'VIRA_UNSIGNED_PUBLICATION_APPROVAL: "owner-authorized-2026-10-31"' in text
     guard = text[text.index("Refuse unsigned tagged publication"):]
     guard = guard[:guard.index("- uses:")]
     assert 'throw "Tagged publication requires the configured Ed25519 signing key; no unsigned fallback"' in guard
     assert "::warning title=unsigned-publication::" in guard
-    token = '"owner-authorized-2026-10-28"'
+    token = '"owner-authorized-2026-10-31"'
     assert text.count(token) == 2, "the dated token appears once as env and once as the guard comparison"
     assert "-ne " + token in guard
