@@ -222,3 +222,19 @@ def test_release_workflow_normalizes_the_target_version_for_the_updater_audit():
     workflow = (REPO_ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
     assert "update_native_smoke.py" in workflow
     assert "type=normalize_target_version" in (REPO_ROOT / "scripts/update_native_smoke.py").read_text(encoding="utf-8")
+
+
+def test_committed_openapi_contract_matches_the_ci_regeneration_bytes(app):
+    """The contract job dumps `json.dump(..., indent=2)` — bytes, not just JSON.
+
+    v1.0.13's release run failed here because a regenerated file carried one
+    trailing newline the CI dump never writes; the schema was otherwise in sync.
+    Comparing the exact bytes keeps the release job from failing on whitespace.
+    """
+    import json
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    expected = json.dumps(app.openapi(), indent=2, ensure_ascii=False)
+    actual = (root / "backend/openapi.json").read_text(encoding="utf-8")
+    assert actual == expected, "backend/openapi.json must equal the CI regeneration byte for byte"
