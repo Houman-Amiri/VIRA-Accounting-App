@@ -1,0 +1,67 @@
+{
+  "role": "RELEASED_UNSIGNED_UNDER_DATED_OWNER_AUTHORIZATION",
+  "version": "1.0.12",
+  "tag": "v1.0.12",
+  "tag_commit": "5d92ff0",
+  "tag_type": "annotated (immutable; one tag per release)",
+  "published_at": "2026-10-31T11:34:06Z",
+  "release_run": 41195294380,
+  "release_jobs": {
+    "Full test suite / Frontend — lint, types, contract, tests, build": "success",
+    "Full test suite / Backend — lint, type, security, tests": "success",
+    "Full test suite / OpenAPI contract is in sync": "success",
+    "Full test suite / Playwright e2e (native processes)": "success",
+    "Full test suite / Windows-native smoke (SQLite paths, venv, build)": "success",
+    "Build & publish release assets": "success"
+  },
+  "release_artifact": {
+    "name": "release-assets-v1.0.12",
+    "id": 13041228583,
+    "bytes": 598323205,
+    "sha256": "5e40998512ef43e521bc62478bf3b85371d685caff0851063a6126e92005541f"
+  },
+  "published_assets": {
+    "VIRA-Setup-v1.0.12.exe": 128122609,
+    "vira-v1.0.12-app.zip": 201742147,
+    "VIRA-v1.0.12-delta-from-v1.0.9.zip": 31155575,
+    "VIRA-v1.0.12-delta-from-v1.0.10.zip": 31147808,
+    "VIRA-v1.0.12-delta-from-v1.0.11.zip": 4546654,
+    "vira-v1.0.12-portable.zip": 5381601,
+    "vira-updater.exe": 57344,
+    "latest.json": 1520,
+    "SHA256SUMS.txt": 820,
+    "release-notes-fa.md": 9882,
+    "latest.json.sig": null
+  },
+  "unsigned_authorization": {
+    "record": "VIRA_UNSIGNED_PUBLICATION_APPROVAL: owner-authorized-2026-10-31 in .github/workflows/release.yml",
+    "owner_instruction": "«نسخه رو منتشر کن» (2026-10-31), after reading docs/releases/v1.0.12-fa.md",
+    "why": "The repository secret VIRA_UPDATE_SIGNING_KEY cannot be created by the GitHub App token used here; every 1.0.x release so far shipped unsigned.",
+    "unchanged_protection": "The dated-token guard still fails closed on any other value, and SHA-256 is verified for every asset and for SHA256SUMS.txt. Signature enforcement starts with the first release built after that secret exists."
+  },
+  "scope": [
+    "item 1: delete an unused warehouse item, deactivate a used one with a security event",
+    "item 2: production/OUT movements no longer rewrite the item unit price",
+    "item 3: grams and print hours removed from the order page and schema",
+    "item 4: «اضافه به خط تولید» plans one job per unbuilt order line",
+    "item 5: finishing is refused when a spool cannot cover the job (no partial deduction)",
+    "item 6: multi-filament jobs from the additive 0007_production_filaments migration",
+    "item 7: order lines only from active warehouse PRODUCT/PCS items, with shortage warnings",
+    "item 8: pricing starts blank, computes only after entry, nothing stale restored",
+    "item 9: in-app step guides for new entry, receipts and bank statement import; the bank page now really stores the file",
+    "item 10: inventory-value card and the stock-value chart removed (5 KPIs, 3 charts)",
+    "item 11: the entry form is an invoice; بدهکار/بستانکار, account pickers and auto-balance left the user path while the server keeps the balanced ledger"
+  ],
+  "defects_found_and_fixed_in_this_cycle": [
+    "POST /journal-entries/invoice ignored Idempotency-Key, so a double click or a retried request could post two entries for one paper invoice; the route now claims the key like the other mutations and the retry replays the stored entry (409 on key reuse with a different body).",
+    "User-facing quantities printed in exponent form («موجود 2E+1 گرم») because Decimal.normalize() renders 2E+1; money.plain_number() is now used in the spool refusal, the order shortage warning and the print shortage message.",
+    "The pre-tag CI run was red for three reasons, all fixed: pip-audit found seven CVEs in pypdf 6.21.2 (lock upgraded to 6.21.4), update_native_smoke.seed_business and e2e/dashboard-audit still ordered free-text product names, and the pricing smoke asserted report rows before typing anything.",
+    "The dashboard e2e audit still expected the removed inventory-value KPI and the operations audit expected the old «موجودی کافی نیست» wording."
+  ],
+  "not_claimed": {
+    "signed_latest_json": false,
+    "installed_user_acceptance": false,
+    "legal_gates_closed": false,
+    "native_source_build_proven": false
+  }
+}
