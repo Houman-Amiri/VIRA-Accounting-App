@@ -22,11 +22,12 @@ DIGEST = "73c36ae9a24fab4590b24f8af7343aeaab6b4c7f19c1f2cd38dd6db88e19fb97"
 FAILURE = """import json, os, sqlite3
 from pathlib import Path
 with sqlite3.connect(os.environ['SQLITE_DATABASE_PATH']) as db:
-    proof = dict(revision=db.execute('SELECT version_num FROM alembic_version').fetchone()[0],new_table=bool(db.execute("SELECT COUNT(*) FROM item_types").fetchone()[0]))
-assert proof['revision'] == '0006_item_catalog', proof
+    proof = dict(revision=db.execute('SELECT version_num FROM alembic_version').fetchone()[0],new_table=bool(db.execute("SELECT COUNT(*) FROM sqlite_master WHERE name='production_job_filaments'").fetchone()[0]))
+assert proof['revision'] == '0007_production_filaments', proof
 with sqlite3.connect(os.environ['SQLITE_DATABASE_PATH']) as db:
     assert db.execute('SELECT COUNT(*) FROM item_types').fetchone()[0] == 2
     assert db.execute('SELECT COUNT(*) FROM item_units').fetchone()[0] == 2
+    assert {'job_id','filament_item_id','grams_per_unit'} <= {row[1] for row in db.execute('PRAGMA table_info(production_job_filaments)')}
     assert {'kind','unit','supplier_id'} <= {row[3] for row in db.execute('PRAGMA foreign_key_list(inventory_items)')}
     assert db.execute('PRAGMA foreign_key_check').fetchall() == []
     assert db.execute('PRAGMA integrity_check').fetchone()[0] == 'ok'
@@ -62,7 +63,13 @@ def main() -> None:
         stamp = json.loads((target / "version.json").read_text(encoding="utf-8-sig"))
         stamp["version"] = "99.0.1"
         (target / "version.json").write_text(json.dumps(stamp), encoding="utf-8")
-        shutil.copy2(ROOT / "backend/alembic/versions/0006_item_catalog.py", target / "backend/alembic/versions/0006_item_catalog.py")
+        # The pinned 1.0.10 base predates 0006, so both newer revisions are
+        # carried into the candidate; 0007 alone would not resolve its parent.
+        for migration in ("0006_item_catalog.py", "0007_production_filaments.py"):
+            shutil.copy2(
+                ROOT / "backend/alembic/versions" / migration,
+                target / "backend/alembic/versions" / migration,
+            )
         shutil.copy2(ROOT / "backend/alembic/env.py", target / "backend/alembic/env.py")
         (target / "app/main.py").write_text(FAILURE)
         run(
@@ -93,7 +100,7 @@ def main() -> None:
         published.validate()
         scenario(root / "real-migration-rollback", True, published)
     print(
-        "PASS: immutable public 1.0.10 -> final 0006 catalog migration -> forced failure -> original schema/data/health restored, delta-only"
+        "PASS: immutable public 1.0.10 -> final 0007 (item catalog + filaments) migration -> forced failure -> original schema/data/health restored, delta-only"
     )
 
 

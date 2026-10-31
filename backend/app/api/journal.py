@@ -105,7 +105,9 @@ def get_entry(
 def create_invoice_entry(
     payload: InvoiceCreate,
     session: Annotated[Session, Depends(get_db)],
+    response: Response,
     _user: Annotated[object, Depends(require_roles("OWNER", "BOOKKEEPER"))],
+    idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
 ) -> InvoiceRead:
     """Register a sale/purchase invoice as one balanced posted entry.
 
@@ -113,7 +115,27 @@ def create_invoice_entry(
     derived here from the chart of accounts (1040/4010 for sales,
     1030/2010 for purchases) and the line detail is stored in the entry
     metadata.
+
+    ``Idempotency-Key`` makes retries safe: a repeated click or a retried
+    request returns the invoice already registered instead of posting a second
+    entry for the same paper invoice.
     """
+    if idempotency_key is not None:
+        def _execute_invoice() -> tuple[int, dict[str, Any]]:
+            return 201, create_invoice(session, payload).model_dump(mode="json")
+
+        try:
+            status, body = claim_or_replay(
+                session,
+                key=idempotency_key,
+                req_hash=request_hash(payload.model_dump(mode="json")),
+                execute=_execute_invoice,
+            )
+        except IdempotencyReplay as replay:
+            response.status_code = replay.status
+            return InvoiceRead(**replay.body)  # type: ignore[arg-type]
+        response.status_code = status
+        return InvoiceRead(**body)  # type: ignore[arg-type]
     return create_invoice(session, payload)
 
 

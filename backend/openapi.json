@@ -1547,9 +1547,25 @@
           "journal"
         ],
         "summary": "Create Invoice Entry",
-        "description": "Register a sale/purchase invoice as one balanced posted entry.\n\nThe client sends what a paper invoice carries; the debit/credit mapping is\nderived here from the chart of accounts (1040/4010 for sales,\n1030/2010 for purchases) and the line detail is stored in the entry\nmetadata.",
+        "description": "Register a sale/purchase invoice as one balanced posted entry.\n\nThe client sends what a paper invoice carries; the debit/credit mapping is\nderived here from the chart of accounts (1040/4010 for sales,\n1030/2010 for purchases) and the line detail is stored in the entry\nmetadata.\n\n``Idempotency-Key`` makes retries safe: a repeated click or a retried\nrequest returns the invoice already registered instead of posting a second\nentry for the same paper invoice.",
         "operationId": "create_invoice_entry_api_v1_journal_entries_invoice_post",
         "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
           {
             "name": "x-csrf-token",
             "in": "header",

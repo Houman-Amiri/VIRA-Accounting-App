@@ -120,3 +120,35 @@ async def test_sale_requires_a_buyer_and_purchase_requires_a_seller(client):
         response = await client.post("/api/v1/journal-entries/invoice", json=payload)
         assert response.status_code == 422, response.text
     assert (await client.get("/api/v1/journal-entries")).json() == []
+
+
+async def test_retried_invoice_with_same_idempotency_key_does_not_post_twice(client, database):
+    import sqlite3
+
+    """A double click or a network retry must not duplicate a paper invoice."""
+    await seed_chart(client)
+    headers = {"Idempotency-Key": "invoice-retry-1"}
+    first = await client.post(
+        "/api/v1/journal-entries/invoice", json=sale_payload(), headers=headers
+    )
+    assert first.status_code == 201, first.text
+    second = await client.post(
+        "/api/v1/journal-entries/invoice", json=sale_payload(), headers=headers
+    )
+    assert second.status_code == 201, second.text
+    assert second.json()["entry"]["id"] == first.json()["entry"]["id"]
+    assert second.json()["total"] == first.json()["total"]
+
+    # Count on a short-lived read connection: holding a session open across
+    # requests would keep a write lock and stall the next request.
+    with sqlite3.connect(database.settings.sqlite_database_path) as conn:
+        count = conn.execute("SELECT COUNT(*) FROM journal_entries").fetchone()[0]
+    assert count == 1
+
+    changed = await client.post(
+        "/api/v1/journal-entries/invoice",
+        json=sale_payload(buyer="شخص دیگر"),
+        headers=headers,
+    )
+    assert changed.status_code == 409, changed.text
+    assert changed.json()["code"] == "idempotency_key_reuse"

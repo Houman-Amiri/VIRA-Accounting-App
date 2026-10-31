@@ -271,6 +271,10 @@ export interface paths {
          *     derived here from the chart of accounts (1040/4010 for sales,
          *     1030/2010 for purchases) and the line detail is stored in the entry
          *     metadata.
+         *
+         *     ``Idempotency-Key`` makes retries safe: a repeated click or a retried
+         *     request returns the invoice already registered instead of posting a second
+         *     entry for the same paper invoice.
          */
         post: operations["create_invoice_entry_api_v1_journal_entries_invoice_post"];
         delete?: never;
@@ -3644,6 +3648,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "Idempotency-Key"?: string | null;
                 "x-csrf-token"?: string | null;
                 "X-API-Key"?: string | null;
             };

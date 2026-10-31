@@ -453,7 +453,7 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
                         db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
                     if published and published.schema_rollback:
                         proof = json.loads((root / "migration-proof.json").read_text())
-                        assert proof["revision"] == "0006_item_catalog", proof
+                        assert proof["revision"] == "0007_production_filaments", proof
                         assert proof["new_table"] is True, proof
                         assert fingerprint(database) == checkpoint_fingerprint, (
                             "restored schema/data mismatch"
@@ -467,7 +467,7 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
                             )
                             assert (
                                 old_db.execute(
-                                    "SELECT count(*) FROM sqlite_master WHERE name='item_types'"
+                                    "SELECT count(*) FROM sqlite_master WHERE name='production_job_filaments'"
                                 ).fetchone()[0]
                                 == 0
                             )
@@ -480,7 +480,7 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
                                 failed_db.execute(
                                     "SELECT version_num FROM alembic_version"
                                 ).fetchone()[0]
-                                == "0006_item_catalog"
+                                == "0007_production_filaments"
                             )
                     elif published and not rollback:
                         # Before the update commits the released schema must be intact;
