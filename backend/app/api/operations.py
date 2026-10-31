@@ -50,6 +50,7 @@ from ..schemas.operations import (
 from ..security.session import SessionUser
 from ..services.catalog import CatalogService
 from ..services.operations import OperationsService
+from ..services.persian import fa_count, fa_money, jalali
 from .deps import enforce_csrf, get_db, require_roles
 
 warehouse = APIRouter(
@@ -601,7 +602,7 @@ def proforma_pdf(
         "order": {
             "order_number": read.order_number,
             "order_date": read.order_date,
-            "order_date_jalali": _jalali(read.order_date),
+            "order_date_jalali": jalali(read.order_date),
             "customer": {
                 "name": read.customer_name,
                 "phone": read.customer_phone or "—",
@@ -610,15 +611,15 @@ def proforma_pdf(
             "lines": [
                 {
                     "description": _variant_label(line.product_name, line.variant),
-                    "quantity": _fa_num(line.quantity),
-                    "unit_price": _fa_money(line.unit_price),
-                    "line_total": _fa_money(line.quantity * line.unit_price),
+                    "quantity": fa_count(line.quantity),
+                    "unit_price": fa_money(line.unit_price),
+                    "line_total": fa_money(line.quantity * line.unit_price),
                 }
                 for line in read.items
             ],
-            "subtotal": _fa_money(read.total),
-            "discount": _fa_money(Decimal(0)),
-            "total": _fa_money(read.total),
+            "subtotal": fa_money(read.total),
+            "discount": fa_money(Decimal(0)),
+            "total": fa_money(read.total),
         },
     }
     headers = {"Content-Disposition": f'inline; filename="proforma-{read.order_number}.pdf"'}
@@ -637,49 +638,6 @@ def proforma_pdf(
 
 def _variant_label(product_name: str, variant: str) -> str:
     return f"{product_name} (حلقه و زنجیر)" if variant == "chain" else product_name
-
-
-_FA_DIGITS = str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹")
-
-
-def _fa_group(value: Decimal, pattern: str) -> str:
-    """Grouped number with Persian digits (fa_IR separators, ٫ decimal).
-
-    Babel's fa_IR locale keeps Latin digits, so they are transliterated here —
-    the same presentation-only rule the SPA's `faDigits` applies.
-    """
-    try:
-        from babel.numbers import format_decimal
-
-        # fa_IR keeps Latin digits and Latin separators unless the arabext
-        # numbering system is requested — then digits are transliterated below.
-        text = format_decimal(
-            value, format=pattern, locale="fa_IR", numbering_system="arabext"
-        )
-    except Exception:  # noqa: BLE001 - Babel missing → plain grouping
-        text = f"{value:,.4f}".rstrip("0").rstrip(".")
-    return text.translate(_FA_DIGITS)
-
-
-def _fa_money(value: Decimal | None) -> str:
-    """Persian-grouped Toman, exact (fraction kept only when non-zero)."""
-    decimal = Decimal(value or 0)
-    pattern = "#,##0" if decimal == decimal.to_integral_value() else "#,##0.####"
-    return _fa_group(decimal, pattern)
-
-
-def _fa_num(value: Decimal | None) -> str:
-    return _fa_money(value)
-
-
-def _jalali(iso: str) -> str:
-    try:
-        import jdatetime
-
-        d = date.fromisoformat(iso)
-        return jdatetime.date.fromgregorian(date=d).strftime("%Y/%m/%d")
-    except Exception:  # noqa: BLE001 - the PDF still renders with the ISO date
-        return iso
 
 
 # ---------------------------------------------------------------- production ---

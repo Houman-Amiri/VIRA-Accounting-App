@@ -1,0 +1,18 @@
+{#- Brand header shared by every document the app prints: the owner's mark,
+    the V.I.R.A name, and the document title. The including template sets
+    `brand_title` / `brand_subtitle`; `brand` (logo, name, tagline) comes from
+    render_html(), with the logo inlined as a data: PNG so the document stays
+    self-contained. -#}
+<div class="brand">
+  <div class="brand-right">
+    <img class="brand-logo" src="{{ brand.logo_url }}" alt="{{ brand.name }}">
+    <div>
+      <div class="brand-name">{{ brand.name }}</div>
+      <div class="brand-tagline">{{ brand.tagline }}</div>
+    </div>
+  </div>
+  <div class="brand-left">
+    <div class="brand-title">{{ brand_title }}</div>
+    {% if brand_subtitle %}<div class="muted num">{{ brand_subtitle }}</div>{% endif %}
+  </div>
+</div>

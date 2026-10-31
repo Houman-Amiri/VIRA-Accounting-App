@@ -16,10 +16,25 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 TEMPLATES_DIR = Path(__file__).resolve().parents[1] / "templates"
 FONTS_DIR = TEMPLATES_DIR.parent / "assets" / "fonts"
+BRANDING_DIR = TEMPLATES_DIR.parent / "assets" / "branding"
+LOGO_FILENAME = "vira-logo.png"
+#: PNG signature — the shared asset must really be a PNG before it is inlined.
+_PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 PRINTABLE_HTML_CSP = (
-    "default-src 'none'; font-src data:; style-src 'unsafe-inline'; "
+    # The logo travels inside the document as a data: image, so the printable
+    # HTML stays self-contained and never fetches anything over the network.
+    "default-src 'none'; font-src data:; img-src data:; style-src 'unsafe-inline'; "
     "base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'"
 )
+
+
+def logo_data_uri() -> str:
+    """The V.I.R.A mark as a self-contained data: URI (no network, no file URLs)."""
+    path = BRANDING_DIR / LOGO_FILENAME
+    raw = path.read_bytes()
+    if not raw.startswith(_PNG_SIGNATURE):
+        raise RuntimeError(f"{LOGO_FILENAME} is not a PNG")
+    return "data:image/png;base64," + base64.b64encode(raw).decode("ascii")
 
 
 def render_html(
@@ -32,7 +47,16 @@ def render_html(
         enable_async=False,
     )
     template = env.get_template(template_name)
-    font_urls = {}
+    company = context.get("company") or {}
+    font_urls: dict[str, str] = {"logo_url": logo_data_uri()}
+    context = {
+        **context,
+        "brand": {
+            "logo_url": font_urls["logo_url"],
+            "name": company.get("name") or "V.I.R.A",
+            "tagline": company.get("tagline") or "",
+        },
+    }
     for weight in ("Regular", "Bold"):
         path = FONTS_DIR / f"Vazirmatn-{weight}.ttf"
         font_urls[f"font_{weight.lower()}_url"] = (

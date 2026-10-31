@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>فاکتور فروش {{ invoice.entry_number }}</title>
+  <style>
+    /* Self-hosted OFL fonts: no OS font installation or network dependency. */
+    @font-face { font-family: Vazirmatn; src: url("{{ font_regular_url }}") format("truetype"); font-weight: 400; }
+    @font-face { font-family: Vazirmatn; src: url("{{ font_bold_url }}") format("truetype"); font-weight: 700; }
+    @page { size: A4; margin: 18mm 14mm; }
+    body { font-family: Vazirmatn, Tahoma, sans-serif; color: #111; font-size: 12px; }
+    .muted { color: #666; }
+    /* Brand header — same block the proforma uses, so every document the
+       program prints carries the owner's mark and the V.I.R.A name. */
+    .brand { display: flex; align-items: center; justify-content: space-between;
+             gap: 12px; border-bottom: 2px solid #1b1b3a; padding-bottom: 10px; }
+    .brand-right { display: flex; align-items: center; gap: 10px; }
+    .brand-logo { width: 64px; height: 64px; object-fit: contain; }
+    .brand-name { font-size: 22px; font-weight: 700; letter-spacing: 0.5px;
+                  direction: ltr; unicode-bidi: isolate; }
+    .brand-tagline { font-size: 11px; color: #555; }
+    .brand-left { text-align: left; }
+    .brand-title { font-size: 18px; font-weight: 700; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: right; }
+    th { background: #f4f4f4; }
+    .num { font-family: Vazirmatn, Tahoma, sans-serif; font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+    .totals { margin-top: 12px; width: 45%; margin-right: 0; margin-left: auto; }
+    .totals td { border: none; padding: 3px 6px; }
+    .totals .grand td { font-weight: bold; border-top: 2px solid #111; }
+    .footer { margin-top: 28px; display: flex; justify-content: space-between; }
+    .voided { margin-top: 10px; padding: 6px 8px; border: 1px solid #b91c1c; color: #b91c1c; }
+  </style>
+</head>
+<body>
+  {% set brand_title = "فاکتور فروش" if invoice.kind == "sale" else "فاکتور خرید" %}
+  {% set brand_subtitle = invoice.entry_date_jalali or invoice.entry_date %}
+  {% include "_brand.html" %}
+
+  {% if invoice.status != "POSTED" %}
+  <div class="voided">{{ invoice.status_note }}</div>
+  {% endif %}
+
+  <table>
+    <tr><th>شماره فاکتور</th><td class="num">{{ invoice.entry_number }}</td>
+        <th>تاریخ</th><td class="num">{{ invoice.entry_date_jalali or invoice.entry_date }}</td></tr>
+    <tr><th>فروشنده</th><td>{{ invoice.seller or "—" }}</td>
+        <th>خریدار</th><td>{{ invoice.buyer or "—" }}</td></tr>
+    {% if invoice.note %}<tr><th>یادداشت</th><td colspan="3">{{ invoice.note }}</td></tr>{% endif %}
+  </table>
+
+  <table>
+    <thead>
+      <tr><th>شرح کالا یا خدمت</th><th>تعداد</th><th>مبلغ واحد (تومان)</th><th>جمع (تومان)</th></tr>
+    </thead>
+    <tbody>
+      {% for line in invoice.lines %}
+      <tr>
+        <td>{{ line.title }}</td>
+        <td class="num">{{ line.quantity }}</td>
+        <td class="num">{{ line.unit_price }}</td>
+        <td class="num">{{ line.line_total }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <table class="totals">
+    <tr class="grand"><td>مبلغ کل (تومان)</td><td class="num">{{ invoice.total }}</td></tr>
+  </table>
+
+  <div class="footer">
+    <div>مهر و امضای فروشنده</div>
+    <div>تایید خریدار</div>
+  </div>
+</body>
+</html>

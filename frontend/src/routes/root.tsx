@@ -10,6 +10,8 @@ import { snapshotDrafts } from "@/lib/drafts";
 import { useUiStore } from "@/store/ui";
 import { useUpdateCheck } from "@/lib/update";
 import { Moon, Sun, Command } from "lucide-react";
+// The owner's mark, shared with the printed invoices (backend/app/assets/branding).
+import brandLogo from "@/assets/vira-logo.png";
 import {
   BookOpenText,
   Building2,
@@ -68,9 +70,12 @@ function RootComponent() {
       <div className="flex min-h-screen">
         <aside className="flex w-14 shrink-0 flex-col gap-1 border-l bg-card/60 p-1 sm:w-56 sm:p-3">
           <div className="mb-4 flex items-center gap-2 sm:px-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
-              و
-            </div>
+            <img
+              src={brandLogo}
+              alt={t("app.title")}
+              data-testid="app-logo"
+              className="h-9 w-9 shrink-0 rounded-lg object-contain"
+            />
             <div className="hidden sm:block">
               <div className="font-bold leading-tight">{t("app.title")}</div>
               <div className="text-[10px] text-muted-foreground">{t("app.subtitle")}</div>

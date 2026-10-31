@@ -357,6 +357,21 @@ describe("دفتر اسناد", () => {
     ).toBe("مبلغ اشتباه بود");
   });
 
+  it("offers the printed invoice for an invoice-shaped entry only", async () => {
+    wire([postedEntry, draftEntry]);
+    renderPage();
+    const invoiceDrawer = await openEntry(1);
+    expect(within(invoiceDrawer).getByTestId("entry-print-invoice")).toHaveAttribute(
+      "href",
+      "/api/v1/journal-entries/e-posted/invoice.pdf",
+    );
+    fireEvent.click(within(invoiceDrawer).getByTestId("entry-drawer-close"));
+    await waitFor(() => expect(screen.queryByTestId("entry-drawer")).not.toBeInTheDocument());
+
+    const handWritten = await openEntry(2);
+    expect(within(handWritten).queryByTestId("entry-print-invoice")).not.toBeInTheDocument();
+  });
+
   it("closes with Escape", async () => {
     wire([postedEntry]);
     renderPage();

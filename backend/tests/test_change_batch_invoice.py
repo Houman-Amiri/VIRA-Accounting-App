@@ -225,3 +225,56 @@ async def test_invoice_edit_refuses_a_hand_written_entry(client):
     )
     assert response.status_code == 400
     assert response.headers["content-type"].startswith("application/problem+json")
+
+
+async def test_a_registered_invoice_prints_with_the_logo_and_the_name(client):
+    """فاکتور فروش: the printed document carries the mark and the amount in Tomans."""
+    await seed_chart(client)
+    created = (await client.post("/api/v1/journal-entries/invoice", json=sale_payload())).json()
+    entry_id = created["entry"]["id"]
+
+    response = await client.get(f"/api/v1/journal-entries/{entry_id}/invoice.pdf")
+    assert response.status_code == 200, response.text
+    assert response.headers["content-type"] in ("application/pdf", "text/html; charset=utf-8")
+    assert "attachment" not in response.headers["content-disposition"]
+    if response.headers["content-type"].startswith("text/html"):
+        html = response.text
+        assert '<img class="brand-logo" src="data:image/png;base64,' in html
+        assert '<div class="brand-name">V.I.R.A</div>' in html
+        assert "فاکتور فروش" in html
+        assert "آقای مشتری" in html
+        # 3,750,001.5 Rial is printed as 375,000.15 Toman (÷10 exactly once)
+        assert "۳۷۵٬۰۰۰٫۱۵" in html
+        assert "مجسمهٔ روباه" in html
+        # a posted invoice says nothing alarming
+        assert "ابطال شده" not in html
+
+
+async def test_a_hand_written_entry_has_no_invoice_document(client):
+    await seed_chart(client)
+    cash = (
+        await client.post(
+            "/api/v1/accounts", json={"code": "1010", "name": "صندوق", "account_type": "ASSET"}
+        )
+    ).json()
+    equity = (
+        await client.post(
+            "/api/v1/accounts", json={"code": "3010", "name": "سرمایه", "account_type": "EQUITY"}
+        )
+    ).json()
+    raw = (
+        await client.post(
+            "/api/v1/journal-entries",
+            json={
+                "transaction_date": "2026-10-20",
+                "description": "سند دستی",
+                "splits": [
+                    {"account_id": cash["id"], "debit": "10.0000"},
+                    {"account_id": equity["id"], "credit": "10.0000"},
+                ],
+            },
+        )
+    ).json()
+    response = await client.get(f"/api/v1/journal-entries/{raw['id']}/invoice.pdf")
+    assert response.status_code == 400
+    assert "فاکتور" in response.json()["detail"]

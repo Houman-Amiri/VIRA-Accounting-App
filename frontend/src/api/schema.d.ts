@@ -307,6 +307,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/journal-entries/{entry_id}/invoice.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Invoice Document
+         * @description فاکتور فروش — the printed document of one registered invoice entry.
+         *
+         *     Same branded header as the proforma (logo + V.I.R.A), rendered from the
+         *     invoice detail the entry already carries. WeasyPrint's native libraries are
+         *     optional, so the very same HTML is returned when PDF is unavailable and the
+         *     browser's «چاپ → ذخیره به‌عنوان PDF» still works.
+         */
+        get: operations["invoice_document_api_v1_journal_entries__entry_id__invoice_pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/journal-entries/{entry_id}/invoice": {
         parameters: {
             query?: never;
@@ -3916,6 +3941,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InvoiceRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    invoice_document_api_v1_journal_entries__entry_id__invoice_pdf_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                entry_id: string;
+            };
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

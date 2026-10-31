@@ -11,6 +11,18 @@
     body { font-family: Vazirmatn, Tahoma, sans-serif; color: #111; font-size: 12px; }
     h1 { font-size: 20px; margin: 0 0 4px; }
     .muted { color: #666; }
+    /* Brand header: the logo on the right (RTL start), the invoice title on the
+       left, one rule under both. The mark is a data: PNG so the document stays
+       self-contained — no file path, no network fetch. */
+    .brand { display: flex; align-items: center; justify-content: space-between;
+             gap: 12px; border-bottom: 2px solid #1b1b3a; padding-bottom: 10px; }
+    .brand-right { display: flex; align-items: center; gap: 10px; }
+    .brand-logo { width: 64px; height: 64px; object-fit: contain; }
+    .brand-name { font-size: 22px; font-weight: 700; letter-spacing: 0.5px;
+                  direction: ltr; unicode-bidi: isolate; }
+    .brand-tagline { font-size: 11px; color: #555; }
+    .brand-left { text-align: left; }
+    .brand-title { font-size: 18px; font-weight: 700; }
     table { width: 100%; border-collapse: collapse; margin-top: 12px; }
     th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: right; }
     th { background: #f4f4f4; }
@@ -22,8 +34,9 @@
   </style>
 </head>
 <body>
-  <h1>پیش‌فاکتور فروش</h1>
-  <div class="muted">{{ company.name }} — {{ company.tagline }}</div>
+  {% set brand_title = "پیش‌فاکتور فروش" %}
+  {% set brand_subtitle = order.order_date_jalali or order.order_date %}
+  {% include "_brand.html" %}
 
   <table>
     <tr><th>شماره سفارش</th><td class="num">{{ order.order_number }}</td>

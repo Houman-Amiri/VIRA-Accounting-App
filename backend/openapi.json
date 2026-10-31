@@ -1935,6 +1935,111 @@
         }
       }
     },
+    "/api/v1/journal-entries/{entry_id}/invoice.pdf": {
+      "get": {
+        "tags": [
+          "journal"
+        ],
+        "summary": "Invoice Document",
+        "description": "فاکتور فروش — the printed document of one registered invoice entry.\n\nSame branded header as the proforma (logo + V.I.R.A), rendered from the\ninvoice detail the entry already carries. WeasyPrint's native libraries are\noptional, so the very same HTML is returned when PDF is unavailable and the\nbrowser's «چاپ → ذخیره به‌عنوان PDF» still works.",
+        "operationId": "invoice_document_api_v1_journal_entries__entry_id__invoice_pdf_get",
+        "parameters": [
+          {
+            "name": "entry_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Entry Id"
+            }
+          },
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          },
+          {
+            "name": "vira_csrf",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Csrf"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/journal-entries/{entry_id}/invoice": {
       "put": {
         "tags": [

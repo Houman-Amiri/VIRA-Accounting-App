@@ -8,9 +8,10 @@ from __future__ import annotations
 
 import base64
 import json
+from decimal import Decimal
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Header, Query, Response
+from fastapi import APIRouter, Depends, Header, Query, Request, Response
 from sqlalchemy.orm import Session
 
 from ..models import JournalEntry
@@ -23,6 +24,7 @@ from ..schemas.ledger import (
     JournalEntryUpdate,
     SplitRead,
 )
+from ..services.errors import DomainError
 from ..services.idempotency import (
     IdempotencyReplay,
     claim_or_replay,
@@ -30,6 +32,7 @@ from ..services.idempotency import (
 )
 from ..services.invoice import create_invoice, update_invoice_entry
 from ..services.ledger import LedgerService
+from ..services.persian import fa_count, fa_money_from_rial, jalali
 from .deps import enforce_csrf, get_db, require_roles, require_user_or_ingest
 
 router = APIRouter(
@@ -171,6 +174,80 @@ def create_entry(
 
     entry = service.create_draft(payload)
     return _read(entry)
+
+
+@router.get("/{entry_id}/invoice.pdf")
+def invoice_document(
+    entry_id: str,
+    request: Request,
+    session: Annotated[Session, Depends(get_db)],
+    _user: Annotated[object, Depends(require_roles("OWNER", "BOOKKEEPER", "AUDITOR"))],
+) -> Response:
+    """فاکتور فروش — the printed document of one registered invoice entry.
+
+    Same branded header as the proforma (logo + V.I.R.A), rendered from the
+    invoice detail the entry already carries. WeasyPrint's native libraries are
+    optional, so the very same HTML is returned when PDF is unavailable and the
+    browser's «چاپ → ذخیره به‌عنوان PDF» still works.
+    """
+    from ..services.pdf import PRINTABLE_HTML_CSP, render_html
+
+    entry = LedgerService(session).get_entry(entry_id)
+    meta = json.loads(entry.metadata_json or "{}").get("invoice")
+    if not isinstance(meta, dict):
+        raise DomainError(
+            f"سند شماره {entry.entry_number} از فاکتور ساخته نشده است؛ فاکتور چاپی ندارد"
+        )
+    context = {
+        "company": {"name": "V.I.R.A", "tagline": "چاپ سه‌بعدی و فروش محصولات"},
+        "invoice": {
+            "entry_number": entry.entry_number,
+            "entry_date": entry.transaction_date,
+            "entry_date_jalali": jalali(entry.transaction_date),
+            "kind": meta.get("kind", "sale"),
+            "seller": meta.get("seller"),
+            "buyer": meta.get("buyer"),
+            "note": meta.get("note"),
+            "status": entry.status,
+            "status_note": {
+                "DRAFT": "این فاکتور هنوز در دفاتر ثبت نشده است (پیش‌نویس).",
+                "VOIDED": "این فاکتور ابطال شده است و در دفاتر نمی‌آید.",
+            }.get(entry.status, ""),
+            "lines": [
+                {
+                    "title": line.get("title", ""),
+                    # quantities stay as typed; money is stored in Rials and
+                    # printed in Tomans (÷10, exactly once, here at the edge).
+                    "quantity": fa_count(Decimal(str(line.get("quantity", "0")))),
+                    "unit_price": fa_money_from_rial(Decimal(str(line.get("unit_price", "0")))),
+                    "line_total": fa_money_from_rial(Decimal(str(line.get("line_total", "0")))),
+                }
+                for line in meta.get("lines", [])
+            ],
+            "total": fa_money_from_rial(
+                sum(
+                    (Decimal(str(line.get("line_total", "0"))) for line in meta.get("lines", [])),
+                    Decimal(0),
+                )
+            ),
+        },
+    }
+    filename = f"invoice-{entry.entry_number}"
+    try:
+        return Response(
+            content=request.app.state.pdf_renderer("invoice.html", context),
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'inline; filename="{filename}.pdf"'},
+        )
+    except Exception:  # noqa: BLE001 - no WeasyPrint/native libs → printable HTML
+        return Response(
+            content=render_html("invoice.html", context),
+            media_type="text/html",
+            headers={
+                "Content-Disposition": f'inline; filename="{filename}.html"',
+                "Content-Security-Policy": PRINTABLE_HTML_CSP,
+            },
+        )
 
 
 @router.put("/{entry_id}", response_model=JournalEntryRead)

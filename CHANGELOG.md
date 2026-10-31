@@ -7,6 +7,25 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### The owner's logo and the V.I.R.A name on every invoice the app prints
+- Both generated documents now open with the brand header: the mark, «V.I.R.A»
+  and the tagline on the right, the document title and date on the left, over a
+  rule. پیش‌فاکتور فروش (from an order) and فاکتور فروش/خرید (from a registered
+  invoice entry) share one `_brand.html` partial, so they cannot drift apart.
+- The mark is inlined as a `data:image/png` in the document: a printed invoice or
+  its browser preview fetches nothing from disk or the network, and the
+  printable CSP now allows exactly `img-src data:` — nothing wider.
+- New `GET /api/v1/journal-entries/{id}/invoice.pdf`: the printed invoice of a
+  registered sale/purchase entry, with its items, quantities and total in Tomans
+  (Rials ÷10 once, at the edge). Drafts say they are not posted yet, voided ones
+  say so; an entry that was not created from an invoice answers 400 with a
+  Persian reason instead of printing an empty page.
+- The SPA uses the same mark: sidebar tile (replacing the placeholder «و») and
+  the browser tab icon. Master asset `backend/app/assets/branding/vira-logo.png`;
+  the UI/favicon copy is a 160 px derivative.
+- Persian number/date formatting moved to `app/services/persian.py` so both
+  documents format money and dates through one implementation.
+
 ### «چارت حساب‌ها» became «حساب‌ها» — the page now says something
 - The old page listed codes and names only: its «type» badge read a field the API
   never sends (so every badge was blank), it showed no balance, and it printed

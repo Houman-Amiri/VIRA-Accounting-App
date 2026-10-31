@@ -494,6 +494,17 @@ export function JournalEntryDrawer({
                   برگشت به پیش‌نویس
                 </Button>
               )}
+              {invoice && (
+                <a
+                  className="inline-flex h-9 items-center rounded-md border border-input px-4 text-sm hover:bg-accent"
+                  href={`/api/v1/journal-entries/${entry.id}/invoice.pdf`}
+                  target="_blank"
+                  rel="noreferrer"
+                  data-testid="entry-print-invoice"
+                >
+                  چاپ فاکتور
+                </a>
+              )}
               {entry.status !== "VOIDED" && (
                 <Button
                   type="button"
