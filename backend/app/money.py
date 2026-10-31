@@ -160,3 +160,17 @@ def safe_sum_scaled(values: list[int] | tuple[int, ...]) -> int:
         if abs(total) >= MAX_ABS_AMOUNT * MONEY_SCALE:
             raise MoneyError("aggregate exceeds safe scaled-integer bound")
     return total
+
+
+def plain_number(value: Decimal | str | int) -> str:
+    """Render a quantity for a user-facing sentence, never in exponent form.
+
+    ``Decimal("20").normalize()`` prints ``2E+1``, which leaked into Persian
+    messages ("موجود 2E+1 گرم").  Quantities are shown as plain decimals with
+    no trailing zeros: ``20``, ``12.5``, ``0.75``.
+    """
+    number = value if isinstance(value, Decimal) else Decimal(str(value))
+    if number == number.to_integral_value():
+        return str(number.quantize(Decimal(1)))
+    text = format(number.normalize(), "f")
+    return text.rstrip("0").rstrip(".") if "." in text else text

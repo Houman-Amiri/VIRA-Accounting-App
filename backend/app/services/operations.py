@@ -33,7 +33,7 @@ from ..models import (
     StockMovement,
     Supplier,
 )
-from ..money import MAX_ABS_AMOUNT
+from ..money import MAX_ABS_AMOUNT, plain_number
 from ..schemas.catalog import CatalogDeletion
 from ..schemas.operations import (
     Channel,
@@ -528,8 +528,8 @@ class OperationsService:
             needed = grams_per_unit * pieces
             if Decimal(item.quantity) < needed:
                 shortages.append(
-                    f"«{item.name}»: نیاز {needed.normalize()} گرم، موجود "
-                    f"{Decimal(item.quantity).normalize()} گرم"
+                    f"«{item.name}»: نیاز {plain_number(needed)} گرم، موجود "
+                    f"{plain_number(Decimal(item.quantity))} گرم"
                 )
         if shortages:
             raise InsufficientStockError(
@@ -1039,7 +1039,7 @@ class OperationsService:
                     shortages.append("فیلامنت این کار در انبار نیست یا غیرفعال شده است")
                 elif have < need:
                     shortages.append(
-                        f"«{item.name}»: نیاز {need.normalize()} گرم، موجود {have.normalize()} گرم"
+                        f"«{item.name}»: نیاز {plain_number(need)} گرم، موجود {plain_number(have)} گرم"
                     )
             if shortages:
                 raise InsufficientStockError(

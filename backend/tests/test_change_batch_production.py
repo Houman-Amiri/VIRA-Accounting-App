@@ -332,3 +332,43 @@ async def test_add_to_production_warns_when_the_product_was_never_printed(client
     assert len(body["created"]) == 1
     assert body["created"][0]["filaments"] == []
     assert body["warnings"] and "فرمول" in body["warnings"][0]
+
+
+async def test_shortage_text_shows_plain_numbers_not_exponents(client):
+    """`Decimal('20').normalize()` printed "2E+1" in a Persian error message."""
+    from app.money import plain_number
+
+    assert [plain_number(value) for value in ("20", "25", "12.5", "0.5", "1000")] == [
+        "20",
+        "25",
+        "12.5",
+        "0.5",
+        "1000",
+    ]
+
+    product = await stocked_product(client, quantity="1")
+    order = await order_with(client, product, quantity="20")
+    warning = order["warnings"][0]
+    assert "سفارش 20 عدد" in warning and "موجودی 1 عدد" in warning
+    assert "E+" not in warning and "E-" not in warning
+
+    spool = await item(client, "کم", quantity="20")
+    done = await job(
+        client, product, [{"filament_item_id": spool["id"], "grams_per_unit": "5"}], quantity="1"
+    )
+    assert (await client.post(f"/api/v1/production/jobs/{done['id']}/finish")).status_code == 200
+    # 15 g left, 4 pieces need 20 g -> refused, and the text must stay readable
+    response = await client.post(
+        "/api/v1/orders",
+        json={
+            "order_date": "2026-10-20",
+            "customer_name": "مشتری",
+            "items": [
+                {"quantity": "4", "unit_price": "1000", "inventory_item_id": product["id"]}
+            ],
+        },
+    )
+    assert response.status_code == 409, response.text
+    detail = response.json()["detail"]
+    assert "نیاز 20 گرم" in detail and "موجود 15 گرم" in detail
+    assert "E+" not in detail and "E-" not in detail

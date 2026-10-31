@@ -90,6 +90,13 @@ test("pricing reproduces the original Excel cells for single and multiple quanti
   await login(page);
   await page.goto("/price-calc");
   // Reuse this authenticated journey: a sixth login hits the real auth rate limit.
+  // Item 8: the page opens empty and only computes after the user types, so the
+  // report rows appear only once weight, print time and run size are filled in.
+  await expect(page.getByTestId("price-empty")).toBeVisible();
+  await expect(page.getByTestId("row-productionTotal")).toHaveCount(0);
+  await page.getByTestId("input-weight").fill("240");
+  await page.getByTestId("input-hours").fill("10");
+  await page.getByTestId("input-qty").fill("1");
   const rows = [
     ["productionTotal", "rgb(220, 252, 231)", "rgba(20, 83, 45, 0.4)"],
     ["unitSalePrice", "rgb(219, 234, 254)", "rgba(30, 58, 138, 0.4)"],

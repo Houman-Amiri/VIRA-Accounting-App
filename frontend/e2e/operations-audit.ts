@@ -91,7 +91,9 @@ export async function auditOperations(page: Page): Promise<void> {
   response = waitWrite(`production/jobs/${a.id}/finish`, 409);
   await page.getByTestId(`job-${a.id}-finish`).click();
   await response;
-  await expect(page.getByTestId("production-message")).toContainText("موجودی کافی نیست");
+  await expect(page.getByTestId("production-message")).toContainText("فیلامنت کافی نیست");
+  // Plain numbers: an exponent such as "2E+1" must never reach the user (item 5).
+  await expect(page.getByTestId("production-message")).not.toContainText(/[BE][+-]\d/);
   let items: Item[] = (await get("warehouse/summary")).items;
   expect(new Decimal(items.find((i) => i.id === filament.id)!.quantity).eq(20)).toBe(true);
   expect(new Decimal(items.find((i) => i.id === first.id)!.quantity).eq(0)).toBe(true);

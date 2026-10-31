@@ -104,7 +104,10 @@ def seed_business() -> None:
                     customer_name="native customer",
                     items=[
                         OrderItemIn(
+                            # item 7: an order line is a warehouse product, not a
+                            # free-text name, so the fixture stocks the product first.
                             product_name="native model",
+                            inventory_item_id=product.id,
                             quantity="2",
                             unit_price="123.4567",
                             unit_cost="23.4567",

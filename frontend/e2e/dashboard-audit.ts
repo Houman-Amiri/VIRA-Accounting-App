@@ -73,7 +73,9 @@ export async function auditDashboard(page: Page): Promise<void> {
     unit_price: "100",
     supplier_id: supplier.id,
   });
-  await post("/api/v1/warehouse/items", {
+  // Item 7: an order line is a warehouse product, so the fixture stocks one
+  // and orders it by id. Grams/print hours left the order schema (item 3).
+  const product = await post("/api/v1/warehouse/items", {
     name: `آزمایشی محصول ${suffix}`,
     kind: "PRODUCT",
     unit: "PCS",
@@ -86,12 +88,10 @@ export async function auditDashboard(page: Page): Promise<void> {
     customer_name: `آزمایشی مشتری ${suffix}`,
     items: [
       {
-        product_name: "آزمایشی مدل",
+        inventory_item_id: product.id,
         quantity: "2",
         unit_price: "3000",
         unit_cost: "1000",
-        weight_g: "10",
-        print_hours: "1",
       },
     ],
   });
@@ -99,7 +99,7 @@ export async function auditDashboard(page: Page): Promise<void> {
     order_date: today,
     customer_name: "آزمایشی لغوشده",
     status: "CANCELLED",
-    items: [{ product_name: "آزمایشی", quantity: "1", unit_price: "90000", unit_cost: "1" }],
+    items: [{ inventory_item_id: product.id, quantity: "1", unit_price: "90000", unit_cost: "1" }],
   });
   const job = await post("/api/v1/production/jobs", {
     product_name: `آزمایشی تولید ${suffix}`,

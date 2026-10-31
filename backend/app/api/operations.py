@@ -15,6 +15,7 @@ from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from ..ids import today_iso
+from ..money import plain_number
 from ..schemas.catalog import (
     CatalogCategory,
     CatalogCreate,
@@ -162,8 +163,8 @@ def _order_warnings(order: Any) -> list[str]:
             warnings.append(f"«{line.product_name}» در انبار غیرفعال شده است.")
         elif ordered > available:
             warnings.append(
-                f"«{line.product_name}»: سفارش {ordered.normalize()} عدد، موجودی "
-                f"{available.normalize()} عدد — کمبود باید تولید شود."
+                f"«{line.product_name}»: سفارش {plain_number(ordered)} عدد، موجودی "
+                f"{plain_number(available)} عدد — کمبود باید تولید شود."
             )
     return warnings
 
