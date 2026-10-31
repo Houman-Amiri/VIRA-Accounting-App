@@ -202,6 +202,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/accounts/{account_id}/ledger": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Account Ledger
+         * @description Drill-down for one statement line: the posted movements behind its balance.
+         */
+        get: operations["account_ledger_api_v1_accounts__account_id__ledger_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/accounts/{account_id}": {
         parameters: {
             query?: never;
@@ -1480,6 +1500,54 @@ export interface components {
              * @default false
              */
             is_placeholder: boolean;
+        };
+        /** AccountLedgerRead */
+        AccountLedgerRead: {
+            /** Account Id */
+            account_id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /**
+             * Account Type
+             * @enum {string}
+             */
+            account_type: "ASSET" | "LIABILITY" | "EQUITY" | "INCOME" | "EXPENSE";
+            /** Start */
+            start: string | null;
+            /** End */
+            end: string | null;
+            /** Opening Balance */
+            opening_balance: string;
+            /** Closing Balance */
+            closing_balance: string;
+            /** Total Debit */
+            total_debit: string;
+            /** Total Credit */
+            total_credit: string;
+            /** Rows */
+            rows: components["schemas"]["AccountLedgerRow"][];
+        };
+        /**
+         * AccountLedgerRow
+         * @description One posted movement on an account — the drill-down behind a statement line.
+         */
+        AccountLedgerRow: {
+            /** Entry Id */
+            entry_id: string;
+            /** Entry Number */
+            entry_number: number;
+            /** Transaction Date */
+            transaction_date: string;
+            /** Description */
+            description: string;
+            /** Payee */
+            payee: string | null;
+            /** Debit */
+            debit: string;
+            /** Credit */
+            credit: string;
         };
         /** AccountRead */
         AccountRead: {
@@ -3473,6 +3541,49 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccountRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    account_ledger_api_v1_accounts__account_id__ledger_get: {
+        parameters: {
+            query?: {
+                /** @description ISO date YYYY-MM-DD */
+                start?: string | null;
+                /** @description ISO date YYYY-MM-DD */
+                end?: string | null;
+                limit?: number;
+            };
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                account_id: string;
+            };
+            cookie?: {
+                vira_session?: string | null;
+                vira_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountLedgerRead"];
                 };
             };
             /** @description Validation Error */

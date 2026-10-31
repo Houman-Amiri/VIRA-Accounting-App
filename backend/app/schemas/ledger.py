@@ -185,6 +185,32 @@ class JournalEntryRead(BaseModel):
     splits: list[SplitRead]
 
 
+class AccountLedgerRow(BaseModel):
+    """One posted movement on an account — the drill-down behind a statement line."""
+
+    entry_id: str
+    entry_number: int
+    transaction_date: str
+    description: str
+    payee: str | None
+    debit: str
+    credit: str
+
+
+class AccountLedgerRead(BaseModel):
+    account_id: str
+    code: str
+    name: str
+    account_type: AccountType
+    start: str | None
+    end: str | None
+    opening_balance: str
+    closing_balance: str
+    total_debit: str
+    total_credit: str
+    rows: list[AccountLedgerRow]
+
+
 class JournalEntryUpdate(BaseModel):
     description: str | None = Field(default=None, min_length=1, max_length=500)
     payee: str | None = None

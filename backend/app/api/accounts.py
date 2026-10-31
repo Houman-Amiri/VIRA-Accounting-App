@@ -7,7 +7,13 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from ..schemas.ledger import NORMAL_BY_TYPE, AccountCreate, AccountRead, AccountUpdate
+from ..schemas.ledger import (
+    NORMAL_BY_TYPE,
+    AccountCreate,
+    AccountLedgerRead,
+    AccountRead,
+    AccountUpdate,
+)
 from ..services.ledger import LedgerService
 from .deps import enforce_csrf, get_db, require_roles
 
@@ -40,6 +46,18 @@ def list_accounts(
         )
         for a in service.list_accounts(active_only=active_only)
     ]
+
+
+@router.get("/{account_id}/ledger", response_model=AccountLedgerRead)
+def account_ledger(
+    account_id: str,
+    session: Annotated[Session, Depends(get_db)],
+    start: Annotated[str | None, Query(description="ISO date YYYY-MM-DD")] = None,
+    end: Annotated[str | None, Query(description="ISO date YYYY-MM-DD")] = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 200,
+) -> AccountLedgerRead:
+    """Drill-down for one statement line: the posted movements behind its balance."""
+    return LedgerService(session).account_ledger(account_id, start=start, end=end, limit=limit)
 
 
 @router.post("", response_model=AccountRead, status_code=201)

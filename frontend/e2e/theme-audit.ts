@@ -192,6 +192,27 @@ export async function auditMenuThemes(page: Page): Promise<void> {
           await expect(page.getByTestId("sudo-dialog")).not.toBeVisible();
         }
         if (path === "/statements") {
+          // The three statements must show real report data, never the old
+          // "will be loaded later" placeholder.
+          await expect(page.getByTestId("balance-sheet-state-ready")).toBeVisible();
+          await expect(page.getByRole("table", { name: "ترازنامه" })).toBeVisible();
+          await expect(page.locator("body")).not.toContainText("Phase 5");
+          // Drill down into a real account and back out again.
+          const account = page.getByTestId("stmt-open-1010");
+          if ((await account.count()) > 0) {
+            await account.click();
+            await expect(page.getByTestId("stmt-drill")).toBeVisible();
+            await page.getByTestId("stmt-drill-close").click();
+            await expect(page.getByTestId("stmt-drill")).toHaveCount(0);
+          }
+          for (const tab of ["سود و زیان", "جریان وجوه نقد"]) {
+            await page.getByRole("tab", { name: tab, exact: true }).click();
+            await expect(page.getByTestId("income-state-ready")).toHaveCount(
+              tab === "سود و زیان" ? 1 : 0,
+            );
+          }
+          await page.getByRole("tab", { name: "جریان وجوه نقد", exact: true }).click();
+          await expect(page.getByRole("table", { name: "جریان وجوه نقد" })).toBeVisible();
           await page.getByRole("tab", { name: "ترازنامه آزمایشی", exact: true }).click();
           await expect(page.getByTestId("trial-chart").locator("svg")).toBeVisible();
         }

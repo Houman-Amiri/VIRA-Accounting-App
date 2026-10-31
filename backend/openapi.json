@@ -1042,6 +1042,161 @@
         }
       }
     },
+    "/api/v1/accounts/{account_id}/ledger": {
+      "get": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Account Ledger",
+        "description": "Drill-down for one statement line: the posted movements behind its balance.",
+        "operationId": "account_ledger_api_v1_accounts__account_id__ledger_get",
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Account Id"
+            }
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "ISO date YYYY-MM-DD",
+              "title": "Start"
+            },
+            "description": "ISO date YYYY-MM-DD"
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "ISO date YYYY-MM-DD",
+              "title": "End"
+            },
+            "description": "ISO date YYYY-MM-DD"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 200,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "vira_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Session"
+            }
+          },
+          {
+            "name": "vira_csrf",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Vira Csrf"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountLedgerRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/accounts/{account_id}": {
       "patch": {
         "tags": [
@@ -10070,6 +10225,144 @@
           "account_type"
         ],
         "title": "AccountCreate"
+      },
+      "AccountLedgerRead": {
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "title": "Account Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "account_type": {
+            "type": "string",
+            "enum": [
+              "ASSET",
+              "LIABILITY",
+              "EQUITY",
+              "INCOME",
+              "EXPENSE"
+            ],
+            "title": "Account Type"
+          },
+          "start": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start"
+          },
+          "end": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End"
+          },
+          "opening_balance": {
+            "type": "string",
+            "title": "Opening Balance"
+          },
+          "closing_balance": {
+            "type": "string",
+            "title": "Closing Balance"
+          },
+          "total_debit": {
+            "type": "string",
+            "title": "Total Debit"
+          },
+          "total_credit": {
+            "type": "string",
+            "title": "Total Credit"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/AccountLedgerRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          }
+        },
+        "type": "object",
+        "required": [
+          "account_id",
+          "code",
+          "name",
+          "account_type",
+          "start",
+          "end",
+          "opening_balance",
+          "closing_balance",
+          "total_debit",
+          "total_credit",
+          "rows"
+        ],
+        "title": "AccountLedgerRead"
+      },
+      "AccountLedgerRow": {
+        "properties": {
+          "entry_id": {
+            "type": "string",
+            "title": "Entry Id"
+          },
+          "entry_number": {
+            "type": "integer",
+            "title": "Entry Number"
+          },
+          "transaction_date": {
+            "type": "string",
+            "title": "Transaction Date"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "payee": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payee"
+          },
+          "debit": {
+            "type": "string",
+            "title": "Debit"
+          },
+          "credit": {
+            "type": "string",
+            "title": "Credit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "entry_id",
+          "entry_number",
+          "transaction_date",
+          "description",
+          "payee",
+          "debit",
+          "credit"
+        ],
+        "title": "AccountLedgerRow",
+        "description": "One posted movement on an account — the drill-down behind a statement line."
       },
       "AccountRead": {
         "properties": {

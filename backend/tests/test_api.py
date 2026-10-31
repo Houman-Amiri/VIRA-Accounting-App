@@ -161,3 +161,30 @@ async def test_openapi_document(client) -> None:
     resp = await client.get("/api/openapi.json")
     assert resp.status_code == 200
     assert "3.1" in resp.json()["openapi"] or resp.json()["openapi"].startswith("3.")
+
+
+async def test_account_ledger_endpoint_serves_the_statement_drill_down(client) -> None:
+    cash = await _create_account(client, "1010", "صندوق", "ASSET")
+    eq = await _create_account(client, "3010", "سرمایه", "EQUITY")
+    entry = (
+        await client.post("/api/v1/journal-entries", json=_entry_payload(cash["id"], eq["id"]))
+    ).json()
+    await client.post(f"/api/v1/journal-entries/{entry['id']}/post")
+
+    resp = await client.get(f"/api/v1/accounts/{cash['id']}/ledger")
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert (body["code"], body["name"]) == ("1010", "صندوق")
+    assert body["closing_balance"] == "500.2500"
+    assert [(row["entry_number"], row["debit"]) for row in body["rows"]] == [
+        (entry["entry_number"], "500.2500")
+    ]
+    # The drill-down is scoped to a period when asked.
+    empty = await client.get(
+        f"/api/v1/accounts/{cash['id']}/ledger", params={"start": "2030-01-01"}
+    )
+    assert empty.status_code == 200
+    assert empty.json()["rows"] == [] and empty.json()["opening_balance"] == "500.2500"
+
+    missing = await client.get("/api/v1/accounts/01a19160-0000-7000-8000-000000000000/ledger")
+    assert missing.status_code == 404

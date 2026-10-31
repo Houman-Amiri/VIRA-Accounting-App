@@ -23,9 +23,12 @@ from sqlalchemy.orm import Session
 
 from ..ids import today_iso, utc_now_iso, uuid7
 from ..models import Account, FiscalPeriod, JournalEntry, TransactionSplit
+from ..money import from_scaled
 from ..schemas.ledger import (
     NORMAL_BY_TYPE,
     AccountCreate,
+    AccountLedgerRead,
+    AccountLedgerRow,
     AccountUpdate,
     JournalEntryCreate,
 )
@@ -280,6 +283,81 @@ class LedgerService:
         if has_more and page:
             next_cursor = (page[-1].transaction_date, page[-1].id)
         return page, next_cursor
+
+    # ---------------- drill-down ----------------
+
+    def account_ledger(
+        self,
+        account_id: str,
+        *,
+        start: str | None = None,
+        end: str | None = None,
+        limit: int = 200,
+    ) -> AccountLedgerRead:
+        """Posted movements on one account, newest first — the drill-down drawer.
+
+        Only POSTED entries count: a draft is not yet part of the books. Amounts
+        are the split's own currency (IRR for every account in this app); the
+        opening balance is everything strictly before ``start``.
+        """
+        account = self.get_account(account_id)
+
+        def builder(*, ranged: bool):
+            stmt = (
+                select(TransactionSplit, JournalEntry)
+                .join(JournalEntry, JournalEntry.id == TransactionSplit.journal_entry_id)
+                .where(
+                    TransactionSplit.account_id == account_id,
+                    JournalEntry.status == "POSTED",
+                )
+            )
+            if ranged and end is not None:
+                stmt = stmt.where(JournalEntry.transaction_date <= end)
+            if ranged and start is not None:
+                stmt = stmt.where(JournalEntry.transaction_date >= start)
+            return stmt
+
+        opening_debit = opening_credit = 0
+        if start is not None:
+            for split, _entry in self.session.execute(
+                builder(ranged=False).where(JournalEntry.transaction_date < start)
+            ).all():
+                opening_debit += split.debit
+                opening_credit += split.credit
+
+        movements = self.session.execute(
+            builder(ranged=True)
+            .order_by(JournalEntry.transaction_date.desc(), JournalEntry.id.desc())
+            .limit(limit)
+        ).all()
+
+        debit_total = sum(split.debit for split, _ in movements)
+        credit_total = sum(split.credit for split, _ in movements)
+        opening = opening_debit - opening_credit
+        return AccountLedgerRead(
+            account_id=account.id,
+            code=account.code,
+            name=account.name,
+            account_type=account.account_type,  # type: ignore[arg-type]
+            start=start,
+            end=end,
+            opening_balance=f"{from_scaled(opening):.4f}",
+            closing_balance=f"{from_scaled(opening + debit_total - credit_total):.4f}",
+            total_debit=f"{from_scaled(debit_total):.4f}",
+            total_credit=f"{from_scaled(credit_total):.4f}",
+            rows=[
+                AccountLedgerRow(
+                    entry_id=entry.id,
+                    entry_number=entry.entry_number,
+                    transaction_date=entry.transaction_date,
+                    description=entry.description,
+                    payee=entry.payee,
+                    debit=f"{from_scaled(split.debit):.4f}",
+                    credit=f"{from_scaled(split.credit):.4f}",
+                )
+                for split, entry in movements
+            ],
+        )
 
     # ---------------- validation ----------------
 

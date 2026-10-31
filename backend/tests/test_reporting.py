@@ -239,3 +239,62 @@ def test_dashboard_reports_exact_hierarchy_sign_and_as_of(session) -> None:
     assert cf.closing_balance == bs.total_assets
     assert cf.inflows == pnl.total_income
     assert cf.outflows == pnl.total_expenses
+
+
+def test_account_ledger_lists_posted_movements_and_an_opening_balance(session) -> None:
+    """The statements drill-down: one account's movements, with opening balance."""
+    service = LedgerService(session)
+    cash = service.create_account(AccountCreate(code="1010", name="صندوق", account_type="ASSET"))
+    equity = service.create_account(AccountCreate(code="3010", name="سرمایه", account_type="EQUITY"))
+    revenue = service.create_account(AccountCreate(code="4010", name="فروش", account_type="INCOME"))
+
+    for day, amount in (("2026-04-01", "1000"), ("2026-05-01", "250.5")):
+        service.create_draft(
+            JournalEntryCreate(
+                transaction_date=day,
+                description=f"واریز {amount}",
+                splits=[
+                    SplitCreate(account_id=cash.id, debit=amount),
+                    SplitCreate(account_id=revenue.id, credit=amount),
+                ],
+            ),
+            post=True,
+        )
+    service.create_draft(  # a draft must never appear in the books
+        JournalEntryCreate(
+            transaction_date="2026-05-02",
+            description="پیش‌نویس",
+            splits=[
+                SplitCreate(account_id=cash.id, debit="99"),
+                SplitCreate(account_id=equity.id, credit="99"),
+            ],
+        )
+    )
+    session.flush()
+
+    ledger = service.account_ledger(cash.id)
+    assert ledger.code == "1010" and ledger.name == "صندوق"
+    assert ledger.total_debit == "1250.5000" and ledger.total_credit == "0.0000"
+    assert ledger.closing_balance == "1250.5000" and ledger.opening_balance == "0.0000"
+    assert [row.description for row in ledger.rows] == ["واریز 250.5", "واریز 1000"]
+    assert [row.debit for row in ledger.rows] == ["250.5000", "1000.0000"]
+
+    # A May-only view keeps April out of the movements but in the opening balance.
+    may = service.account_ledger(cash.id, start="2026-05-01", end="2026-05-31")
+    assert may.opening_balance == "1000.0000"
+    assert may.closing_balance == "1250.5000"
+    assert len(may.rows) == 1
+
+    # The credit side of the same entries is visible from the income account.
+    income = service.account_ledger(revenue.id)
+    assert income.total_credit == "1250.5000" and income.total_debit == "0.0000"
+    assert income.closing_balance == "-1250.5000"
+
+
+def test_account_ledger_rejects_an_unknown_account(session) -> None:
+    import pytest
+
+    from app.services.errors import NotFoundError
+
+    with pytest.raises(NotFoundError):
+        LedgerService(session).account_ledger("01a19160-0000-7000-8000-000000000000")

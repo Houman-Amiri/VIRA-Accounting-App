@@ -7,6 +7,18 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
+### Financial statements show real numbers (the 1.0.12 page still had placeholders)
+- «صورت‌های مالی» was a stub: the balance sheet, income statement and cash flow
+  tabs printed "داده‌ها از … بارگذاری می‌شوند (Phase 5)" instead of a report.
+  All three now render the same server reports the dashboard uses, with the
+  period pickers, totals, an exact balance check and a retry instead of a fake
+  zero when a request fails.
+- Cash flow reads the cash and bank accounts separately (101x/102x). The old
+  «10» prefix also swept in receivables and inventory — assets, but not cash.
+- New `GET /api/v1/accounts/{id}/ledger` returns the posted movements behind one
+  account; clicking a statement line opens them in a drawer (Escape/بستن closes).
+  Drafts never appear, and the opening balance covers everything before the period.
+
 ### Remaining-readiness phase 1/6: app-owned SOURCE bootstrap and HTTP (private)
 - Explicit source-only activation with independent audit digest; app-owned noticed
   archive/file/manifest,20-tree21-DLL/version/cache binding and source ffi-8.dll pin.
