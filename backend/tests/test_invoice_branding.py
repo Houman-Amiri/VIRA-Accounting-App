@@ -79,3 +79,11 @@ def test_the_invoice_html_stays_one_self_contained_document():
     assert html.count("data:font/ttf;base64,") == 2
     assert html.count("data:image/png;base64,") == 1
     assert not re.search(r'src="(?!data:image/png)', html)
+
+
+def test_the_document_date_is_jalali_in_persian_digits():
+    from app.services.persian import jalali
+
+    assert jalali("2026-10-31") == "۱۴۰۵/۰۸/۰۹"
+    # an unparsable date still renders (ISO text) instead of breaking the page
+    assert jalali("not-a-date") == "not-a-date"

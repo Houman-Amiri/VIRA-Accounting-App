@@ -52,11 +52,16 @@ def fa_count(value: Decimal | None) -> str:
 
 
 def jalali(iso: str) -> str:
-    """ISO date → Jalali «YYYY/MM/DD» (falls back to the ISO text)."""
+    """ISO date → Jalali «YYYY/MM/DD» in Persian digits (falls back to the ISO text).
+
+    jdatetime formats with Latin digits; the rest of a Persian document does not,
+    so the digits are transliterated here rather than everywhere it is printed.
+    """
     try:
         import jdatetime
 
         parsed = date.fromisoformat(iso)
-        return jdatetime.date.fromgregorian(date=parsed).strftime("%Y/%m/%d")
+        latin = jdatetime.date.fromgregorian(date=parsed).strftime("%Y/%m/%d")
     except Exception:  # noqa: BLE001 - the document still renders with the ISO date
         return iso
+    return latin.translate(_FA_DIGITS)
