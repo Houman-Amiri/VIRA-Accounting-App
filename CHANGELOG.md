@@ -32,9 +32,10 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
   pre-rename client build their package with `--compat-helper` and
   `--helper-file`, so the old client accepts it and the new compiled helper —
   which restarts either launcher name — performs the upgrade.
-- The owner is **not logged out** by the upgrade: the session cookie is read under
-  both its old and its new name (identical signed token), and so is the CSRF
-  cookie, so an open 1.0.14 session simply continues.
+- The owner is **not logged out** by the upgrade, and needs no second step: the
+  session token is accepted under its old cookie name *and* its old signing salt,
+  and the next response re-issues the same session and CSRF values under the new
+  names, so the renamed interface finds its CSRF token and keeps working.
 - Deliberately unchanged: the GitHub repository slug, already-published asset
   names (both prefixes are probed), the frozen native PDF build kit and its MIT
   grant, and the recorded CI evidence under `docs/dependencies/` and

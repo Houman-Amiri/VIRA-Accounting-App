@@ -398,5 +398,16 @@ def test_an_existing_session_survives_the_rename(database) -> None:
     with TestClient(app, cookies={LEGACY_SESSION_COOKIE_NAME: legacy_token}) as old_client:
         assert old_client.get("/api/v1/auth/me").status_code == 200
 
+    # The tab no longer needs the old names: the next response re-issues the new
+    # pair, which is what the renamed SPA reads its CSRF token from.
+    with TestClient(app, cookies=legacy_cookies) as promoted:
+        page = promoted.get("/")
+        issued = {c.split("=", 1)[0]: c for c in page.headers.get_list("set-cookie")}
+        assert database.settings.session_cookie_name in issued
+        assert database.settings.csrf_cookie_name in issued
+        assert "HttpOnly" in issued[database.settings.session_cookie_name]
+        assert "HttpOnly" not in issued[database.settings.csrf_cookie_name]
+        assert promoted.get("/api/v1/auth/me").status_code == 200
+
     with TestClient(app, cookies={LEGACY_SESSION_COOKIE_NAME: "not-a-signed-token"}) as stranger:
         assert stranger.get("/api/v1/auth/me").status_code == 401

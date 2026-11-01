@@ -47,7 +47,12 @@ from .api import (
     webhooks as webhooks_api,
 )
 from .api.errors import install_error_handlers
-from .config import Settings, load_settings
+from .config import (
+    LEGACY_CSRF_COOKIE_NAME,
+    LEGACY_SESSION_COOKIE_NAME,
+    Settings,
+    load_settings,
+)
 from .db import Database
 from .security.session import SessionManager
 from .services import private_source_channel
@@ -214,6 +219,63 @@ def create_app(
             await self.app(scope, receive, send_with_headers)
 
     app.add_middleware(SecurityHeadersMiddleware)
+
+    # --- one-time cookie promotion from the pre-rename names -------------------
+    cfg: Settings = settings
+
+    class LegacyCookiePromotion:
+        """Re-issue a pre-rename session/CSRF cookie under the new names.
+
+        An install upgraded from 1.0.14 keeps its open session (the token and the
+        legacy salt are both accepted), but the browser still holds
+        ``vira_session`` / ``vira_csrf``. The SPA reads the CSRF cookie by its new
+        name, so without this every state-changing request from that tab would be
+        rejected until the user signed in again. Setting the new pair here — on the
+        page load the tab already makes — finishes the rename invisibly.
+        """
+
+        def __init__(self, app):  # type: ignore[no-untyped-def]
+            self.app = app
+
+        async def __call__(self, scope, receive, send):  # type: ignore[no-untyped-def]
+            if scope["type"] != "http":
+                await self.app(scope, receive, send)
+                return
+            from starlette.datastructures import MutableHeaders
+
+            cookies: dict[str, str] = {}
+            for header in scope.get("headers", []):
+                if header[0] == b"cookie":
+                    for part in header[1].decode("latin-1").split(";"):
+                        name, _, value = part.strip().partition("=")
+                        if name:
+                            cookies.setdefault(name, value)
+            promote = []
+            if cookies.get(LEGACY_SESSION_COOKIE_NAME) and not cookies.get(
+                cfg.session_cookie_name
+            ):
+                promote.append((cfg.session_cookie_name, cookies[LEGACY_SESSION_COOKIE_NAME], True))
+            if cookies.get(LEGACY_CSRF_COOKIE_NAME) and not cookies.get(cfg.csrf_cookie_name):
+                promote.append((cfg.csrf_cookie_name, cookies[LEGACY_CSRF_COOKIE_NAME], False))
+
+            async def send_promoted(message):  # type: ignore[no-untyped-def]
+                if promote and message["type"] == "http.response.start":
+                    headers = MutableHeaders(scope=message)
+                    for name, value, httponly in promote:
+                        cookie = (
+                            f"{name}={value}; Path=/; Max-Age={cfg.session_ttl_seconds}; "
+                            "SameSite=lax"
+                        )
+                        if httponly:
+                            cookie += "; HttpOnly"
+                        if session_manager.secure:
+                            cookie += "; Secure"
+                        headers.append("set-cookie", cookie)
+                await send(message)
+
+            await self.app(scope, receive, send_promoted)
+
+    app.add_middleware(LegacyCookiePromotion)
 
     install_error_handlers(app)
 
