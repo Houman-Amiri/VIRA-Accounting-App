@@ -42,10 +42,18 @@ def _latest_bytes(**over: object) -> bytes:
 
 
 class _Resp:
-    def __init__(self, status: int, content: bytes, etag: str | None = None) -> None:
+    def __init__(
+        self,
+        status: int,
+        content: bytes,
+        etag: str | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> None:
         self.status_code = status
         self.content = content
-        self.headers = {"ETag": etag} if etag else {}
+        self.headers = dict(headers or {})
+        if etag:
+            self.headers["ETag"] = etag
 
 
 def _settings(tmp_path: Path, **over: object) -> Settings:
@@ -98,15 +106,55 @@ class TestChannel:
         fetch_channel(s)  # second call must be conditional
         assert calls == [None, '"e1"']
 
-    @pytest.mark.parametrize("status", [403, 429])
+    @pytest.mark.parametrize(
+        ("status", "headers", "body"),
+        [
+            (429, {}, b""),
+            (403, {"X-RateLimit-Remaining": "0"}, b""),
+            (403, {"Retry-After": "900"}, b""),
+            (403, {}, b'{"message": "API rate limit exceeded for 1.2.3.4."}'),
+        ],
+    )
     def test_rate_limit_persian_retry_later(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, status: int
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        status: int,
+        headers: dict[str, str],
+        body: bytes,
     ) -> None:
-        monkeypatch.setattr("httpx.get", lambda url, **kw: _Resp(status, b""))
+        monkeypatch.setattr(
+            "httpx.get", lambda url, **kw: _Resp(status, body, headers=headers)
+        )
         s = _settings(tmp_path, app_update_url="https://mirror.example/latest.json")
         result = check_for_update("1.5.0", s)
         assert result.checked is False
         assert result.reason_fa is not None and "کمی بعد" in result.reason_fa
+
+    def test_rate_limit_message_states_the_real_wait(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr(
+            "httpx.get",
+            lambda url, **kw: _Resp(429, b"", headers={"Retry-After": "600"}),
+        )
+        s = _settings(tmp_path, app_update_url="https://mirror.example/latest.json")
+        result = check_for_update("1.5.0", s)
+        assert result.reason_fa is not None
+        assert "حدود ۱۰ دقیقهٔ دیگر" in result.reason_fa
+
+    def test_a_bare_403_is_not_reported_as_a_quota_problem(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """«تعداد درخواست‌ها بیش از حد مجاز» sent the owner hunting a quota
+        that was not the cause; a region block or a denied link is not a quota."""
+        monkeypatch.setattr("httpx.get", lambda url, **kw: _Resp(403, b"Forbidden"))
+        s = _settings(tmp_path, app_update_url="https://mirror.example/latest.json")
+        result = check_for_update("1.5.0", s)
+        assert result.checked is False
+        assert result.reason_fa is not None
+        assert "بیش از حد مجاز" not in result.reason_fa
+        assert "ممکن نشد" in result.reason_fa
 
     def test_unknown_schema_refused(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(
@@ -147,6 +195,90 @@ class TestChannel:
         # Once a trusted key is configured, a missing/invalid signature is NOT optional.
         with pytest.raises(UpdateChannelError):
             fetch_channel(s)
+
+
+class TestNoQuotaChannel:
+    """The real GitHub release asset, never the anonymous REST quota."""
+
+    def test_the_check_never_touches_the_rate_limited_api(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        seen: list[str] = []
+
+        def fake_get(url: str, **kw: object) -> _Resp:
+            seen.append(url)
+            return _Resp(200, _latest_bytes())
+
+        monkeypatch.setattr("httpx.get", fake_get)
+        channel = fetch_channel(_settings(tmp_path))
+        assert channel.manifest.version == "2.0.0"
+        assert seen == [
+            "https://github.com/x/y/releases/latest/download/latest.json"
+        ]
+        assert all("api.github.com" not in url for url in seen)
+
+    def test_no_signature_request_without_a_trusted_key(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        seen: list[str] = []
+
+        def fake_get(url: str, **kw: object) -> _Resp:
+            seen.append(url)
+            return _Resp(200, _latest_bytes())
+
+        monkeypatch.setattr("httpx.get", fake_get)
+        fetch_channel(_settings(tmp_path))
+        # 1.0.x publishes no latest.json.sig; asking for it wastes a request.
+        assert not any(url.endswith(".sig") for url in seen)
+
+    def test_api_is_asked_only_when_the_release_has_no_latest_json(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        raw = _latest_bytes()
+        seen: list[str] = []
+
+        def fake_get(url: str, **kw: object) -> _Resp:
+            seen.append(url)
+            if "api.github.com" in url:
+                return _Resp(
+                    200,
+                    json.dumps(
+                        {
+                            "assets": [
+                                {
+                                    "name": "latest.json",
+                                    "browser_download_url": "https://cdn.example/l.json",
+                                }
+                            ]
+                        }
+                    ).encode(),
+                )
+            if url == "https://cdn.example/l.json":
+                return _Resp(200, raw)
+            return _Resp(404, b"Not Found")  # an older release without the asset
+
+        monkeypatch.setattr("httpx.get", fake_get)
+        channel = fetch_channel(_settings(tmp_path))
+        assert channel.manifest.version == "2.0.0"
+        assert seen[0].endswith("/releases/latest/download/latest.json")
+        assert "api.github.com" in seen[1]
+
+    def test_an_unreachable_release_does_not_spend_api_quota(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """A network failure must not become a second, quota-burning attempt."""
+        import httpx
+
+        seen: list[str] = []
+
+        def fake_get(url: str, **kw: object) -> _Resp:
+            seen.append(url)
+            raise httpx.ConnectError("no route to host")
+
+        monkeypatch.setattr("httpx.get", fake_get)
+        with pytest.raises(UpdateChannelError):
+            fetch_channel(_settings(tmp_path))
+        assert len(seen) == 1
 
 
 class TestCheck:

@@ -1,7 +1,9 @@
 """Update channel client & staging manager (Phase 8 §3–§8).
 
-Checks GitHub Releases for the newest ``latest.json`` (ETag-cached, rate-limit
-aware, ``APP_UPDATE_URL`` override), validates it strictly (unknown
+Checks GitHub Releases for the newest ``latest.json`` — fetched straight from the
+release asset (``/releases/latest/download/latest.json``), which costs no REST
+API quota, with the ``APP_UPDATE_URL`` mirror override and a narrow API fallback
+for releases that predate that asset — validates it strictly (unknown
 ``schema_version`` → refuse), selects a delta / delta chain / full installer,
 downloads the chosen package(s) with progress, verifies SHA-256 (and the
 optional Ed25519 signature over ``latest.json``) *before* anything is staged,
@@ -25,6 +27,7 @@ from uuid import uuid4
 from ..config import Settings
 from . import private_source_channel
 from .errors import DomainError
+from .persian import fa_digits
 from .update_engine import (
     DeltaRef,
     LatestManifest,
@@ -41,6 +44,7 @@ from .update_engine import (
 )
 
 GITHUB_API = "https://api.github.com"
+GITHUB_WEB = "https://github.com"
 
 RATE_LIMIT_FA = "تعداد درخواست‌ها بیش از حد مجاز است؛ لطفاً کمی بعد دوباره تلاش کنید."
 UNREACHABLE_FA = "دسترسی به منبع به‌روزرسانی ممکن نشد."
@@ -79,6 +83,59 @@ _etag_cache: dict[str, tuple[str | None, bytes]] = {}
 _cache_lock = threading.Lock()
 
 
+def _header(resp: Any, name: str) -> str:
+    """Case-insensitive header lookup that also works with plain test doubles."""
+    headers = getattr(resp, "headers", None) or {}
+    try:
+        value = headers.get(name)
+        if value is None:
+            value = headers.get(name.lower())
+    except AttributeError:  # pragma: no cover - defensive, headers are mapping-like
+        value = None
+    return "" if value is None else str(value).strip()
+
+
+def rate_limit_wait(resp: Any) -> float | None:
+    """Seconds GitHub itself says to wait, when it says anything at all."""
+    retry_after = _header(resp, "Retry-After")
+    if retry_after.isdigit():
+        return float(retry_after)
+    if _header(resp, "X-RateLimit-Remaining") == "0":
+        reset = _header(resp, "X-RateLimit-Reset")
+        if reset.isdigit():
+            return max(0.0, float(reset) - time.time())
+    return None
+
+
+def is_rate_limited(resp: Any) -> bool:
+    """True only for a real quota refusal, never for every 403.
+
+    GitHub answers an exhausted anonymous quota with 429, or with 403 **plus**
+    ``X-RateLimit-Remaining: 0`` (or a ``Retry-After``/«rate limit» body). A
+    bare 403 also means «blocked or region-restricted», and calling that
+    «تعداد درخواست‌ها بیش از حد مجاز» sent the owner hunting for a quota that
+    was not the problem.
+    """
+    status = int(getattr(resp, "status_code", 0) or 0)
+    if status == 429:
+        return True
+    if status != 403:
+        return False
+    if _header(resp, "X-RateLimit-Remaining") == "0" or _header(resp, "Retry-After"):
+        return True
+    body = bytes(getattr(resp, "content", b"") or b"")[:2048].lower()
+    return b"rate limit" in body
+
+
+def rate_limit_message(resp: Any) -> str:
+    """The base retry copy, plus the concrete wait when GitHub states one."""
+    wait = rate_limit_wait(resp)
+    if wait is None or wait <= 0:
+        return RATE_LIMIT_FA
+    minutes = fa_digits(str(max(1, round(wait / 60))))
+    return f"{RATE_LIMIT_FA} (پنجرهٔ محدودیت حدود {minutes} دقیقهٔ دیگر باز می‌شود.)"
+
+
 def _conditional_get(url: str, *, timeout: float = 8.0) -> tuple[int, bytes]:
     """GET with If-None-Match; 304 returns cached bytes. Raises UpdateChannelError."""
     import httpx
@@ -94,8 +151,8 @@ def _conditional_get(url: str, *, timeout: float = 8.0) -> tuple[int, bytes]:
         raise UpdateChannelError(UNREACHABLE_FA) from exc
     if resp.status_code == 304 and cached:
         return 304, cached[1]
-    if resp.status_code in (403, 429):
-        raise UpdateChannelError(RATE_LIMIT_FA, status=resp.status_code)
+    if is_rate_limited(resp):
+        raise UpdateChannelError(rate_limit_message(resp), status=resp.status_code)
     if resp.status_code >= 400:
         raise UpdateChannelError(UNREACHABLE_FA, status=resp.status_code)
     body = resp.content
@@ -104,54 +161,75 @@ def _conditional_get(url: str, *, timeout: float = 8.0) -> tuple[int, bytes]:
     return resp.status_code, body
 
 
+def release_asset_url(settings: Settings, name: str) -> str:
+    """Stable alias of one asset of the newest release — a plain download."""
+    return f"{GITHUB_WEB}/{settings.update_github_repo}/releases/latest/download/{name}"
+
+
+def _asset_urls_from_api(settings: Settings) -> tuple[str, str]:
+    """Only for releases that predate the ``latest.json`` asset itself."""
+    api_url = f"{GITHUB_API}/repos/{settings.update_github_repo}/releases/latest"
+    _, api_raw = _conditional_get(api_url)
+    try:
+        meta = json.loads(api_raw)
+    except json.JSONDecodeError as exc:
+        raise UpdateChannelError(UNREACHABLE_FA) from exc
+    asset_url = ""
+    sig_url = ""
+    for a in meta.get("assets") or []:
+        name = str(a.get("name", ""))
+        if name == "latest.json":
+            asset_url = str(a.get("browser_download_url", ""))
+        if name == "latest.json.sig":
+            sig_url = str(a.get("browser_download_url", ""))
+    return asset_url or release_asset_url(settings, "latest.json"), sig_url
+
+
+def _fetch_manifest(settings: Settings) -> tuple[bytes, str]:
+    """latest.json + the optional signature URL, spending no API quota.
+
+    The old order — ``api.github.com`` first — spent one of the **60 anonymous
+    requests per hour per IP** on every check. Behind a shared/NAT address that
+    budget is already gone, so the owner's very first check said
+    «تعداد درخواست‌ها بیش از حد مجاز است» and restarting the app changed
+    nothing. ``/releases/latest/download/<asset>`` is served by github.com and
+    does not touch that quota, so it becomes the normal path; the API is only
+    asked which asset to use when a release has no ``latest.json`` (404).
+    """
+    try:
+        _, raw = _conditional_get(release_asset_url(settings, "latest.json"))
+        return raw, release_asset_url(settings, "latest.json.sig")
+    except UpdateChannelError as exc:
+        if exc.status != 404:
+            raise
+    asset_url, sig_url = _asset_urls_from_api(settings)
+    _, raw = _conditional_get(asset_url)
+    return raw, sig_url
+
+
 def fetch_channel(settings: Settings) -> ChannelResult:
     """Fetch + validate the newest latest.json (§3)."""
     override = (settings.app_update_url or "").strip()
     signature: bytes | None = None
+    pub = _public_key_pem(settings)
     if override:
-        status, raw = _conditional_get(override)
+        _, raw = _conditional_get(override)
+        sig_url = override + ".sig"
     else:
-        # GitHub API first (rate-limit + ETag aware), then the immutable asset.
-        api_url = f"{GITHUB_API}/repos/{settings.update_github_repo}/releases/latest"
+        raw, sig_url = _fetch_manifest(settings)
+    # No baked-in key means no signature can be checked, so do not spend a
+    # request on one; every 1.0.x release publishes no latest.json.sig at all.
+    if pub is not None and sig_url:
         try:
-            status, api_raw = _conditional_get(api_url)
+            _, signature = _conditional_get(sig_url)
         except UpdateChannelError:
-            raise
-        try:
-            meta = json.loads(api_raw)
-        except json.JSONDecodeError as exc:
-            raise UpdateChannelError(UNREACHABLE_FA) from exc
-        assets = meta.get("assets") or []
-        asset_url = ""
-        sig_url = ""
-        for a in assets:
-            name = str(a.get("name", ""))
-            if name == "latest.json":
-                asset_url = str(a.get("browser_download_url", ""))
-            if name == "latest.json.sig":
-                sig_url = str(a.get("browser_download_url", ""))
-        if not asset_url:
-            # fall back to the stable alias for repos that skip the asset step
-            asset_url = (
-                f"https://github.com/{settings.update_github_repo}"
-                "/releases/latest/download/latest.json"
-            )
-        status, raw = _conditional_get(asset_url)
-        del status
-        if sig_url:
-            try:
-                _, signature = _conditional_get(sig_url)
-            except UpdateChannelError:
-                signature = None
+            signature = None
     try:
         manifest = parse_latest(raw)
     except UpdateSchemaError as exc:
         raise UpdateChannelError(SCHEMA_REFUSE_FA) from exc
     # Ed25519 verification when a public key is baked in (§8 recommended)
-    pub = _public_key_pem(settings)
     if pub is not None:
-        if override:
-            _, signature = _conditional_get(override + ".sig")
         if signature is None:
             raise UpdateChannelError(SCHEMA_REFUSE_FA)
         try:
@@ -432,8 +510,16 @@ class UpdateManager:
             timeout = httpx.Timeout(30.0, connect=10.0)
             with httpx.stream("GET", str(package["url"]), timeout=timeout,
                               follow_redirects=True, headers={"User-Agent": "VIRA-Updater"}) as resp:
-                if resp.status_code in (403, 429):
-                    raise UpdateChannelError(RATE_LIMIT_FA, status=resp.status_code)
+                if is_rate_limited(resp):
+                    raise UpdateChannelError(
+                        rate_limit_message(resp), status=resp.status_code
+                    )
+                if resp.status_code == 403:
+                    raise UpdateChannelError(
+                        "پیوند دانلود بسته پذیرفته نشد (HTTP 403)؛ دوباره بررسی و "
+                        "تلاش کنید.",
+                        status=403,
+                    )
                 resp.raise_for_status()
                 with partial.open("wb") as output:
                     for chunk in resp.iter_bytes(8192):

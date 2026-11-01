@@ -4697,7 +4697,7 @@ wheels = [
 
 [[package]]
 name = "vira-accounting"
-version = "1.0.13"
+version = "1.0.14"
 source = { editable = "." }
 dependencies = [
     { name = "alembic" },

@@ -51,6 +51,11 @@ def fa_count(value: Decimal | None) -> str:
     return fa_group(normalized, pattern)
 
 
+def fa_digits(text: str) -> str:
+    """Latin digits → Persian digits for user-facing copy (counts, minutes)."""
+    return text.translate(_FA_DIGITS)
+
+
 def jalali(iso: str) -> str:
     """ISO date → Jalali «YYYY/MM/DD» in Persian digits (falls back to the ISO text).
 
