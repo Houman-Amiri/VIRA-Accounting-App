@@ -323,6 +323,13 @@ def published_fixture(
         (target / "app/main.py").write_text(
             'raise RuntimeError("intentional legacy readiness failure")\n'
         )
+        # The pinned client refuses a package that installs the renamed root
+        # files, so this broken build is delivered under the names it was built
+        # with; the helper travels inside the package (see gen_delta --helper-file).
+        helper = root / "compat-helper.exe"
+        shutil.move(str(target / "noa-updater.exe"), str(helper))
+        (target / "start_vira.cmd").write_bytes((target / "start_noa.cmd").read_bytes())
+        (target / "start_noa.cmd").unlink()
         run(
             sys.executable,
             str(ROOT / "scripts/gen_delta.py"),
@@ -340,6 +347,8 @@ def published_fixture(
             str(root),
             # The published pre-rename client needs its helper under the old name.
             "--compat-helper",
+            "--helper-file",
+            str(helper),
         )
         archive = root / archive.name
     return install, install / "start_vira.cmd", archive
