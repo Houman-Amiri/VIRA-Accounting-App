@@ -250,7 +250,9 @@ $script:added = @()
 $script:launcherPid = 0
 $script:targetVersion = ""
 $script:attemptId = [guid]::NewGuid().ToString("N")
-if (-not $Port) { $Port = if ($env:NOA_PORT) { [int]$env:NOA_PORT } else { 8787 } }
+# A pre-rename install may be the one being restarted (rollback), and it reads
+# its own port variable; both names resolve to the same listener.
+if (-not $Port) { $Port = if ($env:NOA_PORT) { [int]$env:NOA_PORT } elseif ($env:VIRA_PORT) { [int]$env:VIRA_PORT } else { 8787 } }
 
 # Published 1.0.9 launches the staged helper without -ResultPath. Recover only
 # its known updates/<semver>/<uuid>/payload layout, not an arbitrary ancestor.
@@ -329,6 +331,11 @@ function Start-App {
     # to the new backend: the new version.json is authoritative after restart.
     Remove-Item Env:NOA_VERSION,Env:NOA_GIT_COMMIT,Env:NOA_SPA_BUILD -ErrorAction SilentlyContinue
     $env:NOA_UPDATE_RESTART = "1"
+    # A rollback — or the upgrade of a pre-rename install — relaunches THAT
+    # client's launcher, which only honours its own variable name and would
+    # otherwise abort with "Update in progress" while the lock file is still
+    # there. Both names are set; the extra one is inert for a NOA launcher.
+    $env:VIRA_UPDATE_RESTART = "1"
     $launcher = Join-Path $InstallDir "start_noa.cmd"
     if (-not (Test-Path -LiteralPath $launcher)) {
         # A rollback restores a pre-rename install, which carries its own launcher.

@@ -280,3 +280,18 @@ def test_helper_can_travel_inside_a_package_built_for_a_pre_rename_target(tmp_pa
     # Nothing at the target root carries the renamed name, so an old client accepts it.
     assert not any(op["path"] == "noa-updater.exe" for op in doc["operations"])
     assert "start_noa.cmd" not in {op["path"] for op in doc["operations"]}
+
+
+def test_the_helper_restarts_a_pre_rename_launcher_after_upgrade_or_rollback() -> None:
+    """The relaunched old launcher must not abort on its own update lock.
+
+    A pre-rename client's launcher exits with "Update in progress" unless ITS
+    restart variable is set, and it reads its own port variable. Both are set, so
+    an upgrade of such an install (and a rollback to it) really starts the app.
+    """
+    text = (ROOT / "scripts/noa_updater.ps1").read_text(encoding="utf-8")
+    assert '$env:VIRA_UPDATE_RESTART = "1"' in text
+    assert '$env:NOA_UPDATE_RESTART = "1"' in text
+    assert 'elseif ($env:VIRA_PORT)' in text
+    # and it must fall back to the old launcher name when the new one is absent
+    assert 'Join-Path $InstallDir "start_vira.cmd"' in text
