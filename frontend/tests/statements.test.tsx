@@ -120,9 +120,17 @@ function renderPage() {
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  vi.useRealTimers();
 });
 
-beforeEach(() => wire());
+beforeEach(() => {
+  // «امروز» must never rot: this file spells the cut-off as 2026-10-31, so the
+  // calendar is frozen on that day. Until 2026-11-01 the page's real clock
+  // happened to agree, and the drill-down assertion below failed the moment the
+  // date rolled over — with no code change behind it.
+  vi.useFakeTimers({ toFake: ["Date"], now: new Date("2026-10-31T12:00:00Z") });
+  wire();
+});
 
 it("replaces the old placeholder with the real balance sheet", async () => {
   const view = renderPage();
@@ -311,6 +319,7 @@ it("opens the movements behind a statement line, with the period it used", async
   >;
   const ledgerCall = calls.find(([path]) => String(path).includes("/ledger"));
   expect(ledgerCall?.[1].params?.path?.account_id).toBe("1010");
+  // The frozen clock above makes this a real assertion, not a race with today.
   expect(ledgerCall?.[1].params?.query?.end).toBe("2026-10-31");
 
   fireEvent.click(within(drawer).getByTestId("stmt-drill-close"));
