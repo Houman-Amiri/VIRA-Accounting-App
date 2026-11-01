@@ -139,20 +139,26 @@ foreach ($delta in $deltaZips) {
     # exactly that database before touching any file. Seed it with the base
     # install's own migrator so the snapshot is a real application database.
     $legacyData = Join-Path $env:LOCALAPPDATA "VIRA\data"
+    # Every base gets its own clean pre-rename profile.
+    if (Test-Path $legacyData) { Remove-Item $legacyData -Recurse -Force }
     New-Item -ItemType Directory -Force -Path $legacyData | Out-Null
     $legacyDb = Join-Path $legacyData "vira.sqlite3"
     $legacyMigrator = Join-Path $legacy "scripts\migrate_vira.py"
-    if (-not (Test-Path $legacyDb) -and (Test-Path $legacyMigrator)) {
-        $legacyPy = Join-Path $legacy "python\python.exe"
-        if (-not (Test-Path $legacyPy)) {
-            Write-Output "[smoke] base $tag has no bundled interpreter — running its migrator with the runner python"
-            $previousPythonPath = $env:PYTHONPATH
-            $env:PYTHONPATH = $legacy
-            & uv run python $legacyMigrator --database $legacyDb *>&1 | Out-Null
-            $env:PYTHONPATH = $previousPythonPath
-        } else {
-            & $legacyPy $legacyMigrator --database $legacyDb *>&1 | Out-Null
+    $legacyPy = Join-Path $legacy "python\python.exe"
+    if (-not (Test-Path $legacyDb)) {
+        $seeded = $false
+        if ((Test-Path $legacyMigrator) -and (Test-Path $legacyPy)) {
+            # The base install's own migrator, exactly as its launcher would run it.
+            $seedOut = (& $legacyPy $legacyMigrator --database $legacyDb *>&1 | Out-String)
+            if ($LASTEXITCODE -eq 0) { $seeded = $true } else { Write-Output $seedOut }
         }
+        if (-not $seeded) {
+            Write-Output "[smoke] base $tag cannot migrate itself — seeding with the packaged migrator"
+            $seedOut = (& uv run python scripts/migrate_noa.py --database $legacyDb *>&1 | Out-String)
+            if ($LASTEXITCODE -ne 0) { Write-Output $seedOut }
+            $seeded = ($LASTEXITCODE -eq 0)
+        }
+        if (-not $seeded) { throw "could not seed the pre-rename database at $legacyDb" }
         Write-Output "[smoke] seeded the pre-rename data folder $legacyData"
     }
     $stage = Join-Path $env:LOCALAPPDATA "NOA\updates\smoke"
