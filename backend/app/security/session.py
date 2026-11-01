@@ -14,6 +14,11 @@ from dataclasses import dataclass
 
 from itsdangerous import BadSignature, URLSafeTimedSerializer
 
+# The signing salt every pre-rename install used. The token format is identical,
+# so accepting it once lets an already-open session survive the 1.0.15 upgrade;
+# a token signed under neither salt is still rejected.
+LEGACY_SESSION_SALT = "vira-session"
+
 
 @dataclass
 class SessionUser:
@@ -25,6 +30,7 @@ class SessionUser:
 class SessionManager:
     def __init__(self, secret: str, *, ttl_seconds: int = 12 * 60 * 60, secure: bool = False) -> None:
         self.serializer = URLSafeTimedSerializer(secret, salt="noa-session")
+        self.legacy_serializer = URLSafeTimedSerializer(secret, salt=LEGACY_SESSION_SALT)
         self.ttl_seconds = ttl_seconds
         self.secure = secure
 
@@ -34,9 +40,14 @@ class SessionManager:
         )
 
     def parse(self, token: str) -> SessionUser | None:
-        try:
-            data = self.serializer.loads(token, max_age=self.ttl_seconds)
-        except BadSignature:
+        data = None
+        for serializer in (self.serializer, self.legacy_serializer):
+            try:
+                data = serializer.loads(token, max_age=self.ttl_seconds)
+                break
+            except BadSignature:
+                continue
+        if data is None:
             return None
         return SessionUser(
             user_id=str(data["uid"]), username=str(data["username"]), role=str(data["role"])

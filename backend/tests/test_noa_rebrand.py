@@ -19,6 +19,7 @@ from app.config import (
     Settings,
     migrate_legacy_data_dir,
 )
+from app.security.session import LEGACY_SESSION_SALT
 
 ROOT = Path(__file__).resolve().parents[2]
 # Self-reported version of the pre-rename native PDF source build (frozen artifact).
@@ -136,6 +137,8 @@ def test_no_user_visible_string_still_says_the_old_brand() -> None:
         text = text.replace("start_vira.cmd", "").replace("vira-updater.exe", "")
         # The retired cookie names are read once, for the upgrade (see config.py).
         text = text.replace(LEGACY_SESSION_COOKIE_NAME, "").replace(LEGACY_CSRF_COOKIE_NAME, "")
+        # ... and the retired signing salt, so an open session keeps working.
+        text = text.replace(LEGACY_SESSION_SALT, "")
         text = text.replace("VIRA-Accounting-App", "")  # the GitHub slug, unrenamed
         if re.search(r"V\.I\.R\.A|VIRA|Vira|vira|ویرا(?!ی)", text):
             offenders.append(str(path.relative_to(ROOT)))
@@ -385,6 +388,15 @@ def test_an_existing_session_survives_the_rename(database) -> None:
         assert who.json()["username"] == "owner"
         legacy.headers["X-CSRF-Token"] = csrf
         assert legacy.post("/api/v1/auth/logout").status_code in (200, 204)
+
+    # A token the pre-rename app signed (old salt AND old cookie name) still works.
+    from itsdangerous import URLSafeTimedSerializer
+
+    legacy_token = URLSafeTimedSerializer(
+        database.settings.session_secret, salt=LEGACY_SESSION_SALT
+    ).dumps({"uid": who.json()["user_id"], "username": "owner", "role": "OWNER"})
+    with TestClient(app, cookies={LEGACY_SESSION_COOKIE_NAME: legacy_token}) as old_client:
+        assert old_client.get("/api/v1/auth/me").status_code == 200
 
     with TestClient(app, cookies={LEGACY_SESSION_COOKIE_NAME: "not-a-signed-token"}) as stranger:
         assert stranger.get("/api/v1/auth/me").status_code == 401
