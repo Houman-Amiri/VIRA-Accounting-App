@@ -135,6 +135,26 @@ foreach ($delta in $deltaZips) {
     $legacy = Join-Path $legacyRoot "install with spaces"
     if (Test-Path $legacy) { Remove-Item $legacy -Recurse -Force }
     Expand-Archive $baseZip -DestinationPath $legacy -Force
+    # A pre-rename client keeps its own data folder, and the updater snapshots
+    # exactly that database before touching any file. Seed it with the base
+    # install's own migrator so the snapshot is a real application database.
+    $legacyData = Join-Path $env:LOCALAPPDATA "VIRA\data"
+    New-Item -ItemType Directory -Force -Path $legacyData | Out-Null
+    $legacyDb = Join-Path $legacyData "vira.sqlite3"
+    $legacyMigrator = Join-Path $legacy "scripts\migrate_vira.py"
+    if (-not (Test-Path $legacyDb) -and (Test-Path $legacyMigrator)) {
+        $legacyPy = Join-Path $legacy "python\python.exe"
+        if (-not (Test-Path $legacyPy)) {
+            Write-Output "[smoke] base $tag has no bundled interpreter — running its migrator with the runner python"
+            $previousPythonPath = $env:PYTHONPATH
+            $env:PYTHONPATH = $legacy
+            & uv run python $legacyMigrator --database $legacyDb *>&1 | Out-Null
+            $env:PYTHONPATH = $previousPythonPath
+        } else {
+            & $legacyPy $legacyMigrator --database $legacyDb *>&1 | Out-Null
+        }
+        Write-Output "[smoke] seeded the pre-rename data folder $legacyData"
+    }
     $stage = Join-Path $env:LOCALAPPDATA "NOA\updates\smoke"
     if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
     New-Item -ItemType Directory -Force -Path $stage | Out-Null
