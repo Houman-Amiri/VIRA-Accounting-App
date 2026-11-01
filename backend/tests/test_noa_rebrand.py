@@ -129,6 +129,9 @@ def test_no_user_visible_string_still_says_the_old_brand() -> None:
         # the rename; its self-reported version string cannot be changed without
         # invalidating the recorded native audit, so it keeps the old spelling.
         text = text.replace(FROZEN_NATIVE_SOURCE_VERSION, "")
+        # The pre-rename root file names must still be named, because the upgrade
+        # package has to delete exactly them (see update_staging.INSTALL_FILES).
+        text = text.replace("start_vira.cmd", "").replace("vira-updater.exe", "")
         text = text.replace("VIRA-Accounting-App", "")  # the GitHub slug, unrenamed
         if re.search(r"V\.I\.R\.A|VIRA|Vira|vira|ویرا(?!ی)", text):
             offenders.append(str(path.relative_to(ROOT)))
@@ -295,3 +298,58 @@ def test_the_helper_restarts_a_pre_rename_launcher_after_upgrade_or_rollback() -
     assert 'elseif ($env:VIRA_PORT)' in text
     # and it must fall back to the old launcher name when the new one is absent
     assert 'Join-Path $InstallDir "start_vira.cmd"' in text
+
+
+def test_a_delta_that_renames_an_existing_install_passes_the_shipped_validator(
+    tmp_path: Path,
+) -> None:
+    """The package that removes start_vira.cmd / vira-updater.exe must be valid.
+
+    Pre-rename installs hold those two files at their root, so the upgrade package
+    deletes them. The shipped staging validator has to accept exactly those names
+    (and still refuse anything else outside the application folders).
+    """
+    import json
+    import subprocess
+    import sys
+    import zipfile
+
+    from app.services.update_engine import build_manifest, manifest_to_json
+    from app.services.update_staging import extract_delta
+
+    base, target = tmp_path / "base", tmp_path / "target"
+    (base / "app").mkdir(parents=True)
+    (base / "app" / "main.py").write_bytes(b"old\n" * 60)
+    (base / "version.json").write_text(json.dumps({"version": "1.0.14"}), encoding="utf-8")
+    (base / "start_vira.cmd").write_bytes(b"@echo off\nold launcher\n")
+    (base / "vira-updater.exe").write_bytes(b"MZ-old-helper")
+    manifest = base / "install_manifest.json"
+    manifest.write_text(json.dumps(manifest_to_json(build_manifest(base))), encoding="utf-8")
+    (target / "app").mkdir(parents=True)
+    (target / "app" / "main.py").write_bytes(b"new\n" * 60)
+    (target / "version.json").write_text(json.dumps({"version": "1.0.15"}), encoding="utf-8")
+    (target / "start_noa.cmd").write_bytes(b"@echo off\nnew launcher\n")
+    (target / "noa-updater.exe").write_bytes(b"MZ-new-helper")
+    subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts" / "gen_delta.py"),
+            "--base-manifest", str(manifest),
+            "--base-dir", str(base),
+            "--target-dir", str(target),
+            "--base-version", "1.0.14",
+            "--target-version", "1.0.15",
+            "--out", str(tmp_path / "out"),
+            "--compat-helper",
+        ],
+        check=True,
+        capture_output=True,
+    )
+    archive = tmp_path / "out" / "NOA-v1.0.15-delta-from-v1.0.14.zip"
+    with zipfile.ZipFile(archive) as zf:
+        ops = json.loads(zf.read("update.json"))["operations"]
+    deleted = {op["path"] for op in ops if op["op"] == "delete"}
+    assert {"start_vira.cmd", "vira-updater.exe"} <= deleted
+    # The shipped validator accepts it; nothing is written outside the app folders.
+    extract_delta(archive, tmp_path / "payload", "1.0.14", "1.0.15")
+    assert (tmp_path / "payload" / "files" / "start_noa.cmd").is_file()

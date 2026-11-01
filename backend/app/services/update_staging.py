@@ -11,7 +11,17 @@ from .update_engine import DeltaPlan, OpKind, VerificationError, verify_sha256
 
 MAX_EXPANDED_BYTES = 512 * 1024 * 1024
 INSTALL_ROOTS = {"app", "backend", "python", "scripts", "site-packages", "static", "tools"}
-INSTALL_FILES = {"version.json", "install_manifest.json", "start_noa.cmd", "noa-updater.exe"}
+INSTALL_FILES = {
+    "version.json",
+    "install_manifest.json",
+    "start_noa.cmd",
+    "noa-updater.exe",
+    # A pre-rename install still holds these two at its root, and the package
+    # that upgrades it removes them. They are accepted so such a package can be
+    # validated; nothing else may be written outside the application folders.
+    "start_vira.cmd",
+    "vira-updater.exe",
+}
 
 
 def safe_relative(name: str) -> str:

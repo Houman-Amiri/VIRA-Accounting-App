@@ -280,7 +280,9 @@ function Write-Result([string]$State, [string]$Reason = "") {
 }
 
 function Safe-Target([string]$Relative) {
-    if ($Relative -notmatch '^(app|backend|python|scripts|site-packages|static|tools)/|^(version.json|install_manifest.json|start_noa.cmd|noa-updater.exe)$') {
+    # The pre-rename root names are allowed because the package that renames an
+    # existing install has to delete them; everything else stays outside {app}/data.
+    if ($Relative -notmatch '^(app|backend|python|scripts|site-packages|static|tools)/|^(version.json|install_manifest.json|start_noa.cmd|noa-updater.exe|start_vira.cmd|vira-updater.exe)$') {
         throw "non-application target: $Relative"
     }
     if ($Relative.Contains("\") -or $Relative.Contains(":") -or ($Relative.Split("/") -contains "..")) { throw "unsafe path: $Relative" }
