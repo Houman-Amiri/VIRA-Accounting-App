@@ -24,7 +24,7 @@ def _dist(tmp_path: Path) -> Path:
     (dist / "assets").mkdir(parents=True)
     (dist / "index.html").write_text(
         "<!doctype html><html><head>"
-        f'<meta name="vira-build" content="{BUILD_ID}" />'
+        f'<meta name="noa-build" content="{BUILD_ID}" />'
         "</head><body><div id=\"root\"></div>"
         f'<script type="module" src="/assets/index-{BUILD_ID}.js"></script>'
         "</body></html>",
@@ -39,8 +39,8 @@ def _dist(tmp_path: Path) -> Path:
 @pytest.fixture()
 def spa_app(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, database) -> object:
     dist = _dist(tmp_path)
-    monkeypatch.setenv("VIRA_STATIC_DIR", str(dist))
-    monkeypatch.setenv("VIRA_SPA_BUILD", BUILD_ID)
+    monkeypatch.setenv("NOA_STATIC_DIR", str(dist))
+    monkeypatch.setenv("NOA_SPA_BUILD", BUILD_ID)
     from app.main import create_app
 
     return create_app(database.settings)
@@ -59,7 +59,7 @@ async def test_shell_is_never_cacheable(spa_client) -> None:
     r = await spa_client.get("/")
     assert r.status_code == 200
     assert "no-store" in r.headers["cache-control"]
-    assert r.headers["x-vira-spa-build"] == BUILD_ID
+    assert r.headers["x-noa-spa-build"] == BUILD_ID
     assert f'content="{BUILD_ID}"' in r.text
 
 

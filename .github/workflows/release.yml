@@ -19,15 +19,15 @@ permissions:
 
 env:
   # Tags/dispatch use the requested version; branch dry runs read pyproject.toml.
-  VIRA_VERSION: ${{ inputs.version || (startsWith(github.ref, 'refs/tags/v') && github.ref_name || '') }}
+  NOA_VERSION: ${{ inputs.version || (startsWith(github.ref, 'refs/tags/v') && github.ref_name || '') }}
   # Dated owner authorization for ONE tagged publication without an update
-  # signing key. The repository secret VIRA_UPDATE_SIGNING_KEY cannot be created
+  # signing key. The repository secret NOA_UPDATE_SIGNING_KEY cannot be created
   # by the GitHub App token used for this release, and every earlier 1.0.x
   # release was unsigned too, so this preserves the status quo instead of
   # removing a protection that never existed. Signature enforcement starts with
   # the first release built after that secret exists. Delete this line — and
   # nothing else — to restore the strict fail-closed guard.
-  VIRA_UNSIGNED_PUBLICATION_APPROVAL: "owner-authorized-2026-10-31"
+  NOA_UNSIGNED_PUBLICATION_APPROVAL: "owner-authorized-2026-10-31"
 
 jobs:
   test:
@@ -48,23 +48,23 @@ jobs:
       - name: Resolve branch dry-run version
         shell: pwsh
         run: |
-          if (-not $env:VIRA_VERSION) {
+          if (-not $env:NOA_VERSION) {
             $versionLine = Select-String -Path pyproject.toml -Pattern '^version = "([^"]+)"' | Select-Object -First 1
             if (-not $versionLine) { throw "project version not found" }
-            "VIRA_VERSION=$($versionLine.Matches[0].Groups[1].Value)" | Out-File -FilePath $env:GITHUB_ENV -Append
+            "NOA_VERSION=$($versionLine.Matches[0].Groups[1].Value)" | Out-File -FilePath $env:GITHUB_ENV -Append
           }
 
       - name: Refuse unsigned tagged publication before building assets
         if: startsWith(github.ref, 'refs/tags/')
         shell: pwsh
         env:
-          VIRA_UPDATE_SIGNING_KEY: ${{ secrets.VIRA_UPDATE_SIGNING_KEY }}
+          NOA_UPDATE_SIGNING_KEY: ${{ secrets.NOA_UPDATE_SIGNING_KEY }}
         run: |
-          if ([string]::IsNullOrWhiteSpace($env:VIRA_UPDATE_SIGNING_KEY)) {
-            if ($env:VIRA_UNSIGNED_PUBLICATION_APPROVAL -ne "owner-authorized-2026-10-31") {
+          if ([string]::IsNullOrWhiteSpace($env:NOA_UPDATE_SIGNING_KEY)) {
+            if ($env:NOA_UNSIGNED_PUBLICATION_APPROVAL -ne "owner-authorized-2026-10-31") {
               throw "Tagged publication requires the configured Ed25519 signing key; no unsigned fallback"
             }
-            echo "::warning title=unsigned-publication::Publishing $env:VIRA_VERSION without an update signing key under the dated owner authorization in release.yml. Installed clients cannot verify latest.json until VIRA_UPDATE_SIGNING_KEY exists; signature enforcement starts with the next release."
+            echo "::warning title=unsigned-publication::Publishing $env:NOA_VERSION without an update signing key under the dated owner authorization in release.yml. Installed clients cannot verify latest.json until NOA_UPDATE_SIGNING_KEY exists; signature enforcement starts with the next release."
           }
           else {
             echo "Signed tagged publication: the update verification key will be baked into the payload."
@@ -95,7 +95,7 @@ jobs:
       # Compiled FIRST so the helper is inside {app} (setup), inside the app
       # payload zip (delta base) and inside every delta — before v1.0.5 it was
       # built after both, so an installed app could not find it at apply time.
-      - name: Compile vira-updater.exe (Phase 8 §6)
+      - name: Compile noa-updater.exe (Phase 8 §6)
         shell: pwsh
         run: |
           $out = ""
@@ -105,10 +105,10 @@ jobs:
             # a transient mirror error, and must still fail loudly after real retries.
             ./scripts/install_ps2exe.ps1
             if ($LASTEXITCODE -ne 0) { throw "ps2exe is unavailable; refusing to build without a compiled updater" }
-            $out = (Invoke-ps2exe -inputFile scripts/vira_updater.ps1 -outputFile dist-release/app/vira-updater.exe -noConsole:$false *>&1 | Out-String)
+            $out = (Invoke-ps2exe -inputFile scripts/noa_updater.ps1 -outputFile dist-release/app/noa-updater.exe -noConsole:$false *>&1 | Out-String)
             Write-Host $out
-            if (-not (Test-Path dist-release/app/vira-updater.exe)) { throw "ps2exe did not produce vira-updater.exe" }
-            Copy-Item dist-release/app/vira-updater.exe dist-release/vira-updater.exe
+            if (-not (Test-Path dist-release/app/noa-updater.exe)) { throw "ps2exe did not produce noa-updater.exe" }
+            Copy-Item dist-release/app/noa-updater.exe dist-release/noa-updater.exe
           } catch {
             $out += "`n" + ($_ | Out-String)
             $tail = $out.Substring([Math]::Max(0, $out.Length - 3000))
@@ -118,33 +118,33 @@ jobs:
 
       - name: Package source/build artifacts + latest.json + SHA256SUMS + Persian notes
         shell: pwsh
-        run: ./scripts/package_release.ps1 -Version "${{ env.VIRA_VERSION }}" -OutDir dist-release
+        run: ./scripts/package_release.ps1 -Version "${{ env.NOA_VERSION }}" -OutDir dist-release
 
       - name: Bake the update verification key into the payload
         shell: pwsh
         env:
-          VIRA_UPDATE_SIGNING_KEY: ${{ secrets.VIRA_UPDATE_SIGNING_KEY }}
+          NOA_UPDATE_SIGNING_KEY: ${{ secrets.NOA_UPDATE_SIGNING_KEY }}
         run: |
-          if ([string]::IsNullOrWhiteSpace($env:VIRA_UPDATE_SIGNING_KEY)) {
+          if ([string]::IsNullOrWhiteSpace($env:NOA_UPDATE_SIGNING_KEY)) {
             Write-Host "No signing secret available: this build cannot verify update signatures (not publishable as a tagged release)."
             exit 0
           }
           uv run python scripts/export_update_public_key.py --out dist-release/update-public-key.pem
           if ($LASTEXITCODE -ne 0) { throw "cannot derive the update verification key" }
-          "VIRA_UPDATE_PUBLIC_KEY_FILE=$PWD/dist-release/update-public-key.pem" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "NOA_UPDATE_PUBLIC_KEY_FILE=$PWD/dist-release/update-public-key.pem" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Stage app payload (backend + SPA + scripts + manifests)
         shell: pwsh
         run: |
-          ./scripts/stage_app_payload.ps1 -Version "${{ env.VIRA_VERSION }}" -OutDir dist-release/app
+          ./scripts/stage_app_payload.ps1 -Version "${{ env.NOA_VERSION }}" -OutDir dist-release/app
 
       - name: Package install-layout payload (delta base + portable app)
         shell: pwsh
         run: |
-          # vira-<v>-app.zip IS the {app} directory — the only downloadable base
+          # noa-<v>-app.zip IS the {app} directory — the only downloadable base
           # whose install_manifest.json matches real installs (v1.0.4 fix). Deltas
           # of the future are built against it; users can also unzip and run it.
-          Compress-Archive -Path dist-release/app/* -DestinationPath "dist-release/vira-${{ env.VIRA_VERSION }}-app.zip"
+          Compress-Archive -Path dist-release/app/* -DestinationPath "dist-release/noa-${{ env.NOA_VERSION }}-app.zip"
 
       - name: Compile Inno Setup installer (Phase 8 §1)
         shell: pwsh
@@ -153,7 +153,7 @@ jobs:
           $iscc = (Get-Command iscc -ErrorAction SilentlyContinue).Source
           if (-not $iscc) { $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" }
           if (-not (Test-Path $iscc)) { throw "ISCC.exe not found after installing Inno Setup" }
-          & $iscc installer/vira.iss "/DAppVersion=${{ env.VIRA_VERSION }}" "/DAppSource=..\dist-release\app" 2>&1 | Tee-Object -Variable out
+          & $iscc installer/noa.iss "/DAppVersion=${{ env.NOA_VERSION }}" "/DAppSource=..\dist-release\app" 2>&1 | Tee-Object -Variable out
           if ($LASTEXITCODE -ne 0) {
             $flat = ($out | Out-String) -replace "\r?\n", "|" -replace ",", ";"
             if ($flat.Length -gt 3000) { $flat = $flat.Substring(0, 3000) }
@@ -166,9 +166,9 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-          VIRA_UPDATE_SIGNING_KEY: ${{ secrets.VIRA_UPDATE_SIGNING_KEY }}
+          NOA_UPDATE_SIGNING_KEY: ${{ secrets.NOA_UPDATE_SIGNING_KEY }}
         run: |
-          $out = (pwsh -NoProfile -File ./scripts/build_deltas.ps1 -Version "${{ env.VIRA_VERSION }}" -OutDir dist-release *>&1 | Out-String)
+          $out = (pwsh -NoProfile -File ./scripts/build_deltas.ps1 -Version "${{ env.NOA_VERSION }}" -OutDir dist-release *>&1 | Out-String)
           Write-Host $out
           "## build_deltas transcript" | Out-File -Append $env:GITHUB_STEP_SUMMARY
           ('```') | Out-File -Append $env:GITHUB_STEP_SUMMARY
@@ -190,10 +190,10 @@ jobs:
           from pathlib import Path
           from tempfile import TemporaryDirectory
           from app.services.update_staging import extract_delta
-          version = os.environ["VIRA_VERSION"].removeprefix("v")
+          version = os.environ["NOA_VERSION"].removeprefix("v")
           bases = set()
-          for archive in sorted(Path("dist-release").glob(f"VIRA-v{version}-delta-from-v*.zip")):
-              match = re.fullmatch(r"VIRA-v[\d.]+-delta-from-v([\d.]+)\.zip", archive.name)
+          for archive in sorted(Path("dist-release").glob(f"NOA-v{version}-delta-from-v*.zip")):
+              match = re.fullmatch(r"NOA-v[\d.]+-delta-from-v([\d.]+)\.zip", archive.name)
               if not match:
                   raise ValueError(f"Unexpected delta name: {archive.name}")
               base = match[1]
@@ -217,7 +217,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "real delta staging validation failed" }
 
       - name: Published 1.0.9 client -> candidate native in-app update with compiled updater (isolated, no client injection)
-        if: ${{ !startsWith(env.VIRA_VERSION, '0.0.0') }}
+        if: ${{ !startsWith(env.NOA_VERSION, '0.0.0') }}
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path reports | Out-Null
@@ -232,7 +232,7 @@ jobs:
           # build_deltas.ps1 only fetches the three most recent tags, so the
           # pinned 1.0.9 client leaves the delta cache after three releases.
           # Restore the published (never rebuilt) payload by its pinned digest.
-          $baseRoot = Join-Path ([IO.Path]::GetTempPath()) "vira-delta-base"
+          $baseRoot = Join-Path ([IO.Path]::GetTempPath()) "noa-delta-base"
           $baseDir = Join-Path $baseRoot "base-1.0.9"
           $baseManifest = $null
           if (Test-Path $baseDir) {
@@ -251,12 +251,12 @@ jobs:
           # is outside that window and has no shipped delta. Build the gate delta
           # with the same generator, OUTSIDE dist-release, so the shipped
           # latest.json/SHA256SUMS stay exactly as packaged.
-          $version = $env:VIRA_VERSION.TrimStart('v')
-          $gateDeltaDir = Join-Path $env:RUNNER_TEMP "vira-gate-delta"
+          $version = $env:NOA_VERSION.TrimStart('v')
+          $gateDeltaDir = Join-Path $env:RUNNER_TEMP "noa-gate-delta"
           New-Item -ItemType Directory -Force -Path $gateDeltaDir | Out-Null
-          $gateDelta = Join-Path $gateDeltaDir "VIRA-v$version-delta-from-v1.0.9.zip"
+          $gateDelta = Join-Path $gateDeltaDir "NOA-v$version-delta-from-v1.0.9.zip"
           if (-not (Test-Path $gateDelta)) {
-            $out += (& uv run python scripts/gen_delta.py --base-manifest $baseManifest.FullName --base-dir $baseManifest.Directory.FullName --target-dir dist-release/app --base-version 1.0.9 --target-version $version --out $gateDeltaDir *>&1 | Out-String)
+            $out += (& uv run python scripts/gen_delta.py --base-manifest $baseManifest.FullName --base-dir $baseManifest.Directory.FullName --target-dir dist-release/app --base-version 1.0.9 --target-version $version --out $gateDeltaDir --compat-helper *>&1 | Out-String)
             if ($LASTEXITCODE -ne 0 -or -not (Test-Path $gateDelta)) {
               $out | Out-File -FilePath reports/in-app-step-output.txt -Encoding utf8
               throw "gate delta from the pinned 1.0.9 client could not be built: $gateDelta"
@@ -264,7 +264,7 @@ jobs:
           }
           $code = 1
           try {
-            $out += (& uv run python scripts/update_native_smoke.py --published-base $baseManifest.Directory.FullName --packages dist-release --published-delta $gateDelta --target-version $env:VIRA_VERSION *>&1 | Out-String)
+            $out += (& uv run python scripts/update_native_smoke.py --published-base $baseManifest.Directory.FullName --packages dist-release --published-delta $gateDelta --target-version $env:NOA_VERSION *>&1 | Out-String)
             $code = $LASTEXITCODE
           } catch { $out += "`n" + ($_ | Out-String) }
           Write-Host $out
@@ -293,7 +293,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $setup = (Get-ChildItem dist-release/VIRA-Setup-*.exe | Select-Object -First 1).FullName
+          $setup = (Get-ChildItem dist-release/NOA-Setup-*.exe | Select-Object -First 1).FullName
           if (-not $setup) { throw "the installer under test is missing" }
           # Run the smoke in a child shell and keep its whole transcript: a hard
           # exit inside the script used to leave the job with no diagnostics at all.
@@ -314,7 +314,7 @@ jobs:
       - name: Final signature and complete checksums after all packaging and smoke steps
         shell: pwsh
         env:
-          VIRA_UPDATE_SIGNING_KEY: ${{ secrets.VIRA_UPDATE_SIGNING_KEY }}
+          NOA_UPDATE_SIGNING_KEY: ${{ secrets.NOA_UPDATE_SIGNING_KEY }}
         run: |
           uv run python scripts/finalize_release_assets.py dist-release
           if ($LASTEXITCODE -ne 0) { throw "Final release signing/checksum verification failed" }
@@ -324,7 +324,7 @@ jobs:
       - name: Upload workflow artifact (full setup + assets)
         uses: actions/upload-artifact@v4
         with:
-          name: release-assets-${{ env.VIRA_VERSION }}
+          name: release-assets-${{ env.NOA_VERSION }}
           path: dist-release/
           retention-days: 90
 

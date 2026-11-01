@@ -127,7 +127,7 @@ export async function auditMenuThemes(page: Page): Promise<void> {
   async function csrfHeaders(): Promise<Record<string, string>> {
     // The auth provider refreshes session/CSRF cookies on full navigation.
     const csrf = (await page.context().cookies()).find(
-      (cookie) => cookie.name === "vira_csrf",
+      (cookie) => cookie.name === "noa_csrf",
     )?.value;
     expect(csrf).toBeTruthy();
     return { "X-CSRF-Token": decodeURIComponent(csrf ?? "") };
@@ -189,7 +189,7 @@ export async function auditMenuThemes(page: Page): Promise<void> {
           await expect(page.getByTestId("sudo-dialog")).toBeVisible();
           await page
             .getByTestId("sudo-password")
-            .fill(process.env.VIRA_E2E_PASSWORD || "e2e-owner-password");
+            .fill(process.env.NOA_E2E_PASSWORD || "e2e-owner-password");
           await page.getByTestId("sudo-confirm").click();
           await expect(page.getByTestId("sudo-dialog")).not.toBeVisible();
         }

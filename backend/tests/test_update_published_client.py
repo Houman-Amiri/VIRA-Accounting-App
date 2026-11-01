@@ -96,9 +96,10 @@ def test_published_client_is_seeded_on_its_own_revision_not_the_repo_head():
 
     source = (Path(__file__).resolve().parents[2] / "scripts/update_native_smoke.py").read_text(encoding="utf-8")
     published = source.index("    if published:\n        # The installed public client must start on ITS revision")
-    head_migrator = source.index('run(sys.executable, str(ROOT / "scripts/migrate_vira.py")')
+    head_migrator = source.index('run(sys.executable, str(ROOT / "scripts/migrate_noa.py")')
     assert published < head_migrator, "the repo migrator must not seed a published client"
     block = source[published:head_migrator]
+    # The pinned 1.0.9 client predates the rename and ships its own migrator name.
     assert 'str(install / "scripts/migrate_vira.py")' in block
     # A real upgrade migrates the released schema; byte equality would be wrong there.
     assert "target did not migrate the released schema" in source
@@ -111,7 +112,7 @@ def test_published_client_is_seeded_on_its_own_revision_not_the_repo_head():
 
 def published_zip(tmp_path: Path, *, nested: bool = True) -> Path:
     """A published-looking payload ZIP; the real asset is digest-pinned."""
-    root = tmp_path / "zip-root" / ("vira-1.0.9" if nested else "")
+    root = tmp_path / "zip-root" / ("noa-1.0.9" if nested else "")
     payload(root)
     archive = tmp_path / "published.zip"
     outer = root.parent if nested else root
@@ -124,7 +125,7 @@ def published_zip(tmp_path: Path, *, nested: bool = True) -> Path:
 
 def test_missing_published_base_is_restored_from_the_pinned_asset(tmp_path, harness):
     archive = published_zip(tmp_path)
-    cache = tmp_path / "vira-delta-base"
+    cache = tmp_path / "noa-delta-base"
     restored = harness.ensure_published_base(
         cache, url=archive.as_uri(), archive_sha256=harness.sha(archive)
     )
@@ -172,7 +173,7 @@ def test_real_upgrade_fixture_no_longer_depends_on_the_delta_window():
 
 
 def test_gate_delta_outside_the_shipped_assets_satisfies_the_pinned_upgrade(tmp_path, harness):
-    base = tmp_path / "vira-delta-base/base-1.0.9"
+    base = tmp_path / "noa-delta-base/base-1.0.9"
     payload(base)
     (base / "version.json").write_text(
         json.dumps(dict(version="1.0.9", commit="7d78720abc", spa_build="x"))
@@ -183,12 +184,12 @@ def test_gate_delta_outside_the_shipped_assets_satisfies_the_pinned_upgrade(tmp_
              sha256=harness.sha(base / "version.json"))
     )
     (base / "install_manifest.json").write_text(json.dumps(manifest))
-    archive = tmp_path / "vira-delta-base/base-1.0.9.zip"
+    archive = tmp_path / "noa-delta-base/base-1.0.9.zip"
     archive.write_bytes(b"pinned public payload")
     packages = tmp_path / "dist-release"
     (packages / "app").mkdir(parents=True)
     (packages / "app/version.json").write_text(json.dumps(dict(version="1.0.13")))
-    gate = tmp_path / "vira-gate-delta/VIRA-v1.0.13-delta-from-v1.0.9.zip"
+    gate = tmp_path / "noa-gate-delta/NOA-v1.0.13-delta-from-v1.0.9.zip"
     gate.parent.mkdir()
     gate.write_bytes(b"gate only delta")
     # The release keeps three direct deltas, so nothing from 1.0.9 is shipped.
@@ -216,5 +217,5 @@ def test_workflow_builds_the_gate_delta_outside_the_shipped_assets():
     step = step[: step.index("- name:", 10)]
     assert "--published-delta $gateDelta" in step
     assert "scripts/gen_delta.py" in step and "--base-version 1.0.9" in step
-    assert '$gateDeltaDir = Join-Path $env:RUNNER_TEMP "vira-gate-delta"' in step
-    assert "$gateDeltaDir *>&1" in step, "the gate delta must never be written into dist-release"
+    assert '$gateDeltaDir = Join-Path $env:RUNNER_TEMP "noa-gate-delta"' in step
+    assert "$gateDeltaDir --compat-helper *>&1" in step, "the gate delta must never be written into dist-release"

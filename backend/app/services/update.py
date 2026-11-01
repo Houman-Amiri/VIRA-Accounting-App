@@ -51,7 +51,7 @@ UNREACHABLE_FA = "دسترسی به منبع به‌روزرسانی ممکن ن
 SCHEMA_REFUSE_FA = "ساختار پیام به‌روزرسانی شناخته نشد؛ لطفاً نصب دستی را انجام دهید."
 NO_DELTA_FA = "بستهٔ تفاضلی مستقیم موجود نیست؛ دانلود خودکار متوقف است. نصب کامل فقط با اقدام دستی شما ممکن است."
 UPDATER_MISSING_FA = (
-    "برنامهٔ به‌روزرسان روی این نصب پیدا نشد؛ لطفاً فایل نصب کامل VIRA-Setup را "
+    "برنامهٔ به‌روزرسان روی این نصب پیدا نشد؛ لطفاً فایل نصب کامل NOA-Setup را "
     "دانلود و دستی اجرا کنید."
 )
 UNKNOWN_CURRENT_FA = (
@@ -140,7 +140,7 @@ def _conditional_get(url: str, *, timeout: float = 8.0) -> tuple[int, bytes]:
     """GET with If-None-Match; 304 returns cached bytes. Raises UpdateChannelError."""
     import httpx
 
-    headers = {"User-Agent": "VIRA-Updater", "Accept": "application/vnd.github+json"}
+    headers = {"User-Agent": "NOA-Updater", "Accept": "application/vnd.github+json"}
     with _cache_lock:
         cached = _etag_cache.get(url)
     if cached and cached[0]:
@@ -509,7 +509,7 @@ class UpdateManager:
             digest = hashlib.sha256()
             timeout = httpx.Timeout(30.0, connect=10.0)
             with httpx.stream("GET", str(package["url"]), timeout=timeout,
-                              follow_redirects=True, headers={"User-Agent": "VIRA-Updater"}) as resp:
+                              follow_redirects=True, headers={"User-Agent": "NOA-Updater"}) as resp:
                 if is_rate_limited(resp):
                     raise UpdateChannelError(
                         rate_limit_message(resp), status=resp.status_code
@@ -603,8 +603,8 @@ def _updater_command(settings: Settings, staged_path: str) -> tuple[list[str], P
     """Locate the transactional updater and build its argv.
 
     Search order: the staging directory (deltas ship the helper from v1.0.5 on)
-    → ``{app}\vira-updater.exe`` → next to the data directory → the shipped
-    ``scripts\vira_updater.ps1`` through ``powershell.exe`` (unzipped portable
+    → ``{app}\noa-updater.exe`` → next to the data directory → the shipped
+    ``scripts\noa_updater.ps1`` through ``powershell.exe`` (unzipped portable
     installs, and the payload produced before the helper was compiled).
     """
     stage = Path(staged_path)
@@ -615,11 +615,11 @@ def _updater_command(settings: Settings, staged_path: str) -> tuple[list[str], P
     if source_scope is not None:
         return private_source_channel.command(source_scope, stage)
 
-    candidates = [stage / "vira-updater.exe"]
+    candidates = [stage / "noa-updater.exe"]
     if root is not None:
-        candidates.append(root / "vira-updater.exe")
+        candidates.append(root / "noa-updater.exe")
     if settings.data_dir is not None:
-        candidates.append(Path(settings.data_dir).parent / "vira-updater.exe")
+        candidates.append(Path(settings.data_dir).parent / "noa-updater.exe")
     for exe in candidates:
         if exe.is_file():
             # Single-dash PowerShell parameter names: «--name» is not a
@@ -631,7 +631,7 @@ def _updater_command(settings: Settings, staged_path: str) -> tuple[list[str], P
             return argv, log_path
 
     if root is not None:
-        script = root / "scripts" / "vira_updater.ps1"
+        script = root / "scripts" / "noa_updater.ps1"
         if script.is_file():
             argv = [
                 "powershell.exe",
@@ -652,7 +652,7 @@ def _updater_command(settings: Settings, staged_path: str) -> tuple[list[str], P
 
 
 def launch_updater(settings: Settings, staged_path: str) -> dict[str, Any]:
-    """Launch the transactional updater helper (Windows: vira-updater.exe). §6."""
+    """Launch the transactional updater helper (Windows: noa-updater.exe). §6."""
     if os.name != "nt":
         raise DomainError("اجرای به‌روزرسانی خودکار فقط در ویندوز در دسترس است")
     import subprocess
@@ -663,11 +663,11 @@ def launch_updater(settings: Settings, staged_path: str) -> dict[str, Any]:
         manager._job.log_path = str(log_path)
     if settings.data_dir is None:
         raise DomainError("data_dir is not configured")
-    argv += ["-ParentPid", str(os.getpid()), "-Port", str(os.environ.get("VIRA_PORT") or settings.bind_port),
+    argv += ["-ParentPid", str(os.getpid()), "-Port", str(os.environ.get("NOA_PORT") or settings.bind_port),
              "-ResultPath", str(Path(settings.data_dir) / "updates" / "last-result.json")]
     if settings.sqlite_database_path is None:
         raise DomainError("database path is not configured")
-    helper_env = {**os.environ, "VIRA_UPDATE_DATABASE_PATH": str(Path(settings.sqlite_database_path).resolve())}
+    helper_env = {**os.environ, "NOA_UPDATE_DATABASE_PATH": str(Path(settings.sqlite_database_path).resolve())}
     subprocess.Popen(argv, close_fds=True, env=helper_env)  # noqa: S603 - fixed argv, no shell
     _ = log_path
     return manager.status()
@@ -725,7 +725,7 @@ def apply_update(settings: Settings) -> dict[str, Any]:
         if job.state != "staged" or not job.verified:
             raise DomainError("ابتدا بستهٔ به‌روزرسانی را دانلود و راستی‌آزمایی کنید")
         stage = Path(job.staged_path)
-        if not all((stage / name).is_file() for name in ("update.json", "version.json", "install_manifest.json", "vira-updater.exe")):
+        if not all((stage / name).is_file() for name in ("update.json", "version.json", "install_manifest.json", "noa-updater.exe")):
             raise DomainError("بستهٔ به‌روزرسانی آمادهٔ اعمال نیست؛ دانلود را دوباره انجام دهید.")
         job.state = "applying"
     backup_note = ""

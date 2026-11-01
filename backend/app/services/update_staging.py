@@ -11,7 +11,7 @@ from .update_engine import DeltaPlan, OpKind, VerificationError, verify_sha256
 
 MAX_EXPANDED_BYTES = 512 * 1024 * 1024
 INSTALL_ROOTS = {"app", "backend", "python", "scripts", "site-packages", "static", "tools"}
-INSTALL_FILES = {"version.json", "install_manifest.json", "start_vira.cmd", "vira-updater.exe"}
+INSTALL_FILES = {"version.json", "install_manifest.json", "start_noa.cmd", "noa-updater.exe"}
 
 
 def safe_relative(name: str) -> str:
@@ -48,7 +48,7 @@ def extract_delta(archive: Path, destination: Path, base: str, target: str, *, p
             if folded in names or stat.S_ISLNK(info.external_attr >> 16):
                 raise VerificationError("duplicate delta path or symbolic link")
             names.add(folded)
-        required = {"update.json", "version.json", "install_manifest.json", "vira-updater.exe"}
+        required = {"update.json", "version.json", "install_manifest.json", "noa-updater.exe"}
         if not required.issubset(zf.namelist()):
             raise VerificationError("incomplete delta package")
         if private_pin is not None:
@@ -62,7 +62,7 @@ def extract_delta(archive: Path, destination: Path, base: str, target: str, *, p
         if json.loads(zf.read("version.json")).get("version") != target:
             raise VerificationError("delta version stamp mismatch")
         hashes = doc.get("hashes")
-        if not isinstance(hashes, dict) or "vira-updater.exe" not in hashes:
+        if not isinstance(hashes, dict) or "noa-updater.exe" not in hashes:
             raise VerificationError("delta helper hash missing")
         for member, expected in hashes.items():
             safe_relative(member)

@@ -31,7 +31,7 @@ with sqlite3.connect(os.environ['SQLITE_DATABASE_PATH']) as db:
     assert {'kind','unit','supplier_id'} <= {row[3] for row in db.execute('PRAGMA foreign_key_list(inventory_items)')}
     assert db.execute('PRAGMA foreign_key_check').fetchall() == []
     assert db.execute('PRAGMA integrity_check').fetchone()[0] == 'ok'
-Path(os.environ['VIRA_SCHEMA_PROOF_REPORT']).write_text(json.dumps(proof))
+Path(os.environ['NOA_SCHEMA_PROOF_REPORT']).write_text(json.dumps(proof))
 raise RuntimeError('intentional failure AFTER real schema migration')
 """
 
@@ -46,7 +46,7 @@ def main() -> None:
     if sha(args.archive) != DIGEST:
         raise ValueError("immutable published 1.0.10 digest mismatch")
     with tempfile.TemporaryDirectory(
-        prefix="vira-schema-gate-", dir=os.environ["RUNNER_TEMP"]
+        prefix="noa-schema-gate-", dir=os.environ["RUNNER_TEMP"]
     ) as tmp:
         root = Path(tmp)
         shutil.copy2(args.archive, root / "base-1.0.10.zip")
@@ -56,7 +56,7 @@ def main() -> None:
         packages = root / "private-candidate"
         target = packages / "app"
         shutil.copytree(base, target)
-        shutil.copy2(args.helper, target / "vira-updater.exe")
+        shutil.copy2(args.helper, target / "noa-updater.exe")
         shutil.copy2(ROOT / "scripts/update_database.py", target / "scripts/update_database.py")
         import json
 

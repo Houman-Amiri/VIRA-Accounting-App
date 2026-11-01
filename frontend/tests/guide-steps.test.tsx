@@ -36,14 +36,14 @@ describe("in-app step guide (item 9)", () => {
     const first = render(<StepGuide id="t3" title="راهنما" steps={steps} />);
     fireEvent.click(screen.getByTestId("guide-t3-dismiss"));
     expect(screen.queryByTestId("guide-t3")).not.toBeInTheDocument();
-    expect(window.localStorage.getItem("vira-guide-dismissed:t3")).toBe("1");
+    expect(window.localStorage.getItem("noa-guide-dismissed:t3")).toBe("1");
     first.unmount();
 
     render(<StepGuide id="t3" title="راهنما" steps={steps} />);
     expect(screen.queryByTestId("guide-t3")).not.toBeInTheDocument();
     fireEvent.click(screen.getByTestId("guide-t3-reopen"));
     expect(screen.getByTestId("guide-t3")).toBeInTheDocument();
-    expect(window.localStorage.getItem("vira-guide-dismissed:t3")).toBeNull();
+    expect(window.localStorage.getItem("noa-guide-dismissed:t3")).toBeNull();
   });
 
   it("keeps each page's guide independent", () => {

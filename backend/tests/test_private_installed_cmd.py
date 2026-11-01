@@ -10,11 +10,11 @@ from app.private_installed_source import real_cmd_command
 
 
 def test_installed_bridge_uses_proven_raw_cmd_quoting(tmp_path):
-    root = tmp_path / "VIRA فارسی ! & path"
+    root = tmp_path / "NOA فارسی ! & path"
     root.mkdir()
     request = tmp_path / "درخواست ! & path.json"
     request.write_bytes(b"{}")
-    (root / "start_vira.cmd").write_bytes(
+    (root / "start_noa.cmd").write_bytes(
         b"@echo off\r\nsetlocal DisableDelayedExpansion\r\n"
         b'if /i not "%~1"=="--private-source-candidate" exit /b 91\r\n'
         b'if not exist "%~2" exit /b 92\r\nexit /b 0\r\n'
@@ -23,7 +23,7 @@ def test_installed_bridge_uses_proven_raw_cmd_quoting(tmp_path):
     command = real_cmd_command(root, request, comspec)
     assert (
         command
-        == f'"{comspec}" /d /s /c ""{root / "start_vira.cmd"}" --private-source-candidate "{request}""'
+        == f'"{comspec}" /d /s /c ""{root / "start_noa.cmd"}" --private-source-candidate "{request}""'
     )
     if os.name == "nt":
         # Real Windows CMD, but no Python subprocess or native PDF is executed.

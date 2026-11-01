@@ -12,20 +12,20 @@ Before starting servers, choose a NEW disposable `SQLITE_DATABASE_PATH` and
 ```sh
 # Example for a POSIX development environment; use a NEW path per test run.
 export DATA_DIR="$(mktemp -d)"
-export SQLITE_DATABASE_PATH="$DATA_DIR/vira.sqlite3"
+export SQLITE_DATABASE_PATH="$DATA_DIR/noa.sqlite3"
 (cd backend && ../.venv/bin/alembic upgrade head)
-VIRA_ADMIN_PASSWORD=e2e-owner-password .venv/bin/python -m app.seed
+NOA_ADMIN_PASSWORD=e2e-owner-password .venv/bin/python -m app.seed
 cd frontend
 pnpm exec playwright install chromium
-VIRA_E2E_DISPOSABLE_DATABASE=1 pnpm e2e
+NOA_E2E_DISPOSABLE_DATABASE=1 pnpm e2e
 ```
 
 Run from the repository root initially. Make sure ports 8787/5173 are not already
 serving another database: Playwright's development config reuses existing
 servers. Both new servers inherit these environment variables. Set
-`VIRA_E2E_USER`/`VIRA_E2E_PASSWORD` only for a dedicated test account.
-`VIRA_E2E_DISPOSABLE_DATABASE=1` is an explicit acknowledgement, NOT automatic
-proof that the server is disposable. CI uses `${{ runner.temp }}/vira-e2e.sqlite3`.
+`NOA_E2E_USER`/`NOA_E2E_PASSWORD` only for a dedicated test account.
+`NOA_E2E_DISPOSABLE_DATABASE=1` is an explicit acknowledgement, NOT automatic
+proof that the server is disposable. CI uses `${{ runner.temp }}/noa-e2e.sqlite3`.
 
 The dashboard audit shares the existing shell login so the real auth rate limit
 is preserved. It compares six KPIs against real report APIs, renders four SVG

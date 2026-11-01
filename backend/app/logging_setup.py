@@ -1,6 +1,6 @@
 """Native log rotation (Phase 6 §9).
 
-Writes to ``<data_dir>/logs/vira.log`` with size-based rotation — no Docker
+Writes to ``<data_dir>/logs/noa.log`` with size-based rotation — no Docker
 log drivers, no external collectors. Secrets/PII never reach the handler:
 structlog's redaction processor (``security/redact.py``) scrubs event data,
 and stdlib logging is kept to operational messages only.
@@ -21,7 +21,7 @@ def install_file_logging(data_dir: Path) -> Path | None:
     try:
         logs_dir.mkdir(parents=True, exist_ok=True)
         handler = RotatingFileHandler(
-            logs_dir / "vira.log", maxBytes=MAX_BYTES, backupCount=BACKUP_COUNT, encoding="utf-8"
+            logs_dir / "noa.log", maxBytes=MAX_BYTES, backupCount=BACKUP_COUNT, encoding="utf-8"
         )
     except OSError:  # pragma: no cover - read-only media
         return None
@@ -34,4 +34,4 @@ def install_file_logging(data_dir: Path) -> Path | None:
         root.setLevel(logging.INFO)
     for noisy in ("uvicorn.access",):
         logging.getLogger(noisy).setLevel(logging.WARNING)
-    return logs_dir / "vira.log"
+    return logs_dir / "noa.log"

@@ -43,7 +43,7 @@ def sha(path: Path) -> str:
 
 
 def scope(settings: Settings, root: Path | None) -> SourceScope | None:
-    if os.environ.get("VIRA_PRIVATE_INSTALLED_SOURCE") != "1":
+    if os.environ.get("NOA_PRIVATE_INSTALLED_SOURCE") != "1":
         return None
     try:
         if os.environ.get("GITHUB_ACTIONS") != "true" or root is None:
@@ -55,7 +55,7 @@ def scope(settings: Settings, root: Path | None) -> SourceScope | None:
             pin_path,
             state,
             state / "private-desktop-state.json",
-            state / "data/data/vira.sqlite3",
+            state / "data/data/noa.sqlite3",
             state / "data/updates",
         ):
             no_links(path)
@@ -70,7 +70,7 @@ def scope(settings: Settings, root: Path | None) -> SourceScope | None:
             raise ValueError("Disjoint private payload/state required")
         if (
             settings.data_dir != state / "data"
-            or settings.sqlite_database_path != state / "data/data/vira.sqlite3"
+            or settings.sqlite_database_path != state / "data/data/noa.sqlite3"
             or read(state / "private-desktop-state.json")
             != {"schema": 1, "role": "PRIVATE_SOURCE_DESKTOP_STATE", "payload_root": str(root)}
         ):
@@ -105,12 +105,12 @@ def write_new(path: Path, value: dict) -> None:
 
 def clone_installed_helper(context: SourceScope, run: str) -> Path:
     """Execute OLD anchored bytes outside {app}; a running EXE cannot replace itself."""
-    source = context.root / "vira-updater.exe"
+    source = context.root / "noa-updater.exe"
     no_links(source)
-    expected = context.files["vira-updater.exe"]
+    expected = context.files["noa-updater.exe"]
     if source.stat().st_size != expected["size"] or sha(source) != expected["sha256"]:
         raise ValueError("Old installed helper changed")
-    directory = Path(os.environ["RUNNER_TEMP"]) / ("VIRA updater خصوصی ! & " + run)
+    directory = Path(os.environ["RUNNER_TEMP"]) / ("NOA updater خصوصی ! & " + run)
     no_links(directory)
     if (
         directory.is_relative_to(context.root)
@@ -120,7 +120,7 @@ def clone_installed_helper(context: SourceScope, run: str) -> Path:
     ):
         raise ValueError("Private helper clone must be disjoint from payload and profile")
     directory.mkdir()  # Fresh nonce; never adopt an existing helper directory.
-    target = directory / "vira-updater.exe"
+    target = directory / "noa-updater.exe"
     with source.open("rb") as original, target.open("xb") as cloned:
         shutil.copyfileobj(original, cloned)
         cloned.flush()
@@ -134,12 +134,12 @@ def clone_installed_helper(context: SourceScope, run: str) -> Path:
 def command(context: SourceScope, stage: Path) -> tuple[list[str], Path]:
     """Use the anchored OLD real helper, never execute a newly downloaded helper."""
     try:
-        fault = os.environ.get("VIRA_PRIVATE_SOURCE_FORCE_FAILURE", "")
+        fault = os.environ.get("NOA_PRIVATE_SOURCE_FORCE_FAILURE", "")
         if fault and (
             fault not in {"AFTER_APPLY", "CRASH_FIRST_FILE", "CRASH_AFTER_APPLY"}
             or context.pin["schema"] != 2
             or os.environ.get("GITHUB_ACTIONS") != "true"
-            or os.environ.get("VIRA_PRIVATE_INSTALLED_SOURCE") != "1"
+            or os.environ.get("NOA_PRIVATE_INSTALLED_SOURCE") != "1"
         ):
             raise ValueError("Explicit schema2 private CI fault selection required")
         expected_updates = context.home / "state/data/updates"
@@ -177,7 +177,7 @@ def command(context: SourceScope, stage: Path) -> tuple[list[str], Path]:
         run = secrets.token_hex(16)
         helper = clone_installed_helper(context, run)
         transaction = stage.parent / ("private-transaction-" + run + ".json")
-        attempt = Path(os.environ["RUNNER_TEMP"]) / ("VIRA تراکنش خصوصی ! & " + run)
+        attempt = Path(os.environ["RUNNER_TEMP"]) / ("NOA تراکنش خصوصی ! & " + run)
         write_new(
             transaction,
             dict(

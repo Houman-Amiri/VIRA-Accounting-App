@@ -31,7 +31,7 @@ describe("api client middleware", () => {
   beforeEach(() => {
     captured = [];
     globalThis.fetch = stubFetch(captured);
-    document.cookie = "vira_csrf=csrf-token-value";
+    document.cookie = "noa_csrf=csrf-token-value";
     clearSudoToken();
   });
 

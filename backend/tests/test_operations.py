@@ -268,7 +268,7 @@ async def test_proforma_document_renders(client, pdf_inspector) -> None:
     resp = await client.get(f"/api/v1/orders/{order['id']}/proforma.pdf")
     assert resp.status_code == 200, resp.text
     assert resp.headers["content-type"] in ("application/pdf", "text/html; charset=utf-8")
-    if os.environ.get("VIRA_REQUIRE_NATIVE_PDF") == "1":
+    if os.environ.get("NOA_REQUIRE_NATIVE_PDF") == "1":
         assert resp.headers["content-type"] == "application/pdf", "HTML fallback is NOT native PDF evidence"
     if resp.headers["content-type"].startswith("application/pdf"):
         assert Decimal(order["total"]) == Decimal("5521497")  # 2 × 2760748.5, unchanged

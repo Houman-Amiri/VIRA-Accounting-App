@@ -1,4 +1,4 @@
-# V.I.R.A — Core Data Entities & Relationships (Phase 1)
+# NOA — Core Data Entities & Relationships (Phase 1)
 
 > Phase 1 deliverable: the core data entities, fields, and relationships centered on **"products to sell"** and **warehouse inventory items**, feeding the dynamic dashboard. This is the planning-level model; Phase 4 turns it into the full SQLite schema (STRICT tables, scaled integers, Alembic migrations) and must honor everything here.
 
@@ -230,6 +230,6 @@ The full SQLite schema must: use STRICT tables with the conventions in §1; add 
 
 **Reconciliation.** Sessions store account + statement date + beginning/ending balances (Decimals). `link_split` marks splits `RECONCILED` and links them to the session; `session_progress` compares the linked signed sum to `ending − beginning`; history is never overwritten.
 
-**Backups.** Online backup API (`sqlite3.Connection.backup`), verification = `integrity_check` + `foreign_key_check` + **Alembic migration version** + ledger debit=credit. `create_backup_bundle` adds receipts copy + manifest and optional Fernet encryption (PBKDF2-HMAC-SHA256, 480k iterations, per-file salt). `scripts/backup_vira.ps1` supports `-PassphraseFile` and `-InstallScheduledTask` (daily Task Scheduler job).
+**Backups.** Online backup API (`sqlite3.Connection.backup`), verification = `integrity_check` + `foreign_key_check` + **Alembic migration version** + ledger debit=credit. `create_backup_bundle` adds receipts copy + manifest and optional Fernet encryption (PBKDF2-HMAC-SHA256, 480k iterations, per-file salt). `scripts/backup_noa.ps1` supports `-PassphraseFile` and `-InstallScheduledTask` (daily Task Scheduler job).
 
 **Benchmark (representative local data — 25 000 entries / 50 000 splits, 32 MB).** keyset page 0.15 ms · OFFSET @10k 0.29 ms · rollup view 42 ms · snapshot aggregation 35 ms · LIKE search 2.9 ms · FTS5 search 0.22 ms (median of 5, `scripts/benchmark_db.py`).

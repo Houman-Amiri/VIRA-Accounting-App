@@ -226,7 +226,7 @@ def exercise_http(app, state, out, password, reuse, audit):
         if live != {'status': 'alive'} or ready['status'] != 'ready' or not ready['alembic_revision']:
             raise ValueError("Production health/readiness/migration gate failed")
         spa = checked(client.get('/'), 200)
-        if 'name="vira-build"' not in spa.text:
+        if 'name="noa-build"' not in spa.text:
             raise ValueError("Staged compiled SPA is not served by the real factory")
         schema = checked(client.get('/api/openapi.json'), 200).json()
         if '/api/v1/orders/{order_id}/proforma.pdf' not in schema['paths']:
@@ -359,7 +359,7 @@ def main():
               'FONTCONFIG_FILE': str(state / 'تنظیم ناموجود fonts.conf'), 'FONTCONFIG_PATH': str(state)}
     args.out_dir.mkdir(parents=True, exist_ok=True)
     with environment(values):
-        migrate = runpy.run_path(str(root / 'scripts/migrate_vira.py'))
+        migrate = runpy.run_path(str(root / 'scripts/migrate_noa.py'))
         migration = migrate['run_migration'](database, None)
         from app.config import load_settings
         from app.db import Database

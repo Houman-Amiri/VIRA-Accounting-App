@@ -22,7 +22,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 def export(destination: Path, key_pem: str) -> str:
     key_pem = (key_pem or "").strip()
     if not key_pem:
-        raise ValueError("VIRA_UPDATE_SIGNING_KEY is required to bake a verification key")
+        raise ValueError("NOA_UPDATE_SIGNING_KEY is required to bake a verification key")
     try:
         key = serialization.load_pem_private_key(key_pem.encode(), password=None)
     except (ValueError, TypeError) as error:
@@ -42,7 +42,7 @@ def main() -> int:
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
     try:
-        fingerprint = export(args.out, os.environ.get("VIRA_UPDATE_SIGNING_KEY", ""))
+        fingerprint = export(args.out, os.environ.get("NOA_UPDATE_SIGNING_KEY", ""))
     except (ValueError, OSError):
         print("Update public key export refused; check the signing key secret.", file=sys.stderr)
         return 1

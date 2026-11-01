@@ -3,7 +3,7 @@
 # For each previous release base (K = 3):
 #   - downloads that release's portable zip (base files) from GitHub Release assets
 #   - diffs its install_manifest.json against the new build
-#   - writes VIRA-v<target>-delta-from-v<base>.zip (update.json + files/ + patches/ + delete.json)
+#   - writes NOA-v<target>-delta-from-v<base>.zip (update.json + files/ + patches/ + delete.json)
 # Then rewrites latest.json with the deltas[] array and SHA256SUMS.txt.
 #
 # A base without a downloadable artifact is skipped. The app must refuse
@@ -25,10 +25,11 @@ $repo = $env:GITHUB_REPOSITORY
 if (-not $repo) { $repo = "Houman-Amiri/VIRA-Accounting-App" }
 
 # probe the known historical payload-asset names (public assets need no auth);
-# vira-v*-app.zip (v1.0.4+) is the install-layout payload = a valid delta base,
+# vira-v*-app.zip (v1.0.4+, renamed to noa-v* from v1.0.15) is the install-layout payload = a valid delta base,
 # the older *-portable.zip bundles are source trees without install_manifest.json
 function Find-PortableUrl([string]$Repo, [string]$Tag, [string]$BaseV) {
-    foreach ($name in @("vira-v$BaseV-app.zip", "vira-v$BaseV-portable.zip", "VIRA-v$BaseV.zip", "VIRA-v$BaseV-portable.zip")) {
+    # Releases published before the NOA rename still carry the old asset names.
+    foreach ($name in @("noa-v$BaseV-app.zip", "vira-v$BaseV-app.zip", "noa-v$BaseV-portable.zip", "vira-v$BaseV-portable.zip", "NOA-v$BaseV.zip", "VIRA-v$BaseV.zip", "NOA-v$BaseV-portable.zip", "VIRA-v$BaseV-portable.zip")) {
         $url = "https://github.com/$Repo/releases/download/$Tag/$name"
         try {
             $resp = Invoke-WebRequest -Uri $url -Method Head -SkipHttpErrorCheck -MaximumRedirection 5 -TimeoutSec 30
@@ -46,7 +47,7 @@ $tags = git tag --list "v*" --sort=-v:refname | Where-Object { $_ -ne "v$v" } | 
 $deltas = @()
 $script:probeLog = @()
 $probeHit = $false
-$tmp = Join-Path ([IO.Path]::GetTempPath()) "vira-delta-base"
+$tmp = Join-Path ([IO.Path]::GetTempPath()) "noa-delta-base"
 New-Item -ItemType Directory -Force -Path $tmp | Out-Null
 
 foreach ($tag in $tags) {
@@ -78,15 +79,19 @@ foreach ($tag in $tags) {
         continue
     }
     $probeHit = $true   # a USABLE base (payload with manifest) existed
+    # Clients published before the NOA rename (<= 1.0.14) refuse a package without
+    # the helper under its old file name, so those baselines get both copies.
+    $compat = @()
+    if ([version]$baseV -lt [version]"1.0.15") { $compat = @("--compat-helper") }
     $out = & uv run python scripts/gen_delta.py `
         --base-manifest $baseManifest.FullName `
         --base-dir $baseManifest.Directory.FullName `
         --target-dir $AppDir `
         --base-version $baseV `
         --target-version $v `
-        --out $OutDir
+        --out $OutDir @compat
     Write-Host ($out -join "`n")
-    $zipName = "VIRA-v$v-delta-from-v$baseV.zip"
+    $zipName = "NOA-v$v-delta-from-v$baseV.zip"
     $zipPath = Join-Path $OutDir $zipName
     if (Test-Path $zipPath) {
         Write-Host ("::notice title=build_deltas::$zipName BUILT ($((Get-Item $zipPath).Length) bytes)")
@@ -110,7 +115,7 @@ $latestPath = Join-Path $OutDir "latest.json"
 if (Test-Path $latestPath) {
     $latest = Get-Content $latestPath -Raw -Encoding utf8 | ConvertFrom-Json
     # finalize full_installer now that the Inno setup may exist
-    $setup = Get-ChildItem $OutDir -Filter "VIRA-Setup-*.exe" | Select-Object -First 1
+    $setup = Get-ChildItem $OutDir -Filter "NOA-Setup-*.exe" | Select-Object -First 1
     if ($setup) {
         $latest.full_installer = [ordered]@{
             url  = "https://github.com/$repo/releases/download/v$v/$($setup.Name)"

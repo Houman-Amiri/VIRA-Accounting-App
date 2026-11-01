@@ -2,7 +2,7 @@
 #
 # Contents: backend bundle (uv-locked site-packages + FastAPI app), compiled
 # React SPA static assets (served by FastAPI), native PowerShell scripts,
-# vira-updater.exe, version.json, install_manifest.json.
+# noa-updater.exe, version.json, install_manifest.json.
 
 param(
     [Parameter(Mandatory = $true)][string]$Version,
@@ -20,7 +20,7 @@ New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 # swapped 3.11.17 for 3.11.18 between two builds, replacing every file
 # under python/. The pin makes the runtime identical build-to-build; an
 # intentional bump is now a reviewable decision with a known size cost.
-$pinnedPython = $env:VIRA_PINNED_PYTHON
+$pinnedPython = $env:NOA_PINNED_PYTHON
 if (-not $pinnedPython) { $pinnedPython = "3.11.17" }
 uv python install $pinnedPython | Out-Null
 if ($LASTEXITCODE -ne 0) { throw "managed CPython $pinnedPython install failed" }
@@ -45,7 +45,7 @@ if ($LASTEXITCODE -ne 0) { throw "production dependency staging failed" }
 Remove-Item "$OutDir/requirements.lock.txt"
 Copy-Item -Recurse backend/app "$OutDir/app"
 
-# alembic bits — migrate_vira.py resolves {app}\backend\alembic(.ini)
+# alembic bits — migrate_noa.py resolves {app}\backend\alembic(.ini)
 New-Item -ItemType Directory -Force -Path "$OutDir/backend" | Out-Null
 Copy-Item backend/alembic.ini "$OutDir/backend/alembic.ini"
 Copy-Item -Recurse backend/alembic "$OutDir/backend/alembic"
@@ -56,9 +56,9 @@ if (Test-Path frontend/dist) {
     Copy-Item -Recurse frontend/dist/* "$OutDir/static/"
 }
 
-# native scripts + root launcher (shortcuts target {app}\start_vira.cmd)
+# native scripts + root launcher (shortcuts target {app}\start_noa.cmd)
 Copy-Item -Recurse scripts "$OutDir/scripts"
-Copy-Item scripts/start_vira.cmd "$OutDir/start_vira.cmd"
+Copy-Item scripts/start_noa.cmd "$OutDir/start_noa.cmd"
 
 # version stamp (single source of truth: backend/pyproject.toml → version_info());
 # the commit is what the System & Operations page shows as «کامیت» (v1.0.5 fix)
@@ -73,11 +73,11 @@ if (-not $commit) { $commit = "unknown" }
 $spaBuild = ""
 $indexHtml = Join-Path $OutDir "static/index.html"
 if (Test-Path $indexHtml) {
-    $match = [regex]::Match((Get-Content $indexHtml -Raw), 'name="vira-build"\s+content="([^"]+)"')
+    $match = [regex]::Match((Get-Content $indexHtml -Raw), 'name="noa-build"\s+content="([^"]+)"')
     if ($match.Success) { $spaBuild = $match.Groups[1].Value }
 }
 if (-not $spaBuild) {
-    Write-Warning "[stage_app_payload] static/index.html has no vira-build marker — falling back to the commit"
+    Write-Warning "[stage_app_payload] static/index.html has no noa-build marker — falling back to the commit"
     $spaBuild = $commit
 }
 @{
@@ -90,8 +90,8 @@ Write-Host "[stage_app_payload] version.json: version=$v commit=$commit spa_buil
 
 # update verification key — a packaged client must reject an unsigned latest.json
 # and must accept the release signature. Absent key keeps the previous behaviour.
-if ($env:VIRA_UPDATE_PUBLIC_KEY_FILE -and (Test-Path -LiteralPath $env:VIRA_UPDATE_PUBLIC_KEY_FILE)) {
-    Copy-Item -LiteralPath $env:VIRA_UPDATE_PUBLIC_KEY_FILE -Destination (Join-Path $OutDir "update-public-key.pem")
+if ($env:NOA_UPDATE_PUBLIC_KEY_FILE -and (Test-Path -LiteralPath $env:NOA_UPDATE_PUBLIC_KEY_FILE)) {
+    Copy-Item -LiteralPath $env:NOA_UPDATE_PUBLIC_KEY_FILE -Destination (Join-Path $OutDir "update-public-key.pem")
     Write-Host "[stage_app_payload] baked the update verification key"
 }
 

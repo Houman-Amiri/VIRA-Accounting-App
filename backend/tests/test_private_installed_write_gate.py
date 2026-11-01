@@ -15,7 +15,7 @@ from app.private_pdf_bootstrap import _no_links
 
 def setup(tmp_path, monkeypatch):
     root = tmp_path / "installed payload"
-    state = tmp_path / "profile/VIRA/private-native-installed/state"
+    state = tmp_path / "profile/NOA/private-native-installed/state"
     state.mkdir(parents=True)
     (state / "private-desktop-state.json").write_text(
         json.dumps(dict(schema=1, role="PRIVATE_SOURCE_DESKTOP_STATE", payload_root=str(root)))
@@ -27,7 +27,7 @@ def setup(tmp_path, monkeypatch):
     native = state.parent / ".native-update.lock"
     native.write_text(json.dumps(dict(pid=123, token=token)))
     monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "profile"))
-    monkeypatch.setenv("VIRA_PRIVATE_UPDATE_TOKEN", token)
+    monkeypatch.setenv("NOA_PRIVATE_UPDATE_TOKEN", token)
     return root, state, lock, native
 
 
@@ -48,9 +48,9 @@ def setup(tmp_path, monkeypatch):
 def test_no_generic_startup_bypass_during_private_update(tmp_path, monkeypatch, fault):
     root, state, lock, native = setup(tmp_path, monkeypatch)
     if fault == "missing-token":
-        monkeypatch.delenv("VIRA_PRIVATE_UPDATE_TOKEN")
+        monkeypatch.delenv("NOA_PRIVATE_UPDATE_TOKEN")
     if fault == "wrong-token":
-        monkeypatch.setenv("VIRA_PRIVATE_UPDATE_TOKEN", "b" * 64)
+        monkeypatch.setenv("NOA_PRIVATE_UPDATE_TOKEN", "b" * 64)
     if fault == "wrong-lock":
         lock.write_bytes(b"foreign token")
     if fault == "missing-native":
@@ -82,7 +82,7 @@ async def test_controller_child_can_become_ready_without_acknowledging_user_writ
     settings = Settings(
         _env_file=None,
         data_dir=state / "data",
-        sqlite_database_path=state / "data/data/vira.sqlite3",
+        sqlite_database_path=state / "data/data/noa.sqlite3",
         scheduler_enabled=False,
         session_secret="synthetic-secret-long-enough-not-a-real-credential",
     )
@@ -118,7 +118,7 @@ async def test_verified_private_factory_blocks_writes_for_each_guard_independent
     from .test_private_source_channel import fixture
 
     root, home, settings, _, _ = fixture(tmp_path, monkeypatch)
-    monkeypatch.setenv("VIRA_APP_DIR", str(root))
+    monkeypatch.setenv("NOA_APP_DIR", str(root))
     guard = (home / "state/data/updates/.update.lock" if guard_name == ".update.lock"
              else home / guard_name)
     guard.parent.mkdir(parents=True, exist_ok=True)
@@ -150,7 +150,7 @@ async def test_private_partial_unlock_keeps_write_gate_closed_until_all_guards_g
     from .test_private_source_channel import fixture
 
     root, home, settings, _, _ = fixture(tmp_path, monkeypatch)
-    monkeypatch.setenv("VIRA_APP_DIR", str(root))
+    monkeypatch.setenv("NOA_APP_DIR", str(root))
     guards = [home / ".native-channel.lock", home / ".native-update.lock",
               home / "state/data/updates/.update.lock"]
     guards[-1].parent.mkdir(parents=True, exist_ok=True)

@@ -1,7 +1,7 @@
 """App-owned PRIVATE CI installed-source bridge; never selected by public startup.
 
 The installer supplies an external digest anchor. Every invocation generates a
-fresh request and delegates to the unchanged REAL start_vira.cmd/app entry.
+fresh request and delegates to the unchanged REAL start_noa.cmd/app entry.
 Stdlib only. No QA factory, renderer, migration or HTTP hooks.
 """
 
@@ -84,7 +84,7 @@ def location() -> tuple[Path, Path]:
         or profile == runner
     ):
         raise ValueError("Disposable CI profile below runner TEMP required")
-    home = profile / "VIRA/private-native-installed"
+    home = profile / "NOA/private-native-installed"
     return home / "anchor.json", home / "state"
 
 
@@ -117,7 +117,7 @@ def prepare(root: Path, pin: Path):
 
 def real_cmd_command(root: Path, request: Path, comspec: str) -> str:
     return (
-        f'"{comspec}" /d /s /c ""{root / "start_vira.cmd"}" --private-source-candidate "{request}""'
+        f'"{comspec}" /d /s /c ""{root / "start_noa.cmd"}" --private-source-candidate "{request}""'
     )
 
 
@@ -141,7 +141,7 @@ def main() -> int:
     boot["_no_links"](lock)
     if lock.exists():
         token = read(lock).get("token")
-        supplied = os.environ.get("VIRA_PRIVATE_UPDATE_TOKEN", "")
+        supplied = os.environ.get("NOA_PRIVATE_UPDATE_TOKEN", "")
         if (
             not isinstance(token, str)
             or len(token) != 64
@@ -184,8 +184,8 @@ def main() -> int:
             cwd=state.parent,
             env={
                 **os.environ,
-                "VIRA_PRIVATE_INSTALLED_SOURCE": "1",
-                "VIRA_PORT": str(options["port"]),
+                "NOA_PRIVATE_INSTALLED_SOURCE": "1",
+                "NOA_PORT": str(options["port"]),
             },
         )
 

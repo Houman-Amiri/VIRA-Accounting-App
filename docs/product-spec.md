@@ -1,4 +1,4 @@
-# V.I.R.A — Product Specification (Phase 1)
+# NOA — Product Specification (Phase 1)
 
 > Phase 1 deliverable. Covers the main idea, module-level features, the live landing page, the dynamic dashboard, and the normalized Sales Price Calculations model derived from `قیمت نهایی.xlsx`. Context file: [`../project brief.md`](../project%20brief.md). Entity model: [`data-model.md`](data-model.md). Full compiled requirements: [`../MASTER_PROMPT.md`](../MASTER_PROMPT.md).
 >
@@ -8,7 +8,7 @@
 
 ## 1. Vision & Users
 
-**V.I.R.A** is the accounting and operations app for a small 3D-printing business that sells produced models (via marketplaces such as Digikala and directly) and manages the raw materials (3D-printing filaments and packaging) used to produce them. It covers **Warehouse → Production → Orders → Invoice/Reports**, supervised by a fully dynamic dashboard, on top of a rigorous double-entry accounting engine.
+**NOA** is the accounting and operations app for a small 3D-printing business that sells produced models (via marketplaces such as Digikala and directly) and manages the raw materials (3D-printing filaments and packaging) used to produce them. It covers **Warehouse → Production → Orders → Invoice/Reports**, supervised by a fully dynamic dashboard, on top of a rigorous double-entry accounting engine.
 
 **Roles** (enforced from Phase 5): `owner` (مدیر — full control), `bookkeeper` (حسابدار — entries/imports/reconcile), `auditor` (بازرس — read-only). Day-to-day users are the owner and one bookkeeper; the app must stay comprehensible to a non-accountant while keeping ledger-grade integrity underneath.
 

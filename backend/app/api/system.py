@@ -36,7 +36,7 @@ class BackupStatus(BaseModel):
 class SystemStatus(BaseModel):
     version: str
     commit: str
-    #: build id of the SPA shell this install ships (index.html «vira-build») —
+    #: build id of the SPA shell this install ships (index.html «noa-build») —
     #: the UI compares it with the id it actually loaded and warns on mismatch
     spa_build: str = ""
     environment: str
@@ -282,7 +282,7 @@ def verify_backup_bundle(
 
         raise NotFoundError("پشتیبان یافت نشد")
     passphrase = settings.app_encryption_key or settings.session_secret
-    with tempfile.TemporaryDirectory(prefix="vira-verify-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="noa-verify-") as tmp:
         target = Path(tmp) / "restored.sqlite3"
         result = restore_bundle(requested, passphrase=passphrase, target=target)
         balanced = result.total_debits == result.total_credits

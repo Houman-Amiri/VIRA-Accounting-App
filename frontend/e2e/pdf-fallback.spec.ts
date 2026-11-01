@@ -24,7 +24,7 @@ test("printable fallback uses embedded Vazirmatn under its real strict CSP", asy
       { cwd: root, encoding: "utf8", env: { ...process.env, PYTHONUTF8: "1" } },
     ),
   );
-  const url = "http://vira-print.test/proforma";
+  const url = "http://noa-print.test/proforma";
   const requests: string[] = [];
   const errors: string[] = [];
   page.on("request", (request) => requests.push(request.url()));

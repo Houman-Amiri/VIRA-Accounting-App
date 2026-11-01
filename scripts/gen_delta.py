@@ -1,7 +1,7 @@
 """Generate a delta update package (Phase 8 §5).
 
 Diffs the base installation manifest against the new build and produces
-``VIRA-v<target>-delta-from-v<base>.zip`` containing:
+``NOA-v<target>-delta-from-v<base>.zip`` containing:
 
 - ``update.json``    ordered file operations (add / replace / patch / delete)
 - ``files/``         new & changed small files, stored as-is
@@ -28,6 +28,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "backend"))
 
 import bsdiff4  # noqa: E402
 
+# The helper file name every client published before the NOA rename requires.
+COMPAT_HELPER_NAME = "vira-updater.exe"
+
 from app.services.update_engine import (  # noqa: E402
     OpKind,
     build_manifest,
@@ -49,6 +52,15 @@ def main() -> int:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--patch-threshold", type=int, default=256 * 1024)
     parser.add_argument("--private-source-anchor", type=Path, help="Explicit private CI target anchor, never a public release option")
+    # Clients published before the NOA rename look for the helper under its old
+    # file name and refuse the package without it. The same bytes are shipped
+    # under both names for those baselines only; the helper itself restarts the
+    # renamed launcher, so a pre-rename install still completes the upgrade.
+    parser.add_argument(
+        "--compat-helper",
+        action="store_true",
+        help="also ship the updater as vira-updater.exe for pre-rename clients",
+    )
     args = parser.parse_args()
     if args.private_source_anchor and os.environ.get("GITHUB_ACTIONS") != "true":
         parser.error("Private source delta Windows CI only")
@@ -64,7 +76,7 @@ def main() -> int:
     )
 
     args.out.mkdir(parents=True, exist_ok=True)
-    name = f"VIRA-v{args.target_version}-delta-from-v{args.base_version}.zip"
+    name = f"NOA-v{args.target_version}-delta-from-v{args.base_version}.zip"
     zip_path = args.out / name
     hashes: dict[str, str] = {}
     deletes = [o.path for o in plan.operations if o.op is OpKind.DELETE]
@@ -93,11 +105,14 @@ def main() -> int:
             zf.writestr("version.json", target_version_json.read_bytes())
         # Run the new helper OUTSIDE {app}: an installed/running .exe cannot
         # replace itself on Windows. Older clients already prefer this location.
-        helper = args.target_dir / "vira-updater.exe"
+        helper = args.target_dir / "noa-updater.exe"
         if helper.is_file():
             data = helper.read_bytes()
-            zf.writestr("vira-updater.exe", data)
-            hashes["vira-updater.exe"] = sha256_bytes(data)
+            zf.writestr("noa-updater.exe", data)
+            hashes["noa-updater.exe"] = sha256_bytes(data)
+            if args.compat_helper:
+                zf.writestr(COMPAT_HELPER_NAME, data)
+                hashes[COMPAT_HELPER_NAME] = sha256_bytes(data)
         # Standalone stdlib tool stays outside files being replaced, including
         # during rollback to immutable clients that do not contain this module.
         db_tool = args.target_dir / "scripts/update_database.py"

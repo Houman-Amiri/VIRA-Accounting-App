@@ -49,7 +49,7 @@ def _reset_rate_limiter() -> Iterator[None]:
 
 @pytest.fixture()
 def db_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-    path = tmp_path / "vira.sqlite3"
+    path = tmp_path / "noa.sqlite3"
     monkeypatch.setenv("SQLITE_DATABASE_PATH", str(path))
     monkeypatch.setenv("SESSION_SECRET", "test-session-secret-that-is-long-enough-1234")
     monkeypatch.setenv("ENVIRONMENT", "development")

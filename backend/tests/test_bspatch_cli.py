@@ -27,7 +27,7 @@ def run_bspatch(old: Path, new: Path, patch: Path) -> subprocess.CompletedProces
 
 def test_bspatch_round_trip(tmp_path: Path) -> None:
     old = bytes(range(256)) * 2048  # 512 KB
-    new = old[100:] + b"VIRA-EXTRA" + old[:5000]
+    new = old[100:] + b"NOA-EXTRA" + old[:5000]
     patch = bsdiff4.diff(old, new)
 
     old_f, new_f, patch_f = tmp_path / "old.bin", tmp_path / "out.bin", tmp_path / "p.bsdiff"

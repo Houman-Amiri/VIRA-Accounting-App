@@ -1,11 +1,11 @@
-; V.I.R.A — Inno Setup 6 installer (Phase 8 §1)
+; NOA — Inno Setup 6 installer (Phase 8 §1)
 ; Windows-native, no Docker/containers. Compiled in GitHub Actions with:
-;   iscc installer/vira.iss /DAppVersion=X.Y.Z
+;   iscc installer/noa.iss /DAppVersion=X.Y.Z
 ;
 ; Mandated wizard: welcome → license → «مسیر نصب» (select where to install,
 ; DisableDirPage=no) → additional tasks → install → finish. The chosen InstallDir
-; is recorded under HKLM/HKCU \SOFTWARE\VIRA\InstallDir for the updater and
-; uninstaller. User data lives ONLY under %LOCALAPPDATA%\VIRA and is never
+; is recorded under HKLM/HKCU \SOFTWARE\NOA\InstallDir for the updater and
+; uninstaller. User data lives ONLY under %LOCALAPPDATA%\NOA and is never
 ; removed unless the user explicitly opts in on uninstall.
 
 #ifndef AppVersion
@@ -22,17 +22,17 @@
   #ifndef PrivateSourceProfile
     #error PrivateSourceProfile is required for the isolated private installer
   #endif
-  #define AppName "VIRA PRIVATE SOURCE CI"
+  #define AppName "NOA PRIVATE SOURCE CI"
   #define AppExeName "python\python.exe"
   #define LaunchWorkingDir PrivateSourceProfile
-  #define RegistryKey "SOFTWARE\VIRA\PrivateSourceCI"
+  #define RegistryKey "SOFTWARE\NOA\PrivateSourceCI"
 #else
-  #define AppName "V.I.R.A"
-  #define AppExeName "start_vira.cmd"
+  #define AppName "NOA"
+  #define AppExeName "start_noa.cmd"
   #define LaunchWorkingDir "{app}"
-  #define RegistryKey "SOFTWARE\VIRA"
+  #define RegistryKey "SOFTWARE\NOA"
 #endif
-#define AppPublisher "VIRA"
+#define AppPublisher "NOA"
 
 [Setup]
 #ifdef PrivateSourceCI
@@ -44,16 +44,21 @@ AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher={#AppPublisher}
 #ifdef PrivateSourceCI
-DefaultDirName={#PrivateSourceProfile}\VIRA خصوصی app
+DefaultDirName={#PrivateSourceProfile}\NOA خصوصی app
 #else
-DefaultDirName={autopf}\VIRA
+; The single-documented install location of this app. The wizard still lets the
+; owner change it (DisableDirPage=no); UsePreviousAppDir=no stops Inno from
+; silently reusing the pre-rename folder, which is what makes the move to NOA
+; actually happen instead of upgrading in place under the old name.
+DefaultDirName=D:\3D PRINT\NOA-Accounting
+UsePreviousAppDir=no
 #endif
 DefaultGroupName={#AppName}
 DisableDirPage=no
 DisableProgramGroupPage=yes
 ; license page is optional per Phase 8 §1 — add LicenseFile=..\docs\LICENSE.txt when a license ships
 OutputDir=Output
-OutputBaseFilename=VIRA-Setup-{#AppVersion}
+OutputBaseFilename=NOA-Setup-{#AppVersion}
 Compression=lzma2/max
 SolidCompression=yes
 ArchitecturesInstallIn64BitMode=x64
@@ -62,12 +67,12 @@ PrivilegesRequired=admin
 PrivilegesRequiredOverridesAllowed=dialog
 #ifdef PrivateSourceCI
 ; Keep generated uninstaller code OUTSIDE the fully manifested app payload.
-UninstallFilesDir={#PrivateSourceProfile}\VIRA\private-native-installed\uninstaller
+UninstallFilesDir={#PrivateSourceProfile}\NOA\private-native-installed\uninstaller
 #endif
 UninstallDisplayName={#AppName}
 UninstallDisplayIcon={app}\{#AppExeName}
 WizardStyle=modern
-; silent install for CI smoke tests: VIRA-Setup-x.y.z.exe /VERYSILENT /DIR=<temp>
+; silent install for CI smoke tests: NOA-Setup-x.y.z.exe /VERYSILENT /DIR=<temp>
 SetupLogging=yes
 
 [Languages]
@@ -91,19 +96,19 @@ Name: "backupjob"; Description: "ثبت کار زمان‌بند پشتیبان�
 [Files]
 ; packaged backend bundle (PyInstaller one-folder / embedded CPython)
 Source: "{#AppSource}\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
-; updater helper (staged next to the app; also copied to %LOCALAPPDATA%\VIRA\updates)
-Source: "{#AppSource}\vira-updater.exe"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+; updater helper (staged next to the app; also copied to %LOCALAPPDATA%\NOA\updates)
+Source: "{#AppSource}\noa-updater.exe"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
 #ifdef PrivateSourceCI
 ; Digest anchor is OUTSIDE the payload. Never remove state/anchor on uninstall.
-Source: "{#PrivateSourceAnchor}"; DestDir: "{#PrivateSourceProfile}\VIRA\private-native-installed"; DestName: "anchor.json"; Flags: uninsneveruninstall
+Source: "{#PrivateSourceAnchor}"; DestDir: "{#PrivateSourceProfile}\NOA\private-native-installed"; DestName: "anchor.json"; Flags: uninsneveruninstall
 #endif
 
 [InstallDelete]
 ; v1.0.5 incident: the old hashed bundles stayed next to the new ones, so a
 ; cached index.html could keep loading the previous UI. Code and SPA are
 ; replaced wholesale on every install/upgrade (user data is untouched — it
-; lives under %LOCALAPPDATA%\VIRA).
+; lives under %LOCALAPPDATA%\NOA).
 Type: filesandordirs; Name: "{app}\static"
 Type: filesandordirs; Name: "{app}\app"
 Type: filesandordirs; Name: "{app}\backend"
@@ -138,14 +143,14 @@ Filename: "{app}\{#AppExeName}"; WorkingDir: "{#LaunchWorkingDir}"; Description:
 #endif
 #ifndef PrivateSourceCI
 Filename: "schtasks.exe"; \
-  Parameters: "/Create /TN ""VIRA\Backup"" /TR ""''{app}\scripts\backup_vira.ps1''"" /SC DAILY /ST 21:00 /F"; \
+  Parameters: "/Create /TN ""NOA\Backup"" /TR ""''{app}\scripts\backup_noa.ps1''"" /SC DAILY /ST 21:00 /F"; \
   StatusMsg: "ثبت کار زمان‌بند پشتیبان‌گیری..."; \
   Flags: runhidden; Tasks: backupjob
 #endif
 
 #ifndef PrivateSourceCI
 [UninstallRun]
-Filename: "schtasks.exe"; Parameters: "/Delete /TN ""VIRA\Backup"" /F"; Flags: runhidden; RunOnceId: "RemoveBackupTask"
+Filename: "schtasks.exe"; Parameters: "/Delete /TN ""NOA\Backup"" /F"; Flags: runhidden; RunOnceId: "RemoveBackupTask"
 #endif
 
 [Code]
@@ -160,7 +165,7 @@ begin
   Result := (GetEnv('GITHUB_ACTIONS') = 'true') and
     (CompareText(GetEnv('LOCALAPPDATA'), '{#PrivateSourceProfile}') = 0) and
     (Pos(Lowercase(AddBackslash(GetEnv('RUNNER_TEMP'))), Lowercase('{#PrivateSourceProfile}')) = 1) and
-    not DirExists('{#PrivateSourceProfile}\VIRA\private-native-installed');
+    not DirExists('{#PrivateSourceProfile}\NOA\private-native-installed');
 #endif
 end;
 
@@ -214,7 +219,7 @@ begin
             '($_.ExecutablePath -like ' + Q + AppDir + '\*' + Q + ') } | ' +
             'ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }; ' +
             'Get-CimInstance Win32_Process -Filter ' + Q + 'Name=' + Q + Q + 'cmd.exe' + Q + Q + Q + ' | ' +
-            'Where-Object { $_.CommandLine -like ' + Q + '*' + AppDir + '\start_vira.cmd*' + Q + ' } | ' +
+            'Where-Object { $_.CommandLine -like ' + Q + '*' + AppDir + '\start_noa.cmd*' + Q + ' } | ' +
             'ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }';
   Exec('powershell.exe', '-NoProfile -ExecutionPolicy Bypass -Command "' + Script + '"',
        '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
@@ -239,7 +244,7 @@ begin
   DeleteDataPage := CreateInputOptionPage(wpWelcome,
     'داده‌های برنامه',
     'حذف داده‌های برنامه',
-    'داده‌ها (پایگاه‌داده، رسیدها، کلیدها، پشتیبان‌ها) در %LOCALAPPDATA%\VIRA نگهداری می‌شوند و به‌طور پیش‌فرض حذف نمی‌شوند.',
+    'داده‌ها (پایگاه‌داده، رسیدها، کلیدها، پشتیبان‌ها) در %LOCALAPPDATA%\NOA نگهداری می‌شوند و به‌طور پیش‌فرض حذف نمی‌شوند.',
     False, False);
   DeleteDataPage.Add('حذف داده‌های برنامه (غیرقابل بازگشت)');
   DeleteDataPage.Values[0] := False;
@@ -254,7 +259,7 @@ begin
 #ifndef PrivateSourceCI
   if CurUninstallStep = usPostUninstall then
   begin
-    DataDir := ExpandConstant('{localappdata}\VIRA');
+    DataDir := ExpandConstant('{localappdata}\NOA');
     if (DeleteDataPage <> nil) and DeleteDataPage.Values[0] then
     begin
       if MsgBox('داده‌های برنامه برای همیشه حذف شوند؟', mbConfirmation, MB_YESNO) = IDYES then

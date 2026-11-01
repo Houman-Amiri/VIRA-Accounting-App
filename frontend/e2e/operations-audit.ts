@@ -5,7 +5,7 @@ import Decimal from "decimal.js";
 
 type Item = { id: string; name: string; quantity: string };
 export async function auditOperations(page: Page): Promise<void> {
-  expect(process.env.VIRA_E2E_DISPOSABLE_DATABASE).toBe("1");
+  expect(process.env.NOA_E2E_DISPOSABLE_DATABASE).toBe("1");
   const suffix = randomUUID().slice(0, 8);
   const base = `آزمایشی گردش کامل ${suffix}`;
   const waitWrite = (path: string, status = 201) =>
@@ -127,7 +127,7 @@ export async function auditOperations(page: Page): Promise<void> {
     expect(new Decimal(legs.find((m) => m.kind === "OUT")!.quantity).eq(grams)).toBe(true);
     expect(new Decimal(legs.find((m) => m.kind === "IN")!.quantity).eq(count)).toBe(true);
   }
-  const csrf = (await page.context().cookies()).find((c) => c.name === "vira_csrf")!.value;
+  const csrf = (await page.context().cookies()).find((c) => c.name === "noa_csrf")!.value;
   const repeat = await page.request.post(`/api/v1/production/jobs/${b.id}/finish`, {
     headers: { "X-CSRF-Token": decodeURIComponent(csrf) },
   });

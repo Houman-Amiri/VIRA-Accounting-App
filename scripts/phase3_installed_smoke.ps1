@@ -24,13 +24,13 @@ Copy-Item -LiteralPath $SourceAudit -Destination (Join-Path $payload 'native/pdf
 if ($LASTEXITCODE -ne 0) { throw 'Private ACP manifest failed' }
 Install-Module ps2exe -Force -Scope CurrentUser -ErrorAction Stop
 Import-Module ps2exe -ErrorAction Stop
-Invoke-ps2exe -inputFile scripts/vira_updater.ps1 -outputFile (Join-Path $payload 'vira-updater.exe') -noConsole:$false
-if (-not (Test-Path -LiteralPath (Join-Path $payload 'vira-updater.exe'))) { throw 'Actual compiled helper missing' }
+Invoke-ps2exe -inputFile scripts/noa_updater.ps1 -outputFile (Join-Path $payload 'noa-updater.exe') -noConsole:$false
+if (-not (Test-Path -LiteralPath (Join-Path $payload 'noa-updater.exe'))) { throw 'Actual compiled helper missing' }
 $targetHelper = ''
 if ($TransactionTarget) {
     $targetHelper = Join-Path $work 'independently-compiled-target-updater.exe'
-    Invoke-ps2exe -inputFile scripts/vira_updater.ps1 -outputFile $targetHelper -noConsole:$false
-    if (-not (Test-Path -LiteralPath $targetHelper) -or (Get-FileHash -LiteralPath $targetHelper).Hash -eq (Get-FileHash -LiteralPath (Join-Path $payload 'vira-updater.exe')).Hash) { throw 'Distinct actual target helper required; no fake PE edits' }
+    Invoke-ps2exe -inputFile scripts/noa_updater.ps1 -outputFile $targetHelper -noConsole:$false
+    if (-not (Test-Path -LiteralPath $targetHelper) -or (Get-FileHash -LiteralPath $targetHelper).Hash -eq (Get-FileHash -LiteralPath (Join-Path $payload 'noa-updater.exe')).Hash) { throw 'Distinct actual target helper required; no fake PE edits' }
 }
 
 $stampPath = Join-Path $payload 'version.json'
@@ -51,7 +51,7 @@ $pin = @{schema=2;role='PRIVATE_SOURCE_INSTALLED_ANCHOR';version='99.30.0';port=
 [IO.File]::WriteAllText($anchor,($pin | ConvertTo-Json),(New-Object Text.UTF8Encoding($false)))
 $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
 if (-not (Test-Path -LiteralPath $iscc)) { throw 'Actual Inno compiler required' }
-$compile = (& $iscc '/DPrivateSourceCI' "/DPrivateSourceAnchor=$anchor" "/DPrivateSourceProfile=$profile" '/DAppVersion=99.30.0' "/DAppSource=$payload" "/O$work/setup" installer/vira.iss 2>&1 | Out-String)
+$compile = (& $iscc '/DPrivateSourceCI' "/DPrivateSourceAnchor=$anchor" "/DPrivateSourceProfile=$profile" '/DAppVersion=99.30.0' "/DAppSource=$payload" "/O$work/setup" installer/noa.iss 2>&1 | Out-String)
 $code = $LASTEXITCODE
 [IO.File]::WriteAllText((Join-Path $reports 'inno-compile.log'),$compile)
 Write-Host $compile

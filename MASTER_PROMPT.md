@@ -1,6 +1,6 @@
-# V.I.R.A — Master Prompt (Compiled Requirements)
+# NOA — Master Prompt (Compiled Requirements)
 
-> **Purpose.** This file is the compiled master prompt for the Persian Accounting App **V.I.R.A**, distilled from `VIRA_SQLite_No_Docker.md` (source of truth for the original request) plus subsequent user amendments (latest: 2026-10-14 — Inno Setup installer, release tags, and in-app delta updates, compiled as Phase 8). It exists so the implementing AI can re-read it at any time and stay aligned across all phases without re-parsing the raw request file.
+> **Purpose.** This file is the compiled master prompt for the Persian Accounting App **NOA**, distilled from `NOA_SQLite_No_Docker.md` (source of truth for the original request) plus subsequent user amendments (latest: 2026-10-14 — Inno Setup installer, release tags, and in-app delta updates, compiled as Phase 8). It exists so the implementing AI can re-read it at any time and stay aligned across all phases without re-parsing the raw request file.
 >
 > **Rule of precedence.** If any later instruction, section, or implementation detail conflicts with **§2 Non-Negotiable Architecture Constraints**, the constraints win.
 >
@@ -10,7 +10,7 @@
 
 ## 1. Role
 
-You are a **world-class Iranian full-stack Windows app developer** — expert in programming, security, database design, and UI/UX — working for the **V.I.R.A** company, which is demanding an accounting application.
+You are a **world-class Iranian full-stack Windows app developer** — expert in programming, security, database design, and UI/UX — working for the **NOA** company, which is demanding an accounting application.
 
 ---
 
@@ -18,7 +18,7 @@ You are a **world-class Iranian full-stack Windows app developer** — expert in
 
 1. **SQLite only.** No PostgreSQL, no other database server, no DB abstraction that assumes server-specific SQL features.
 2. **No Docker of any kind.** No Docker, Docker Compose, Dev Containers, container images, or container runtimes. Install and run directly on Windows using Python, Node.js, a Python virtual environment, and native Windows scripts/services.
-3. **Database file location.** Local SQLite file stored **outside the Git repository**, defaulting to `%LOCALAPPDATA%\VIRA\data\vira.sqlite3` (single Windows user). Path configurable via `SQLITE_DATABASE_PATH`.
+3. **Database file location.** Local SQLite file stored **outside the Git repository**, defaulting to `%LOCALAPPDATA%\NOA\data\noa.sqlite3` (single Windows user). Path configurable via `SQLITE_DATABASE_PATH`.
 4. **SQLite limitations are design constraints.** Integer-scaled money storage, application-level `Decimal` validation, short write transactions, WAL mode, SQLite-compatible SQL only. Treat SQLite typing, locking, and trigger limits as hard boundaries.
 5. **Canonical frontend** is the **React + TypeScript + Vite SPA** (Phase 3), backed by **FastAPI**. Never build a separate HTMX/Alpine frontend. Jinja2 is allowed **only** for server-rendered PDF documents.
 6. **`project brief.md`** must be created and maintained inside the repo, containing the actual selected stack and these non-negotiable constraints (Phase 1 deliverable).
@@ -29,7 +29,7 @@ You are a **world-class Iranian full-stack Windows app developer** — expert in
 
 ## 3. Product Vision & Domain (Phase 1 core idea)
 
-**V.I.R.A** is an accounting app to manage a small 3D-printing business: **warehouse goods (3D-printing filaments and produced models), customer orders, and production**.
+**NOA** is an accounting app to manage a small 3D-printing business: **warehouse goods (3D-printing filaments and produced models), customer orders, and production**.
 
 ### 3.1 Warehouse (انبار)
 - Item attributes: **filament name, weight, entity/unit, color, price, date, supplier name and address**.
@@ -76,7 +76,7 @@ You are a **world-class Iranian full-stack Windows app developer** — expert in
 | 7 | **Receipts, OCR & PDF invoicing** | PDF generation with **WeasyPrint** from styled HTML/CSS. OCR: PaddleOCR or Tesseract locally; optional structured extraction via Instructor + LiteLLM into strict Pydantic models (merchant, date, subtotal, tax, total, currency, line_items). Attachments stored content-addressed by **SHA-256**, linked to `JournalEntry`. |
 | 8 | **Multi-currency & scheduling** | APScheduler or Huey for recurring journal entries (rent, subscriptions, depreciation, payroll) via cron intervals. Daily FX from Frankfurter API (`httpx`) stored in `ExchangeRate` for realized/unrealized FX gain/loss. |
 | 9 | **Testing** | `pytest` + `httpx.AsyncClient` (unit/integration, isolated test transactions). `Hypothesis` property tests: randomized multi-split transactions, edge-case decimals, currency conversions — mathematically prove double-entry balance invariants and precision retention. |
-| 10 | **Security, backups & self-hosting** | Argon2id (`pwdlib`), HttpOnly session cookies, CSRF, optional TOTP (`pyotp`); FastAPI-Users / Authlib. Native Windows deployment: `start_vira.bat` / `stop_vira.bat` (or PowerShell), optional Task Scheduler startup. Bind `127.0.0.1` by default; LAN only via explicit setting + Firewall rule; remote access documented via native **Tailscale**. Secrets in env vars / Windows Credential Manager — never in repo or plaintext DB. Backups via `sqlite3.Connection.backup()` (never a naive `.db` copy ignoring WAL), scheduled with Task Scheduler, optional `age`/`Restic` encryption. Restore-verification scripts: restore to temp path → `PRAGMA integrity_check` + `PRAGMA foreign_key_check` → accounting-invariant checks. |
+| 10 | **Security, backups & self-hosting** | Argon2id (`pwdlib`), HttpOnly session cookies, CSRF, optional TOTP (`pyotp`); FastAPI-Users / Authlib. Native Windows deployment: `start_noa.bat` / `stop_noa.bat` (or PowerShell), optional Task Scheduler startup. Bind `127.0.0.1` by default; LAN only via explicit setting + Firewall rule; remote access documented via native **Tailscale**. Secrets in env vars / Windows Credential Manager — never in repo or plaintext DB. Backups via `sqlite3.Connection.backup()` (never a naive `.db` copy ignoring WAL), scheduled with Task Scheduler, optional `age`/`Restic` encryption. Restore-verification scripts: restore to temp path → `PRAGMA integrity_check` + `PRAGMA foreign_key_check` → accounting-invariant checks. |
 
 ### Phase 3 — Core Stack (Frontend)
 
@@ -96,7 +96,7 @@ You are a **world-class Iranian full-stack Windows app developer** — expert in
 ### Phase 4 — Core Stack (Database & Persistence)
 
 - **Engine config:** SQLite 3.45+; WAL, `synchronous=NORMAL`, `foreign_keys=ON`, `busy_timeout=5000`; prefer `STRICT` tables; verify at startup.
-- **File:** `%LOCALAPPDATA%\VIRA\data\vira.sqlite3`, configurable `SQLITE_DATABASE_PATH`; parent dir created securely; never commit DB, WAL/SHM, backups, or attachments.
+- **File:** `%LOCALAPPDATA%\NOA\data\noa.sqlite3`, configurable `SQLITE_DATABASE_PATH`; parent dir created securely; never commit DB, WAL/SHM, backups, or attachments.
 - **Type rules:** IDs = `TEXT` UUIDv7; dates = ISO `YYYY-MM-DD` `TEXT`; timestamps = UTC ISO-8601 `TEXT`; JSON = validated JSON `TEXT`; booleans = `INTEGER` 0/1 with `CHECK`. Money = scaled `INTEGER` (×10,000, 4 decimals); FX rate = scaled `INTEGER` (×100,000,000). Central SQLAlchemy `TypeDecorator` exposes `Decimal` to services. Never `REAL`/float/JS-number for money; quantize + overflow-check before writes; totals within signed 64-bit range.
 - **Core tables:**
   - `accounts` — `id`, unique `code`, `name`, `account_type` (`ASSET|LIABILITY|EQUITY|INCOME|EXPENSE` CHECK), `normal_balance` (`DEBIT|CREDIT` CHECK), `currency`, self-FK `parent_id`, materialized `path` (e.g. `1000.1010`), `is_placeholder`, `is_active` (0/1), `version_id`. **No posting to placeholder accounts.**
@@ -135,10 +135,10 @@ You are a **world-class Iranian full-stack Windows app developer** — expert in
 - **Monorepo:** `/backend` (FastAPI/SQLAlchemy/Alembic), `/frontend` (React/TS/Vite/TanStack), `/scripts` (PowerShell + `.bat` setup/launch/migrate/backup/restore/health-check), `/.github/workflows`. **No** `/deploy` Dockerfiles, no `docker-compose.yml`, no `.devcontainer`.
 - **Hygiene:** `.gitattributes` (consistent EOL), `.gitignore` (`.env`, `*.sqlite*`, `*.db`, `*-wal`, `*-shm`, backups, keys, uploads, venvs, `node_modules`, build output). Keep `uv.lock` + `pnpm-lock.yaml` in sync with `pyproject.toml`/`package.json`; CI detects stale lockfiles (fail clearly or open a dependency-sync PR; no unreviewed bot rewrites of source).
 - **OpenAPI workflow:** `pnpm openapi-ts` script; CI boots FastAPI with temp SQLite, fetches `openapi.json`, generates `schema.d.ts`, runs `tsc --noEmit`, then builds. Documented GitHub Actions steps for generating Alembic migrations; review + tests required before schema changes touch user data.
-- **Dev env:** Python 3.12 + `uv`, Node.js 22 + `pnpm`, documented versions; `setup_windows.ps1` (venv, backend/frontend deps, app-data dirs, SQLite validation, Alembic). `start_vira.bat/.ps1`, `stop_vira.bat/.ps1` (backend + built SPA via FastAPI, or Vite in dev; clear logs, surfaced failures). Optional Task Scheduler for startup/login launch and backups. Default DB `%LOCALAPPDATA%\VIRA\data\vira.sqlite3`.
-- **Builds:** backend via `uv sync` into local venv (document Windows prerequisites for WeasyPrint/OCR/file-inspection; if a dep is Windows-incompatible, pick and document a native alternative — never a Linux container). Frontend: `pnpm install --frozen-lockfile`, generate API types, `pnpm lint`, `pnpm typecheck`, `pnpm build`. Serve compiled assets through FastAPI or a native static server; same origin preferred, document CORS/CSRF otherwise. Build `vira-updater.exe` and compile the Inno Setup installer (Phase 8) in CI; installed app runs self-contained (no separate Python/Node needed). Never build/publish Docker images.
+- **Dev env:** Python 3.12 + `uv`, Node.js 22 + `pnpm`, documented versions; `setup_windows.ps1` (venv, backend/frontend deps, app-data dirs, SQLite validation, Alembic). `start_noa.bat/.ps1`, `stop_noa.bat/.ps1` (backend + built SPA via FastAPI, or Vite in dev; clear logs, surfaced failures). Optional Task Scheduler for startup/login launch and backups. Default DB `%LOCALAPPDATA%\NOA\data\noa.sqlite3`.
+- **Builds:** backend via `uv sync` into local venv (document Windows prerequisites for WeasyPrint/OCR/file-inspection; if a dep is Windows-incompatible, pick and document a native alternative — never a Linux container). Frontend: `pnpm install --frozen-lockfile`, generate API types, `pnpm lint`, `pnpm typecheck`, `pnpm build`. Serve compiled assets through FastAPI or a native static server; same origin preferred, document CORS/CSRF otherwise. Build `noa-updater.exe` and compile the Inno Setup installer (Phase 8) in CI; installed app runs self-contained (no separate Python/Node needed). Never build/publish Docker images.
 - **CI (GitHub-hosted Windows or Ubuntu, no service containers):** ruff, mypy, bandit, pip-audit → prettier, eslint, `tsc --noEmit`, npm audit → fresh temp SQLite + `alembic upgrade head` + pytest + Hypothesis → React production build + Playwright against native processes → upload reports/artifacts (never container images). Dependabot for `pip/uv`, `npm/pnpm`, `github-actions` only.
-- **Secrets & release:** secrets in Windows Credential Manager / restricted env config (GH Actions secrets only for CI or a deliberate deploy workflow; never committed). Release workflow (tag-triggered on annotated `vX.Y.Z` tags, immutable SemVer): tests → frontend/backend builds → Inno Setup installer (`iscc`) → delta packages vs last 3 tags → upload setup as GitHub Actions artifact **and** Release assets (`VIRA-Setup-vX.Y.Z.exe`, delta zips, `latest.json`, `SHA256SUMS`, Persian notes) → versioned GitHub Release; deployment to the Windows machine is a reviewed explicit step (release artifact or secured self-hosted runner). **No automatic unreviewed production migrations:** backup → migrate → health + accounting-invariant checks → mark success; on failure stop service and follow tested restore procedure. Self-hosted runners: restricted permissions, protected environments, never run untrusted PR code.
+- **Secrets & release:** secrets in Windows Credential Manager / restricted env config (GH Actions secrets only for CI or a deliberate deploy workflow; never committed). Release workflow (tag-triggered on annotated `vX.Y.Z` tags, immutable SemVer): tests → frontend/backend builds → Inno Setup installer (`iscc`) → delta packages vs last 3 tags → upload setup as GitHub Actions artifact **and** Release assets (`NOA-Setup-vX.Y.Z.exe`, delta zips, `latest.json`, `SHA256SUMS`, Persian notes) → versioned GitHub Release; deployment to the Windows machine is a reviewed explicit step (release artifact or secured self-hosted runner). **No automatic unreviewed production migrations:** backup → migrate → health + accounting-invariant checks → mark success; on failure stop service and follow tested restore procedure. Self-hosted runners: restricted permissions, protected environments, never run untrusted PR code.
 - **Migration lifecycle:** `sqlite3.Connection.backup()` snapshot outside DB dir + `integrity_check` before every production migration; single migration process guarded by local lock file/named mutex; afterwards `foreign_key_check`, expected Alembic revision, debit/credit invariant check before traffic; account for table rebuilds; tested downgrade/restore path.
 - **Backups & ops UI:** Task Scheduler daily online backup + receipt-storage copy, encrypted (`age`/`Restic`), optional external/S3 upload. Sudo-protected **System & Operations** area in React: app version/git commit, Alembic revision, last backup status/time/size, one-click encrypted snapshot download, restore-verification (temp restore + integrity + FK + Σ debits = Σ credits), and the Persian «بررسی به‌روزرسانی» (Check for updates) action + current/latest version status driven by Phase 8.
 - **Health & logging:** `/api/v1/health/live` and `/api/v1/health/ready` (DB connectivity, Alembic revision, writable receipt storage, scheduler status). Log rotation + crash recovery for native processes; no secrets/PII in logs; loopback default with documented Firewall/Tailscale for private remote access.
@@ -146,7 +146,7 @@ You are a **world-class Iranian full-stack Windows app developer** — expert in
 ### Phase 7 — Enhancements & Localization
 
 1. **SQLite-native search:** no external search engine. FTS5 when compiled in, tested `LIKE` fallback; unified search over `journal_entries.payee/description/entry_number`, `transaction_splits.memo`, `accounts.code/name`; numeric tokens parsed with `Decimal` and compared to scaled integers via shared money utilities (never float); RapidFuzz over bounded candidates. Powers the filter bar and `Ctrl+K` palette.
-2. **Upload pipeline (FastAPI `UploadFile` + `python-multipart`):** drag-and-drop receipts (`.pdf .png .jpg .webp`) and statements (`.csv .xlsx .ofx .qfx .mt940`); magic-byte MIME checks, size caps (10/25 MB), EXIF stripping (Pillow), SHA-256 content-addressed dedup; pluggable `StorageBackend` protocol via `STORAGE_PROVIDER=local|s3` (`pydantic-settings`): `local` → `%LOCALAPPDATA%\VIRA\receipt_storage` partitioned `ab/cd/<sha256>.ext` outside the repo with restrictive ACLs; `s3` → any S3-compatible (MinIO/R2/B2/AWS) via `boto3`, SSE + authenticated streaming/presigned delivery to `<ReceiptViewer />`.
+2. **Upload pipeline (FastAPI `UploadFile` + `python-multipart`):** drag-and-drop receipts (`.pdf .png .jpg .webp`) and statements (`.csv .xlsx .ofx .qfx .mt940`); magic-byte MIME checks, size caps (10/25 MB), EXIF stripping (Pillow), SHA-256 content-addressed dedup; pluggable `StorageBackend` protocol via `STORAGE_PROVIDER=local|s3` (`pydantic-settings`): `local` → `%LOCALAPPDATA%\NOA\receipt_storage` partitioned `ab/cd/<sha256>.ext` outside the repo with restrictive ACLs; `s3` → any S3-compatible (MinIO/R2/B2/AWS) via `boto3`, SSE + authenticated streaming/presigned delivery to `<ReceiptViewer />`.
 3. **Persian-only UI, RTL, Jalali:**
    - Strictly Persian-only `fa-IR` with `react-i18next` namespace-split JSON (`/locales/fa/{common,ledger,reports,validation}.json`). **No English translations, no language switcher, no multilingual infrastructure.**
    - `<html lang="fa" dir="rtl">` permanently; Tailwind logical utilities (`ms-* me-* ps-* pe-* border-s text-start text-end`) everywhere — components, sidebars, tables, forms, dialogs, dashboards, reconciliation panes — natural Persian reading order with no per-component RTL patches. All UI text in professional Persian accounting terminology.
@@ -162,20 +162,20 @@ You are a **world-class Iranian full-stack Windows app developer** — expert in
 ### Phase 8 — Installer, Versioned Releases & In-App Delta Updates
 *(User amendment 2026-10-14; completes the "8 phases" the source intro promised.)*
 
-- **Inno Setup 6 installer** (`VIRA-Setup-vX.Y.Z.exe`, built with `iscc` in CI): wizard **must** show an explicit «مسیر نصب» / "select where to install" step (`DisableDirPage=no`, default `{autopf}\VIRA`, chosen dir recorded in registry `HKLM/HKCU\SOFTWARE\VIRA\InstallDir`); bundles FastAPI backend (PyInstaller one-folder or embedded CPython) + built SPA + scripts + `vira-updater.exe` + `version.json` + `install_manifest.json` (per-file SHA-256 baseline); standard tasks (shortcuts, launch-at-login, Task Scheduler backup job); uninstaller never deletes `%LOCALAPPDATA%\VIRA` user data (opt-in data wipe only). Published **both** as a GitHub Actions artifact and as a GitHub Release asset.
+- **Inno Setup 6 installer** (`NOA-Setup-vX.Y.Z.exe`, built with `iscc` in CI): wizard **must** show an explicit «مسیر نصب» / "select where to install" step (`DisableDirPage=no`, default `{autopf}\NOA`, chosen dir recorded in registry `HKLM/HKCU\SOFTWARE\NOA\InstallDir`); bundles FastAPI backend (PyInstaller one-folder or embedded CPython) + built SPA + scripts + `noa-updater.exe` + `version.json` + `install_manifest.json` (per-file SHA-256 baseline); standard tasks (shortcuts, launch-at-login, Task Scheduler backup job); uninstaller never deletes `%LOCALAPPDATA%\NOA` user data (opt-in data wipe only). Published **both** as a GitHub Actions artifact and as a GitHub Release asset.
 - **Versioning & tags:** strict SemVer `MAJOR.MINOR.PATCH` from a single source of truth stamped into `version.json`/installer/OpenAPI/UI; **every version gets an annotated git tag `vX.Y.Z` (immutable — never moved/reused)** → tag-triggered release workflow (tests → build → installer → deltas vs last K=3 tags → publish). Release = setup + delta zips + `latest.json` + `SHA256SUMS` + Persian `notes_fa`; maintain `CHANGELOG.md`.
 - **Update channel `latest.json`:** `{schema_version, version, pub_date, min_app_version, notes_fa/en, full_installer{url,sha256,size}, deltas[{from_version,url,sha256,size}], files_manifest_sha256}`; client reads GitHub `GET /repos/<owner>/<repo>/releases/latest` + asset; ETag caching, graceful 403/429 handling, optional `APP_UPDATE_URL` mirror; no GitHub tokens in the app.
 - **In-app UX:** Persian-only «بررسی به‌روزرسانی» button in sudo-protected System & Operations (`owner`, step-up auth) + non-blocking startup badge (never auto-install); dialog conveying exactly *"A new update available, do you want to download and install?"* — «به‌روزرسانی جدیدی در دسترس است (نسخهٔ X.Y.Z). آیا می‌خواهید دانلود و نصب شود؟» with «دانلود و نصب»/«بعداً»/«مشاهدهٔ جزئیات»; download progress + verification + restart-to-finish; Persian failure message («خطا در به‌روزرسانی. نسخهٔ قبلی بازگردانی شد.»); strings in `/locales/fa/`.
-- **Delta engine (no full re-download):** per-file SHA-256 manifests; per-base delta zips for last 3 releases (`VIRA-vX.Y.Z-delta-from-vA.B.C.zip`) = `update.json` + `files/` (small changed files) + `patches/` (bsdiff for binaries >256 KB) + `delete.json` + member hashes; matching delta → download only it (assert bytes ≈ delta size); too old → full-installer fallback (`/SILENT` into recorded `InstallDir`); chained hops verified per hop. Alternatives (zsync/MSIX) allowed only if Windows-native, non-container, no-full-download, no-data-loss; manifest+bsdiff is the reference design.
-- **`vira-updater.exe` transactional helper:** main app stages verified package in `%LOCALAPPDATA%\VIRA\updates\<version>\`, stops FastAPI/scheduler, spawns helper (named mutex + lock file; UAC only if `{app}` needs it). Apply = snapshot changed files to `{app}\rollback\prev\` → copy/bspatch/delete → rewrite `install_manifest.json`+`version.json` → relaunch; **any failure** → restore snapshot + manifests + relaunch previous version + Persian error/log path; keep rollback until healthy (`/api/v1/health/ready` + invariants). Post-update: standard migration lifecycle (online backup → `alembic upgrade head` → `integrity_check`/`foreign_key_check` → Σ debits = Σ credits).
-- **No data loss (non-negotiable):** SQLite DB/WAL/SHM, receipts, keys, config, logs, backups live in `%LOCALAPPDATA%\VIRA\` (outside `{app}`); pre-update online backup `backups/pre-update-<version>.sqlite3`; tested restore path; a failed update always returns a working previous version with all data intact.
+- **Delta engine (no full re-download):** per-file SHA-256 manifests; per-base delta zips for last 3 releases (`NOA-vX.Y.Z-delta-from-vA.B.C.zip`) = `update.json` + `files/` (small changed files) + `patches/` (bsdiff for binaries >256 KB) + `delete.json` + member hashes; matching delta → download only it (assert bytes ≈ delta size); too old → full-installer fallback (`/SILENT` into recorded `InstallDir`); chained hops verified per hop. Alternatives (zsync/MSIX) allowed only if Windows-native, non-container, no-full-download, no-data-loss; manifest+bsdiff is the reference design.
+- **`noa-updater.exe` transactional helper:** main app stages verified package in `%LOCALAPPDATA%\NOA\updates\<version>\`, stops FastAPI/scheduler, spawns helper (named mutex + lock file; UAC only if `{app}` needs it). Apply = snapshot changed files to `{app}\rollback\prev\` → copy/bspatch/delete → rewrite `install_manifest.json`+`version.json` → relaunch; **any failure** → restore snapshot + manifests + relaunch previous version + Persian error/log path; keep rollback until healthy (`/api/v1/health/ready` + invariants). Post-update: standard migration lifecycle (online backup → `alembic upgrade head` → `integrity_check`/`foreign_key_check` → Σ debits = Σ credits).
+- **No data loss (non-negotiable):** SQLite DB/WAL/SHM, receipts, keys, config, logs, backups live in `%LOCALAPPDATA%\NOA\` (outside `{app}`); pre-update online backup `backups/pre-update-<version>.sqlite3`; tested restore path; a failed update always returns a working previous version with all data intact.
 - **Update security:** TLS + SHA-256 verification of every package **before** staging/writing; recommended Ed25519/minisign signature over `latest.json` with baked-in public key; refuse unknown `schema_version`; rate-limit-aware GitHub API; never execute unverified package content.
 - **CI verification:** Windows job runs `/VERYSILENT /DIR=<temp>` smoke install, real delta upgrade from previous version (bytes ≈ delta size), DB-checksum data preservation, forced-failure rollback; installer is uploaded as workflow artifact + Release asset ("downloadable from GitHub artifacts").
 - **Acceptance:** setup downloadable from GitHub with visible "select where to install" step; every release tagged `vX.Y.Z`; in-app check fetches from GitHub, announces the required message, installs only changed parts; zero data loss always.
 
 ## 5. Known Gaps in the Source Document
 
-1. The source intro promised **8 phases** while the original file defined only 1–7. **Resolved 2026-10-14:** the user supplied the missing **Phase 8** (Inno Setup installer, release tags, in-app delta updates) and it is compiled in §4 above (also written into `VIRA_SQLite_No_Docker.md`).
+1. The source intro promised **8 phases** while the original file defined only 1–7. **Resolved 2026-10-14:** the user supplied the missing **Phase 8** (Inno Setup installer, release tags, in-app delta updates) and it is compiled in §4 above (also written into `NOA_SQLite_No_Docker.md`).
 2. Phase 7 still jumps from **§3 to §5** (§4 is missing in the source document). Ask the user for Phase 7 §4 content if the gap matters; carry over any supplied requirement then.
 
 ---
@@ -193,7 +193,7 @@ You are a **world-class Iranian full-stack Windows app developer** — expert in
 | Jobs/FX | APScheduler or Huey; httpx + tenacity; Frankfurter.app FX; GoCardless/Plaid/SimpleFIN (optional bank feeds) |
 | Auth/Security | pwdlib (Argon2id), Authlib / FastAPI-Users, pyotp + qrcode, cryptography (Fernet/AES-GCM MultiFernet), structlog, slowapi, pydantic-settings |
 | Testing | pytest, pytest-asyncio, httpx.AsyncClient, Hypothesis, Vitest, React Testing Library, Playwright, Bandit, pip-audit, npm audit, ruff, mypy, prettier, eslint |
-| Ops (no Docker) | Windows-native processes/scripts (`start_vira.bat/.ps1`, `stop_vira.bat/.ps1`, `setup_windows.ps1`), Windows Task Scheduler, optional service wrapper + Tailscale, `sqlite3.Connection.backup()`, age/Restic encryption, GitHub Actions (Windows/Ubuntu runners, no service containers), Dependabot (pip/uv, npm/pnpm, github-actions), uv + pnpm lockfiles, **Inno Setup 6 installer** (user-selectable install dir) + **`vira-updater.exe`** delta updater (manifest + bsdiff), SemVer git tags `vX.Y.Z` → GitHub Releases (`latest.json` channel) |
+| Ops (no Docker) | Windows-native processes/scripts (`start_noa.bat/.ps1`, `stop_noa.bat/.ps1`, `setup_windows.ps1`), Windows Task Scheduler, optional service wrapper + Tailscale, `sqlite3.Connection.backup()`, age/Restic encryption, GitHub Actions (Windows/Ubuntu runners, no service containers), Dependabot (pip/uv, npm/pnpm, github-actions), uv + pnpm lockfiles, **Inno Setup 6 installer** (user-selectable install dir) + **`noa-updater.exe`** delta updater (manifest + bsdiff), SemVer git tags `vX.Y.Z` → GitHub Releases (`latest.json` channel) |
 
 ---
 
@@ -294,7 +294,7 @@ Source: `قیمت نهایی.xlsx`, single `Sheet1`, cells A1:F35. This is the b
 
 ---
 
-*Compiled from `VIRA_SQLite_No_Docker.md` and `قیمت نهایی.xlsx` (Sheet1, A1:F35), plus user amendments. **Status:** Phase 8 complete 2026-10-14 — Installer, Versioned Releases & In-App Delta Updates: Inno Setup 6 installer with the mandatory «مسیر نصب» directory-selection step (InstallDir recorded in the registry), strict vX.Y.Z annotated tags + CHANGELOG.md, schema-versioned latest.json (unknown versions refused) with full_installer + K=3 deltas, ETag-cached GitHub update checks with APP_UPDATE_URL override and Ed25519 signatures, delta engine (per-file SHA-256 manifests, manifest diffing, update.json + files/ + BSDIFF40 patches/ + delete.json, delta → chain → full-installer selection — never a full re-download when a delta applies), transactional vira-updater.exe (mutex, snapshot, verified apply, rollback with «خطا در به‌روزرسانی. نسخهٔ قبلی بازگردانی شد.»), mandated update dialog «به‌روزرسانی جدید موجود است» / «به‌روزرسانی جدیدی در دسترس است (نسخهٔ X.Y.Z). آیا می‌خواهید دانلود و نصب شود؟» + startup badge, zero data loss (pre-update backup + rollback until health checks), CI artifact + Release asset distribution with Windows install/upgrade/rollback smoke tests. 186 pytest + 70 Vitest green, ruff + mypy clean, tsc + eslint clean, build green, Bandit 0 medium+, pip-audit clean. **The 8-phase plan is fully delivered.***
+*Compiled from `NOA_SQLite_No_Docker.md` and `قیمت نهایی.xlsx` (Sheet1, A1:F35), plus user amendments. **Status:** Phase 8 complete 2026-10-14 — Installer, Versioned Releases & In-App Delta Updates: Inno Setup 6 installer with the mandatory «مسیر نصب» directory-selection step (InstallDir recorded in the registry), strict vX.Y.Z annotated tags + CHANGELOG.md, schema-versioned latest.json (unknown versions refused) with full_installer + K=3 deltas, ETag-cached GitHub update checks with APP_UPDATE_URL override and Ed25519 signatures, delta engine (per-file SHA-256 manifests, manifest diffing, update.json + files/ + BSDIFF40 patches/ + delete.json, delta → chain → full-installer selection — never a full re-download when a delta applies), transactional noa-updater.exe (mutex, snapshot, verified apply, rollback with «خطا در به‌روزرسانی. نسخهٔ قبلی بازگردانی شد.»), mandated update dialog «به‌روزرسانی جدید موجود است» / «به‌روزرسانی جدیدی در دسترس است (نسخهٔ X.Y.Z). آیا می‌خواهید دانلود و نصب شود؟» + startup badge, zero data loss (pre-update backup + rollback until health checks), CI artifact + Release asset distribution with Windows install/upgrade/rollback smoke tests. 186 pytest + 70 Vitest green, ruff + mypy clean, tsc + eslint clean, build green, Bandit 0 medium+, pip-audit clean. **The 8-phase plan is fully delivered.***
 
 ## User-requested follow-up — repair subphase 4-B (2026-10-16; in progress)
 
@@ -479,10 +479,10 @@ complete/permissioned recipe sidecar is an explicit prerequisite, not an SDK cla
 
 Still **BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW**. Prepared choices
 are not legal sign-off. Six mandatory gates remain: component legal review;
-compiler/static-CRT terms; VIRA build-script rights/completeness; real recipient
+compiler/static-CRT terms; NOA build-script rights/completeness; real recipient
 source delivery; compatible LGPL replacement/EULA proof; production bootstrap,
 native delta/rollback and deferred installed-user acceptance. MIT or any other
-license was NOT applied to VIRA-owned code without the owner's decision. No normal
+license was NOT applied to NOA-owned code without the owner's decision. No normal
 runtime integration, version/tag/release, user-data/pricing change or human
 acceptance is inferred from this checkpoint.
 
@@ -494,7 +494,7 @@ settings**, not the accounting app. This permission is now applied via
 [the full MIT license and scope guide](LICENSES/README.md),
 [exact file/version scope](docs/dependencies/pdf-build-script-license-scope.json),
 and [machine-checked status](docs/dependencies/pdf-build-script-license-check.json).
-Nine explicit VIRA-authored build/configuration/instruction/checker files are
+Nine explicit NOA-authored build/configuration/instruction/checker files are
 covered; no wildcard, root LICENSE or automatic license for unlisted application,
 staging, backend/frontend/installer or third-party sources. Seven historical
 archive members match the granted reference versions. The original source ZIP
@@ -643,7 +643,7 @@ NOT a new corresponding-source archive or the ordinary distribution candidate.
 Current automated evidence: 536 backend tests, 84 focused checks and Ruff/Mypy/
 Bandit pass. Actual native build **39146630126 / 576c0ea** and final audit PASSED:
 20 source trees, 21 DLL origins/owners/closure and the executed modified version
-`1.58.0-vira-local-source`, with external source inputs unchanged. All seven raw
+`1.58.0-noa-local-source`, with external source inputs unchanged. All seven raw
 annotation chunks are recovered and hash-pinned in the
 [proof](docs/dependencies/pdf-local-source-replay-proof.json). The Windows nested
 symlink issue and real gettext make failure are retained; ZIP mtime preservation
@@ -661,10 +661,10 @@ no exact-envelope/bitwise or durable-public-delivery claim.
 ### Private application consumption of locally source-built PDF engine — 2026-10-18
 
 Authorized follow-up completed: fresh native build **39153212109 / 284e827** then
-real app rendering from relocated production **CPython 3.11.17**, in `VIRA چاپ بومی`.
+real app rendering from relocated production **CPython 3.11.17**, in `NOA چاپ بومی`.
 All 20 preferred-source trees/21 DLL hashes, owners and origins audited; all 21
 candidate DLLs actually loaded from the relocated private closure. The SAME render
-process executed `pango_version_string()` = `1.58.0-vira-local-source`. Real single/
+process executed `pango_version_string()` = `1.58.0-noa-local-source`. Real single/
 four-page A4 PDFs embed/use Vazirmatn 400/700 with Latin/Persian/Arabic digits; hashes
 match the previous synthetic fixtures. Production manifest unchanged; dev PDF/PE
 inspectors absent from production; isolation and ctypes callbacks pass.
@@ -728,7 +728,7 @@ separate from the artifact bytes. Compile those extracted sources, WITHOUT any
 post-extraction edit or binary cache, BEFORE installing application dependencies.
 All 20 real buildtrees and noticed Pango bytes match the archive inputs; 21 DLL
 origins/closure/hashes match the candidate and real PDF process. Production CPython
-3.11.17, isolated Persian/spaced payload, Pango 1.58.0-vira-local-source, one/four
+3.11.17, isolated Persian/spaced payload, Pango 1.58.0-noa-local-source, one/four
 A4 pages, embedded/used Vazirmatn 400/700/all 30 digit glyphs pass. Reverify the exact
 source envelope AFTER compilation/rendering. No bitwise/offline claim.
 
@@ -806,7 +806,7 @@ rerun API 403 are preserved; first setup stderr still unknown. No assertion/pin
 weakening, silent failure relabel, advisory ignore, test skip or actual rerun was
 used. Git push of the real regression checkpoint triggered a separate valid run.
 
-Normal start_vira.cmd/staging/HTTP startup/Inno/updater/data/math/version/tags/
+Normal start_noa.cmd/staging/HTTP startup/Inno/updater/data/math/version/tags/
 releases unchanged. CI/private TEMP only; not a signing/security boundary against
 someone controlling both harness and entry. Normal HTTP startup, source21 pairing,
 minimum OS/signing/notices, native delta/rollback and deferred installed acceptance
@@ -849,7 +849,7 @@ only explicit14 native-build files; no new launcher/QA/application license grant
 from20 preferred source trees (binary caches disabled) → independent21-DLL audit
 → private no-site launcher → real factory/lifespan/Uvicorn TCP/auth/CSRF/SQLite
 → eight inspected1/4-A4 HTTP route PDFs and fresh-process restart with same DB/IDs.
-Executed modified Pango `1.58.0-vira-local-source`; all21 actual loaded origins
+Executed modified Pango `1.58.0-noa-local-source`; all21 actual loaded origins
 and hashes bound to this run's native audit. Prior SDK27/1.58.2 and old source
 proofs unchanged; SDK preflight is separate, never compilation provenance.
 Vazirmatn400/700,30 Regular/ten Persian Bold digits, ACP65001, SHA-matched TTFs,
@@ -899,7 +899,7 @@ normal font selection remains legacy, no expanded application/QA license grant.
 
 SDK 39243690293 SUCCESS:27 DLL/Pango1.58.2. Separate fresh-source 39243690330
 SUCCESS: authenticated noticed archive/cold20-tree21-DLL build, executed modified
-Pango1.58.0-vira-local-source, legacy QA regression THEN distinct app-owned HTTP.
+Pango1.58.0-noa-local-source, legacy QA regression THEN distinct app-owned HTTP.
 Each owned lane has2 fresh PIDs/same SQLite+IDs,8 actual1/4-A4 route PDFs, normal
 factory/lifespan/TCP/login/CSRF/compiled SPA/OpenAPI and graceful shutdown.16 actual
 owned PDFs total, never include regression PDFs or relabel historical witnesses.
@@ -999,7 +999,7 @@ configuration factory callback. CPython libffi-8.dll is distinct, no rename/alia
 source-FFI callback provenance claim. Read-only verifier APIs/default remain intact.
 
 39388243191/88180ea SUCCESS: separate actual SDK preflight then cold source20-tree
-build/cache disabled,21-DLL audit, executed Pango1.58.0-vira-local-source; legacy and
+build/cache disabled,21-DLL audit, executed Pango1.58.0-noa-local-source; legacy and
 owned-font regressions followed by distinct app-owned SOURCE BOOTSTRAP mode and
 post-activation noticed-envelope reverify. PIDs6792/8708,same SQLite/IDs,8 NEW actual
 1/4A4 PDFs,Vazirmatn400/700,30/10 digits,two TTF hashes,zero system fonts,all font/cache/
@@ -1035,7 +1035,7 @@ Real cold source/bootstrap39388243191 remains successful, not relabelled/rebuilt
 
 ### Remaining readiness PHASE 2 OF 6 — 2026-10-20, real CMD private SOURCE integration COMPLETE
 
-The real scripts/start_vira.cmd now has an explicit PRIVATE source candidate mode;
+The real scripts/start_noa.cmd now has an explicit PRIVATE source candidate mode;
 its ordinary default body is unchanged (Phase1 normalized SHA256
  a385c16ae8eaf49a61b06f8016fc1b22deaa000bcb3bc01554b9ad8eb0229cf4).
 App-owned desktop_entry owns audit/guards/activation, real migration+idempotent seed,
@@ -1104,12 +1104,12 @@ Next checkpoint-only tip CI is observed separately; no new native/source claim.
 ### Remaining readiness PHASE 3 OF 6 — 2026-10-21, ACTIVE / NOT COMPLETE
 
 Owner continuation authorizes private native Inno/incremental-update/rollback work,
-NOT public activation or release. Existing vira.iss now has an explicitly defined
+NOT public activation or release. Existing noa.iss now has an explicitly defined
 PrivateSourceCI preset with distinct AppId/registry, selected empty directory,
 isolated runner profile, external three-digest anchor and data-preserving uninstall.
 App-owned private_installed_source bridge delegates fresh requests to unchanged
-REAL start_vira.cmd and unchanged app-owned bootstrap/lifecycle. Existing real
-vira_updater.ps1 has an explicit private context branch: anchored OLD runtime byte
+REAL start_noa.cmd and unchanged app-owned bootstrap/lifecycle. Existing real
+noa_updater.ps1 has an explicit private context branch: anchored OLD runtime byte
 verification, shared mutex and external runtime/controller clone before replacement.
 Public default branches/allowlist remain unchanged. New stdlib private controller
 assembles/verifies exact changed-file delta, bounded BSDIFF, backups/journal/DB,
@@ -1323,7 +1323,7 @@ CI39612185530 ALL5 SUCCESS. Source cold39610014494 STILL compiling; new source
 synthetic/opaque Inno + general compiled-helper smoke, NOT Source21 transaction.
 
 Additional private dispatch fix: Windows cannot replace a running installed EXE.
-Instead of launching {app}/vira-updater.exe IN PLACE, verify OLD installed helper,
+Instead of launching {app}/noa-updater.exe IN PLACE, verify OLD installed helper,
 copy/fsync it to a fresh disjoint runner TEMP directory and recheck size/SHA
 against the same anchored OLD manifest. Execute ONLY that identical OLD clone,
 with explicit anchored InstallDir. NEVER select the downloaded target helper.
@@ -1592,7 +1592,7 @@ release هنوز انجام نشده و MIT محدود به۱۴فایل و مم�
 
 
 دو فاز تحویل — وضعیت احرازشده: NativeB واقعی در40190780548/ecf6865 موفق است
-(۲۱DLL/۲۰source، Pango1.58.0-vira-local-source و .text متفاوت). لاگ failure
+(۲۱DLL/۲۰source، Pango1.58.0-noa-local-source و .text متفاوت). لاگ failure
 تراکنش با40218916819 بدون rebuild بازیابی شد: wait_terminal بعد۲۴۰ثانیه نتیجهٔ
 تازهٔ verified نگرفته است؛ علت زیرینِ timeout هنوز اثبات نشده. معیار بعدی رفع
 تراکنش واقعی و recovery است، نه افزودن شمارش تست یا افزایش کورکورانهٔ مهلت.

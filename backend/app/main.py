@@ -1,4 +1,4 @@
-"""FastAPI application factory — VIRA accounting backend.
+"""FastAPI application factory — NOA accounting backend.
 
 Binds to 127.0.0.1 by default (LAN only via explicit setting).  Serves the
 JSON REST API under ``/api/v1`` with OpenAPI/Swagger documentation; the built
@@ -61,7 +61,7 @@ log = logging.getLogger(__name__)
 def spa_static_dir(module_file: Path | None = None) -> Path | None:
     """Locate the built SPA. Works in the dev checkout AND the installed payload.
 
-    * ``VIRA_STATIC_DIR`` env — explicit override
+    * ``NOA_STATIC_DIR`` env — explicit override
     * ``<install>/static`` — installed payload (``{app}/app/main.py`` → ``{app}/static``)
     * ``<repo>/frontend/dist`` — dev checkout (``<repo>/backend/app/main.py``)
     """
@@ -69,7 +69,7 @@ def spa_static_dir(module_file: Path | None = None) -> Path | None:
 
     here = (module_file or Path(__file__)).resolve()
     candidates = [
-        Path(os.environ["VIRA_STATIC_DIR"]) if os.environ.get("VIRA_STATIC_DIR") else None,
+        Path(os.environ["NOA_STATIC_DIR"]) if os.environ.get("NOA_STATIC_DIR") else None,
         here.parents[1] / "static",  # installed: {app}/static
         here.parents[2] / "frontend" / "dist",  # dev: <repo>/frontend/dist
     ]
@@ -199,7 +199,7 @@ def create_app(
 
                 response = JSONResponse(
                     {
-                        "type": "urn:vira:error:update_in_progress",
+                        "type": "urn:noa:error:update_in_progress",
                         "title": "Update in progress",
                         "status": 503,
                         "detail": "به‌روزرسانی در حال بررسی است؛ ثبت اطلاعات تا پایان آن متوقف است.",
@@ -268,7 +268,7 @@ class _ImmutableAssets(StaticFiles):
 def _spa_headers(spa_build: str) -> dict[str, str]:
     headers = {"cache-control": "no-store, must-revalidate", "pragma": "no-cache"}
     if spa_build:
-        headers["x-vira-spa-build"] = spa_build
+        headers["x-noa-spa-build"] = spa_build
     return headers
 
 

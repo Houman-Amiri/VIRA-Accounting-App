@@ -1,10 +1,10 @@
 <#
 .SYNOPSIS
-  Package V.I.R.A release assets (Phase 6 §6; extended by Phase 8).
+  Package NOA release assets (Phase 6 §6; extended by Phase 8).
 
 .DESCRIPTION
   Produces, into -OutDir:
-    * vira-<version>-portable.zip  — backend source + built SPA + scripts + lockfiles
+    * noa-<version>-portable.zip  — backend source + built SPA + scripts + lockfiles
     * latest.json                  — version manifest for the in-app update check
     * SHA256SUMS.txt               — checksums of every asset
     * release-notes-fa.md          — Persian release notes (GitHub Release body)
@@ -24,7 +24,7 @@ $OutDirPath = Join-Path $root $OutDir
 New-Item -ItemType Directory -Force -Path $OutDirPath | Out-Null
 
 # ---------------------------------------------------------------- staging ---
-$stage = Join-Path ([System.IO.Path]::GetTempPath()) ("vira-stage-" + [guid]::NewGuid().ToString("N"))
+$stage = Join-Path ([System.IO.Path]::GetTempPath()) ("noa-stage-" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Force -Path $stage | Out-Null
 try {
     foreach ($dir in @("backend", "scripts")) {
@@ -44,7 +44,7 @@ try {
         Where-Object { $_.Name -in @("__pycache__", ".pytest_cache", ".ruff_cache", ".mypy_cache", "node_modules") } |
         Remove-Item -Recurse -Force
 
-    $zipName = "vira-$Version-portable.zip"
+    $zipName = "noa-$Version-portable.zip"
     $zipPath = Join-Path $OutDirPath $zipName
     if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
     Compress-Archive -Path (Join-Path $stage "*") -DestinationPath $zipPath
@@ -67,7 +67,7 @@ $v = $Version.TrimStart("v")
 # Phase 8 §3 — schema_version 1 (unknown versions are refused by the app).
 # full_installer points at the Inno setup when present, else the portable zip;
 # build_deltas.ps1 appends the deltas[] array afterwards.
-$setup = Get-ChildItem $OutDirPath -Filter "VIRA-Setup-*.exe" | Select-Object -First 1
+$setup = Get-ChildItem $OutDirPath -Filter "NOA-Setup-*.exe" | Select-Object -First 1
 if ($setup) {
     $fiUrl = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/v$v/$($setup.Name)"
     $fiHash = (Get-FileHash -Algorithm SHA256 $setup.FullName).Hash.ToLower()
@@ -82,8 +82,8 @@ $latest = [ordered]@{
     version = $v
     pub_date = $publishedAt
     min_app_version = "1.0.0"
-    notes_fa = "نسخه $v ویرا منتشر شد. برای جزئیات به صفحه انتشارات گیت‌هاب مراجعه کنید."
-    notes_en = "VIRA $v released. See the GitHub release page for details."
+    notes_fa = "نسخه $v نوا منتشر شد. برای جزئیات به صفحه انتشارات گیت‌هاب مراجعه کنید."
+    notes_en = "NOA $v released. See the GitHub release page for details."
     full_installer = [ordered]@{ url = $fiUrl; sha256 = $fiHash; size = $fiSize }
     deltas = @()
     files_manifest_sha256 = ""
@@ -119,5 +119,5 @@ if (Test-Path $reviewedNotes) {
     $notes | Set-Content -Encoding utf8 (Join-Path $OutDirPath "release-notes-fa.md")
 }
 
-Write-Host "[vira-release] assets in $OutDirPath"
+Write-Host "[noa-release] assets in $OutDirPath"
 Get-ChildItem $OutDirPath | Format-Table Name, Length

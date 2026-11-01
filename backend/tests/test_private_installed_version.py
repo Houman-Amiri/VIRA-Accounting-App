@@ -133,7 +133,7 @@ def test_v2_schema_rejects_ambiguous_versions(installed, version):
 def test_installed_request_binds_port_profile_policy_and_anchor_bytes(tmp_path, monkeypatch):
     profile = tmp_path / "private profile"
     monkeypatch.setenv("LOCALAPPDATA", str(profile))
-    pin = profile / "VIRA/private-native-installed/anchor.json"
+    pin = profile / "NOA/private-native-installed/anchor.json"
     value = dict(
         schema=2,
         role="PRIVATE_SOURCE_INSTALLED_ANCHOR",
@@ -189,12 +189,12 @@ def test_v2_cli_delta_assembles_and_reverifies_full_synthetic_source_payload(
     import sys
 
     root = installed.payload_root
-    (root / "vira-updater.exe").write_bytes(b"OPAQUE HELPER NEVER EXECUTED")
+    (root / "noa-updater.exe").write_bytes(b"OPAQUE HELPER NEVER EXECUTED")
     old_manifest = stamp(root, installed.state_root).manifest_sha256
     old = json.loads(installed.installed_anchor.read_bytes())
     old["manifest_sha256"] = old_manifest
     put(installed.installed_anchor, old)
-    target = tmp_path / "target VIRA فارسی ! &"
+    target = tmp_path / "target NOA فارسی ! &"
     shutil.copytree(root, target)
     put(target / "version.json", dict(version="99.30.1"))
     # Receipt bytes are application metadata, allowed ONLY in the private channel.

@@ -140,7 +140,7 @@ def validate_payload(root: Path, manifest_digest: str, inventory_digest: str, *,
         file = member(root, relative)
         if file.stat().st_size != entry["size"] or sha256(file) != entry["sha256"]:
             raise ValueError(f"Baseline file changed: {relative}")
-    required = REQUIRED | ({"scripts/pdf_private_http_probe.py", "app/main.py", "scripts/migrate_vira.py", "backend/alembic.ini"} if http_proof else set())
+    required = REQUIRED | ({"scripts/pdf_private_http_probe.py", "app/main.py", "scripts/migrate_noa.py", "backend/alembic.ini"} if http_proof else set())
     if app_owned:
         required.add("app/services/pdf_rendering.py")
     if source_audit_digest is not None:

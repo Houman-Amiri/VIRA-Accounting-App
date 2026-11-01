@@ -1,0 +1,122 @@
+@echo off
+REM =====================================================================
+REM  NOA — installed launcher (Phase 8 / fix v1.0.3)
+REM  Starts FastAPI (serving the built SPA) and opens the default browser
+REM  at http://127.0.0.1:<port>. Spec: "A Start menu/launcher shortcut runs
+REM  start_noa, which starts FastAPI and opens the app in the default
+REM  browser at http://127.0.0.1:<port>."
+REM
+REM  Works from an installed payload ({app}) AND a dev checkout:
+REM    1. {app}\python\python.exe   — bundled CPython (installed app)
+REM    2. .venv\Scripts\python.exe  — dev checkout
+REM    3. python / py -3 on PATH    — fallback
+REM =====================================================================
+setlocal EnableDelayedExpansion
+REM Explicit private source candidate goes through the REAL launcher, before
+REM ordinary data/profile/interpreter/browser side effects. No default opt-in.
+if /i "%~1"=="--private-source-candidate" goto :private_source_candidate
+cd /d "%~dp0"
+title NOA
+
+REM A normal shortcut must not start another writer during a transaction.
+set "NOA_UPDATE_LOCK=%LOCALAPPDATA%\NOA\updates\.update.lock"
+if defined DATA_DIR set "NOA_UPDATE_LOCK=%DATA_DIR%\updates\.update.lock"
+if exist "%NOA_UPDATE_LOCK%" if not defined NOA_UPDATE_RESTART (
+  echo [NOA] Update in progress. Wait for completion before starting the app.
+  exit /b 1
+)
+
+REM ------------------------------------------------- interpreter ----
+set "NOA_PY=%~dp0python\python.exe"
+if not exist "%NOA_PY%" if exist "%~dp0.venv\Scripts\python.exe" set "NOA_PY=%~dp0.venv\Scripts\python.exe"
+if not exist "%NOA_PY%" (
+  where python >nul 2>nul && set "NOA_PY=python"
+)
+if not exist "%NOA_PY%" (
+  where py >nul 2>nul && set "NOA_PY=py -3"
+)
+if not exist "%NOA_PY%" (
+  echo [NOA] Python 3.11+ was not found. Reinstall NOA or install Python.
+  pause
+  exit /b 1
+)
+
+REM ------------------------------------------------- runtime env ----
+if not defined SQLITE_DATABASE_PATH set "SQLITE_DATABASE_PATH=%LOCALAPPDATA%\NOA\data\noa.sqlite3"
+if not defined NOA_PORT set "NOA_PORT=8787"
+set "PYTHONPATH=%~dp0site-packages;%~dp0"
+if not exist "%LOCALAPPDATA%\NOA\data" mkdir "%LOCALAPPDATA%\NOA\data"
+if not exist "%LOCALAPPDATA%\NOA\logs" mkdir "%LOCALAPPDATA%\NOA\logs"
+for %%D in ("%SQLITE_DATABASE_PATH%") do if not exist "%%~dpD" mkdir "%%~dpD"
+
+REM session secret: generate once, persist beside the data (never in the DB)
+if not defined SESSION_SECRET (
+  if exist "%LOCALAPPDATA%\NOA\session.secret" (
+    set /p SESSION_SECRET=<"%LOCALAPPDATA%\NOA\session.secret"
+  ) else (
+    for /f "delims=" %%S in ('"%NOA_PY%" -c "import secrets;print(secrets.token_urlsafe(48))"') do set "SESSION_SECRET=%%S"
+    >"%LOCALAPPDATA%\NOA\session.secret" echo %SESSION_SECRET%
+  )
+)
+
+REM -------------------------------------- first run: owner account ----
+set "NOA_FIRST_RUN="
+if not exist "%SQLITE_DATABASE_PATH%" (
+  set "NOA_FIRST_RUN=1"
+  for /f "delims=" %%P in ('"%NOA_PY%" -c "import secrets;print(secrets.token_urlsafe(12))"') do set "NOA_ADMIN_PASSWORD=%%P"
+)
+
+REM --------------------- build stamp (System & Operations page) ----
+REM app root, so app/version.py finds version.json even when a system
+REM Python (not the bundled one) ends up running the backend
+set "NOA_APP_DIR=%~dp0"
+if exist "%~dp0version.json" (
+  if not defined NOA_VERSION for /f "delims=" %%V in ('"%NOA_PY%" -c "import json;print(json.load(open(r'%~dp0version.json',encoding='utf-8')).get('version',''))" 2^>nul') do set "NOA_VERSION=%%V"
+  if not defined NOA_GIT_COMMIT for /f "delims=" %%C in ('"%NOA_PY%" -c "import json;print(json.load(open(r'%~dp0version.json',encoding='utf-8')).get('commit','') or 'unknown')" 2^>nul') do set "NOA_GIT_COMMIT=%%C"
+)
+
+REM ------------------------- safe migrations + seed (idempotent) ----
+echo [NOA] Applying database migrations...
+"%NOA_PY%" "%~dp0scripts\migrate_noa.py" || goto :fail
+if defined NOA_FIRST_RUN (
+  echo [NOA] First run — seeding chart of accounts + owner user...
+  "%NOA_PY%" -m app.seed || goto :fail
+  >"%LOCALAPPDATA%\NOA\first-run-credentials.txt" (
+    echo NOA — initial login. Keep this file safe, then change the password.
+    echo.
+    echo username: owner
+    echo password: %NOA_ADMIN_PASSWORD%
+  )
+  echo.
+  echo ================================================================
+  echo   First run — your initial login:
+  echo       username: owner
+  echo       password: %NOA_ADMIN_PASSWORD%
+  echo   (also saved in %LOCALAPPDATA%\NOA\first-run-credentials.txt)
+  echo ================================================================
+  echo.
+)
+
+REM --------- browser opener (waits for health) + server in this console ----
+echo [NOA] Starting server on http://127.0.0.1:%NOA_PORT% (logs below — Ctrl+C or close to stop)
+start "" powershell -NoProfile -Command ^
+  "$u='http://127.0.0.1:%NOA_PORT%/';for($i=0;$i -lt 180;$i++){try{$r=Invoke-WebRequest -UseBasicParsing ($u+'api/v1/health/live') -TimeoutSec 2;if($r.StatusCode -eq 200){Start-Process $u;exit 0}}catch{};Start-Sleep -Milliseconds 500}"
+"%NOA_PY%" -m uvicorn app.main:app --host 127.0.0.1 --port %NOA_PORT%
+if errorlevel 1 goto :fail
+exit /b 0
+
+:fail
+echo.
+echo [NOA] Startup failed — see the messages above and %LOCALAPPDATA%\NOA\logs\.
+pause
+exit /b 1
+
+:private_source_candidate
+setlocal DisableDelayedExpansion
+if not "%GITHUB_ACTIONS%"=="true" exit /b 1
+if "%~2"=="" exit /b 1
+if not "%~3"=="" exit /b 1
+if not exist "%~dp0python\python.exe" exit /b 1
+set "NOA_LAUNCHER_ENTRY=START_NOA_CMD_PRIVATE_SOURCE"
+"%~dp0python\python.exe" -I -S -B -X utf8 "%~dp0app\desktop_entry.py" --private-source-candidate "%~2"
+exit /b %errorlevel%

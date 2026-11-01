@@ -50,7 +50,7 @@ def test_proforma_numbers_use_local_vazirmatn_without_changing_values():
         "total": "246.9134",
     }
     html = render_html(
-        "proforma.html", {"company": {"name": "VIRA", "tagline": "تست"}, "order": order}
+        "proforma.html", {"company": {"name": "NOA", "tagline": "تست"}, "order": order}
     )
     assert "JetBrains" not in html
     assert "font-family: Vazirmatn" in html

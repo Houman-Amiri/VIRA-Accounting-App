@@ -2,18 +2,21 @@
 
 Secrets come from environment variables (or Windows Credential Manager in
 production) — never from the repository or the database.  The SQLite file
-defaults to ``%LOCALAPPDATA%\\VIRA\\data\\vira.sqlite3`` on Windows and to the
+defaults to ``%LOCALAPPDATA%\\NOA\\data\\noa.sqlite3`` on Windows and to the
 platform data dir elsewhere (dev/CI), always configurable via
 ``SQLITE_DATABASE_PATH``.
 """
 
 from __future__ import annotations
 
+import logging
 import os
 from pathlib import Path
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+logger = logging.getLogger(__name__)
 
 
 def default_update_public_key() -> str:
@@ -30,12 +33,63 @@ def default_update_public_key() -> str:
     return ""
 
 
-def default_data_dir() -> Path:
+# The on-disk folder of every install made before the NOA rename. It is a
+# historical path, not a product name: reading it is what carries the owner's
+# existing ledger over instead of starting from an empty database.
+LEGACY_APP_DIR_NAME = "VIRA"
+APP_DIR_NAME = "NOA"
+# Byte-for-byte the file name the pre-rename installs used. It is a lookup key
+# for existing data, so it must keep the old spelling even after the rebrand.
+LEGACY_DATABASE_FILENAME = "vira.sqlite3"  # noqa: S105 - a file name, not a secret
+
+
+def app_data_root() -> Path:
     if os.name == "nt":  # pragma: no cover - windows only
         base = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
-        return base / "VIRA"
-    base = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share"))
-    return base / "VIRA"
+        return base
+    return Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share"))
+
+
+def default_data_dir() -> Path:
+    return app_data_root() / APP_DIR_NAME
+
+
+def migrate_legacy_data_dir(target: Path) -> Path | None:
+    """Copy the pre-rename data folder into the NOA folder, once.
+
+    The old folder and its database are never modified or deleted: the copy is
+    the one the app then uses, so a failed or half-finished migration can only
+    leave the original untouched. The database file is copied under its new
+    name because the rename changed it from ``vira.sqlite3`` to ``noa.sqlite3``.
+    """
+    legacy = target.parent / LEGACY_APP_DIR_NAME
+    if target == legacy or not legacy.is_dir():
+        return None
+    if target.is_dir() and any(target.iterdir()):
+        return None  # already migrated or genuinely in use — never overwrite
+    import shutil
+    import tempfile
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    staging = Path(tempfile.mkdtemp(prefix="noa-migrate-", dir=target.parent))
+    try:
+        shutil.copytree(legacy, staging / "data-copy")
+        source = staging / "data-copy"
+        database = source / "data"
+        old_db = database / LEGACY_DATABASE_FILENAME
+        new_db = database / "noa.sqlite3"
+        if old_db.is_file() and not new_db.exists():
+            shutil.copy2(old_db, new_db)
+            for suffix in ("-wal", "-shm"):
+                sidecar = old_db.with_name(old_db.name + suffix)
+                if sidecar.is_file():
+                    shutil.copy2(sidecar, new_db.with_name(new_db.name + suffix))
+        if target.exists():
+            target.rmdir()  # empty, checked above
+        source.replace(target)
+        return legacy
+    finally:
+        shutil.rmtree(staging, ignore_errors=True)
 
 
 class Settings(BaseSettings):
@@ -61,8 +115,8 @@ class Settings(BaseSettings):
     session_secret: str = "dev-only-insecure-session-secret-change-me"
     app_encryption_key: str = ""  # required in production (Fernet key)
     session_ttl_seconds: int = 12 * 60 * 60
-    csrf_cookie_name: str = "vira_csrf"
-    session_cookie_name: str = "vira_session"
+    csrf_cookie_name: str = "noa_csrf"
+    session_cookie_name: str = "noa_session"
     frontend_origin: str = "http://localhost:5173"
     strict_secrets: bool = False  # set True in production (refuse weak secrets)
 
@@ -91,12 +145,20 @@ class Settings(BaseSettings):
 
     def model_post_init(self, __context: object) -> None:
         if self.data_dir is None:
-            object.__setattr__(self, "data_dir", default_data_dir())
+            target = default_data_dir()
+            migrated_from = migrate_legacy_data_dir(target)
+            if migrated_from is not None:
+                logger.warning(
+                    "copied existing data from %s to %s; the old folder is untouched",
+                    migrated_from,
+                    target,
+                )
+            object.__setattr__(self, "data_dir", target)
         data_dir = self.data_dir
         assert data_dir is not None
         if self.sqlite_database_path is None:
             object.__setattr__(
-                self, "sqlite_database_path", data_dir / "data" / "vira.sqlite3"
+                self, "sqlite_database_path", data_dir / "data" / "noa.sqlite3"
             )
         if self.receipt_dir is None:
             object.__setattr__(self, "receipt_dir", data_dir / "receipt_storage")

@@ -126,7 +126,7 @@ def main() -> None:
         # For new clients use the actual runtime Settings path. An immutable
         # old client inherits its launcher's env/.env: resolve using ITS config,
         # before updating files, never guessing a second default database.
-        explicit = os.environ.get("VIRA_UPDATE_DATABASE_PATH")
+        explicit = os.environ.get("NOA_UPDATE_DATABASE_PATH")
         if explicit:
             database = Path(explicit)
         else:

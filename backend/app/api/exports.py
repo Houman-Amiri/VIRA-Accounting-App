@@ -67,7 +67,7 @@ def export_database_dump(
         content=dump_bytes,
         media_type="application/octet-stream",
         headers={
-            "Content-Disposition": 'attachment; filename="vira-dump.sqlite3"',
+            "Content-Disposition": 'attachment; filename="noa-dump.sqlite3"',
             "X-Content-Type-Options": "nosniff",
             "Cache-Control": "no-store",
         },
@@ -103,7 +103,7 @@ def export_ledger_csv(session: Annotated[Session, Depends(get_db)]) -> Response:
         content=csv_text,
         media_type="text/csv; charset=utf-8",
         headers={
-            "Content-Disposition": 'attachment; filename="vira-ledger.csv"',
+            "Content-Disposition": 'attachment; filename="noa-ledger.csv"',
             "X-Content-Type-Options": "nosniff",
             "Cache-Control": "no-store",
         },

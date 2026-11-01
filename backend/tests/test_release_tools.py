@@ -42,7 +42,7 @@ def test_delta_ships_hash_verified_standalone_helper(tmp_path: Path) -> None:
     db_tool = (ROOT / "scripts/update_database.py").read_bytes()
     (target / "scripts/update_database.py").write_bytes(db_tool)
     helper = b"MZ-fixture-helper"
-    (target / "vira-updater.exe").write_bytes(helper)
+    (target / "noa-updater.exe").write_bytes(helper)
     (base / "install_manifest.json").write_text(json.dumps(manifest_to_json(build_manifest(base))))
     result = subprocess.run(
         [sys.executable, str(ROOT / "scripts/gen_delta.py"),
@@ -52,10 +52,10 @@ def test_delta_ships_hash_verified_standalone_helper(tmp_path: Path) -> None:
         cwd=tmp_path, capture_output=True, text=True, check=False,
     )
     assert result.returncode == 0, result.stderr
-    with zipfile.ZipFile(out / "VIRA-v1.0.6-delta-from-v1.0.5.zip") as archive:
+    with zipfile.ZipFile(out / "NOA-v1.0.6-delta-from-v1.0.5.zip") as archive:
         assert archive.read("update_database.py") == db_tool
-        assert archive.read("vira-updater.exe") == helper
-        assert archive.read("files/vira-updater.exe") == helper
+        assert archive.read("noa-updater.exe") == helper
+        assert archive.read("files/noa-updater.exe") == helper
         doc = json.loads(archive.read("update.json"))
-        assert doc["hashes"]["vira-updater.exe"] == sha256_bytes(helper)
+        assert doc["hashes"]["noa-updater.exe"] == sha256_bytes(helper)
         assert doc["hashes"]["update_database.py"] == sha256_bytes(db_tool)

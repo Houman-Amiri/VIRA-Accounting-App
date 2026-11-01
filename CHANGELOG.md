@@ -1,14 +1,38 @@
 # Changelog
 
-All notable changes to V.I.R.A are documented here. Versions follow strict
+All notable changes to NOA are documented here. Versions follow strict
 SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [Unreleased]
 
-### The owner's logo and the V.I.R.A name on every invoice the app prints
-- Both generated documents now open with the brand header: the mark, «V.I.R.A»
+### VIRA renamed to NOA — the app, its files and its data folder
+- Every place the owner sees the name now says **NOA**: the printed invoice and
+  proforma header, the sidebar and browser tab, the API title, the authenticator
+  label, the installer/desktop/Start-menu names and the setup file name
+  (`NOA-Setup-<version>.exe`).
+- The technical identifiers moved too, as the owner asked: `NOA_*` environment
+  variables, `%LOCALAPPDATA%\NOA`, `noa.sqlite3`, `start_noa.cmd`,
+  `noa-updater.exe`, `installer/noa.iss`, `SOFTWARE\NOA`, the `noa-accounting`
+  package and the `NOA-*` release asset names.
+- **The owner's data is copied, never moved**: on the first start of 1.0.15 an
+  empty `%LOCALAPPDATA%\NOA` is filled from `%LOCALAPPDATA%\VIRA` (the database
+  is copied to `noa.sqlite3`, with its `-wal`/`-shm`), the old folder is left
+  byte-identical, and a target folder that already holds data is never touched.
+- `DefaultDirName` is `D:\3D PRINT\NOA-Accounting` with `UsePreviousAppDir=no`,
+  so the upgrade really moves instead of re-installing under the old name; the
+  same `AppId` keeps one Add/Remove Programs entry.
+- Deltas built for pre-rename clients also carry the updater under its old file
+  name, so a 1.0.14 install can still take the delta; the helper it extracts is
+  the new one and restarts `start_noa.cmd`.
+- Deliberately unchanged: the GitHub repository slug, already-published asset
+  names (both prefixes are probed), the frozen native PDF build kit and its MIT
+  grant, and the recorded CI evidence under `docs/dependencies/` and
+  `docs/reports/` — rewriting those would falsify measurements.
+
+### The owner's logo and the NOA name on every invoice the app prints
+- Both generated documents now open with the brand header: the mark, «NOA»
   and the tagline on the right, the document title and date on the left, over a
   rule. پیش‌فاکتور فروش (from an order) and فاکتور فروش/خرید (from a registered
   invoice entry) share one `_brand.html` partial, so they cannot drift apart.
@@ -21,7 +45,7 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
   say so; an entry that was not created from an invoice answers 400 with a
   Persian reason instead of printing an empty page.
 - The SPA uses the same mark: sidebar tile (replacing the placeholder «و») and
-  the browser tab icon. Master asset `backend/app/assets/branding/vira-logo.png`;
+  the browser tab icon. Master asset `backend/app/assets/branding/noa-logo.png`;
   the UI/favicon copy is a 160 px derivative.
 - Persian number/date formatting moved to `app/services/persian.py` so both
   documents format money and dates through one implementation.
@@ -152,7 +176,7 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ### Private noticed-source real HTTP pairing (no release)
 - 39226693623 / b04440e SUCCESS: authenticate noticed archive, cold20-tree build with
-  caches disabled, independent21-DLL audit and executed modified Pango1.58.0-vira-local-source,
+  caches disabled, independent21-DLL audit and executed modified Pango1.58.0-noa-local-source,
   bind exact audit to private no-site bootstrap, real TCP factory/auth/CSRF/SQLite.
 - Eight inspected1/4 A4 PDFs across fresh/restarted PIDs, same DB/IDs, Vazirmatn400/700,
   all30 Regular/ten Persian Bold digits, Unicode/ACP65001, TTF hashes/cleanup.
@@ -253,7 +277,7 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 - Fresh standalone build/audit followed by relocated production CPython 3.11.17
   app rendering: 39153212109 / 284e827 SUCCESS. Bind candidate PE closure, hashes,
   owners and origins to the new native witness and modified preferred-source reference.
-- Execute modified Pango version 1.58.0-vira-local-source IN the real PDF process;
+- Execute modified Pango version 1.58.0-noa-local-source IN the real PDF process;
   21 candidate DLLs loaded from the private Persian/spaced payload path. Single/
   four-page A4, embedded/used Vazirmatn 400/700 and all digit sets, production
   isolation, ctypes and unchanged staged manifest verified. PDF fixture hashes stable.
@@ -280,7 +304,7 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
   all 20 target trees/21 DLLs and check unchanged external input hashes.
 - 30 new/regression tests; 536 backend and 84 focused checks, Ruff/Mypy/Bandit pass.
   Native build 39146630126 / 576c0ea PASSED with 20 audited trees, 21 loaded DLLs
-  and the executed Pango string 1.58.0-vira-local-source. Preserve actual Windows
+  and the executed Pango string 1.58.0-noa-local-source. Preserve actual Windows
   symlink/gettext make failures; restore ZIP mtimes to avoid Autotools regeneration.
   Complete seven-part witness is hash-pinned. Ordinary CI 39146693875 / ca4b61e:
   all five jobs pass (196 frontend / six browser scenarios / both Windows rollback
@@ -374,7 +398,7 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 - Preserve the source/review copy for 90 days, not a public source-delivery claim.
   Specify same-release source/recipe/notices access and expose missing transitive
   wrapper dependencies. Component legal/CRT/recipe rights, LGPL replacement and
-  real recipient delivery remain hard gates; no MIT grant for VIRA, native runtime
+  real recipient delivery remain hard gates; no MIT grant for NOA, native runtime
   integration, public release/tag/version bump or user-data/math changes.
   See `docs/reports/pdf-runtime-license-materials-fa.md`.
 
@@ -649,19 +673,19 @@ running the previous UI, and nothing in the pipeline noticed.
     (a conditional hit would hand the browser its stale copy back), hashed
     assets under `/assets/` are `immutable`, unknown non-API paths fall back to
     the shell (so `/warehouse` deep links work), unknown `/api/**` paths stay
-    JSON 404s, and every shell response carries `X-VIRA-SPA-Build` with the
+    JSON 404s, and every shell response carries `X-NOA-SPA-Build` with the
     build id the installation ships.
-  - `installer/vira.iss` — `[InstallDelete]` removes `{app}\static`,
+  - `installer/noa.iss` — `[InstallDelete]` removes `{app}\static`,
     `{app}\app` and `{app}\backend` before copying the new payload, and the
     installer stops any running instance inside `{app}` first (a live
     interpreter locks `python.exe`/`.pyd`, which previously forced Inno to ask
     for a reboot while leaving the old files in place).
-  - **Build identity is now visible**: vite stamps `<meta name="vira-build">`
+  - **Build identity is now visible**: vite stamps `<meta name="noa-build">`
     into `index.html`, `stage_app_payload.ps1` records it as `spa_build` in
     `version.json`, and «سیستم و عملیات» shows the installed id next to the id
     the browser actually loaded — with an explicit warning to press `Ctrl+F5`
     when they differ. A stale UI can no longer hide.
-  - `app/version.py` — `spa_build` joined `version_info()`, and the `VIRA_*`
+  - `app/version.py` — `spa_build` joined `version_info()`, and the `NOA_*`
     environment overrides are no longer frozen by the `lru_cache` (that cache is
     what kept an install reporting `0.0.0-unknown` after its stamp was fixed).
   - CI now proves the content: the Windows smoke test compares the build id of
@@ -680,12 +704,12 @@ the missing warehouse/production modules.
 
 ### Fixed
 - **«سیستم و عملیات» showed `0.0.0-unknown`.** `app/version.py` now resolves
-  the version/commit with a real precedence chain — `VIRA_VERSION` /
-  `VIRA_GIT_COMMIT` / `VIRA_BUILT_AT` env → the shipped `version.json` (looked up
-  next to the interpreter, in `VIRA_APP_DIR`, the repo root and the cwd) →
+  the version/commit with a real precedence chain — `NOA_VERSION` /
+  `NOA_GIT_COMMIT` / `NOA_BUILT_AT` env → the shipped `version.json` (looked up
+  next to the interpreter, in `NOA_APP_DIR`, the repo root and the cwd) →
   `importlib.metadata` → `git rev-parse --short HEAD` → `0.0.0-unknown` as a
   last resort. `stage_app_payload.ps1` stamps `commit`/`built_at` into
-  `version.json` and `start_vira.cmd` exports the env pair, so an installed app
+  `version.json` and `start_noa.cmd` exports the env pair, so an installed app
   always reports a concrete version and commit.
 - **Pricing-tab formulas did not match `قیمت نهایی.xlsx`.** `lib/priceCalc.ts`
   is now a cell-exact transcription of the sheet (B3–B35 / E25 / E35) with the
@@ -713,24 +737,24 @@ the missing warehouse/production modules.
   `test_unstamped_current_never_raises`,
   `test_unparseable_manifest_version_refused`,
   `test_check_updates_with_unstamped_version_is_not_a_500`.
-- **`VIRA_APP_DIR` is exported by `start_vira.cmd`** so `version.json` is found
+- **`NOA_APP_DIR` is exported by `start_noa.cmd`** so `version.json` is found
   in the installed layout even when a system Python (not the bundled one) ends
   up running the backend.
 
 - **The update could never apply itself: the helper was never in the install.**
-  `vira-updater.exe` was compiled *after* both the Inno setup and the app
-  payload zip, so `{app}\vira-updater.exe` did not exist in an installed app;
+  `noa-updater.exe` was compiled *after* both the Inno setup and the app
+  payload zip, so `{app}\noa-updater.exe` did not exist in an installed app;
   `launch_updater` only checked the staging directory and a wrong fallback
-  (`%LOCALAPPDATA%\vira-updater.exe`). The helper is now compiled *before* the
-  packaging steps, so it ships inside the setup, inside `vira-<v>-app.zip`
+  (`%LOCALAPPDATA%\noa-updater.exe`). The helper is now compiled *before* the
+  packaging steps, so it ships inside the setup, inside `noa-<v>-app.zip`
   (delta base) and inside every delta; the app resolves it as
-  staging → `{app}` → data directory → `scripts\vira_updater.ps1` through
+  staging → `{app}` → data directory → `scripts\noa_updater.ps1` through
   `powershell.exe`. It always passes the installation directory explicitly
   (`-install-dir`), so a hand-unzipped or portable install no longer needs the
   installer's registry record, and it uses single-dash PowerShell parameter
   names (`--stage` is not a parameter prefix for every PowerShell host).
   Smoke leg 2 now applies the delta with the installation's own
-  `vira-updater.exe` and asserts the helper survives the upgrade; a missing
+  `noa-updater.exe` and asserts the helper survives the upgrade; a missing
   helper reports a clear Persian error instead of a `FileNotFoundError`
   traceback. Tests: `TestUpdaterDiscovery`.
 
@@ -766,8 +790,8 @@ installer.
   sorting splits by id could swap an entry's debit and credit rows at display
   time. New tests: `test_ids.py`.
 - **Delta discovery** — `build_deltas` now asks the GitHub API for each previous
-  release's portable asset (the filename varied: `VIRA-v1.0.0.zip` vs
-  `vira-v1.0.2-portable.zip`) instead of guessing, and its `latest.json`
+  release's portable asset (the filename varied: `NOA-v1.0.0.zip` vs
+  `noa-v1.0.2-portable.zip`) instead of guessing, and its `latest.json`
   `deltas[]` entries point at assets that are actually published.
 - **Smoke leg 2 is the real update path** — it downloads the previous release's
   portable install, applies the matching delta with the shipped updater, and
@@ -776,10 +800,10 @@ installer.
   fresh same-version install, which never happens in the field.
 
 ### Added
-- **`vira-<version>-app.zip`** — the exact install-layout payload (`{app}`
+- **`noa-<version>-app.zip`** — the exact install-layout payload (`{app}`
   directory, with `install_manifest.json`), published with every release. It is
   the delta base for all future updates, and doubles as a true portable app
-  (unzip + `start_vira.cmd`). The older `*-portable.zip` bundles are source
+  (unzip + `start_noa.cmd`). The older `*-portable.zip` bundles are source
   trees and cannot serve as delta bases.
 
 ### Verified
@@ -799,19 +823,19 @@ at a missing file; launch does nothing).
 
 ### Fixed
 - **Shortcuts targeted a file that never existed.** The installer pointed
-  Desktop/Start-Menu/Startup shortcuts and the finish-page «اجرای V.I.R.A» at
-  `{app}\start_vira.cmd`, but no such file was ever created — hence
-  «Missing Shortcut» and silent launch failures. `scripts/start_vira.cmd` now
+  Desktop/Start-Menu/Startup shortcuts and the finish-page «اجرای NOA» at
+  `{app}\start_noa.cmd`, but no such file was ever created — hence
+  «Missing Shortcut» and silent launch failures. `scripts/start_noa.cmd` now
   ships at the payload root: finds Python (bundled → dev venv → PATH), runs the
   safe migration + seed (idempotent), mints and shows owner credentials on
-  first run (`%LOCALAPPDATA%\VIRA\first-run-credentials.txt`), starts uvicorn
+  first run (`%LOCALAPPDATA%\NOA\first-run-credentials.txt`), starts uvicorn
   in a visible log window and opens `http://127.0.0.1:8787` when health is green.
 - **Bundled CPython 3.11** (python-build-standalone via uv) is now staged with
   the app — the installed app runs on machines without a system Python.
 - **SPA serving in the installed layout** — `spa_static_dir()` now resolves
   `{app}\static` (installed) as well as `<repo>/frontend/dist` (dev); before,
   the mounted path pointed outside the install directory and `/` was a 404.
-- **`migrate_vira.py` on installed payloads** — `backend/alembic(.ini)` is
+- **`migrate_noa.py` on installed payloads** — `backend/alembic(.ini)` is
   staged alongside the app so first-run migrations work.
 - **Delta baseline integrity** — `gen_delta` now packs `install_manifest.json`
   + `version.json` into every delta (the updater rewrites them after apply;
@@ -828,7 +852,7 @@ at a missing file; launch does nothing).
 First **published** release. `v1.0.0` and `v1.0.1` tags exist but were never
 published (pipeline debugging; tags are immutable, so each fix shipped as a
 new patch version). Validated end-to-end via `[release-dry-run]` runs before
-tagging: Inno Setup compile, `vira-updater.exe` (ps2exe), delta generation,
+tagging: Inno Setup compile, `noa-updater.exe` (ps2exe), delta generation,
 and the Windows install/upgrade/rollback smoke test all pass.
 
 ### Fixed — release pipeline
@@ -877,7 +901,7 @@ of the complete 8-phase plan (Persian accounting, Windows-native, SQLite-only).
   limiting, HMAC webhooks, resilient external clients, security headers,
   Idempotency-Key on every mutation, draft recovery on 401.
 - Phase 6: GitHub Actions CI/Release without service containers, safe SQLite
-  migration lifecycle (migrate_vira.py/.ps1), sudo-gated System & Operations
+  migration lifecycle (migrate_noa.py/.ps1), sudo-gated System & Operations
   page/API, rotating logs, `/health/ready`, Dependabot, ESLint 9 + Prettier.
 - Phase 7: unified search (FTS5 + LIKE parameterized, Decimal numeric tokens,
   RapidFuzz), pluggable storage (local + S3-compatible, sha256 content-addressed,
@@ -886,19 +910,19 @@ of the complete 8-phase plan (Persian accounting, Windows-native, SQLite-only).
   privacy-first Umami analytics with zero-PII redaction.
 
 ### Added — Phase 8: Installer, Versioned Releases & In-App Delta Updates
-- Inno Setup 6 installer (`installer/vira.iss`) with the mandatory «مسیر نصب»
-  (select where to install) page, `InstallDir` recorded in `HKLM/HKCU\SOFTWARE\VIRA`,
+- Inno Setup 6 installer (`installer/noa.iss`) with the mandatory «مسیر نصب»
+  (select where to install) page, `InstallDir` recorded in `HKLM/HKCU\SOFTWARE\NOA`,
   optional tasks (desktop/Start menu/launch-at-login/backup job), and an
-  uninstaller that keeps `%LOCALAPPDATA%\VIRA` user data unless explicitly opted in.
+  uninstaller that keeps `%LOCALAPPDATA%\NOA` user data unless explicitly opted in.
 - Delta update engine (`backend/app/services/update_engine.py`): per-file
-  SHA-256 manifests, manifest diffing, `VIRA-vX.Y.Z-delta-from-vA.B.C.zip`
+  SHA-256 manifests, manifest diffing, `NOA-vX.Y.Z-delta-from-vA.B.C.zip`
   packages (`update.json` + `files/` + bsdiff `patches/` + `delete.json`),
   client-side selection (delta → delta chain → full installer), BSDIFF40 apply.
 - Update channel (`backend/app/services/update.py`): GitHub Releases +
   `latest.json` (schema_version 1, unknown versions refused), ETag caching,
   403/429 Persian retry-later, `APP_UPDATE_URL` mirror override, optional
   Ed25519 signature verification (`scripts/sign_update.py`).
-- Transactional updater helper (`scripts/vira_updater.ps1` → `vira-updater.exe`):
+- Transactional updater helper (`scripts/noa_updater.ps1` → `noa-updater.exe`):
   mutex + lock file, graceful stop, rollback snapshot, verified apply, manifest
   rewrite, relaunch; any failure restores the previous version
   («خطا در به‌روزرسانی. نسخهٔ قبلی بازگردانی شد.»).
@@ -906,7 +930,7 @@ of the complete 8-phase plan (Persian accounting, Windows-native, SQLite-only).
   «به‌روزرسانی جدید موجود است» / «به‌روزرسانی جدیدی در دسترس است (نسخهٔ X.Y.Z).
   آیا می‌خواهید دانلود و نصب شود؟» with «دانلود و نصب» / «بعداً» / «مشاهدهٔ جزئیات»,
   download progress, verification status and restart-to-finish step.
-- CI: release workflow compiles the installer + `vira-updater.exe`, generates
+- CI: release workflow compiles the installer + `noa-updater.exe`, generates
   deltas vs the last K = 3 tags, uploads the setup as a GitHub Actions artifact
   and as an immutable Release asset; Windows smoke test (silent install, delta
   upgrade with size assertion, data-preservation checksum, forced-failure

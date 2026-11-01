@@ -1,6 +1,6 @@
-# V.I.R.A Security Architecture (Phase 5)
+# NOA Security Architecture (Phase 5)
 
-این سند معماری امنیتی ویرا را پس از فاز ۵ (یکپارچه‌سازی، احراز هویت و امنیت) شرح
+این سند معماری امنیتی نوا را پس از فاز ۵ (یکپارچه‌سازی، احراز هویت و امنیت) شرح
 می‌دهد. تهدید مدل: اپ دسکتاپ ویندوز، تک‌کاربره/چندکاربره داخلی، داده‌های مالی حساس.
 
 ## 1. Authentication & Sessions
@@ -11,7 +11,7 @@
   refresh** via `POST /api/v1/auth/refresh` (cookie-only; the token is never
   exposed to JS). On 401 the SPA snapshots unsaved form drafts in memory →
   redirects to `/login` via TanStack Router and restores drafts afterwards.
-- **CSRF**: double-submit (`vira_csrf` readable cookie + `X-CSRF-Token` header)
+- **CSRF**: double-submit (`noa_csrf` readable cookie + `X-CSRF-Token` header)
   on every mutation. API-key calls are exempt (custom header, no ambient auth).
 
 ## 2. MFA (TOTP) + Recovery Codes
@@ -31,7 +31,7 @@
 | INGEST_API (key) | create DRAFT + receipts only | none | none |
 
 - Auditor read-only enforcement is global (every mutating router).
-- `ingest_api` keys: `vira_sk_<prefix>_<secret>`, SHA-256 hashed, shown once,
+- `ingest_api` keys: `noa_sk_<prefix>_<secret>`, SHA-256 hashed, shown once,
   revocable; valid only for `POST /journal-entries` and `POST /receipts`.
 - **Sudo step-up**: password or TOTP → HMAC token with **5-minute TTL**
   (`X-Sudo-Token`), required for: fiscal-period reopen, un-reconciling a
@@ -50,7 +50,7 @@
 
 ## 5. Transport, Headers, CORS, Rate Limits
 
-- Bind default **127.0.0.1** (`start_vira.ps1`); CORS allowlist = exactly
+- Bind default **127.0.0.1** (`start_noa.ps1`); CORS allowlist = exactly
   `FRONTEND_ORIGIN` with credentials.
 - Security headers on every response: `X-Frame-Options: DENY`,
   `X-Content-Type-Options: nosniff`, `Referrer-Policy: same-origin`,
@@ -72,7 +72,7 @@
 
 - All outbound HTTP via `httpx` + tenacity adapters (`services/external.py`):
   connect/read timeouts, exponential backoff + jitter, `Retry-After` respected.
-- Inbound webhooks: `X-VIRA-Signature` (HMAC-SHA256, constant-time compare),
+- Inbound webhooks: `X-NOA-Signature` (HMAC-SHA256, constant-time compare),
   ±5-minute timestamp freshness, `event_id` dedup in `webhook_events`.
 
 ## 8. Audit & Logging
@@ -90,16 +90,16 @@
    expose 0.0.0.0 directly.
 2. **NTFS ACLs** on data:
    ```powershell
-   icacls "$env:LOCALAPPDATA\VIRA" /inheritance:r /grant:r "$env:USERNAME:(OI)(CI)F" "SYSTEM:(OI)(CI)F"
+   icacls "$env:LOCALAPPDATA\NOA" /inheritance:r /grant:r "$env:USERNAME:(OI)(CI)F" "SYSTEM:(OI)(CI)F"
    ```
 3. **Firewall** (only if deliberately binding a LAN address):
    ```powershell
-   New-NetFirewallRule -DisplayName VIRA -Direction Inbound -LocalPort 8787 -Protocol TCP -Action Allow -Profile Private
+   New-NetFirewallRule -DisplayName NOA -Direction Inbound -LocalPort 8787 -Protocol TCP -Action Allow -Profile Private
    ```
 4. **Remote access** — prefer **Tailscale** (or any WireGuard VPN): install on
    both machines, then serve on the Tailscale IP only. No public port, no port
    forwarding; HTTPS end-to-end via Tailscale (MagicDNS + certificates).
-5. Backups: `scripts/backup_vira.ps1` (scheduled task + passphrase-encrypted
+5. Backups: `scripts/backup_noa.ps1` (scheduled task + passphrase-encrypted
    bundles); keep the passphrase OUTSIDE the repo (`-PassphraseFile`).
 
 ## 10. Key Rotation Runbook

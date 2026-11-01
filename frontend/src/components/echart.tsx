@@ -61,7 +61,7 @@ export function EChart({
     chart.setOption({
       textStyle: { fontFamily: "Vazirmatn Variable, Vazirmatn, sans-serif", color: colors.text },
       tooltip: {
-        className: "vira-chart-tooltip",
+        className: "noa-chart-tooltip",
         backgroundColor: colors.surface,
         borderColor: colors.border,
         textStyle: { fontFamily: "Vazirmatn Variable, Vazirmatn, sans-serif", color: colors.text },

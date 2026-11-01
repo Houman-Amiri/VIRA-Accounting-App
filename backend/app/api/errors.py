@@ -32,7 +32,7 @@ def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(DomainError)
     async def _domain_error(request: Request, exc: DomainError) -> JSONResponse:
         return _problem(
-            type_=f"urn:vira:error:{exc.code}",
+            type_=f"urn:noa:error:{exc.code}",
             title=exc.title,
             status=exc.status,
             detail=exc.detail,
@@ -50,7 +50,7 @@ def install_error_handlers(app: FastAPI) -> None:
             for e in exc.errors()
         ]
         return _problem(
-            type_="urn:vira:error:validation_error",
+            type_="urn:noa:error:validation_error",
             title="Request validation failed",
             status=422,
             detail="one or more fields are invalid",
@@ -62,7 +62,7 @@ def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(Exception)
     async def _unhandled(request: Request, exc: Exception) -> JSONResponse:
         return _problem(
-            type_="urn:vira:error:internal",
+            type_="urn:noa:error:internal",
             title="Internal server error",
             status=500,
             detail=str(exc),

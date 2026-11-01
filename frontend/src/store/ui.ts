@@ -2,7 +2,7 @@
 import { create } from "zustand";
 
 type Theme = "light" | "dark";
-const THEME_KEY = "vira-theme";
+const THEME_KEY = "noa-theme";
 
 interface UiState {
   theme: Theme;

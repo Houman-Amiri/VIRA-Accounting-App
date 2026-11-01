@@ -38,7 +38,7 @@ def _time(fn, rounds: int = 5) -> float:
 
 def main() -> None:
     n_entries = int(sys.argv[1]) if len(sys.argv) > 1 else 25_000
-    tmp = tempfile.mkdtemp(prefix="vira-bench-")
+    tmp = tempfile.mkdtemp(prefix="noa-bench-")
     db_path = Path(tmp) / "bench.sqlite3"
     os.environ["SQLITE_DATABASE_PATH"] = str(db_path)
     os.environ.setdefault("SESSION_SECRET", "bench-secret-that-is-long-enough-12345")

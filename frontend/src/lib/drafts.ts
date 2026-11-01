@@ -6,7 +6,7 @@
  * successful login the app restores drafts for the matching form keys.
  */
 
-const STORAGE_KEY = "vira.draft-snapshots";
+const STORAGE_KEY = "noa.draft-snapshots";
 
 type SnapshotFn = () => unknown;
 

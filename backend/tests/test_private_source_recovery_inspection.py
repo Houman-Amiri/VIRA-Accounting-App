@@ -42,7 +42,7 @@ def recovery(tmp_path, monkeypatch):
     target = dict(common, **target, version="99.30.1")
     contents["private-source-anchor.json"] = raw(target)
     archive = packet(tmp_path, contents)
-    home = tmp_path / "profile فارسی ! &" / "VIRA/private-native-installed"
+    home = tmp_path / "profile فارسی ! &" / "NOA/private-native-installed"
     state = home / "state"
     state.mkdir(parents=True)
     (state / "private-desktop-state.json").write_bytes(
@@ -53,7 +53,7 @@ def recovery(tmp_path, monkeypatch):
     receipt = state / "data/receipts/preserve.bin"
     receipt.parent.mkdir(parents=True)
     receipt.write_bytes(b"accounting receipt must never be modified by inspection")
-    database = state / "data/data/vira.sqlite3"
+    database = state / "data/data/noa.sqlite3"
     database.parent.mkdir(parents=True)
     with closing(sqlite3.connect(database)) as db, db:
         db.executescript(

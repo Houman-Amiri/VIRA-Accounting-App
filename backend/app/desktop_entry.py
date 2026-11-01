@@ -1,4 +1,4 @@
-"""Real start_vira.cmd candidate entry. Explicit private SOURCE mode only.
+"""Real start_noa.cmd candidate entry. Explicit private SOURCE mode only.
 
 Stdlib before audited native activation. No QA imports, injected factories or
 HTTP shutdown endpoint. Default launcher is unchanged. Not distribution approval.
@@ -80,7 +80,7 @@ def request(root: Path, file: Path) -> dict[str, Any]:
         anchor = Path(value["installed_anchor"])
         digest = value["installed_anchor_sha256"]
         if (not anchor.is_absolute() or ".." in anchor.parts or anchor.is_relative_to(root)
-                or anchor != Path(os.environ["LOCALAPPDATA"]) / "VIRA/private-native-installed/anchor.json"
+                or anchor != Path(os.environ["LOCALAPPDATA"]) / "NOA/private-native-installed/anchor.json"
                 or not isinstance(digest, str) or re.fullmatch(r"[0-9a-f]{64}", digest) is None):
             raise ValueError("Explicit external installed anchor required")
         for item in (anchor, *anchor.parents):
@@ -153,12 +153,12 @@ def state_guard(root: Path, state: Path, check, *, installed_restart: bool = Fal
             # Let ONLY the installed controller's nonce-bearing child start.
             # Keep the shared HTTP/scheduler write gate CLOSED through readiness
             # and durable commit/rollback; a late failure must not lose user writes.
-            restart = os.environ.get("VIRA_PRIVATE_UPDATE_TOKEN", "")
+            restart = os.environ.get("NOA_PRIVATE_UPDATE_TOKEN", "")
             native = state.parent / ".native-update.lock"
             check(native)
             owner = read(native) if installed_restart is True and native.is_file() else {}
             if (installed_restart is not True
-                    or state != Path(os.environ.get("LOCALAPPDATA", "")) / "VIRA/private-native-installed/state"
+                    or state != Path(os.environ.get("LOCALAPPDATA", "")) / "NOA/private-native-installed/state"
                     or re.fullmatch(r"[0-9a-f]{64}", restart) is None
                     or set(owner) != {"pid", "token"}
                     or type(owner.get("pid")) is not int or owner["pid"] <= 0
@@ -228,9 +228,9 @@ def serve(root: Path, state: Path, launch: Path, options: dict[str, Any]) -> dic
     from app.services.pdf_rendering import PdfRenderer, PrivatePdfPolicy
 
     data = state / "data"
-    database = data / "data/vira.sqlite3"
+    database = data / "data/noa.sqlite3"
     first = not database.exists()
-    password = os.environ.get("VIRA_ADMIN_PASSWORD", "")
+    password = os.environ.get("NOA_ADMIN_PASSWORD", "")
     if len(password) < 32:
         raise ValueError("Private owner credential required")
     secret = state / "session.secret"
@@ -249,14 +249,14 @@ def serve(root: Path, state: Path, launch: Path, options: dict[str, Any]) -> dic
         "STRICT_SECRETS": "false",
         "SCHEDULER_ENABLED": "false",
         "STORAGE_PROVIDER": "local",
-        "VIRA_APP_DIR": str(root),
+        "NOA_APP_DIR": str(root),
     }
     with environment(values):
-        migration = runpy.run_path(str(root / "scripts/migrate_vira.py"))["run_migration"](
+        migration = runpy.run_path(str(root / "scripts/migrate_noa.py"))["run_migration"](
             database, None
         )
         settings = load_settings(
-            _env_file=None, **{k.lower(): v for k, v in values.items() if k != "VIRA_APP_DIR"}
+            _env_file=None, **{k.lower(): v for k, v in values.items() if k != "NOA_APP_DIR"}
         )
         # Production seed is idempotent: also repairs a first launch interrupted
         # after migration, without replacing an existing owner's password/data.
@@ -351,7 +351,7 @@ def serve(root: Path, state: Path, launch: Path, options: dict[str, Any]) -> dic
                     monitor_errors.append(type(exc).__name__)
                     server.should_exit = True
 
-            watcher = threading.Thread(target=monitor, name="VIRA desktop readiness", daemon=True)
+            watcher = threading.Thread(target=monitor, name="NOA desktop readiness", daemon=True)
             watcher.start()
             server.run(sockets=[sock])
         finally:
@@ -386,8 +386,8 @@ def serve(root: Path, state: Path, launch: Path, options: dict[str, Any]) -> dic
 def main() -> int:
     if len(sys.argv) != 3 or sys.argv[1] != "--private-source-candidate":
         raise ValueError("Explicit private desktop source request required")
-    if os.environ.get("VIRA_LAUNCHER_ENTRY") != "START_VIRA_CMD_PRIVATE_SOURCE":
-        raise ValueError("Use the real start_vira.cmd entry")
+    if os.environ.get("NOA_LAUNCHER_ENTRY") != "START_NOA_CMD_PRIVATE_SOURCE":
+        raise ValueError("Use the real start_noa.cmd entry")
     root = Path(__file__).resolve().parents[1]
     options = request(root, Path(sys.argv[2]))
     raw = (root / "install_manifest.json").read_bytes()
@@ -425,11 +425,11 @@ def main() -> int:
         launch.mkdir(parents=True, exist_ok=False)
         result = serve(root, state, launch, options)
         result.update(
-            role="PRIVATE_REAL_START_VIRA_SOURCE_NOT_INSTALLED_ACCEPTANCE",
+            role="PRIVATE_REAL_START_NOA_SOURCE_NOT_INSTALLED_ACCEPTANCE",
             pid=os.getpid(),
             launch_id=options["launch_id"],
             activation=asdict(active),
-            startup_path="START_VIRA_CMD_TO_APP_DESKTOP_ENTRY",
+            startup_path="START_NOA_CMD_TO_APP_DESKTOP_ENTRY",
             qa_worker_executed=False,
             qa_factory_or_renderer_replacement=False,
             ordinary_default_enabled=False,
@@ -470,7 +470,7 @@ if __name__ == "__main__":
         native = any(n in sys.modules for n in ("ctypes", "_ctypes", "cffi", "_cffi_backend"))
         app = any(n in sys.modules for n in ("app.main", "uvicorn", "weasyprint"))
         print(
-            "VIRA private desktop startup rejected: "
+            "NOA private desktop startup rejected: "
             + failure_kind(exc)
             + f"; native_imported={int(native)}; app_imported={int(app)}",
             file=sys.stderr,

@@ -24,14 +24,14 @@ def raw(value):
 
 
 def fixture(tmp_path, monkeypatch):
-    root = tmp_path / "VIRA installed opaque"
-    home = tmp_path / "profile" / "VIRA/private-native-installed"
+    root = tmp_path / "NOA installed opaque"
+    home = tmp_path / "profile" / "NOA/private-native-installed"
     state = home / "state"
     state.mkdir(parents=True)
     root.mkdir()
     files = {
         "version.json": raw(dict(version="99.30.0", spa_build="old")),
-        "vira-updater.exe": b"OPAQUE OLD HELPER NEVER EXECUTED",
+        "noa-updater.exe": b"OPAQUE OLD HELPER NEVER EXECUTED",
         "native/pdf/runtime-inventory.json": raw({"synthetic": True}),
         "native/pdf/source-audit.json": raw({"synthetic_audit": True}),
         "native/pdf/bin/synthetic.dll": b"OPAQUE NOT A DLL",
@@ -62,17 +62,17 @@ def fixture(tmp_path, monkeypatch):
     settings = Settings(
         _env_file=None,
         data_dir=state / "data",
-        sqlite_database_path=state / "data/data/vira.sqlite3",
+        sqlite_database_path=state / "data/data/noa.sqlite3",
     )
     monkeypatch.setenv("LOCALAPPDATA", str(home.parents[1]))
     monkeypatch.setenv("RUNNER_TEMP", str(tmp_path))
     monkeypatch.setenv("GITHUB_ACTIONS", "true")
-    monkeypatch.setenv("VIRA_PRIVATE_INSTALLED_SOURCE", "1")
+    monkeypatch.setenv("NOA_PRIVATE_INSTALLED_SOURCE", "1")
     monkeypatch.setattr(update, "install_root", lambda _: root)
     targetdir = tmp_path / "target"
     targetfiles = dict(files)
     targetfiles["version.json"] = raw(dict(version="99.30.1", spa_build="new"))
-    targetfiles["vira-updater.exe"] = b"OPAQUE DOWNLOADED HELPER MUST NOT BE SELECTED"
+    targetfiles["noa-updater.exe"] = b"OPAQUE DOWNLOADED HELPER MUST NOT BE SELECTED"
     targetfiles["native/pdf/bin/synthetic.dll"] = b"OPAQUE CHANGED NATIVE-DIRECTORY BYTES"
     for name, data in targetfiles.items():
         p = targetdir / name
@@ -85,7 +85,7 @@ def fixture(tmp_path, monkeypatch):
     contents = {
         "version.json": targetfiles["version.json"],
         "install_manifest.json": targetraw,
-        "vira-updater.exe": targetfiles["vira-updater.exe"],
+        "noa-updater.exe": targetfiles["noa-updater.exe"],
         "private-source-anchor.json": raw(targetpin),
     }
     for member, (_, name) in members.items():
@@ -142,8 +142,8 @@ def test_private_stream_download_uses_existing_verifier_and_old_installed_helper
     argv, log = update._updater_command(settings, str(stage))
     selected = Path(argv[0])
     assert not selected.is_relative_to(root) and not selected.is_relative_to(home)
-    assert selected.read_bytes() == (root / "vira-updater.exe").read_bytes()
-    assert selected.read_bytes() != (stage / "vira-updater.exe").read_bytes()
+    assert selected.read_bytes() == (root / "noa-updater.exe").read_bytes()
+    assert selected.read_bytes() != (stage / "noa-updater.exe").read_bytes()
     assert argv[argv.index("-InstallDir") + 1] == str(root)
     transaction = channel.read(Path(argv[argv.index("-PrivateSourceTransaction") + 1]))
     assert transaction["archive_sha256"] == hashlib.sha256(payload).hexdigest()
@@ -160,7 +160,7 @@ def test_private_stream_download_uses_existing_verifier_and_old_installed_helper
 def test_env_marker_alone_cannot_select_private_source_channel(tmp_path, monkeypatch, mutation):
     root, home, settings, _, _ = fixture(tmp_path, monkeypatch)
     if mutation == "marker":
-        monkeypatch.delenv("VIRA_PRIVATE_INSTALLED_SOURCE")
+        monkeypatch.delenv("NOA_PRIVATE_INSTALLED_SOURCE")
         assert channel.scope(settings, root) is None
         return
     if mutation == "no-ci":
@@ -279,7 +279,7 @@ def test_apply_rechecks_download_and_installed_helper(tmp_path, monkeypatch, mut
         "archive": package,
         "staged-manifest": stage / "install_manifest.json",
         "staged-pin": stage / "private-source-anchor.json",
-        "helper": root / "vira-updater.exe",
+        "helper": root / "noa-updater.exe",
         "base-version": root / "version.json",
         "target-version": stage / "version.json",
     }[mutation]
@@ -394,12 +394,12 @@ def test_old_helper_clone_rejects_drift_or_adopted_directory(tmp_path, monkeypat
         monkeypatch.setattr(
             channel,
             "sha",
-            lambda path: real_sha(path) if path == root / "vira-updater.exe" else "0" * 64,
+            lambda path: real_sha(path) if path == root / "noa-updater.exe" else "0" * 64,
         )
     elif fault == "existing-clone":
-        (tmp_path / ("VIRA updater خصوصی ! & " + run)).mkdir()
+        (tmp_path / ("NOA updater خصوصی ! & " + run)).mkdir()
     else:
-        (root / "vira-updater.exe").write_bytes(b"CHANGED OLD HELPER")
+        (root / "noa-updater.exe").write_bytes(b"CHANGED OLD HELPER")
     with pytest.raises((ValueError, FileExistsError)):
         channel.clone_installed_helper(context, run)
 
@@ -472,7 +472,7 @@ def test_private_fault_selector_requires_owned_schema2_and_exact_explicit_mode(
             )
         )
     )
-    monkeypatch.setenv("VIRA_PRIVATE_SOURCE_FORCE_FAILURE", fault)
+    monkeypatch.setenv("NOA_PRIVATE_SOURCE_FORCE_FAILURE", fault)
     if fault and (schema != 2 or fault == "UNKNOWN"):
         with pytest.raises(DomainError):
             update._updater_command(settings, str(stage))
@@ -483,4 +483,4 @@ def test_private_fault_selector_requires_owned_schema2_and_exact_explicit_mode(
         assert ("-PrivateSourceCrashPoint" in argv) == fault.startswith("CRASH_")
         if fault.startswith("CRASH_"):
             assert argv[argv.index("-PrivateSourceCrashPoint") + 1] == fault.removeprefix("CRASH_")
-        assert Path(argv[0]).read_bytes() == (root / "vira-updater.exe").read_bytes()
+        assert Path(argv[0]).read_bytes() == (root / "noa-updater.exe").read_bytes()

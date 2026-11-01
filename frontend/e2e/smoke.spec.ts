@@ -2,15 +2,15 @@ import { auditItemCatalog } from "./item-catalog-audit";
 import { auditCalendar } from "./calendar-audit";
 /**
  * E2E smoke — login, Persian RTL shell, command palette, journal form balance rules.
- * The e2e job seeds an owner user (VIRA_ADMIN_PASSWORD) before Playwright runs.
+ * The e2e job seeds an owner user (NOA_ADMIN_PASSWORD) before Playwright runs.
  */
 import { expect, test, type Page } from "@playwright/test";
 import { auditOperations } from "./operations-audit";
 import { auditDashboard } from "./dashboard-audit";
 import { auditMenuThemes, contrast, auditSurfaces } from "./theme-audit";
 
-const USER = process.env.VIRA_E2E_USER || "owner";
-const PASS = process.env.VIRA_E2E_PASSWORD || "e2e-owner-password";
+const USER = process.env.NOA_E2E_USER || "owner";
+const PASS = process.env.NOA_E2E_PASSWORD || "e2e-owner-password";
 
 // Debug channel: artifact/log hosts are unreachable from the sandbox, so on
 // failure we dump the page state into the job log (surfaced via annotations).

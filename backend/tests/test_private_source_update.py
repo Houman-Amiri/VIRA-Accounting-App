@@ -137,7 +137,7 @@ def test_preflight_tampering_never_changes_installed_baseline(tmp_path, mutation
     if mutation == "extra-member":
         contents["unexpected.exe"] = b"never executed"
     elif mutation == "traversal":
-        contents["files/app/../../data/vira.sqlite3"] = b"no"
+        contents["files/app/../../data/noa.sqlite3"] = b"no"
     elif mutation == "case-collision":
         contents[name.upper()] = contents[name]
     elif mutation == "missing-member":
@@ -175,7 +175,7 @@ def test_preflight_tampering_never_changes_installed_baseline(tmp_path, mutation
             "patches/app/../bad.bsdiff"
         )
     elif mutation == "opaque-data-target":
-        doc["operations"][0]["path"] = "data/vira.sqlite3"
+        doc["operations"][0]["path"] = "data/noa.sqlite3"
     if mutation == "duplicate-json":
         contents["update.json"] = b'{"operations":[],"operations":[]}'
     else:
@@ -204,7 +204,7 @@ def test_preflight_tampering_never_changes_installed_baseline(tmp_path, mutation
         "app/COM1",
         "app/x:y",
         "app\\x",
-        "data/vira.sqlite3",
+        "data/noa.sqlite3",
         "native/other/x",
         "app/*",
         "app/x\x00",
@@ -344,7 +344,7 @@ def test_synthetic_transaction_with_real_sqlite_snapshot_restore(tmp_path, monke
 
     base, before, after, contents, old, target = fixture(tmp_path, with_controller=True)
     archive = packet(tmp_path, contents)
-    home = tmp_path / "کاربر فارسی ! & profile" / "VIRA/private-native-installed"
+    home = tmp_path / "کاربر فارسی ! & profile" / "NOA/private-native-installed"
     home.mkdir(parents=True)
     state = home / "state"
     state.mkdir()
@@ -356,7 +356,7 @@ def test_synthetic_transaction_with_real_sqlite_snapshot_restore(tmp_path, monke
     receipts.write_bytes(b"preserve all receipt bytes")
     secret = state / "session.secret"
     secret.write_bytes(b"synthetic persistent session secret, not a real credential")
-    database = state / "data/data/vira.sqlite3"
+    database = state / "data/data/noa.sqlite3"
     database.parent.mkdir(parents=True)
     with closing(sqlite3.connect(database)) as db, db:
         db.executescript(
@@ -524,11 +524,11 @@ def test_rejected_target_preserves_startup_diagnostics_without_overwriting(tmp_p
 
     def spawn(argv, **kwargs):
         assert argv[-1] == str(root / "app/private_installed_source.py")
-        assert kwargs["env"]["VIRA_PRIVATE_UPDATE_TOKEN"] == "a" * 64
+        assert kwargs["env"]["NOA_PRIVATE_UPDATE_TOKEN"] == "a" * 64
         assert kwargs["stderr"] == -2  # subprocess.STDOUT, not discarded.
         calls.append(argv)
         streams.append(kwargs["stdout"])
-        kwargs["stdout"].write(b"VIRA private desktop startup rejected: NATIVE_MODULE_ABSENT\n")
+        kwargs["stdout"].write(b"NOA private desktop startup rejected: NATIVE_MODULE_ABSENT\n")
         kwargs["stdout"].flush()
         return Child()
 
@@ -539,7 +539,7 @@ def test_rejected_target_preserves_startup_diagnostics_without_overwriting(tmp_p
     monkeypatch.setitem(scope, "subprocess", SimpleNamespace(Popen=spawn, STDOUT=-2, run=reap))
     with pytest.raises(RuntimeError, match="exited before readiness"):
         start(home, root, "a" * 64, {"port": 8787}, log)
-    expected = b"VIRA private desktop startup rejected: NATIVE_MODULE_ABSENT\n"
+    expected = b"NOA private desktop startup rejected: NATIVE_MODULE_ABSENT\n"
     assert log.read_bytes() == expected and streams[0].closed
     with pytest.raises(FileExistsError):
         start(home, root, "a" * 64, {"port": 8787}, log)

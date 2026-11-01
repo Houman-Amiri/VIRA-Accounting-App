@@ -59,6 +59,14 @@ def test_authenticated_real_cmd_windows_witness_and_frozen_code(tmp_path):
         # Phase2 bytes are archived instead of rewriting the old witness hashes.
         "backend/app/config.py",
         "scripts/stage_app_payload.ps1",
+        # v1.0.15 renames the launcher to start_noa.cmd and the SPA build marker to
+        # noa-build, so the pre-rename launcher and probe are archived here rather
+        # than rewriting the recorded Phase-2 witness hashes.
+        "scripts/start_vira.cmd",
+        "scripts/desktop_launcher_probe.py",
+        # v1.0.15 also renames the migration entry point and the seeded brand text.
+        "scripts/migrate_vira.py",
+        "backend/app/seed.py",
     }
     for name, digest in proof["frozen_implementation_git_blob_sha256"].items():
         source = (DATA / "phase2-frozen-implementation" / Path(name).name) if name in extended else ROOT / name
@@ -176,7 +184,9 @@ def test_recorded_real_cmd_witness_rejects_tampering(tmp_path, mutation):
 
 
 def test_default_cmd_body_still_matches_phase1_baseline():
-    cmd = (ROOT / "scripts/start_vira.cmd").read_text(encoding="utf-8")
+    # The pre-rename launcher is archived byte-for-byte, so the Phase-1 body hash
+    # still proves nothing in the shipped start_noa.cmd changed except the names.
+    cmd = (DATA / "phase2-frozen-implementation" / "start_vira.cmd").read_text(encoding="utf-8")
     cmd = cmd[: cmd.index("\n:private_source_candidate\n")]
     start = cmd.index("REM Explicit private source")
     end = cmd.index('cd /d "%~dp0"', start)
@@ -185,3 +195,15 @@ def test_default_cmd_body_still_matches_phase1_baseline():
         hashlib.sha256(original_body.encode("utf-8")).hexdigest()
         == "a385c16ae8eaf49a61b06f8016fc1b22deaa000bcb3bc01554b9ad8eb0229cf4"
     )
+
+
+def _rebranded(text: str) -> str:
+    for old, new in (("V.I.R.A", "NOA"), ("VIRA", "NOA"), ("Vira", "Noa"), ("vira", "noa")):
+        text = text.replace(old, new)
+    return text
+
+
+def test_shipped_launcher_is_the_archived_one_with_only_the_brand_renamed():
+    archived = (DATA / "phase2-frozen-implementation" / "start_vira.cmd").read_text(encoding="utf-8")
+    shipped = (ROOT / "scripts/start_noa.cmd").read_text(encoding="utf-8")
+    assert shipped == _rebranded(archived)

@@ -79,7 +79,7 @@ def test_packet_checker_requires_native_and_helper_operations_and_no_unchanged_p
     target.mkdir()
     old = [
         dict(path=n, sha256="a" * 64, size=100)
-        for n in ("native/pdf/bin/pango-1.0-0.dll", "vira-updater.exe", "python/python.exe")
+        for n in ("native/pdf/bin/pango-1.0-0.dll", "noa-updater.exe", "python/python.exe")
     ]
     new = copy.deepcopy(old)
     new[0]["sha256"] = new[1]["sha256"] = "b" * 64
@@ -103,7 +103,7 @@ def test_packet_checker_requires_native_and_helper_operations_and_no_unchanged_p
         with pytest.raises(ValueError):
             client_module["check_packet"](base, target, packet(extra))
     with pytest.raises(ValueError):
-        client_module["check_packet"](base, target, packet(drop="vira-updater.exe"))
+        client_module["check_packet"](base, target, packet(drop="noa-updater.exe"))
 
 
 def test_failure_diagnostics_collect_only_fixed_owned_bounded_startup_logs(tmp_path, client_module):

@@ -1,6 +1,6 @@
-Persian Accounting App (V.I.R.A)
+Persian Accounting App (NOA)
 
-Role : You are a world class Iranian full-stack Windows App developer with the best programing, security, database design, UI/UX design skills. Working for the V.I.R.A company who is demanding an Accounting App.
+Role : You are a world class Iranian full-stack Windows App developer with the best programing, security, database design, UI/UX design skills. Working for the NOA company who is demanding an Accounting App.
 
 
 
@@ -9,7 +9,7 @@ Here's my App idea in a phased execution plan (contains 8 phases):&#x20;
 **Mandatory architecture constraints — follow these in every phase:**
 - Use **SQLite only** as the application's database. Do not add PostgreSQL, another database server, or a database abstraction that assumes server-specific SQL features.
 - **Do not use Docker, Docker Compose, Dev Containers, container images, or any container runtime.** Install and run the application directly on Windows using Python, Node.js, a Python virtual environment, and native Windows scripts/services.
-- The SQLite database must be a local file stored outside the Git repository, defaulting to `%LOCALAPPDATA%\VIRA\data\vira.sqlite3` for a single Windows user. Make the path configurable through `SQLITE_DATABASE_PATH`.
+- The SQLite database must be a local file stored outside the Git repository, defaulting to `%LOCALAPPDATA%\NOA\data\noa.sqlite3` for a single Windows user. Make the path configurable through `SQLITE_DATABASE_PATH`.
 - Treat SQLite's typing, locking, and trigger limitations as design constraints. Use integer-scaled storage for exact monetary values, application-level `Decimal` validation, short write transactions, WAL mode, and SQLite-compatible SQL only.
 - The canonical frontend is the React + TypeScript + Vite SPA in Phase 3, backed by FastAPI. Do not build a separate HTMX/Alpine frontend; Jinja2 may be used for server-rendered PDF documents only.
 - Create and maintain a `project brief.md` containing the actual selected stack and these non-negotiable constraints. If any later section conflicts with these constraints, these constraints take precedence.
@@ -186,7 +186,7 @@ Use the following Python development stack and architectural specifications to b
   * Secure the application with `Argon2id` password hashing (`pwdlib`), secure HTTP-only session cookies, CSRF protection, and optional TOTP two-factor authentication (`pyotp`).
 
 * **Native Windows Deployment (no container runtime):**
-  * Run FastAPI and the built React static assets directly on Windows. Provide `start_vira.bat` and `stop_vira.bat` or equivalent PowerShell scripts, plus an optional Windows Task Scheduler setup for launch-at-login/startup.
+  * Run FastAPI and the built React static assets directly on Windows. Provide `start_noa.bat` and `stop_noa.bat` or equivalent PowerShell scripts, plus an optional Windows Task Scheduler setup for launch-at-login/startup.
   * Bind to `127.0.0.1` by default. Enable LAN access only through an explicit setting and Windows Firewall rule. For remote private access, document native Tailscale installation; do not deploy the app through Docker or Docker Compose.
   * Keep configuration in environment variables or Windows Credential Manager. Never store secrets in the repository or in the SQLite database in plaintext.
 
@@ -335,7 +335,7 @@ Use SQLite as the only relational database. Design the schema for the FastAPI + 
 ### 1. Database Engine, Storage Types & Identifier Strategy
 
 * **SQLite configuration:** Use SQLite 3.45+ with `PRAGMA journal_mode=WAL;`, `PRAGMA synchronous=NORMAL;`, `PRAGMA foreign_keys=ON;`, and `PRAGMA busy_timeout=5000;`. Apply connection settings consistently and verify them at startup. Prefer `STRICT` tables.
-* **Database file:** Default to `%LOCALAPPDATA%\VIRA\data\vira.sqlite3` on Windows, configurable with `SQLITE_DATABASE_PATH`. Create the parent directory securely and never commit the database, WAL/SHM files, backups, or customer attachments to Git.
+* **Database file:** Default to `%LOCALAPPDATA%\NOA\data\noa.sqlite3` on Windows, configurable with `SQLITE_DATABASE_PATH`. Create the parent directory securely and never commit the database, WAL/SHM files, backups, or customer attachments to Git.
 * **SQLite type rules:** In `STRICT` tables use SQLite-supported storage types. Store identifiers as `TEXT` UUID strings, dates as ISO `YYYY-MM-DD` `TEXT`, timestamps as UTC ISO-8601 `TEXT`, JSON documents as validated JSON-serialized `TEXT`, and booleans as `INTEGER` values constrained to `0` or `1`. Use explicit `CHECK`, `UNIQUE`, and foreign-key constraints where supported.
 * **Exact money storage:** SQLite does not enforce fixed-precision `NUMERIC(19,4)` semantics. Store all money amounts as scaled integers: `stored_amount = Decimal_amount × 10,000`, with four decimal places of precision. Store exchange rates as scaled integers using a factor of `100,000,000`. Provide central SQLAlchemy `TypeDecorator`/conversion helpers that expose Python `Decimal` values to services while persisting integers. Never use `REAL`, `float`, or JavaScript `number` for financial calculations. Validate quantization and overflow before writes and check that aggregate totals stay within SQLite's signed 64-bit integer range.
 * **IDs and time:** Generate UUIDv7 IDs in the application and store them as canonical `TEXT`. Store timestamps as UTC ISO-8601 strings and keep a separate accounting `transaction_date` as ISO `YYYY-MM-DD`; calendar localization is a presentation concern.
@@ -601,15 +601,15 @@ Use GitHub's Web interface for repository editing and code review, and GitHub Ac
 
 * Document supported versions of Python 3.12, `uv`, Node.js 22, and `pnpm`; install them directly on Windows using standard installers or package managers.
 * Provide a `setup_windows.ps1` script that creates the Python virtual environment, installs backend dependencies, installs frontend dependencies, prepares the application-data directories, validates SQLite availability, and runs Alembic migrations.
-* Provide `start_vira.bat` / `start_vira.ps1` and `stop_vira.bat` / `stop_vira.ps1`. The launch script should start the backend and either serve the built frontend through FastAPI or start Vite for development. Show clear logs and surface startup failures.
-* Use `%LOCALAPPDATA%\VIRA\data\vira.sqlite3` as the default database location. Keep the file, backups, encryption keys, and uploaded receipts outside the repository.
+* Provide `start_noa.bat` / `start_noa.ps1` and `stop_noa.bat` / `stop_noa.ps1`. The launch script should start the backend and either serve the built frontend through FastAPI or start Vite for development. Show clear logs and surface startup failures.
+* Use `%LOCALAPPDATA%\NOA\data\noa.sqlite3` as the default database location. Keep the file, backups, encryption keys, and uploaded receipts outside the repository.
 * Document an optional Windows Task Scheduler configuration for startup/login launch and scheduled backups. If installing as a Windows service, use a maintained service wrapper and least-privilege account; do not add container-based services.
 
 ### 4. Reproducible Native Builds
 
 * **Backend:** Install dependencies through `uv sync` into a local Python virtual environment. Document any native Windows prerequisites for `WeasyPrint`, OCR libraries, or file-type inspection. If a dependency is unsupported on Windows, choose and document a compatible alternative instead of requiring a Linux container.
 * **Frontend:** Use Node.js 22 and `pnpm install --frozen-lockfile`, generate API types from the FastAPI schema, run `pnpm lint`, `pnpm typecheck`, and `pnpm build`.
-* **Distribution artifacts:** Build the `vira-updater.exe` helper and compile the Inno Setup installer (Phase 8) in CI; the installed app must run self-contained on Windows without requiring separate Python or Node.js installations.
+* **Distribution artifacts:** Build the `noa-updater.exe` helper and compile the Inno Setup installer (Phase 8) in CI; the installed app must run self-contained on Windows without requiring separate Python or Node.js installations.
 * **Local serving:** Serve the compiled React assets through FastAPI or a separately installed native static-file server. Keep API and frontend on the same origin where practical; document CORS/CSRF settings when origins differ.
 * Never build or publish Docker images, and do not require a container registry.
 
@@ -678,7 +678,7 @@ Implement the following enhancement modules on top of the Core Stack (FastAPI + 
 
   * Implement a clean `StorageBackend` protocol switched via `STORAGE_PROVIDER=local|s3` in `pydantic-settings`:
 
-    * `local`: Store files under `%LOCALAPPDATA%\VIRA\receipt_storage` (or the configured application-data directory), partitioned by hash prefix (`ab/cd/<sha256>.pdf`). Keep the directory outside the repository and apply restrictive Windows file permissions.
+    * `local`: Store files under `%LOCALAPPDATA%\NOA\receipt_storage` (or the configured application-data directory), partitioned by hash prefix (`ab/cd/<sha256>.pdf`). Keep the directory outside the repository and apply restrictive Windows file permissions.
 
     * `s3`: Stores files in any S3-compatible bucket (`MinIO`, `Cloudflare R2`, `Backblaze B2`, `AWS S3`) using `boto3` with server-side encryption and authenticated streaming/presigned delivery to the React `\<ReceiptViewer />`.
 
@@ -753,21 +753,21 @@ Implement the following enhancement modules on top of the Core Stack (FastAPI + 
 
 ## Phase 8: Installer, Versioned Releases & In-App Delta Updates (Windows-Native)
 
-Deliver V.I.R.A as a distributable Windows product: an **Inno Setup** installer published from GitHub, strict **version tagging** for every release, and a safe **in-app update system** that downloads only the parts that changed and never loses user data. All mandatory architecture constraints still apply (SQLite-only, no Docker, user data outside the install directory). This phase completes the 8-phase plan promised above.
+Deliver NOA as a distributable Windows product: an **Inno Setup** installer published from GitHub, strict **version tagging** for every release, and a safe **in-app update system** that downloads only the parts that changed and never loses user data. All mandatory architecture constraints still apply (SQLite-only, no Docker, user data outside the install directory). This phase completes the 8-phase plan promised above.
 
 ### 1. Windows Installer (`Inno Setup 6`)
 
-* **Installer build:** Compile a native Windows installer with **Inno Setup 6** (`iscc`) inside GitHub Actions. *(Implemented in Phase 8: `installer/vira.iss`, compiled in `release.yml` via `choco install innosetup` + `iscc`.)* The full setup (`VIRA-Setup-vX.Y.Z.exe`) must be published **both** as a GitHub Actions workflow artifact on the release run **and** as an immutable GitHub Release asset (the durable download used by end users and the updater's full-install fallback).
-* **"Select where to install" step:** The wizard must always show an explicit **«مسیر نصب» (Select where to install)** destination-directory page (`DisableDirPage=no`), defaulting to `{autopf}\VIRA` (or `{localappdata}\Programs\VIRA` for per-user installs). The chosen `InstallDir` is recorded under a stable registry key (`HKLM\SOFTWARE\VIRA\InstallDir`, or `HKCU` equivalent for per-user installs) so the updater and uninstaller can reliably locate the installation.
-* **Package contents:** the bundled FastAPI backend (PyInstaller one-folder bundle or embedded CPython with `uv sync` locked site-packages), the compiled React SPA static assets served by FastAPI, the native PowerShell/batch scripts, `vira-updater.exe` (see §6), `version.json`, and `install_manifest.json` (per-file `path`, `SHA-256`, `size` for every installed file — the baseline for delta updates).
-* **Wizard steps:** welcome → license (optional) → **directory selection (select where to install)** → additional tasks (desktop shortcut, Start menu, launch-at-login, register the Task Scheduler backup job) → install progress → finish. A Start menu/launcher shortcut runs `start_vira`, which starts FastAPI and opens the app in the default browser at `http://127.0.0.1:<port>`.
-* **Uninstaller:** ship the standard Inno uninstaller. It must never delete user data (`%LOCALAPPDATA%\VIRA\data` SQLite files, receipt storage, encryption keys, logs, backups) — offer a "delete application data" checkbox only as an explicit opt-in, unchecked by default.
+* **Installer build:** Compile a native Windows installer with **Inno Setup 6** (`iscc`) inside GitHub Actions. *(Implemented in Phase 8: `installer/noa.iss`, compiled in `release.yml` via `choco install innosetup` + `iscc`.)* The full setup (`NOA-Setup-vX.Y.Z.exe`) must be published **both** as a GitHub Actions workflow artifact on the release run **and** as an immutable GitHub Release asset (the durable download used by end users and the updater's full-install fallback).
+* **"Select where to install" step:** The wizard must always show an explicit **«مسیر نصب» (Select where to install)** destination-directory page (`DisableDirPage=no`), defaulting to `{autopf}\NOA` (or `{localappdata}\Programs\NOA` for per-user installs). The chosen `InstallDir` is recorded under a stable registry key (`HKLM\SOFTWARE\NOA\InstallDir`, or `HKCU` equivalent for per-user installs) so the updater and uninstaller can reliably locate the installation.
+* **Package contents:** the bundled FastAPI backend (PyInstaller one-folder bundle or embedded CPython with `uv sync` locked site-packages), the compiled React SPA static assets served by FastAPI, the native PowerShell/batch scripts, `noa-updater.exe` (see §6), `version.json`, and `install_manifest.json` (per-file `path`, `SHA-256`, `size` for every installed file — the baseline for delta updates).
+* **Wizard steps:** welcome → license (optional) → **directory selection (select where to install)** → additional tasks (desktop shortcut, Start menu, launch-at-login, register the Task Scheduler backup job) → install progress → finish. A Start menu/launcher shortcut runs `start_noa`, which starts FastAPI and opens the app in the default browser at `http://127.0.0.1:<port>`.
+* **Uninstaller:** ship the standard Inno uninstaller. It must never delete user data (`%LOCALAPPDATA%\NOA\data` SQLite files, receipt storage, encryption keys, logs, backups) — offer a "delete application data" checkbox only as an explicit opt-in, unchecked by default.
 
 ### 2. Versioning & Release Tags (SemVer + GitHub Releases)
 
 * **Single version source of truth** (e.g., `backend/pyproject.toml`), stamped at build time into `version.json`, the installer metadata, the `openapi.json` / `/api/v1/health/ready` payload, and the UI (System & Operations page). Use strict SemVer `MAJOR.MINOR.PATCH`.
 * **Tag every version:** when a version is finalized, create an annotated git tag `vX.Y.Z` and push it (`git tag -a vX.Y.Z -m "Release vX.Y.Z"` / `git push origin vX.Y.Z`). The release workflow triggers on `v*` tags. Tags are immutable — never move or re-use a tag; fixes ship as a new patch version. Maintain a `CHANGELOG.md`.
-* **Release contents:** `VIRA-Setup-vX.Y.Z.exe`, delta update packages (§5), `latest.json` (§3), `SHA256SUMS`, and release notes in Persian (`notes_fa`) plus English.
+* **Release contents:** `NOA-Setup-vX.Y.Z.exe`, delta update packages (§5), `latest.json` (§3), `SHA256SUMS`, and release notes in Persian (`notes_fa`) plus English.
 * **Release workflow (extends Phase 6 §6):** run the full test suite (pytest + Hypothesis + Vitest + Playwright), build the SPA and backend bundle, compile the Inno Setup installer, generate delta packages against the last K = 3 released tags, upload the setup as a GitHub Actions workflow artifact, then publish the GitHub Release with all assets.
 
 ### 3. Update Channel & Manifest (`latest.json`)
@@ -788,15 +788,15 @@ Deliver V.I.R.A as a distributable Windows product: an **Inno Setup** installer 
 
 ### 5. Delta Update Engine (download only the changed parts)
 
-* **Never re-download the full installer when a delta applies.** Maintain per-file SHA-256 manifests (from `install_manifest.json`). Each release publishes delta packages covering the last **K = 3** released versions: `VIRA-vX.Y.Z-delta-from-vA.B.C.zip`.
+* **Never re-download the full installer when a delta applies.** Maintain per-file SHA-256 manifests (from `install_manifest.json`). Each release publishes delta packages covering the last **K = 3** released versions: `NOA-vX.Y.Z-delta-from-vA.B.C.zip`.
 * **Delta package contents:** `update.json` (base version, target version, ordered file operations), `files/` (new/changed small files — templates, JS/CSS, scripts — stored as-is), `patches/` (**bsdiff** binary patches for large files such as `.exe`/`.dll`/`.pyd` above a threshold, e.g., 256 KB), `delete.json` (files removed in the target version), and a hash for every member.
 * **Client-side selection:** if the current version has a matching delta → download the delta (typically a small fraction of the setup size). If the installation is older than the covered bases → fall back to the **full installer** (Inno Setup supports silent upgrade, `/SILENT`, into the recorded `InstallDir`). If reaching the target requires a chain of deltas, apply each hop with full verification, or fall back to the full installer.
 * **Generation:** CI computes the file-manifest diff between the new build and each base tag's manifest and produces the per-base delta zips plus `SHA256SUMS`. *(Implemented in Phase 8: `scripts/build_manifest.py`, `scripts/gen_delta.py`, `scripts/build_deltas.ps1`, engine in `backend/app/services/update_engine.py`.)*
 * Alternative mechanisms (zsync-style range diffs, MSIX/appinstaller) may replace this design only if they remain Windows-native, non-container, and satisfy "no full re-download" and "no data loss"; the manifest + bsdiff design above is the reference implementation.
 
-### 6. Updater Helper & Transactional Apply (`vira-updater.exe`)
+### 6. Updater Helper & Transactional Apply (`noa-updater.exe`)
 
-* The running application cannot overwrite its own files. Ship a tiny dedicated **updater helper** (native single executable) that the main app launches after the user confirms: *(Implemented in Phase 8: `scripts/vira_updater.ps1` → `vira-updater.exe` via ps2exe, launched by `POST /api/v1/system/update/apply`.)* it stages the verified package in `%LOCALAPPDATA%\VIRA\updates\<version>\`, gracefully stops FastAPI and the scheduler (reuse `stop_vira` semantics), then applies the file operations.
+* The running application cannot overwrite its own files. Ship a tiny dedicated **updater helper** (native single executable) that the main app launches after the user confirms: *(Implemented in Phase 8: `scripts/noa_updater.ps1` → `noa-updater.exe` via ps2exe, launched by `POST /api/v1/system/update/apply`.)* it stages the verified package in `%LOCALAPPDATA%\NOA\updates\<version>\`, gracefully stops FastAPI and the scheduler (reuse `stop_noa` semantics), then applies the file operations.
 * **Single instance:** a named Windows mutex plus a local lock file prevent concurrent updates and prevent the app from starting mid-update.
 * **Elevation:** request UAC elevation (`requireAdministrator`) only when `InstallDir` requires it; per-user installs update without elevation.
 * **Transactional apply:** (1) snapshot every file scheduled to change into `{app}\rollback\prev\` and copy the current `install_manifest.json`/`version.json`; (2) apply copies and `bspatch` patches and delete removed files; (3) rewrite `install_manifest.json` + `version.json`; (4) relaunch the app. On **any** failure at any step: restore the snapshot and manifests, relaunch the previous version, and surface the Persian error with the log path. Keep the rollback snapshot until the new version reports healthy (first successful `/api/v1/health/ready` + accounting-invariant check).
@@ -804,8 +804,8 @@ Deliver V.I.R.A as a distributable Windows product: an **Inno Setup** installer 
 
 ### 7. No Data Loss — Non-Negotiable
 
-* User data (SQLite `vira.sqlite3` + WAL/SHM, receipt storage, encryption keys, configuration, logs, backups) lives exclusively outside `{app}` under `%LOCALAPPDATA%\VIRA\`. Updates, repair installs, and uninstallers must never overwrite or delete it.
-* Before the first boot of a new version, the updater creates a pre-update SQLite online backup (`%LOCALAPPDATA%\VIRA\backups\pre-update-<version>.sqlite3`) and keeps the file-level rollback snapshot until health checks pass.
+* User data (SQLite `noa.sqlite3` + WAL/SHM, receipt storage, encryption keys, configuration, logs, backups) lives exclusively outside `{app}` under `%LOCALAPPDATA%\NOA\`. Updates, repair installs, and uninstallers must never overwrite or delete it.
+* Before the first boot of a new version, the updater creates a pre-update SQLite online backup (`%LOCALAPPDATA%\NOA\backups\pre-update-<version>.sqlite3`) and keeps the file-level rollback snapshot until health checks pass.
 * A verified restore path is mandatory and tested; a failed update must always return the user to a working previous version with **all data intact**.
 
 ### 8. Update Security
@@ -816,8 +816,8 @@ Deliver V.I.R.A as a distributable Windows product: an **Inno Setup** installer 
 
 ### 9. CI Verification (extends Phase 6 §5)
 
-* On `v*` tags the release workflow builds everything in §2 and additionally uploads `VIRA-Setup-vX.Y.Z.exe` as a workflow artifact (GitHub artifact), satisfying "downloadable from GitHub artifacts" alongside the Release asset.
-* A Windows CI job runs a silent-install smoke test (`VIRA-Setup-vX.Y.Z.exe /VERYSILENT /DIR=<temp>`), an upgrade test from the previous version using a real delta package (asserting downloaded bytes ≈ delta size, not the full setup), a data-preservation check (SQLite checksum identical across the update), and a forced-failure rollback test.
+* On `v*` tags the release workflow builds everything in §2 and additionally uploads `NOA-Setup-vX.Y.Z.exe` as a workflow artifact (GitHub artifact), satisfying "downloadable from GitHub artifacts" alongside the Release asset.
+* A Windows CI job runs a silent-install smoke test (`NOA-Setup-vX.Y.Z.exe /VERYSILENT /DIR=<temp>`), an upgrade test from the previous version using a real delta package (asserting downloaded bytes ≈ delta size, not the full setup), a data-preservation check (SQLite checksum identical across the update), and a forced-failure rollback test.
 
 ### 10. Testing & Acceptance Criteria
 
@@ -1010,10 +1010,10 @@ complete/permissioned recipe sidecar is an explicit prerequisite, not an SDK cla
 
 Still **BLOCKED_PENDING_LICENSE_AND_CORRESPONDING_SOURCE_REVIEW**. Prepared choices
 are not legal sign-off. Six mandatory gates remain: component legal review;
-compiler/static-CRT terms; VIRA build-script rights/completeness; real recipient
+compiler/static-CRT terms; NOA build-script rights/completeness; real recipient
 source delivery; compatible LGPL replacement/EULA proof; production bootstrap,
 native delta/rollback and deferred installed-user acceptance. MIT or any other
-license was NOT applied to VIRA-owned code without the owner's decision. No normal
+license was NOT applied to NOA-owned code without the owner's decision. No normal
 runtime integration, version/tag/release, user-data/pricing change or human
 acceptance is inferred from this checkpoint.
 
@@ -1025,7 +1025,7 @@ settings**, not the accounting app. This permission is now applied via
 [the full MIT license and scope guide](LICENSES/README.md),
 [exact file/version scope](docs/dependencies/pdf-build-script-license-scope.json),
 and [machine-checked status](docs/dependencies/pdf-build-script-license-check.json).
-Nine explicit VIRA-authored build/configuration/instruction/checker files are
+Nine explicit NOA-authored build/configuration/instruction/checker files are
 covered; no wildcard, root LICENSE or automatic license for unlisted application,
 staging, backend/frontend/installer or third-party sources. Seven historical
 archive members match the granted reference versions. The original source ZIP
@@ -1150,7 +1150,7 @@ driver و پروفایل native عوض نشدند؛ فقط دریافت سورس
 [دستور دقیق محلی](docs/dependencies/pdf-native-rebuild-guide.md) مرجع‌اند.
 ۵۳۶ تست بک‌اند، ۸۴ بررسی متمرکز و Ruff/Mypy/Bandit موفق‌اند؛ ساخت واقعی
 **39146630126 / 576c0ea** و ممیزی نهایی **موفق شدند**: ۲۰ درخت، مالک/closure/مبدأ
-۲۱ DLL و اجرای واقعی `1.58.0-vira-local-source`، با ورودی بیرونیِ بدون تغییر.
+۲۱ DLL و اجرای واقعی `1.58.0-noa-local-source`، با ورودی بیرونیِ بدون تغییر.
 [proof هفت قطعهٔ کامل و هش‌ها](docs/dependencies/pdf-local-source-replay-proof.json)
 ثبت شد. شکست لینک ویندوز و خطای make در gettext حفظ شدند؛ بازگرداندن mtime ZIP
 از regeneration ناخواستهٔ Autotools جلوگیری می‌کند. هر پنج job عادی
@@ -1167,9 +1167,9 @@ rehash واقعی ۲۰ درخت و ۲۱ symlink؛ build ویندوز جدا پی
 ### مصرف خصوصی موتور ساخته‌شده از سورس محلی در برنامه — ۲۰۲۶-۱۰-۱۸
 
 ادامهٔ مجازشده **موفق** شد: ساخت تازهٔ `39153212109 / 284e827` و سپس رندر واقعی
-از CPython تولید **3.11.17** در مسیر `VIRA چاپ بومی`. ۲۰ درخت و مالک/closure/هش
+از CPython تولید **3.11.17** در مسیر `NOA چاپ بومی`. ۲۰ درخت و مالک/closure/هش
 ۲۱ DLL ممیزی شدند و هر ۲۱ مورد در فرایند رندر از نامزد خصوصی بارگذاری شدند؛
-تابع Pango در **همان فرایند** مقدار `1.58.0-vira-local-source` داد. PDF واقعیِ
+تابع Pango در **همان فرایند** مقدار `1.58.0-noa-local-source` داد. PDF واقعیِ
 یک/چهارصفحه‌ای A4، وزیرمتن Regular/Bold و هر سه مجموعهٔ ارقام، manifest ثابت،
 نبود بازرسان dev در تولید، `-I` و callbackهای ctypes تأیید شدند.
 
@@ -1224,7 +1224,7 @@ ZIP تازه **۱۸۸٬۶۱۷٬۰۴۶ بایت** با SHA256
 احراز شد؛ همان سورسِ دارای اعلان، بدون ویرایش پس از استخراج و بدون cache باینری
 کامپایل شد. ۲۰ درخت واقعی، فایل جدید Pango و closure/هش/مبدأ ۲۱ DLL تأیید شدند؛
 هر ۲۱ DLL در CPython تولید 3.11.17 با مسیر فارسی/فاصله‌دار برای PDF واقعی مصرف شدند.
-Pango در همان فرایند `1.58.0-vira-local-source` داد؛ PDF یک/چهارصفحه‌ای A4،
+Pango در همان فرایند `1.58.0-noa-local-source` داد؛ PDF یک/چهارصفحه‌ای A4،
 وزیرمتن ۴۰۰/۷۰۰ و هر ۳۰ رقم کنترل شد. envelope بعد از ساخت/رندر دوباره احراز شد.
 
 [گزارش](docs/reports/pdf-noticed-archive-build-fa.md)، [proof](docs/dependencies/pdf-noticed-archive-build-proof.json) و شاهد کاملِ هش‌شدهٔ پیوست آن
@@ -1287,7 +1287,7 @@ WeasyPrint، ACP 65001 و دو PID تازه با state مشترک. SDK پین‌
 و 403 بازاجرای مستقیم ثبت شدند؛ نه failure حذف شد، نه SHA/assertion تضعیف شد.
 پیش‌آزمون SDK جای منشأ سورس نیست و هیچ شاهد تاریخی بازنویسی نشده است.
 
-`start_vira.cmd`، staging عادی، HTTP startup، Inno/updater، داده/محاسبات و نسخه/
+`start_noa.cmd`، staging عادی، HTTP startup، Inno/updater، داده/محاسبات و نسخه/
 tag/release تغییر نکرده‌اند. این entry فقط CI/private TEMP است؛ امضای تولید یا
 دفاع ضد‌دست‌کاری مستقل ادعا نمی‌شود. همهٔ شش گیت بازند؛ startup واقعی HTTP، pair
 با سورس‌ساخته‌شده‌ها و native update/rollback هنوز جداگانه باید اثبات شوند. MIT
@@ -1316,7 +1316,7 @@ production یا source21 pairing. اولین تلاش HTML داد و رد شد؛
 خاموش → audit مستقل۲۱ DLL → launcher بدون site → factory/lifespan/Uvicorn و
 TCP/auth/CSRF/SQLite واقعی. دو PID، DB و IDهای یکسان، هشت PDF واقعی۱/۴صفحه‌ای،
 وزیرمتن۴۰۰/۷۰۰،۳۰ رقم Regular/۱۰ فارسی Bold، ACP65001، hash TTF، صفر قلم سیستم
-و پاک‌سازی هر سند؛ نسخهٔ function واقعی Pango=`1.58.0-vira-local-source`.
+و پاک‌سازی هر سند؛ نسخهٔ function واقعی Pango=`1.58.0-noa-local-source`.
 SDK۲۷/1.58.2 و شاهدهای قدیمی مستقل و بدون بازنویسی‌اند؛ preflight SDK منشأ سورس
 نیست. `ffi-8.dll` سورس با `libffi-8.dll` احتمالی CPython یکی فرض نمی‌شود.
 client موازی ولی peak واقعی۱؛ قفل و محاسبه تغییر نکرده و throughput ادعا نمی‌شود.
@@ -1446,7 +1446,7 @@ configuration factory callback. CPython libffi-8.dll is distinct, no rename/alia
 source-FFI callback provenance claim. Read-only verifier APIs/default remain intact.
 
 39388243191/88180ea SUCCESS: separate actual SDK preflight then cold source20-tree
-build/cache disabled,21-DLL audit, executed Pango1.58.0-vira-local-source; legacy and
+build/cache disabled,21-DLL audit, executed Pango1.58.0-noa-local-source; legacy and
 owned-font regressions followed by distinct app-owned SOURCE BOOTSTRAP mode and
 post-activation noticed-envelope reverify. PIDs6792/8708,same SQLite/IDs,8 NEW actual
 1/4A4 PDFs,Vazirmatn400/700,30/10 digits,two TTF hashes,zero system fonts,all font/cache/
@@ -1482,7 +1482,7 @@ Real cold source/bootstrap39388243191 remains successful, not relabelled/rebuilt
 
 ### Remaining readiness PHASE 2 OF 6 — 2026-10-20, real CMD private SOURCE integration COMPLETE
 
-The real scripts/start_vira.cmd now has an explicit PRIVATE source candidate mode;
+The real scripts/start_noa.cmd now has an explicit PRIVATE source candidate mode;
 its ordinary default body is unchanged (Phase1 normalized SHA256
  a385c16ae8eaf49a61b06f8016fc1b22deaa000bcb3bc01554b9ad8eb0229cf4).
 App-owned desktop_entry owns audit/guards/activation, real migration+idempotent seed,
@@ -1551,12 +1551,12 @@ Next checkpoint-only tip CI is observed separately; no new native/source claim.
 ### Remaining readiness PHASE 3 OF 6 — 2026-10-21, ACTIVE / NOT COMPLETE
 
 Owner continuation authorizes private native Inno/incremental-update/rollback work,
-NOT public activation or release. Existing vira.iss now has an explicitly defined
+NOT public activation or release. Existing noa.iss now has an explicitly defined
 PrivateSourceCI preset with distinct AppId/registry, selected empty directory,
 isolated runner profile, external three-digest anchor and data-preserving uninstall.
 App-owned private_installed_source bridge delegates fresh requests to unchanged
-REAL start_vira.cmd and unchanged app-owned bootstrap/lifecycle. Existing real
-vira_updater.ps1 has an explicit private context branch: anchored OLD runtime byte
+REAL start_noa.cmd and unchanged app-owned bootstrap/lifecycle. Existing real
+noa_updater.ps1 has an explicit private context branch: anchored OLD runtime byte
 verification, shared mutex and external runtime/controller clone before replacement.
 Public default branches/allowlist remain unchanged. New stdlib private controller
 assembles/verifies exact changed-file delta, bounded BSDIFF, backups/journal/DB,
@@ -1770,7 +1770,7 @@ CI39612185530 ALL5 SUCCESS. Source cold39610014494 STILL compiling; new source
 synthetic/opaque Inno + general compiled-helper smoke, NOT Source21 transaction.
 
 Additional private dispatch fix: Windows cannot replace a running installed EXE.
-Instead of launching {app}/vira-updater.exe IN PLACE, verify OLD installed helper,
+Instead of launching {app}/noa-updater.exe IN PLACE, verify OLD installed helper,
 copy/fsync it to a fresh disjoint runner TEMP directory and recheck size/SHA
 against the same anchored OLD manifest. Execute ONLY that identical OLD clone,
 with explicit anchored InstallDir. NEVER select the downloaded target helper.
@@ -2039,7 +2039,7 @@ release هنوز انجام نشده و MIT محدود به۱۴فایل و مم�
 
 
 دو فاز تحویل — وضعیت احرازشده: NativeB واقعی در40190780548/ecf6865 موفق است
-(۲۱DLL/۲۰source، Pango1.58.0-vira-local-source و .text متفاوت). لاگ failure
+(۲۱DLL/۲۰source، Pango1.58.0-noa-local-source و .text متفاوت). لاگ failure
 تراکنش با40218916819 بدون rebuild بازیابی شد: wait_terminal بعد۲۴۰ثانیه نتیجهٔ
 تازهٔ verified نگرفته است؛ علت زیرینِ timeout هنوز اثبات نشده. معیار بعدی رفع
 تراکنش واقعی و recovery است، نه افزودن شمارش تست یا افزایش کورکورانهٔ مهلت.

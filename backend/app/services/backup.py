@@ -109,7 +109,7 @@ def verify_backup(backup_path: Path | str) -> BackupResult:
 
 def restore_verified(db_path: Path | str, backup_path: Path | str) -> BackupResult:
     """Restore into a temp location and verify — recovery drill."""
-    with tempfile.TemporaryDirectory(prefix="vira-restore-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="noa-restore-") as tmp:
         target = Path(tmp) / "restored.sqlite3"
         target.write_bytes(Path(backup_path).read_bytes())
         result = verify_backup(target)
@@ -173,13 +173,13 @@ def create_backup_bundle(
 ) -> BackupBundleResult:
     """Snapshot + receipts + manifest; optional Fernet encryption of the DB.
 
-    Layout (plain):   out_dir/vira-backup.sqlite3
-    Layout (locked):  out_dir/vira-backup.sqlite3.enc + backup.key.salt (base64)
+    Layout (plain):   out_dir/noa-backup.sqlite3
+    Layout (locked):  out_dir/noa-backup.sqlite3.enc + backup.key.salt (base64)
     Always:           out_dir/manifest.json and out_dir/receipts/ copy.
     """
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    snapshot = out_dir / "vira-backup.sqlite3"
+    snapshot = out_dir / "noa-backup.sqlite3"
     create_backup(db_path, snapshot)
 
     encrypted = passphrase is not None
@@ -203,7 +203,7 @@ def create_backup_bundle(
         receipts_copied = sum(1 for p in receipts_out.rglob("*") if p.is_file())
 
     manifest = {
-        "format": "vira-backup-bundle/1",
+        "format": "noa-backup-bundle/1",
         "version_label": version_label,
         "encrypted": encrypted,
         "snapshot": snapshot.name,
@@ -239,7 +239,7 @@ def restore_bundle(
             raise ValueError("bundle is encrypted — passphrase required")
         salt = base64.b64decode(manifest["key_material"]["salt_b64"])
         key, _ = derive_key(passphrase, salt=salt)
-        with tempfile.TemporaryDirectory(prefix="vira-restore-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="noa-restore-") as tmp:
             plain = Path(tmp) / "restored.sqlite3"
             decrypt_file(snapshot, plain, key=key)
             if target is not None:

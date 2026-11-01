@@ -25,7 +25,7 @@ from pathlib import Path
 MAX_FILE = 256 * 1024 * 1024
 MAX_TOTAL = 2 * 1024 * 1024 * 1024
 ROOTS = {"app", "backend", "python", "scripts", "site-packages", "static", "tools"}
-TOP = {"version.json", "start_vira.cmd", "vira-updater.exe", "private-utf8-process-manifest.json"}
+TOP = {"version.json", "start_noa.cmd", "noa-updater.exe", "private-utf8-process-manifest.json"}
 
 
 def sha(path: Path) -> str:
@@ -196,7 +196,7 @@ def assemble(
                 "install_manifest.json",
                 "version.json",
                 "update_database.py",
-                "vira-updater.exe",
+                "noa-updater.exe",
                 "private-source-anchor.json",
             }:
                 if name.startswith("files/"):
@@ -322,7 +322,7 @@ def stop(home: Path, root: Path) -> None:
 
 
 def start(home: Path, root: Path, token: str, options: dict, log: Path) -> subprocess.Popen:
-    env = dict(os.environ, VIRA_PRIVATE_UPDATE_TOKEN=token)
+    env = dict(os.environ, NOA_PRIVATE_UPDATE_TOKEN=token)
     no_links(log)
     # Fresh transaction-owned diagnostics, never discard a rejected startup.
     # Closing the parent's handle does not close the child's inherited stream.
@@ -362,7 +362,7 @@ def start(home: Path, root: Path, token: str, options: dict, log: Path) -> subpr
                         health = json.load(response)
                     stamp = read((root / "version.json").read_bytes())
                     with urllib.request.urlopen(url + "/", timeout=3) as response:
-                        build = response.headers.get("X-VIRA-SPA-Build")
+                        build = response.headers.get("X-NOA-SPA-Build")
                     if (
                         health["status"] == "ready"
                         and health.get("alembic_revision")
@@ -444,7 +444,7 @@ def inspect_recovery(
         ):
             raise ValueError("Independent external digest required")
     runner = Path(os.environ["RUNNER_TEMP"])
-    if home != Path(os.environ["LOCALAPPDATA"]) / "VIRA/private-native-installed":
+    if home != Path(os.environ["LOCALAPPDATA"]) / "NOA/private-native-installed":
         raise ValueError("Foreign recovery profile")
     for p in (root, home, attempt, archive):
         no_links(p)
@@ -582,7 +582,7 @@ def inspect_recovery(
         raise ValueError("Old database verifier is not anchored")
     bundle = attempt / "database-rollback"
     metadata = read((bundle / "metadata.json").read_bytes())
-    database = state / "data/data/vira.sqlite3"
+    database = state / "data/data/noa.sqlite3"
     if (
         set(metadata) != {"schema_version", "database", "sha256", "fingerprint"}
         or type(metadata["schema_version"]) is not int
@@ -644,7 +644,7 @@ def recovery_mutex():
     kernel.ReleaseMutex.restype = wintypes.BOOL
     kernel.CloseHandle.argtypes = (wintypes.HANDLE,)
     kernel.CloseHandle.restype = wintypes.BOOL
-    handle = kernel.CreateMutexW(None, False, "Global\\VIRA-Updater")
+    handle = kernel.CreateMutexW(None, False, "Global\\NOA-Updater")
     if not handle:
         raise ctypes.WinError(ctypes.get_last_error())
     owned = False
@@ -727,7 +727,7 @@ def recover(
                 or sha(bundle / "database.sqlite3") != snapshot_sha256):
             raise ValueError("Recovery database snapshot changed before restore")
         dbtool["restore"](bundle)
-        database = state / "data/data/vira.sqlite3"
+        database = state / "data/data/noa.sqlite3"
         if dbtool["fingerprint"](database) != database_fingerprint or assets() != preserved:
             raise ValueError("Restored database/session/receipts differ")
         bridge = runpy.run_path(str(root / "app/private_installed_source.py"))
@@ -821,7 +821,7 @@ def main() -> None:
             raise ValueError("Private disposable Windows CI recovery only")
         result = recover(
             args.install_root,
-            Path(os.environ["LOCALAPPDATA"]) / "VIRA/private-native-installed",
+            Path(os.environ["LOCALAPPDATA"]) / "NOA/private-native-installed",
             args.attempt, args.archive, args.archive_sha256,
             args.old_anchor_sha256, args.database_fingerprint,
         )
@@ -842,7 +842,7 @@ def main() -> None:
             or path == runner
         ):
             raise ValueError("Disposable runner-owned paths required")
-    home = profile / "VIRA/private-native-installed"
+    home = profile / "NOA/private-native-installed"
     if (
         root.is_relative_to(home)
         or home.is_relative_to(root)
@@ -882,7 +882,7 @@ def main() -> None:
     safe_terminal = True
     update_lock = home / "state/data/updates/.update.lock"
     try:
-        assembled = attempt / "VIRA هدف فارسی ! &"
+        assembled = attempt / "NOA هدف فارسی ! &"
         baseline, final, changed = assemble(
             root, args.archive, assembled, old, target, args.archive_sha256
         )
@@ -909,7 +909,7 @@ def main() -> None:
         with update_lock.open("xb") as stream:
             stream.write(token.encode())
         dbtool = runpy.run_path(str(root / "scripts/update_database.py"))
-        database = home / "state/data/data/vira.sqlite3"
+        database = home / "state/data/data/noa.sqlite3"
         snapshot = dbtool["snapshot"](database, attempt / "database-rollback")
         backup = attempt / "files-before"
         for name in changed + ["install_manifest.json"]:

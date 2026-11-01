@@ -22,7 +22,7 @@ from app.services.update_engine import VerificationError, sha256_bytes
 def delta_bytes(extra: dict[str, bytes] | None = None, **over: object) -> bytes:
     helper, content = b"MZ-fixture-helper", b"new code"
     members = {
-        "vira-updater.exe": helper,
+        "noa-updater.exe": helper,
         "files/app/new.py": content,
         "version.json": b'{"version":"2.0.0"}',
         "install_manifest.json": b'{"files":[]}',
@@ -30,7 +30,7 @@ def delta_bytes(extra: dict[str, bytes] | None = None, **over: object) -> bytes:
     doc = {
         "base_version": "1.5.0", "target_version": "2.0.0",
         "operations": [{"op": "add", "path": "app/new.py", "sha256": sha256_bytes(content), "size": len(content)}],
-        "hashes": {"vira-updater.exe": sha256_bytes(helper), "files/app/new.py": sha256_bytes(content)},
+        "hashes": {"noa-updater.exe": sha256_bytes(helper), "files/app/new.py": sha256_bytes(content)},
     } | over
     members["update.json"] = json.dumps(doc).encode()
     members.update(extra or {})
@@ -87,7 +87,7 @@ def test_verified_delta_is_extracted_before_staged(tmp_path, monkeypatch):
     assert status["state"] == "staged" and status["verified"]
     stage = Path(status["staged_path"])
     assert (stage / "update.json").is_file()
-    assert (stage / "vira-updater.exe").is_file()
+    assert (stage / "noa-updater.exe").is_file()
     assert (stage / "files/app/new.py").read_bytes() == b"new code"
     assert "verified" in Path(status["log_path"]).read_text(encoding="utf-8")
 
@@ -96,12 +96,12 @@ def test_verified_delta_is_extracted_before_staged(tmp_path, monkeypatch):
     ({"../../escape": b"bad"}, {}),
     ({"C:/escape": b"bad"}, {}),
     ({"files\\escape": b"bad"}, {}),
-    ({"vira-updater.exe ": b"Windows alias"}, {}),
+    ({"noa-updater.exe ": b"Windows alias"}, {}),
     ({"files/CON.txt": b"reserved device"}, {}),
     ({"VERSION.JSON": b"duplicate on Windows"}, {}),
     ({}, {"target_version": "9.9.9"}),
-    ({}, {"hashes": {"vira-updater.exe": "ff" * 32}}),
-    ({}, {"operations": [{"op": "delete", "path": "../data/vira.sqlite3"}]}),
+    ({}, {"hashes": {"noa-updater.exe": "ff" * 32}}),
+    ({}, {"operations": [{"op": "delete", "path": "../data/noa.sqlite3"}]}),
 ])
 def test_invalid_delta_cannot_be_applied(tmp_path, monkeypatch, extra, over):
     manager = update.UpdateManager()
@@ -255,7 +255,7 @@ def test_release_generator_output_can_be_staged(tmp_path):
         (root / "app").mkdir(parents=True)
         (root / "app" / "module.py").write_bytes(content)
         (root / "version.json").write_text(json.dumps({"version": version}), encoding="utf-8")
-        (root / "vira-updater.exe").write_bytes(b"MZ-fixture-helper")
+        (root / "noa-updater.exe").write_bytes(b"MZ-fixture-helper")
     manifest = base / "install_manifest.json"
     manifest.write_text(json.dumps(manifest_to_json(build_manifest(base))), encoding="utf-8")
     script = Path(__file__).resolve().parents[2] / "scripts" / "gen_delta.py"
@@ -265,10 +265,10 @@ def test_release_generator_output_can_be_staged(tmp_path):
         "--out", str(tmp_path), "--patch-threshold", "100",
     ], check=True, capture_output=True)
     stage = tmp_path / "payload"
-    extract_delta(tmp_path / "VIRA-v2.0.0-delta-from-v1.5.0.zip", stage, "1.5.0", "2.0.0")
+    extract_delta(tmp_path / "NOA-v2.0.0-delta-from-v1.5.0.zip", stage, "1.5.0", "2.0.0")
     doc = json.loads((stage / "update.json").read_text(encoding="utf-8"))
     assert any(op["op"] == "patch" for op in doc["operations"])
-    assert (stage / "vira-updater.exe").read_bytes() == b"MZ-fixture-helper"
+    assert (stage / "noa-updater.exe").read_bytes() == b"MZ-fixture-helper"
     assert (stage / "version.json").is_file()
 
 

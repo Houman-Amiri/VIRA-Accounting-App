@@ -1,7 +1,7 @@
 /** Calendar acceptance through real authenticated forms / disposable SQLite. */
 import { expect, type Page } from "@playwright/test";
 export async function auditCalendar(page: Page): Promise<void> {
-  expect(process.env.VIRA_E2E_DISPOSABLE_DATABASE).toBe("1");
+  expect(process.env.NOA_E2E_DISPOSABLE_DATABASE).toBe("1");
   async function mobileDate(id: string) {
     await page.setViewportSize({ width: 390, height: 844 });
     const input = page.getByTestId(id);
@@ -35,7 +35,7 @@ export async function auditCalendar(page: Page): Promise<void> {
   const entry = (await entryResponse.json()).entry;
   expect(entry.transaction_date).toBe("2026-10-17");
   // A stocked warehouse product is required for an order line (item 7).
-  const token = (await page.context().cookies()).find((c) => c.name === "vira_csrf")!.value;
+  const token = (await page.context().cookies()).find((c) => c.name === "noa_csrf")!.value;
   const headers = { "X-CSRF-Token": decodeURIComponent(token), Origin: new URL(page.url()).origin };
   const productResponse = await page.request.post("/api/v1/warehouse/items", {
     headers,

@@ -1,6 +1,6 @@
 """Scoped ingest API keys (Phase 5 §2).
 
-High-entropy secrets (`vira_sk_<prefix>_<secret>`) for the `ingest_api` role —
+High-entropy secrets (`noa_sk_<prefix>_<secret>`) for the `ingest_api` role —
 restricted strictly to posting draft journal entries and uploading receipts.
 Only the SHA-256 hash is stored (keys have 256 bits of entropy, so a fast hash
 is safe and enables O(1) prefix lookup + constant-time compare).
@@ -28,7 +28,7 @@ def generate_api_key() -> tuple[str, str, str]:
     """Return ``(full_key, key_prefix, key_hash)`` — the full key is shown ONCE."""
     prefix = secrets.token_hex(KEY_PREFIX_LEN)
     secret = secrets.token_urlsafe(SECRET_BYTES)
-    full_key = f"vira_sk_{prefix}_{secret}"
+    full_key = f"noa_sk_{prefix}_{secret}"
     return full_key, prefix, hash_secret(secret)
 
 
@@ -37,9 +37,9 @@ def hash_secret(secret: str) -> str:
 
 
 def split_key(full_key: str) -> tuple[str, str] | None:
-    if not full_key.startswith("vira_sk_"):
+    if not full_key.startswith("noa_sk_"):
         return None
-    body = full_key[len("vira_sk_") :]
+    body = full_key[len("noa_sk_") :]
     if "_" not in body:
         return None
     prefix, secret = body.split("_", 1)

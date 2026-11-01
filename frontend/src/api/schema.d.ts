@@ -3244,7 +3244,7 @@ export interface operations {
             header?: never;
             path?: never;
             cookie?: {
-                vira_session?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody?: never;
@@ -3277,7 +3277,7 @@ export interface operations {
             header?: never;
             path?: never;
             cookie?: {
-                vira_session?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody?: never;
@@ -3346,8 +3346,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_csrf?: string | null;
-                vira_session?: string | null;
+                noa_csrf?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody?: never;
@@ -3381,8 +3381,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_csrf?: string | null;
-                vira_session?: string | null;
+                noa_csrf?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody?: never;
@@ -3415,7 +3415,7 @@ export interface operations {
             header?: never;
             path?: never;
             cookie?: {
-                vira_session?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody?: never;
@@ -3449,8 +3449,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_csrf?: string | null;
-                vira_session?: string | null;
+                noa_csrf?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody?: never;
@@ -3484,8 +3484,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_csrf?: string | null;
-                vira_session?: string | null;
+                noa_csrf?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody: {
@@ -3525,8 +3525,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_csrf?: string | null;
-                vira_session?: string | null;
+                noa_csrf?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody: {
@@ -3566,8 +3566,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_csrf?: string | null;
-                vira_session?: string | null;
+                noa_csrf?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody: {
@@ -3607,8 +3607,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -3642,8 +3642,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -3689,8 +3689,8 @@ export interface operations {
                 account_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -3726,8 +3726,8 @@ export interface operations {
                 account_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -3770,8 +3770,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -3806,8 +3806,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -3847,8 +3847,8 @@ export interface operations {
                 entry_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -3884,8 +3884,8 @@ export interface operations {
                 entry_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -3924,8 +3924,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -3965,8 +3965,8 @@ export interface operations {
                 entry_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -4002,8 +4002,8 @@ export interface operations {
                 entry_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -4043,8 +4043,8 @@ export interface operations {
                 entry_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -4080,8 +4080,8 @@ export interface operations {
                 entry_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -4119,8 +4119,8 @@ export interface operations {
                 entry_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -4158,8 +4158,8 @@ export interface operations {
                 entry_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -4193,7 +4193,7 @@ export interface operations {
             header?: never;
             path?: never;
             cookie?: {
-                vira_session?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody?: never;
@@ -4226,7 +4226,7 @@ export interface operations {
             header?: never;
             path?: never;
             cookie?: {
-                vira_session?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody?: never;
@@ -4260,7 +4260,7 @@ export interface operations {
             header?: never;
             path?: never;
             cookie?: {
-                vira_session?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody?: never;
@@ -4295,7 +4295,7 @@ export interface operations {
             header?: never;
             path?: never;
             cookie?: {
-                vira_session?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody?: never;
@@ -4330,7 +4330,7 @@ export interface operations {
             header?: never;
             path?: never;
             cookie?: {
-                vira_session?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody?: never;
@@ -4364,8 +4364,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -4405,8 +4405,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -4444,8 +4444,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -4481,8 +4481,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -4522,8 +4522,8 @@ export interface operations {
                 session_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -4559,8 +4559,8 @@ export interface operations {
                 session_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -4597,8 +4597,8 @@ export interface operations {
                 split_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -4635,8 +4635,8 @@ export interface operations {
                 session_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -4673,8 +4673,8 @@ export interface operations {
                 session_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -4710,8 +4710,8 @@ export interface operations {
                 session_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -4747,7 +4747,7 @@ export interface operations {
             header?: never;
             path?: never;
             cookie?: {
-                vira_session?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody?: never;
@@ -4784,8 +4784,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -4825,8 +4825,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -4862,8 +4862,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -4905,8 +4905,8 @@ export interface operations {
                 doc_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -4942,8 +4942,8 @@ export interface operations {
                 doc_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -4980,8 +4980,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -5016,8 +5016,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -5058,8 +5058,8 @@ export interface operations {
                 key_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -5093,8 +5093,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -5128,8 +5128,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -5167,8 +5167,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -5202,8 +5202,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -5240,7 +5240,7 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody?: never;
@@ -5273,7 +5273,7 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody?: never;
@@ -5308,7 +5308,7 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody?: never;
@@ -5343,7 +5343,7 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody?: never;
@@ -5374,7 +5374,7 @@ export interface operations {
             header?: never;
             path?: never;
             cookie?: {
-                vira_session?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody?: never;
@@ -5407,7 +5407,7 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody: {
@@ -5442,7 +5442,7 @@ export interface operations {
             header?: never;
             path?: never;
             cookie?: {
-                vira_session?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody?: never;
@@ -5475,7 +5475,7 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
+                noa_session?: string | null;
             };
         };
         requestBody?: never;
@@ -5509,8 +5509,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -5544,8 +5544,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -5585,8 +5585,8 @@ export interface operations {
                 period_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -5623,8 +5623,8 @@ export interface operations {
                 period_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -5653,9 +5653,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
-                "X-VIRA-Signature"?: string | null;
-                "X-VIRA-Timestamp"?: string | null;
-                "X-VIRA-Event-Id"?: string | null;
+                "X-NOA-Signature"?: string | null;
+                "X-NOA-Timestamp"?: string | null;
+                "X-NOA-Event-Id"?: string | null;
             };
             path?: never;
             cookie?: never;
@@ -5692,8 +5692,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -5727,8 +5727,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -5764,8 +5764,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -5799,8 +5799,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -5840,8 +5840,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -5879,8 +5879,8 @@ export interface operations {
                 supplier_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -5916,8 +5916,8 @@ export interface operations {
                 supplier_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -5959,8 +5959,8 @@ export interface operations {
                 category: "types" | "units";
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -5996,8 +5996,8 @@ export interface operations {
                 category: "types" | "units";
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -6040,8 +6040,8 @@ export interface operations {
                 ident: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -6078,8 +6078,8 @@ export interface operations {
                 ident: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -6121,8 +6121,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -6156,8 +6156,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -6199,8 +6199,8 @@ export interface operations {
                 item_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -6236,8 +6236,8 @@ export interface operations {
                 item_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -6277,8 +6277,8 @@ export interface operations {
                 item_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -6320,8 +6320,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -6355,8 +6355,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -6390,8 +6390,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -6433,8 +6433,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -6468,8 +6468,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -6507,8 +6507,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -6546,8 +6546,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -6583,8 +6583,8 @@ export interface operations {
                 order_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -6620,8 +6620,8 @@ export interface operations {
                 order_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -6657,8 +6657,8 @@ export interface operations {
                 order_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -6698,8 +6698,8 @@ export interface operations {
                 order_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -6737,8 +6737,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -6772,8 +6772,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -6813,8 +6813,8 @@ export interface operations {
                 job_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -6850,8 +6850,8 @@ export interface operations {
                 job_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody: {
@@ -6891,8 +6891,8 @@ export interface operations {
                 job_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -6928,8 +6928,8 @@ export interface operations {
                 job_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -6965,8 +6965,8 @@ export interface operations {
                 job_id: string;
             };
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;
@@ -7000,8 +7000,8 @@ export interface operations {
             };
             path?: never;
             cookie?: {
-                vira_session?: string | null;
-                vira_csrf?: string | null;
+                noa_session?: string | null;
+                noa_csrf?: string | null;
             };
         };
         requestBody?: never;

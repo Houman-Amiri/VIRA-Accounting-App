@@ -93,7 +93,7 @@ def test_http_required_target_cannot_be_missing_from_baseline(tmp_path):
     hashes = legacy.stamp(root)
     with pytest.raises(ValueError, match='Required bootstrap files'):
         launcher.validate_payload(root, *hashes, http_proof=True)
-    for name in ('scripts/pdf_private_http_probe.py', 'app/main.py', 'scripts/migrate_vira.py', 'backend/alembic.ini'):
+    for name in ('scripts/pdf_private_http_probe.py', 'app/main.py', 'scripts/migrate_noa.py', 'backend/alembic.ini'):
         target = root / name
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(b'only a unit fixture')
@@ -139,8 +139,8 @@ class FakeAudit:
 def make_app(database, tmp_path, monkeypatch):
     static = tmp_path / 'unit-static'
     static.mkdir()
-    (static / 'index.html').write_text('<meta name="vira-build" content="UNIT-FAKE-NOT-COMPILED-SPA">')
-    monkeypatch.setenv('VIRA_STATIC_DIR', str(static))
+    (static / 'index.html').write_text('<meta name="noa-build" content="UNIT-FAKE-NOT-COMPILED-SPA">')
+    monkeypatch.setenv('NOA_STATIC_DIR', str(static))
     from app.main import create_app
     return create_app(database.settings)
 
@@ -156,8 +156,8 @@ def test_real_tcp_factory_auth_csrf_orders_restart_and_shutdown(database, tmp_pa
         # Each create_app gets its own DB engine; never reuse a disposed lifespan engine.
         static = tmp_path / ('static-' + str(reuse))
         static.mkdir()
-        (static / 'index.html').write_text('<meta name="vira-build" content="UNIT-FAKE-NOT-COMPILED">')
-        monkeypatch.setenv('VIRA_STATIC_DIR', str(static))
+        (static / 'index.html').write_text('<meta name="noa-build" content="UNIT-FAKE-NOT-COMPILED">')
+        monkeypatch.setenv('NOA_STATIC_DIR', str(static))
         from app.main import create_app
         app = create_app(database.settings)
         audit = FakeAudit()

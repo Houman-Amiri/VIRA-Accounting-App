@@ -1,4 +1,4 @@
-"""External-only QA client for the REAL start_vira.cmd candidate. No app imports."""
+"""External-only QA client for the REAL start_noa.cmd candidate. No app imports."""
 
 from __future__ import annotations
 
@@ -43,7 +43,7 @@ def exercise_http(url, state, out, password, reuse, persistent_session):
         ):
             raise ValueError("Production health/readiness/migration gate failed")
         spa = checked(client.get("/"), 200)
-        if 'name="vira-build"' not in spa.text:
+        if 'name="noa-build"' not in spa.text:
             raise ValueError("Staged compiled SPA is not served by the real factory")
         if reuse:
             client.cookies.update(persistent_session)
@@ -161,7 +161,7 @@ def dump(path, data):
 
 def launch(root, request, log, environment):
     # Explicit cmd.exe, fixed script, quoted file path; no shell-supplied code.
-    command = f'"{os.environ["COMSPEC"]}" /d /s /c ""{root / "start_vira.cmd"}" --private-source-candidate "{request}""'
+    command = f'"{os.environ["COMSPEC"]}" /d /s /c ""{root / "start_noa.cmd"}" --private-source-candidate "{request}""'
     return subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT, env=environment)
 
 

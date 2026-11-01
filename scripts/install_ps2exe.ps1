@@ -1,4 +1,4 @@
-# install_ps2exe.ps1 — compile vira-updater.exe in CI without a flaky single shot.
+# install_ps2exe.ps1 — compile noa-updater.exe in CI without a flaky single shot.
 #
 # PSGallery intermittently refuses downloads. A transient mirror error must not
 # be reported as a broken build, and a real outage must still fail the job.

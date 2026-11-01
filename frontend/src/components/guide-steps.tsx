@@ -15,7 +15,7 @@ export interface GuideStep {
   body: string;
 }
 
-const STORAGE_PREFIX = "vira-guide-dismissed:";
+const STORAGE_PREFIX = "noa-guide-dismissed:";
 
 function readDismissed(id: string): boolean {
   try {

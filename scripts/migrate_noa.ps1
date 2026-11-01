@@ -8,9 +8,9 @@
   equality. On failure it prints the tested restore command.
 
 .EXAMPLE
-  .\migrate_vira.ps1
-  .\migrate_vira.ps1 -Database "$env:LOCALAPPDATA\VIRA\data\vira.sqlite3" -Report migration-report.json
-  .\migrate_vira.ps1 -Restore "$env:LOCALAPPDATA\VIRA\backups"
+  .\migrate_noa.ps1
+  .\migrate_noa.ps1 -Database "$env:LOCALAPPDATA\NOA\data\noa.sqlite3" -Report migration-report.json
+  .\migrate_noa.ps1 -Restore "$env:LOCALAPPDATA\NOA\backups"
 #>
 [CmdletBinding()]
 param(
@@ -25,7 +25,7 @@ $root = Split-Path -Parent $PSScriptRoot
 if ($Database -eq "") {
     $Database = $env:SQLITE_DATABASE_PATH
     if (-not $Database) {
-        $Database = Join-Path $env:LOCALAPPDATA "VIRA\data\vira.sqlite3"
+        $Database = Join-Path $env:LOCALAPPDATA "NOA\data\noa.sqlite3"
     }
 }
 
@@ -34,7 +34,7 @@ if (-not (Test-Path $py)) {
     $py = "python"
 }
 
-$argsList = @((Join-Path $PSScriptRoot "migrate_vira.py"), "--database", $Database)
+$argsList = @((Join-Path $PSScriptRoot "migrate_noa.py"), "--database", $Database)
 if ($Report -ne "") { $argsList += @("--report", $Report) }
 if ($Restore -ne "") { $argsList += @("--restore", $Restore) }
 

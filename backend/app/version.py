@@ -1,10 +1,10 @@
 """Application version + build provenance (Phase 6 §8, Phase 8 §2).
 
-Precedence for **version**: ``VIRA_VERSION`` env → ``version.json`` next to the
+Precedence for **version**: ``NOA_VERSION`` env → ``version.json`` next to the
 running app (written by the installer/updater) → installed distribution
 metadata (``pyproject.toml`` in dev checkouts) → ``"0.0.0-unknown"``.
 
-Precedence for **commit**: ``VIRA_GIT_COMMIT`` env → ``version.json:commit`` →
+Precedence for **commit**: ``NOA_GIT_COMMIT`` env → ``version.json:commit`` →
 ``git rev-parse --short HEAD`` (dev checkout only) → ``"unknown"``.
 
 The installed payload has neither distribution metadata (the backend is copied,
@@ -29,7 +29,7 @@ UNKNOWN_COMMIT = "unknown"
 def _app_roots() -> list[Path]:
     """Candidate directories that may hold the shipped ``version.json``."""
     roots: list[Path] = []
-    env_dir = os.environ.get("VIRA_APP_DIR")
+    env_dir = os.environ.get("NOA_APP_DIR")
     if env_dir:
         roots.append(Path(env_dir))
     # installed payload: {app}/python/python.exe  ->  {app}/version.json
@@ -90,7 +90,7 @@ def _metadata_version() -> str:
     try:
         from importlib.metadata import version
 
-        return version("vira-accounting")
+        return version("noa-accounting")
     except Exception:  # noqa: BLE001 - any failure falls back below
         return ""
 
@@ -115,7 +115,7 @@ def _git_commit() -> str:
 def _provenance() -> dict[str, str]:
     """Expensive part: the shipped stamp, the installed metadata and git.
 
-    The ``VIRA_*`` environment overrides are deliberately NOT part of the
+    The ``NOA_*`` environment overrides are deliberately NOT part of the
     cached value — ``version_info()`` re-reads them on every call, because a
     cached read froze the first answer for the whole process (that is how an
     unstamped install kept reporting itself as ``0.0.0-unknown``).
@@ -137,10 +137,10 @@ def version_info() -> dict[str, str]:
     """Version + commit + build stamp, with live environment overrides."""
     info = dict(_provenance())
     for key, env in (
-        ("version", "VIRA_VERSION"),
-        ("commit", "VIRA_GIT_COMMIT"),
-        ("built_at", "VIRA_BUILT_AT"),
-        ("spa_build", "VIRA_SPA_BUILD"),
+        ("version", "NOA_VERSION"),
+        ("commit", "NOA_GIT_COMMIT"),
+        ("built_at", "NOA_BUILT_AT"),
+        ("spa_build", "NOA_SPA_BUILD"),
     ):
         override = os.environ.get(env)
         if override:

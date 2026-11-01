@@ -61,7 +61,7 @@ def test_export_refuses_a_non_ed25519_key(tmp_path):
 def test_cli_never_prints_the_private_key(tmp_path):
     _, pem = private_pem()
     out = tmp_path / "key.pem"
-    env = dict(os.environ, VIRA_UPDATE_SIGNING_KEY=pem)
+    env = dict(os.environ, NOA_UPDATE_SIGNING_KEY=pem)
     child = subprocess.run(
         [sys.executable, str(ROOT / "scripts/export_update_public_key.py"), "--out", str(out)],
         env=env, capture_output=True, text=True, timeout=30,
@@ -74,7 +74,7 @@ def test_cli_never_prints_the_private_key(tmp_path):
 
 
 def test_cli_failure_is_quiet_and_exits_nonzero(tmp_path):
-    env = dict(os.environ, VIRA_UPDATE_SIGNING_KEY="SENSITIVE INVALID")
+    env = dict(os.environ, NOA_UPDATE_SIGNING_KEY="SENSITIVE INVALID")
     child = subprocess.run(
         [sys.executable, str(ROOT / "scripts/export_update_public_key.py"), "--out", str(tmp_path / "k.pem")],
         env=env, capture_output=True, text=True, timeout=30,
@@ -91,7 +91,7 @@ def test_packaged_app_would_actually_verify_signatures():
     # An explicit operator/CI value must still win over the baked file.
     assert 'Field(default_factory=default_update_public_key)' in config
     stage = (ROOT / "scripts/stage_app_payload.ps1").read_text(encoding="utf-8")
-    copy_at = stage.index("VIRA_UPDATE_PUBLIC_KEY_FILE")
+    copy_at = stage.index("NOA_UPDATE_PUBLIC_KEY_FILE")
     manifest_at = stage.index("scripts/build_manifest.py")
     assert copy_at < manifest_at, "the key must exist before the install manifest is built"
     workflow = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
@@ -144,7 +144,7 @@ def test_bundled_interpreter_is_pinned_so_routine_deltas_stay_small():
     """v1.0.11 shipped a 30 MB delta because the runtime silently changed."""
     stage = (ROOT / "scripts/stage_app_payload.ps1").read_text(encoding="utf-8")
     assert 'uv python install 3.11 | Out-Null' not in stage, "a floating minor lets upstream swap the whole runtime"
-    assert "$pinnedPython" in stage and "$env:VIRA_PINNED_PYTHON" in stage
+    assert "$pinnedPython" in stage and "$env:NOA_PINNED_PYTHON" in stage
     assert 'uv python find --managed-python $pinnedPython' in stage
     assert 'bundled interpreter drifted from the pinned CPython' in stage, "drift must fail loudly, not silently ship"
     assert '--system --managed-python' not in stage, "a system interpreter can change with the runner image"

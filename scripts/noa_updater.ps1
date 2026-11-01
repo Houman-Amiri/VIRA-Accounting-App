@@ -1,9 +1,9 @@
-﻿# vira_updater.ps1 — transactional update helper (Phase 8 §6/§7)
+﻿# noa_updater.ps1 — transactional update helper (Phase 8 §6/§7)
 #
-# Compiled to vira-updater.exe in CI (ps2exe). The main app launches it after
+# Compiled to noa-updater.exe in CI (ps2exe). The main app launches it after
 # the user confirms the update. It:
 #   1. takes a named mutex + lock file (single instance; app refuses to start mid-update)
-#   2. gracefully stops FastAPI + scheduler (stop_vira semantics)
+#   2. gracefully stops FastAPI + scheduler (stop_noa semantics)
 #   3. snapshots every file scheduled to change into {app}\rollback\prev\
 #      (+ copies install_manifest.json / version.json)
 #   4. applies file operations: copies from files/, bsdiff patches via tools\bspatch.exe,
@@ -18,7 +18,7 @@
 # {app}\rollback only after that.
 
 param(
-    [Parameter(Mandatory = $true)][string]$Stage,   # staging dir: %LOCALAPPDATA%\VIRA\updates\<version>\
+    [Parameter(Mandatory = $true)][string]$Stage,   # staging dir: %LOCALAPPDATA%\NOA\updates\<version>\
     [Parameter(Mandatory = $true)][string]$Log,     # update.log path
     [Alias("install-dir")][string]$InstallDir = "",                       # recorded InstallDir (registry fallback)
     [int]$ParentPid = 0,
@@ -122,7 +122,7 @@ function Invoke-PrivateController([string]$Executable, [string[]]$Arguments) {
 if ($PrivateSourceTransaction) {
     if ($env:GITHUB_ACTIONS -ne "true") { throw "Private installed source Windows CI only" }
     $runnerPrefix = [IO.Path]::GetFullPath($env:RUNNER_TEMP).TrimEnd('\') + '\'
-    $privateHome = Join-Path $env:LOCALAPPDATA "VIRA\private-native-installed"
+    $privateHome = Join-Path $env:LOCALAPPDATA "NOA\private-native-installed"
     $installFull = [IO.Path]::GetFullPath($InstallDir).TrimEnd('\')
     $stageFull = [IO.Path]::GetFullPath($Stage).TrimEnd('\')
     foreach ($path in @($installFull, $stageFull, $privateHome, (Join-Path $privateHome 'anchor.json'), (Join-Path $installFull 'install_manifest.json'), $PrivateSourceTransaction)) {
@@ -163,7 +163,7 @@ if ($PrivateSourceTransaction) {
     if ($context.role -ne 'PRIVATE_SOURCE_TRANSACTION') { throw "Private transaction context required" }
     $privateOldAnchorHash = Get-Sha256 (Join-Path $privateHome 'anchor.json')
     $privateTargetAnchorHash = Get-Sha256 ([string]$context.target_anchor)
-    $privateMutex = New-Object System.Threading.Mutex($false, 'Global\VIRA-Updater')
+    $privateMutex = New-Object System.Threading.Mutex($false, 'Global\NOA-Updater')
     if (-not $privateMutex.WaitOne(0)) { throw "another update is already running" }
     $channelLock = Join-Path $privateHome '.native-channel.lock'
     $privateAttempt = [IO.Path]::GetFileName([string]$context.attempt)
@@ -184,7 +184,7 @@ if ($PrivateSourceTransaction) {
             $stream.Flush($true)
             $channelOwned = $true
         } finally { $stream.Dispose() }
-        $external = Join-Path $env:RUNNER_TEMP ('VIRA controller خصوصی ! & ' + [guid]::NewGuid().ToString('N'))
+        $external = Join-Path $env:RUNNER_TEMP ('NOA controller خصوصی ! & ' + [guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $external | Out-Null
         Copy-Item -LiteralPath $driver -Destination (Join-Path $external 'private_source_update.py')
         if ((Get-Sha256 (Join-Path $external 'private_source_update.py')) -ne $entry[0].sha256) { throw "Private controller copy mismatch" }
@@ -250,7 +250,7 @@ $script:added = @()
 $script:launcherPid = 0
 $script:targetVersion = ""
 $script:attemptId = [guid]::NewGuid().ToString("N")
-if (-not $Port) { $Port = if ($env:VIRA_PORT) { [int]$env:VIRA_PORT } else { 8787 } }
+if (-not $Port) { $Port = if ($env:NOA_PORT) { [int]$env:NOA_PORT } else { 8787 } }
 
 # Published 1.0.9 launches the staged helper without -ResultPath. Recover only
 # its known updates/<semver>/<uuid>/payload layout, not an arbitrary ancestor.
@@ -278,7 +278,7 @@ function Write-Result([string]$State, [string]$Reason = "") {
 }
 
 function Safe-Target([string]$Relative) {
-    if ($Relative -notmatch '^(app|backend|python|scripts|site-packages|static|tools)/|^(version.json|install_manifest.json|start_vira.cmd|vira-updater.exe)$') {
+    if ($Relative -notmatch '^(app|backend|python|scripts|site-packages|static|tools)/|^(version.json|install_manifest.json|start_noa.cmd|noa-updater.exe)$') {
         throw "non-application target: $Relative"
     }
     if ($Relative.Contains("\") -or $Relative.Contains(":") -or ($Relative.Split("/") -contains "..")) { throw "unsafe path: $Relative" }
@@ -327,9 +327,13 @@ function Stop-App {
 function Start-App {
     # Old launchers export their running version. Do NOT pass that stale stamp
     # to the new backend: the new version.json is authoritative after restart.
-    Remove-Item Env:VIRA_VERSION,Env:VIRA_GIT_COMMIT,Env:VIRA_SPA_BUILD -ErrorAction SilentlyContinue
-    $env:VIRA_UPDATE_RESTART = "1"
-    $launcher = Join-Path $InstallDir "start_vira.cmd"
+    Remove-Item Env:NOA_VERSION,Env:NOA_GIT_COMMIT,Env:NOA_SPA_BUILD -ErrorAction SilentlyContinue
+    $env:NOA_UPDATE_RESTART = "1"
+    $launcher = Join-Path $InstallDir "start_noa.cmd"
+    if (-not (Test-Path -LiteralPath $launcher)) {
+        # A rollback restores a pre-rename install, which carries its own launcher.
+        $launcher = Join-Path $InstallDir "start_vira.cmd"
+    }
     if (-not (Test-Path -LiteralPath $launcher)) { throw "launcher missing" }
     $started = Start-Process -FilePath "cmd.exe" -ArgumentList "/c", "`"`"$launcher`"`"" -WorkingDirectory $InstallDir -PassThru
     $script:launcherPid = $started.Id
@@ -341,11 +345,14 @@ function Wait-Healthy($Stamp) {
         try {
             $health = Invoke-RestMethod "http://127.0.0.1:$Port/api/v1/health/ready" -TimeoutSec 2
             $spa = Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:$Port/" -TimeoutSec 2
+            # A pre-rename client still reports its own build header.
+            $build = [string]$spa.Headers['X-NOA-SPA-Build']
+            if (-not $build) { $build = [string]$spa.Headers['X-VIRA-SPA-Build'] }
             $expected = [string]$Stamp.spa_build
             if (-not $expected -and $Stamp.commit) { $expected = ([string]$Stamp.commit).Substring(0, [Math]::Min(7, ([string]$Stamp.commit).Length)) }
             if ($health.status -eq "ready" -and $health.invariants.integrity_check -eq "ok" -and
                 $health.invariants.foreign_key_violations -eq 0 -and $health.invariants.balanced -eq $true -and
-                (-not $expected -or ([string]$spa.Headers['X-VIRA-SPA-Build']) -eq $expected)) { return }
+                (-not $expected -or $build -eq $expected)) { return }
         } catch { }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
@@ -353,12 +360,12 @@ function Wait-Healthy($Stamp) {
 }
 
 # ---------------------------------------------------------------- mutex ----
-$mutex = New-Object System.Threading.Mutex($false, "Global\VIRA-Updater")
+$mutex = New-Object System.Threading.Mutex($false, "Global\NOA-Updater")
 if (-not $mutex.WaitOne(0)) {
     Write-Output "به‌روزرسانی دیگری در حال اجرا است."
     throw "another update is already running"
 }
-$lockFile = if ($ResultPath) { Join-Path (Split-Path $ResultPath) ".update.lock" } else { Join-Path $env:LOCALAPPDATA "VIRA\updates\.update.lock" }
+$lockFile = if ($ResultPath) { Join-Path (Split-Path $ResultPath) ".update.lock" } else { Join-Path $env:LOCALAPPDATA "NOA\updates\.update.lock" }
 New-Item -ItemType Directory -Force -Path (Split-Path $lockFile) | Out-Null
 @{ pid = $PID; attempt_id = $script:attemptId } | ConvertTo-Json -Compress |
     Set-Content -Path $lockFile -Encoding ascii
@@ -366,8 +373,8 @@ New-Item -ItemType Directory -Force -Path (Split-Path $lockFile) | Out-Null
 try {
     # ------------------------------------------------------ locate install ----
     if (-not $InstallDir) {
-        $reg = Get-ItemProperty -Path "HKLM:\SOFTWARE\VIRA" -Name InstallDir -ErrorAction SilentlyContinue
-        if (-not $reg) { $reg = Get-ItemProperty -Path "HKCU:\SOFTWARE\VIRA" -Name InstallDir -ErrorAction SilentlyContinue }
+        $reg = Get-ItemProperty -Path "HKLM:\SOFTWARE\NOA" -Name InstallDir -ErrorAction SilentlyContinue
+        if (-not $reg) { $reg = Get-ItemProperty -Path "HKCU:\SOFTWARE\NOA" -Name InstallDir -ErrorAction SilentlyContinue }
         if ($reg) { $InstallDir = $reg.InstallDir }
     }
     if (-not $InstallDir -or -not (Test-Path $InstallDir)) { throw "InstallDir یافت نشد" }
@@ -512,7 +519,7 @@ catch {
         Write-Log "ROLLBACK FAILED: $($_.Exception.Message)"
         Write-Result "failed" "بازگردانی کامل تأیید نشد؛ از اجرای نصب دوباره خودداری و گزارش را بررسی کنید."
     }
-    throw "vira-updater failed: $failure (see $logPath)"
+    throw "noa-updater failed: $failure (see $logPath)"
 }
 finally {
     Remove-Item -LiteralPath $lockFile -Force -ErrorAction SilentlyContinue

@@ -33,7 +33,7 @@ def sale_payload(**kw) -> dict:
     return {
         "kind": "sale",
         "transaction_date": "2026-10-20",
-        "seller": "فروشگاه ویرا",
+        "seller": "فروشگاه نوا",
         "buyer": "آقای مشتری",
         "note": "تحویل حضوری",
         "lines": [
@@ -66,7 +66,7 @@ async def test_sale_invoice_posts_a_balanced_entry_without_debit_credit_input(cl
     assert debit == credit == Decimal("3750001.5000")
     # the detail the user typed is preserved on the entry, not lost with the form
     assert entry["metadata"]["invoice"]["lines"][1]["title"] == "جاکلیدی"
-    assert entry["metadata"]["invoice"]["seller"] == "فروشگاه ویرا"
+    assert entry["metadata"]["invoice"]["seller"] == "فروشگاه نوا"
 
 
 async def test_purchase_invoice_uses_the_inventory_and_payable_accounts(client):
@@ -167,7 +167,7 @@ async def test_a_posted_invoice_can_be_corrected_without_debit_credit_input(clie
         json={
             "kind": "sale",
             "transaction_date": "2026-10-21",
-            "seller": "فروشگاه ویرا",
+            "seller": "فروشگاه نوا",
             "buyer": "آقای مشتری",
             "note": "اصلاح مبلغ",
             "lines": [{"title": "مجسمهٔ روباه", "quantity": "1", "unit_price": "2000000"}],

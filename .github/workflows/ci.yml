@@ -60,12 +60,12 @@ jobs:
       - name: Fresh SQLite + migrations
         working-directory: backend
         env:
-          SQLITE_DATABASE_PATH: ${{ runner.temp }}/vira-ci.sqlite3
+          SQLITE_DATABASE_PATH: ${{ runner.temp }}/noa-ci.sqlite3
         run: uv run alembic upgrade head
 
       - name: Pytest + Hypothesis invariants
         env:
-          SQLITE_DATABASE_PATH: ${{ runner.temp }}/vira-ci.sqlite3
+          SQLITE_DATABASE_PATH: ${{ runner.temp }}/noa-ci.sqlite3
         run: |
           mkdir -p reports
           uv run pytest -q --junitxml=reports/pytest.xml
@@ -165,7 +165,7 @@ jobs:
 
       - name: Regenerate schema from a live FastAPI app (temp SQLite)
         env:
-          SQLITE_DATABASE_PATH: ${{ runner.temp }}/vira-contract.sqlite3
+          SQLITE_DATABASE_PATH: ${{ runner.temp }}/noa-contract.sqlite3
         run: |
           uv run python - <<'PY'
           import json
@@ -208,13 +208,13 @@ jobs:
       - name: Migrations for the e2e database
         working-directory: backend
         env:
-          SQLITE_DATABASE_PATH: ${{ runner.temp }}/vira-e2e.sqlite3
+          SQLITE_DATABASE_PATH: ${{ runner.temp }}/noa-e2e.sqlite3
         run: uv run alembic upgrade head
 
       - name: Seed charts + owner user for e2e
         env:
-          SQLITE_DATABASE_PATH: ${{ runner.temp }}/vira-e2e.sqlite3
-          VIRA_ADMIN_PASSWORD: e2e-owner-password
+          SQLITE_DATABASE_PATH: ${{ runner.temp }}/noa-e2e.sqlite3
+          NOA_ADMIN_PASSWORD: e2e-owner-password
         run: uv run python -m app.seed
 
       - name: Install Chromium
@@ -224,10 +224,10 @@ jobs:
       - name: Playwright smoke (backend + Vite dev launched natively)
         working-directory: frontend
         env:
-          SQLITE_DATABASE_PATH: ${{ runner.temp }}/vira-e2e.sqlite3
-          VIRA_E2E_DISPOSABLE_DATABASE: "1"
-          VIRA_E2E_USER: owner
-          VIRA_E2E_PASSWORD: e2e-owner-password
+          SQLITE_DATABASE_PATH: ${{ runner.temp }}/noa-e2e.sqlite3
+          NOA_E2E_DISPOSABLE_DATABASE: "1"
+          NOA_E2E_USER: owner
+          NOA_E2E_PASSWORD: e2e-owner-password
         run: |
           set -o pipefail
           pnpm e2e 2>&1 | tee ../e2e.log
@@ -277,7 +277,7 @@ jobs:
       - name: Backend deps + migrations + tests (native Windows)
         shell: pwsh
         run: |
-          $env:SQLITE_DATABASE_PATH = Join-Path $env:RUNNER_TEMP "vira-win.sqlite3"
+          $env:SQLITE_DATABASE_PATH = Join-Path $env:RUNNER_TEMP "noa-win.sqlite3"
           uv sync --frozen --all-extras
           Set-Location backend
           uv run alembic upgrade head
@@ -301,7 +301,7 @@ jobs:
       - name: Strict real PDF and embedded Vazirmatn (native Windows)
         shell: pwsh
         run: |
-          $out = (uv run python scripts/pdf_native_smoke.py --app-root "$env:VIRA_PDF_PROOF_APP_ROOT" --out-dir reports/native-pdf 2>&1 | Out-String)
+          $out = (uv run python scripts/pdf_native_smoke.py --app-root "$env:NOA_PDF_PROOF_APP_ROOT" --out-dir reports/native-pdf 2>&1 | Out-String)
           $code = $LASTEXITCODE
           Write-Host $out
           if ($code -ne 0) {
@@ -309,7 +309,7 @@ jobs:
             Write-Host "::error title=native PDF proof::$((($tail -replace '%','%25') -replace "`r",'%0D') -replace "`n",'%0A')"
             throw "native PDF/font proof failed; HTML is not accepted"
           }
-          $env:VIRA_REQUIRE_NATIVE_PDF = "1"
+          $env:NOA_REQUIRE_NATIVE_PDF = "1"
           $out = (uv run pytest backend/tests/test_operations.py::test_proforma_document_renders -q 2>&1 | Out-String)
           $code = $LASTEXITCODE
           Write-Host $out
@@ -376,13 +376,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $archive = Join-Path $env:RUNNER_TEMP "vira-schema-base-1.0.10.zip"
-          gh release download v1.0.10 --repo Houman-Amiri/VIRA-Accounting-App --pattern vira-v1.0.10-app.zip --output $archive
+          $archive = Join-Path $env:RUNNER_TEMP "noa-schema-base-1.0.10.zip"
+          gh release download v1.0.10 --repo Houman-Amiri/VIRA-Accounting-App --pattern "*-v1.0.10-app.zip" --output $archive
           if ($LASTEXITCODE -ne 0) { throw "published 1.0.10 download failed" }
           ./scripts/install_ps2exe.ps1
           if ($LASTEXITCODE -ne 0) { throw "ps2exe is unavailable" }
-          $helper = Join-Path $env:RUNNER_TEMP "vira-schema-gate-updater.exe"
-          Invoke-ps2exe -inputFile scripts/vira_updater.ps1 -outputFile $helper -noConsole:$false
+          $helper = Join-Path $env:RUNNER_TEMP "noa-schema-gate-updater.exe"
+          Invoke-ps2exe -inputFile scripts/noa_updater.ps1 -outputFile $helper -noConsole:$false
           if (-not (Test-Path $helper)) { throw "compiled helper missing" }
           $out = (uv run python scripts/schema_rollback_smoke.py --archive $archive --helper $helper 2>&1 | Out-String)
           Write-Host $out

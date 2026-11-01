@@ -33,11 +33,11 @@ def get_session_manager(request: Request) -> SessionManager:
 def get_current_user(
     request: Request,
     session_manager: Annotated[SessionManager, Depends(get_session_manager)],
-    vira_session: Annotated[str | None, Cookie()] = None,
+    noa_session: Annotated[str | None, Cookie()] = None,
 ) -> SessionUser | None:
-    if not vira_session:
+    if not noa_session:
         return None
-    user = session_manager.parse(vira_session)
+    user = session_manager.parse(noa_session)
     if user is not None:
         set_actor(user.user_id)
     return user
@@ -64,14 +64,14 @@ def enforce_csrf(
     request: Request,
     settings: Annotated[Settings, Depends(get_settings)],
     x_csrf_token: Annotated[str | None, Header()] = None,
-    vira_csrf: Annotated[str | None, Cookie()] = None,
+    noa_csrf: Annotated[str | None, Cookie()] = None,
     x_api_key: Annotated[str | None, Header(alias="X-API-Key")] = None,
 ) -> None:
     # API-key calls are machine-to-machine (no ambient cookie session) —
     # the custom X-API-Key header is itself the CSRF defense for that path.
     if x_api_key:
         return
-    if request.method in WRITE_METHODS and not csrf_matches(vira_csrf, x_csrf_token):
+    if request.method in WRITE_METHODS and not csrf_matches(noa_csrf, x_csrf_token):
         raise HTTPException(status_code=403, detail="CSRF token missing or invalid")
 
 

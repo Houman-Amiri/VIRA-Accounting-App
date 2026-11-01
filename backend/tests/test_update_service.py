@@ -23,14 +23,14 @@ def _latest_bytes(**over: object) -> bytes:
         "notes_fa": "نسخهٔ ۲",
         "notes_en": "v2",
         "full_installer": {
-            "url": "https://github.com/x/y/releases/download/v2.0.0/VIRA-Setup-2.0.0.exe",
+            "url": "https://github.com/x/y/releases/download/v2.0.0/NOA-Setup-2.0.0.exe",
             "sha256": "ab" * 32,
             "size": 50_000_000,
         },
         "deltas": [
             {
                 "from_version": "1.5.0",
-                "url": "https://github.com/x/y/releases/download/v2.0.0/VIRA-2.0.0-delta-from-1.5.0.zip",
+                "url": "https://github.com/x/y/releases/download/v2.0.0/NOA-2.0.0-delta-from-1.5.0.zip",
                 "sha256": "cd" * 32,
                 "size": 250_000,
             }
@@ -378,13 +378,13 @@ class TestUpdaterDiscovery:
         from app.services.update import _updater_command
 
         root = self._install_tree(tmp_path)
-        (root / "vira-updater.exe").write_bytes(b"MZ")
+        (root / "noa-updater.exe").write_bytes(b"MZ")
         stage = tmp_path / "stage"
         stage.mkdir()
-        monkeypatch.setenv("VIRA_APP_DIR", str(root))
+        monkeypatch.setenv("NOA_APP_DIR", str(root))
         s = _settings(tmp_path)
         argv, log = _updater_command(s, str(stage))
-        assert argv[0] == str(root / "vira-updater.exe")
+        assert argv[0] == str(root / "noa-updater.exe")
         # single-dash PowerShell parameters (asserted verbatim — the exe is a
         # compiled PowerShell script) and the install dir passed explicitly, so
         # no registry record is required for portable/unzipped installs.
@@ -399,10 +399,10 @@ class TestUpdaterDiscovery:
         from app.services.update import _updater_command
 
         root = self._install_tree(tmp_path)
-        (root / "scripts" / "vira_updater.ps1").write_text("# updater")
+        (root / "scripts" / "noa_updater.ps1").write_text("# updater")
         stage = tmp_path / "stage"
         stage.mkdir()
-        monkeypatch.setenv("VIRA_APP_DIR", str(root))
+        monkeypatch.setenv("NOA_APP_DIR", str(root))
         argv, _ = _updater_command(_settings(tmp_path), str(stage))
         assert argv[0] == "powershell.exe"
         assert "-InstallDir" in argv and argv[argv.index("-InstallDir") + 1] == str(root)
@@ -415,8 +415,8 @@ class TestUpdaterDiscovery:
 
         stage = tmp_path / "stage"
         stage.mkdir()
-        monkeypatch.delenv("VIRA_APP_DIR", raising=False)
-        monkeypatch.setenv("VIRA_VERSION", "1.0.5")
+        monkeypatch.delenv("NOA_APP_DIR", raising=False)
+        monkeypatch.setenv("NOA_VERSION", "1.0.5")
         with pytest.raises(DomainError) as excinfo:
             _updater_command(_settings(tmp_path), str(stage))
         assert "فایل نصب کامل" in str(excinfo.value)
@@ -496,5 +496,5 @@ class TestDownload:
         staged = Path(status["staged_path"])
         assert (staged.parent / "package.zip").read_bytes() == payload
         assert (staged / "update.json").is_file()
-        assert (staged / "vira-updater.exe").is_file()
+        assert (staged / "noa-updater.exe").is_file()
         assert Path(status["log_path"]).is_file()

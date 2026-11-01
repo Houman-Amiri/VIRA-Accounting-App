@@ -23,7 +23,7 @@ describe("theme preference and native-control scheme", () => {
     expect(document.documentElement).not.toHaveClass("dark");
   });
   it("restores dark before rendering a freshly loaded page", async () => {
-    localStorage.setItem("vira-theme", "dark");
+    localStorage.setItem("noa-theme", "dark");
     const ui = await store();
     expect(ui.getState().theme).toBe("dark");
     expect(document.documentElement).toHaveClass("dark", "rtl-shell");
@@ -33,7 +33,7 @@ describe("theme preference and native-control scheme", () => {
     const ui = await store();
     ui.getState().toggleTheme();
     ui.getState().setCommandPaletteOpen(true);
-    expect(localStorage.getItem("vira-theme")).toBe("dark");
+    expect(localStorage.getItem("noa-theme")).toBe("dark");
     vi.resetModules();
     const reloaded = await store();
     expect(reloaded.getState().theme).toBe("dark");
@@ -41,16 +41,16 @@ describe("theme preference and native-control scheme", () => {
     expect(localStorage.length).toBe(1);
   });
   it("can switch back to light and restore it on reload", async () => {
-    localStorage.setItem("vira-theme", "dark");
+    localStorage.setItem("noa-theme", "dark");
     const ui = await store();
     ui.getState().setTheme("light");
     expect(document.documentElement).not.toHaveClass("dark");
-    expect(localStorage.getItem("vira-theme")).toBe("light");
+    expect(localStorage.getItem("noa-theme")).toBe("light");
     vi.resetModules();
     expect((await store()).getState().theme).toBe("light");
   });
   it("ignores invalid saved values", async () => {
-    localStorage.setItem("vira-theme", "not-a-theme");
+    localStorage.setItem("noa-theme", "not-a-theme");
     expect((await store()).getState().theme).toBe("light");
     expect(document.documentElement).not.toHaveClass("dark");
   });

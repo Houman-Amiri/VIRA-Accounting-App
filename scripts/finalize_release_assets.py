@@ -25,7 +25,7 @@ UNSIGNED_APPROVAL = re.compile(r"owner-authorized-\d{4}-\d{2}-\d{2}")
 
 def unsigned_approval() -> str:
     # Deliberately no stripping: only the exact reviewed literal counts.
-    value = os.environ.get("VIRA_UNSIGNED_PUBLICATION_APPROVAL", "")
+    value = os.environ.get("NOA_UNSIGNED_PUBLICATION_APPROVAL", "")
     return value if UNSIGNED_APPROVAL.fullmatch(value) else ""
 
 
@@ -61,7 +61,7 @@ def finalize(directory: Path, key_pem: str | None, *, require_signature: bool = 
     )
     key_pem = (key_pem or "").strip()
     if required and not key_pem:
-        raise ValueError("Tagged release requires VIRA_UPDATE_SIGNING_KEY; no unsigned fallback")
+        raise ValueError("Tagged release requires NOA_UPDATE_SIGNING_KEY; no unsigned fallback")
     latest, signature, sums = (directory / name for name in ("latest.json", "latest.json.sig", "SHA256SUMS.txt"))
     for path in directory.iterdir():
         no_links(path)
@@ -109,7 +109,7 @@ def main() -> int:
     parser.add_argument("--require-signature", action="store_true")
     args = parser.parse_args()
     try:
-        result = finalize(args.directory, os.environ.get("VIRA_UPDATE_SIGNING_KEY"), require_signature=args.require_signature)
+        result = finalize(args.directory, os.environ.get("NOA_UPDATE_SIGNING_KEY"), require_signature=args.require_signature)
     except (ValueError, OSError):
         # Never echo a PEM, its parse error, or any environment value.
         print("Release finalization refused: check asset paths, signing configuration and unfinished/private files.", file=sys.stderr)
@@ -118,7 +118,7 @@ def main() -> int:
     if result["unsigned_approval"]:
         # Loud, bounded, and never a secret: the published release says so.
         print(
-            "::warning title=unsigned-release::No VIRA_UPDATE_SIGNING_KEY; publishing "
+            "::warning title=unsigned-release::No NOA_UPDATE_SIGNING_KEY; publishing "
             f"unsigned under {result['unsigned_approval']}. Clients cannot verify "
             "latest.json until that secret exists."
         )

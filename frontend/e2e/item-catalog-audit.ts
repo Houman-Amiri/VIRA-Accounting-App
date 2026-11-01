@@ -6,7 +6,7 @@ import { auditNumberFonts, contrast } from "./theme-audit";
 
 type Choice = { id: string; name: string; is_active: boolean; version_id: number };
 export async function auditItemCatalog(page: Page) {
-  expect(process.env.VIRA_E2E_DISPOSABLE_DATABASE).toBe("1");
+  expect(process.env.NOA_E2E_DISPOSABLE_DATABASE).toBe("1");
   const suffix = randomUUID().slice(0, 8);
   const names = {
     types: `رزین ${suffix}`,
@@ -87,7 +87,7 @@ export async function auditItemCatalog(page: Page) {
   expect(
     (await get("movements")).filter((r: { item_id: string }) => r.item_id === item.id),
   ).toEqual(movements);
-  const csrf = (await page.context().cookies()).find((c) => c.name === "vira_csrf")!.value;
+  const csrf = (await page.context().cookies()).find((c) => c.name === "noa_csrf")!.value;
   const blocked = await page.request.post("/api/v1/warehouse/items", {
     headers: { "X-CSRF-Token": decodeURIComponent(csrf) },
     data: {

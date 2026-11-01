@@ -103,7 +103,7 @@ def test_guard_rejects_descendant_symlink_before_writes(tmp_path):
 
 
 def test_real_cmd_default_body_unchanged_and_private_branch_before_cd():
-    cmd = (ROOT / "scripts/start_vira.cmd").read_text()
+    cmd = (ROOT / "scripts/start_noa.cmd").read_text()
     assert cmd.index("goto :private_source_candidate") < cmd.index('cd /d "%~dp0"')
     branch = cmd.split("\n:private_source_candidate\n", 1)[-1]
     assert branch.index("DisableDelayedExpansion") < branch.index("%~dp0")
@@ -113,7 +113,7 @@ def test_real_cmd_default_body_unchanged_and_private_branch_before_cd():
 
 
 def test_credential_failure_precedes_any_database_or_secret_write(tmp_path, monkeypatch):
-    monkeypatch.delenv("VIRA_ADMIN_PASSWORD", raising=False)
+    monkeypatch.delenv("NOA_ADMIN_PASSWORD", raising=False)
     state = tmp_path / "private"
     state.mkdir()
     with pytest.raises(ValueError, match="credential"):
@@ -124,7 +124,7 @@ def test_credential_failure_precedes_any_database_or_secret_write(tmp_path, monk
 def test_linux_actual_migration_seed_tcp_ready_stop_restart(tmp_path, monkeypatch):
     # Only native inspection is substituted; no Windows/source/ACP claim here.
     monkeypatch.setattr(entry, "native_state", lambda *_: {"synthetic_not_native": True})
-    monkeypatch.setenv("VIRA_ADMIN_PASSWORD", "synthetic-test-owner-password-more-than-32")
+    monkeypatch.setenv("NOA_ADMIN_PASSWORD", "synthetic-test-owner-password-more-than-32")
     monkeypatch.setenv("FONTCONFIG_FILE", "synthetic-unused")
     state = tmp_path / "private"
     state.mkdir()
@@ -179,15 +179,15 @@ def test_linux_actual_migration_seed_tcp_ready_stop_restart(tmp_path, monkeypatc
 
 
 def test_environment_restores_absent_and_existing(monkeypatch):
-    monkeypatch.setenv("VIRA_ENTRY_TEST", "old")
-    monkeypatch.delenv("VIRA_ENTRY_ABSENT", raising=False)
+    monkeypatch.setenv("NOA_ENTRY_TEST", "old")
+    monkeypatch.delenv("NOA_ENTRY_ABSENT", raising=False)
     with (
         pytest.raises(RuntimeError),
-        entry.environment({"VIRA_ENTRY_TEST": "new", "VIRA_ENTRY_ABSENT": "new"}),
+        entry.environment({"NOA_ENTRY_TEST": "new", "NOA_ENTRY_ABSENT": "new"}),
     ):
         raise RuntimeError("test")
-    assert entry.os.environ["VIRA_ENTRY_TEST"] == "old"
-    assert "VIRA_ENTRY_ABSENT" not in entry.os.environ
+    assert entry.os.environ["NOA_ENTRY_TEST"] == "old"
+    assert "NOA_ENTRY_ABSENT" not in entry.os.environ
 
 
 @pytest.mark.parametrize("message, code", [

@@ -236,9 +236,9 @@ def _latest_payload(**over: object) -> dict[str, object]:
         "min_app_version": "1.0.0",
         "notes_fa": "نسخهٔ جدید",
         "notes_en": "new release",
-        "full_installer": {"url": "https://github.com/x/y/releases/download/v1.1.0/VIRA-Setup-1.1.0.exe", "sha256": "ab" * 32, "size": 50_000_000},
+        "full_installer": {"url": "https://github.com/x/y/releases/download/v1.1.0/NOA-Setup-1.1.0.exe", "sha256": "ab" * 32, "size": 50_000_000},
         "deltas": [
-            {"from_version": "1.0.0", "url": "https://github.com/x/y/releases/download/v1.1.0/VIRA-1.1.0-delta-from-1.0.0.zip", "sha256": "cd" * 32, "size": 250_000}
+            {"from_version": "1.0.0", "url": "https://github.com/x/y/releases/download/v1.1.0/NOA-1.1.0-delta-from-1.0.0.zip", "sha256": "cd" * 32, "size": 250_000}
         ],
         "files_manifest_sha256": "ef" * 32,
     }

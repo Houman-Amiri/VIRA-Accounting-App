@@ -16,11 +16,11 @@ sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 # ------------------------------------------------- migration lifecycle ---
 def test_migration_lifecycle_bootstrap_backup_gate(tmp_path: Path) -> None:
-    import migrate_vira
+    import migrate_noa
 
-    db = tmp_path / "data" / "vira.sqlite3"
+    db = tmp_path / "data" / "noa.sqlite3"
     report_path = tmp_path / "report.json"
-    report = migrate_vira.run_migration(db, report_path)
+    report = migrate_noa.run_migration(db, report_path)
     assert report["status"] == "migrated"
     assert report["post"]["alembic_revision"] == alembic_head()
     assert report["post"]["integrity_check"] == "ok"
@@ -34,34 +34,34 @@ def test_migration_lifecycle_bootstrap_backup_gate(tmp_path: Path) -> None:
 
 
 def test_migration_lock_blocks_second_process(tmp_path: Path) -> None:
-    import migrate_vira
+    import migrate_noa
 
-    db = tmp_path / "vira.sqlite3"
-    migrate_vira._connect(db).close()
-    lock = migrate_vira.acquire_lock(db)
+    db = tmp_path / "noa.sqlite3"
+    migrate_noa._connect(db).close()
+    lock = migrate_noa.acquire_lock(db)
     assert lock.exists()
-    with pytest.raises(migrate_vira.MigrationError):
-        migrate_vira.acquire_lock(db)
+    with pytest.raises(migrate_noa.MigrationError):
+        migrate_noa.acquire_lock(db)
     lock.unlink()
     # stale lock (>1h) is reclaimed
     import os
     import time
 
-    lock = migrate_vira.acquire_lock(db)
+    lock = migrate_noa.acquire_lock(db)
     old = time.time() - 4000
     os.utime(lock, (old, old))
-    lock2 = migrate_vira.acquire_lock(db)
+    lock2 = migrate_noa.acquire_lock(db)
     assert lock2.exists()
     lock2.unlink()
 
 
 def test_restore_bundle_roundtrip(tmp_path: Path) -> None:
-    import migrate_vira
+    import migrate_noa
 
-    db = tmp_path / "data" / "vira.sqlite3"
-    report = migrate_vira.run_migration(db, None)
+    db = tmp_path / "data" / "noa.sqlite3"
+    report = migrate_noa.run_migration(db, None)
     restored = tmp_path / "restored.sqlite3"
-    result = migrate_vira.restore_bundle(Path(report["backup"]).parent, restored)
+    result = migrate_noa.restore_bundle(Path(report["backup"]).parent, restored)
     assert result["invariants"]["integrity_check"] == "ok"
     assert restored.exists()
 
@@ -200,7 +200,7 @@ def test_logging_rotation_install(tmp_path: Path) -> None:
 
     log_path = install_file_logging(tmp_path)
     assert log_path is not None and log_path.exists()
-    logging.getLogger("vira-test").info("hello rotation")
+    logging.getLogger("noa-test").info("hello rotation")
     for h in logging.getLogger().handlers:
         h.flush()
     assert "hello rotation" in log_path.read_text(encoding="utf-8")

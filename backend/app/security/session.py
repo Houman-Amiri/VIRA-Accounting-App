@@ -24,7 +24,7 @@ class SessionUser:
 
 class SessionManager:
     def __init__(self, secret: str, *, ttl_seconds: int = 12 * 60 * 60, secure: bool = False) -> None:
-        self.serializer = URLSafeTimedSerializer(secret, salt="vira-session")
+        self.serializer = URLSafeTimedSerializer(secret, salt="noa-session")
         self.ttl_seconds = ttl_seconds
         self.secure = secure
 

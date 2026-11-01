@@ -2,9 +2,9 @@
 
 All incoming bank-sync webhooks must carry:
 
-* ``X-VIRA-Signature``: ``sha256=<hex HMAC-SHA256(raw_body, secret)>``
-* ``X-VIRA-Timestamp``: unix seconds, must be within ±5 minutes
-* ``X-VIRA-Event-Id``: unique per provider (deduplicated in ``webhook_events``)
+* ``X-NOA-Signature``: ``sha256=<hex HMAC-SHA256(raw_body, secret)>``
+* ``X-NOA-Timestamp``: unix seconds, must be within ±5 minutes
+* ``X-NOA-Event-Id``: unique per provider (deduplicated in ``webhook_events``)
 
 Comparison is constant-time (:func:`hmac.compare_digest`).
 """

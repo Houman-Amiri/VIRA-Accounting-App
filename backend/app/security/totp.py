@@ -14,7 +14,7 @@ def generate_secret() -> str:
     return pyotp.random_base32()
 
 
-def provisioning_uri(secret: str, username: str, issuer: str = "VIRA") -> str:
+def provisioning_uri(secret: str, username: str, issuer: str = "NOA") -> str:
     return pyotp.totp.TOTP(secret).provisioning_uri(name=username, issuer_name=issuer)
 
 

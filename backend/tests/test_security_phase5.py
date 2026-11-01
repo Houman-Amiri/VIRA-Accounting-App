@@ -91,7 +91,7 @@ async def test_sudo_required_for_api_keys_and_period_reopen(client, database) ->
     )
     assert r.status_code == 201
     body = r.json()
-    assert body["api_key"].startswith("vira_sk_")
+    assert body["api_key"].startswith("noa_sk_")
     key_id = body["record"]["id"]
     with database.session() as s:
         events = (
@@ -187,7 +187,7 @@ async def test_ingest_key_scope(client, database) -> None:
     r = await client.post(
         "/api/v1/journal-entries",
         json=_entry_payload(a, b),
-        headers={"X-API-Key": "vira_sk_dead_beef"},
+        headers={"X-API-Key": "noa_sk_dead_beef"},
     )
     assert r.status_code == 401
     # revoked key stops working
@@ -319,9 +319,9 @@ async def test_webhook_endpoint_roundtrip(client, database) -> None:
     ts = str(int(time.time()))
     sig = compute_signature("whsec_abc", body)
     headers = {
-        "X-VIRA-Signature": sig,
-        "X-VIRA-Timestamp": ts,
-        "X-VIRA-Event-Id": "evt-1",
+        "X-NOA-Signature": sig,
+        "X-NOA-Timestamp": ts,
+        "X-NOA-Event-Id": "evt-1",
     }
     r = await client.post("/api/v1/webhooks/bank", content=body, headers=headers)
     assert r.json()["status"] == "accepted"
@@ -332,8 +332,8 @@ async def test_webhook_endpoint_roundtrip(client, database) -> None:
         content=body,
         headers={
             **headers,
-            "X-VIRA-Event-Id": "evt-2",
-            "X-VIRA-Signature": "sha256=" + "0" * 64,
+            "X-NOA-Event-Id": "evt-2",
+            "X-NOA-Signature": "sha256=" + "0" * 64,
         },
     )
     assert r.json()["status"] == "rejected"

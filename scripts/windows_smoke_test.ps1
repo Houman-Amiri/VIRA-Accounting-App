@@ -5,8 +5,8 @@
 # 2. manually stage and apply a real delta (NOT an in-app download test);
 #    assert the package is smaller than Setup and the helper upgrades the base
 # 3. data-preservation check — a seeded SQLite checksum must be byte-identical
-#    across the update (%LOCALAPPDATA%\VIRA is never touched)
-# 4. forced-failure rollback test — vira_updater.ps1 -ForceFailure must restore
+#    across the update (%LOCALAPPDATA%\NOA is never touched)
+# 4. forced-failure rollback test — noa_updater.ps1 -ForceFailure must restore
 #    the previous files and report the Persian rollback message
 
 param(
@@ -42,28 +42,28 @@ function Stop-SmokeRestartedApp([string]$AppDir, [int]$Port) {
     if ($remaining.Count) { throw "restarted app still holds the SQLite fixture open" }
 }
 
-$tmp = Join-Path ([IO.Path]::GetTempPath()) "vira-smoke"
+$tmp = Join-Path ([IO.Path]::GetTempPath()) "noa-smoke"
 $install = Join-Path $tmp "install with spaces"
 New-Item -ItemType Directory -Force -Path $install | Out-Null
 
 Write-Output "[smoke] 1/5 silent install -> $install"
 Start-Process -FilePath $Setup -ArgumentList "/VERYSILENT", "/DIR=`"$install`"", "/SUPPRESSMSGBOXES" -Wait
 if (-not (Test-Path (Join-Path $install "install_manifest.json"))) { throw "silent install did not produce install_manifest.json" }
-$reg = Get-ItemProperty -Path "HKLM:\SOFTWARE\VIRA", "HKCU:\SOFTWARE\VIRA" -Name InstallDir -ErrorAction SilentlyContinue
+$reg = Get-ItemProperty -Path "HKLM:\SOFTWARE\NOA", "HKCU:\SOFTWARE\NOA" -Name InstallDir -ErrorAction SilentlyContinue
 Write-Output "[smoke] InstallDir registry: $($reg.InstallDir)"
 
 # seed user data that must survive every scenario (Phase 8 §7)
-$dataDir = Join-Path $env:LOCALAPPDATA "VIRA\data"
+$dataDir = Join-Path $env:LOCALAPPDATA "NOA\data"
 New-Item -ItemType Directory -Force -Path $dataDir | Out-Null
-$db = Join-Path $dataDir "vira.sqlite3"
+$db = Join-Path $dataDir "noa.sqlite3"
 if (Test-Path $db) { throw "Smoke requires a clean CI data directory; refusing to overwrite an existing database." }
-& uv run python scripts/migrate_vira.py --database $db | Out-Null
+& uv run python scripts/migrate_noa.py --database $db | Out-Null
 if ($LASTEXITCODE -ne 0) { throw "could not migrate the smoke SQLite fixture" }
-$env:VIRA_SMOKE_DATABASE = $db
+$env:NOA_SMOKE_DATABASE = $db
 @'
 import os
 import sqlite3
-conn = sqlite3.connect(os.environ["VIRA_SMOKE_DATABASE"])
+conn = sqlite3.connect(os.environ["NOA_SMOKE_DATABASE"])
 try:
     conn.execute("CREATE TABLE smoke_sentinel (value TEXT NOT NULL)")
     conn.execute("INSERT INTO smoke_sentinel VALUES ('preserve-real-sqlite-data')")
@@ -78,7 +78,7 @@ $dbHashBefore = (Get-FileHash -Algorithm SHA256 $db).Hash
 Write-Output "[smoke] 2/5 legacy delta upgrade (previous portable + matching delta)"
 $v = (Get-Content (Join-Path $install "version.json") -Raw | ConvertFrom-Json).version
 $setupSize = (Get-Item $Setup).Length
-$legacyRoot = Join-Path $env:LOCALAPPDATA "VIRA\smoke-legacy"
+$legacyRoot = Join-Path $env:LOCALAPPDATA "NOA\smoke-legacy"
 if (Test-Path $legacyRoot) { Remove-Item $legacyRoot -Recurse -Force }
 New-Item -ItemType Directory -Force -Path $legacyRoot | Out-Null
 $repo = if ($env:GITHUB_REPOSITORY) { $env:GITHUB_REPOSITORY } else { "Houman-Amiri/VIRA-Accounting-App" }
@@ -86,14 +86,14 @@ $upgraded = $false
 $deltaZips = Get-ChildItem (Split-Path $Setup) -Filter "*delta*.zip" | Sort-Object Name -Descending
 # The repair must bootstrap the user's actual 1.0.6 baseline, not just 1.0.7.
 if ($v -eq "1.0.8") {
-    $deltaZips = @($deltaZips | Where-Object { $_.Name -eq "VIRA-v1.0.8-delta-from-v1.0.6.zip" })
+    $deltaZips = @($deltaZips | Where-Object { $_.Name -eq "NOA-v1.0.8-delta-from-v1.0.6.zip" })
     if ($deltaZips.Count -ne 1) { throw "required 1.0.6 -> 1.0.8 bootstrap delta missing" }
 }
 # v1.0.9 must exercise every supported direct baseline, including the user's
 # last confirmed 1.0.6 installation. Do not only test the newest (1.0.8) base.
 if ($v -eq "1.0.9") {
     foreach ($base in @("1.0.6", "1.0.7", "1.0.8")) {
-        if (-not ($deltaZips | Where-Object { $_.Name -eq "VIRA-v$v-delta-from-v$base.zip" })) {
+        if (-not ($deltaZips | Where-Object { $_.Name -eq "NOA-v$v-delta-from-v$base.zip" })) {
             throw "required $base -> $v delta missing"
         }
     }
@@ -109,14 +109,15 @@ $exercisedBases = @()
 foreach ($delta in $deltaZips) {
     if ($delta.Name -notmatch "delta-from-v([\d.]+)\.zip") { continue }
     $fromV = $Matches[1]
-    if ($multiBase -and -not $delta.Name.StartsWith("VIRA-v$v-delta-from-v")) {
+    if ($multiBase -and -not $delta.Name.StartsWith("NOA-v$v-delta-from-v")) {
         throw "delta $($delta.Name) does not target the built version v$v"
     }
     if ($delta.Length -ge $setupSize) { throw "delta ($($delta.Length)) is not smaller than the setup ($setupSize)" }
     # fetch the previous release's portable zip (same probe as build_deltas)
     $tag = "v$fromV"
     $pUrl = $null
-    foreach ($pName in @("vira-v$fromV-app.zip", "vira-v$fromV-portable.zip", "VIRA-v$fromV.zip", "VIRA-v$fromV-portable.zip")) {
+    # Pre-rename releases keep their original asset names.
+    foreach ($pName in @("noa-v$fromV-app.zip", "noa-v$fromV-app.zip", "noa-v$fromV-portable.zip", "noa-v$fromV-portable.zip", "NOA-v$fromV.zip", "NOA-v$fromV.zip")) {
         $tryUrl = "https://github.com/$repo/releases/download/$tag/$pName"
         try {
             $resp = Invoke-WebRequest -Uri $tryUrl -Method Head -SkipHttpErrorCheck -MaximumRedirection 5 -TimeoutSec 30
@@ -134,20 +135,20 @@ foreach ($delta in $deltaZips) {
     $legacy = Join-Path $legacyRoot "install with spaces"
     if (Test-Path $legacy) { Remove-Item $legacy -Recurse -Force }
     Expand-Archive $baseZip -DestinationPath $legacy -Force
-    $stage = Join-Path $env:LOCALAPPDATA "VIRA\updates\smoke"
+    $stage = Join-Path $env:LOCALAPPDATA "NOA\updates\smoke"
     if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
     New-Item -ItemType Directory -Force -Path $stage | Out-Null
     Expand-Archive $delta.FullName -DestinationPath $stage -Force
     # the updater relaunches the app; keep that instance off the smoke port,
     # and RESTORE the variable afterwards (leg 5 launches on 8787 — leaving
-    # VIRA_PORT set made the app bind 8799 and the health check fail; only
+    # NOA_PORT set made the app bind 8799 and the health check fail; only
     # visible once a real delta existed, i.e. from v1.0.5 on)
-    $prevPort = $env:VIRA_PORT
-    $env:VIRA_PORT = "8799"
+    $prevPort = $env:NOA_PORT
+    $env:NOA_PORT = "8799"
     # Mirror client discovery: staged helper first, then the installed helper.
-    # The staged helper can replace {app}/vira-updater.exe without a file lock.
-    $stagedUpdater = Join-Path $stage "vira-updater.exe"
-    $installUpdater = Join-Path $legacy "vira-updater.exe"
+    # The staged helper can replace {app}/noa-updater.exe without a file lock.
+    $stagedUpdater = Join-Path $stage "noa-updater.exe"
+    $installUpdater = Join-Path $legacy "noa-updater.exe"
     if (Test-Path $stagedUpdater) {
         Write-Output "[smoke] applying delta with staged helper (legacy client arguments)"
         # v1.0.5 clients used -install-dir. Keep that alias working as well.
@@ -155,10 +156,10 @@ foreach ($delta in $deltaZips) {
     } elseif (Test-Path $installUpdater) {
         & $installUpdater -Stage $stage -Log (Join-Path $stage "update.log") -InstallDir $legacy
     } else {
-        ./scripts/vira_updater.ps1 -Stage $stage -Log (Join-Path $stage "update.log") -InstallDir $legacy
+        ./scripts/noa_updater.ps1 -Stage $stage -Log (Join-Path $stage "update.log") -InstallDir $legacy
     }
 
-    if ($null -ne $prevPort) { $env:VIRA_PORT = $prevPort } else { Remove-Item Env:VIRA_PORT -ErrorAction SilentlyContinue }
+    if ($null -ne $prevPort) { $env:NOA_PORT = $prevPort } else { Remove-Item Env:NOA_PORT -ErrorAction SilentlyContinue }
 
     $ver = (Get-Content (Join-Path $legacy "version.json") -Raw | ConvertFrom-Json).version
     if ($ver -ne $v) {
@@ -170,8 +171,8 @@ foreach ($delta in $deltaZips) {
     }
     $man = Get-Content (Join-Path $legacy "install_manifest.json") -Raw | ConvertFrom-Json
     if (-not $man.files_manifest_sha256) { throw "legacy upgrade did not rewrite install_manifest.json" }
-    if (-not (Test-Path (Join-Path $legacy "start_vira.cmd"))) { throw "legacy upgrade lost start_vira.cmd" }
-    if (-not (Test-Path (Join-Path $legacy "vira-updater.exe"))) { throw "upgrade did not leave vira-updater.exe in the install (the next update would fail)" }
+    if (-not (Test-Path (Join-Path $legacy "start_noa.cmd"))) { throw "legacy upgrade lost start_noa.cmd" }
+    if (-not (Test-Path (Join-Path $legacy "noa-updater.exe"))) { throw "upgrade did not leave noa-updater.exe in the install (the next update would fail)" }
     Stop-SmokeRestartedApp -AppDir $legacy -Port 8799
     Write-Output "[smoke] legacy $tag -> v$v OK — version + manifest rewritten, files verified"
     $upgraded = $true
@@ -190,7 +191,7 @@ Write-Output "[smoke] 3/5 data preservation"
 @'
 import os
 import sqlite3
-conn = sqlite3.connect(os.environ["VIRA_SMOKE_DATABASE"])
+conn = sqlite3.connect(os.environ["NOA_SMOKE_DATABASE"])
 try:
     assert conn.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
     assert conn.execute("SELECT value FROM smoke_sentinel").fetchall() == [("preserve-real-sqlite-data",)]
@@ -204,7 +205,7 @@ if ($dbHashAfter -ne $dbHashBefore) { throw "user data changed across the update
 Write-Output "[smoke] user data checksum identical: $dbHashAfter"
 
 Write-Output "[smoke] 4/5 forced-failure rollback"
-$stage = Join-Path $env:LOCALAPPDATA "VIRA\updates\smoke"
+$stage = Join-Path $env:LOCALAPPDATA "NOA\updates\smoke"
 New-Item -ItemType Directory -Force -Path $stage | Out-Null
 # A valid same-version no-op plan reaches the forced failure AFTER operations.
 # Do not reuse a previous base's delta against this already-current installation.
@@ -213,11 +214,11 @@ New-Item -ItemType Directory -Force -Path $stage | Out-Null
 Copy-Item (Join-Path $install "version.json") (Join-Path $stage "version.json") -Force
 Copy-Item (Join-Path $install "install_manifest.json") (Join-Path $stage "install_manifest.json") -Force
 $failed = $false
-$previousRollbackPort = $env:VIRA_PORT
-$env:VIRA_PORT = "8798"
-try { ./scripts/vira_updater.ps1 -Stage $stage -Log (Join-Path $stage "rollback.log") -InstallDir $install -ForceFailure } catch { $failed = $true }
+$previousRollbackPort = $env:NOA_PORT
+$env:NOA_PORT = "8798"
+try { ./scripts/noa_updater.ps1 -Stage $stage -Log (Join-Path $stage "rollback.log") -InstallDir $install -ForceFailure } catch { $failed = $true }
 finally {
-    if ($null -ne $previousRollbackPort) { $env:VIRA_PORT = $previousRollbackPort } else { Remove-Item Env:VIRA_PORT -ErrorAction SilentlyContinue }
+    if ($null -ne $previousRollbackPort) { $env:NOA_PORT = $previousRollbackPort } else { Remove-Item Env:NOA_PORT -ErrorAction SilentlyContinue }
 }
 if (-not $failed) { throw "forced failure did not roll back" }
 if (-not (Test-Path (Join-Path $install "rollback\prev"))) { throw "rollback snapshot missing" }
@@ -230,8 +231,8 @@ Write-Output "[smoke] 5/5 shortcut integrity + real launch (first-run journey)"
 $shell = New-Object -ComObject WScript.Shell
 # admin installs place shortcuts in the All Users locations ({autoprograms}/{autodesktop})
 $lnkDirs = @(
-    "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\V.I.R.A",
-    (Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\V.I.R.A"),
+    "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\NOA",
+    (Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\NOA"),
     "C:\Users\Public\Desktop",
     [Environment]::GetFolderPath("Desktop")
 )
@@ -248,13 +249,13 @@ foreach ($dir in $lnkDirs) {
 }
 if ($checked -lt 2) { throw "expected Start-Menu + Desktop shortcuts, found $checked" }
 
-$launcher = Join-Path $install "start_vira.cmd"
+$launcher = Join-Path $install "start_noa.cmd"
 if (-not (Test-Path $launcher)) { throw "launcher missing at $launcher" }
-# isolated first-run DB — leg 3's sentinel at data\vira.sqlite3 must stay untouched
-Remove-Item Env:VIRA_PORT -ErrorAction SilentlyContinue   # the app must bind 8787 here
-$env:SQLITE_DATABASE_PATH = Join-Path $env:LOCALAPPDATA "VIRA\data\vira-smoke-e2e.sqlite3"
+# isolated first-run DB — leg 3's sentinel at data\noa.sqlite3 must stay untouched
+Remove-Item Env:NOA_PORT -ErrorAction SilentlyContinue   # the app must bind 8787 here
+$env:SQLITE_DATABASE_PATH = Join-Path $env:LOCALAPPDATA "NOA\data\noa-smoke-e2e.sqlite3"
 Remove-Item $env:SQLITE_DATABASE_PATH -Force -ErrorAction SilentlyContinue
-$launchLog = Join-Path $env:LOCALAPPDATA "VIRA\logs\smoke-launch.log"
+$launchLog = Join-Path $env:LOCALAPPDATA "NOA\logs\smoke-launch.log"
 New-Item -ItemType Directory -Force -Path (Split-Path $launchLog) | Out-Null
 Remove-Item $launchLog -Force -ErrorAction SilentlyContinue
 Start-Process -FilePath "cmd.exe" `
@@ -274,16 +275,16 @@ try {
     }
     $spa = Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:8787/" -TimeoutSec 5
     if ($spa.StatusCode -ne 200 -or $spa.Content -notmatch "root") { throw "SPA not served at /" }
-    $creds = Join-Path $env:LOCALAPPDATA "VIRA\first-run-credentials.txt"
+    $creds = Join-Path $env:LOCALAPPDATA "NOA\first-run-credentials.txt"
     if (-not (Test-Path $creds)) { throw "first-run credentials file was not created" }
     # — content proof: the installed app must serve exactly the payload this run
     #   built. v1.0.5 shipped the new code but a stale cached shell, and nothing
     #   in CI noticed; that is what this block prevents from recurring. —
     $payloadIndex = Join-Path (Split-Path $Setup) "app\static\index.html"
     if (-not (Test-Path $payloadIndex)) { throw "payload index.html missing at $payloadIndex" }
-    $builtId = [regex]::Match((Get-Content $payloadIndex -Raw), 'name="vira-build"\s+content="([^"]+)"').Groups[1].Value
-    if (-not $builtId) { throw "the built index.html carries no vira-build marker" }
-    $servedId = [regex]::Match($spa.Content, 'name="vira-build"\s+content="([^"]+)"').Groups[1].Value
+    $builtId = [regex]::Match((Get-Content $payloadIndex -Raw), 'name="noa-build"\s+content="([^"]+)"').Groups[1].Value
+    if (-not $builtId) { throw "the built index.html carries no noa-build marker" }
+    $servedId = [regex]::Match($spa.Content, 'name="noa-build"\s+content="([^"]+)"').Groups[1].Value
     if ($servedId -ne $builtId) { throw "STALE UI: the app serves build '$servedId' but the release payload is '$builtId'" }
     $cacheControl = ($spa.Headers["Cache-Control"] -join ",")
     if ($cacheControl -notmatch "no-store") { throw "the SPA shell was served without Cache-Control: no-store (stale-UI risk)" }
@@ -312,7 +313,7 @@ try {
         Where-Object { $_.Path -like "$install*" } |
         Stop-Process -Force -ErrorAction SilentlyContinue
     Get-Process -Name cmd -ErrorAction SilentlyContinue |
-        Where-Object { $_.MainWindowTitle -like "*V.I.R.A*" } |
+        Where-Object { $_.MainWindowTitle -like "*NOA*" } |
         Stop-Process -Force -ErrorAction SilentlyContinue
 }
 Write-Output "[smoke] all legs passed"

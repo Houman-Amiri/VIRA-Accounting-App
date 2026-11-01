@@ -71,7 +71,7 @@ def target_payload(
     shutil.rmtree(target / "native/pdf")
     shutil.copytree(candidate, target / "native/pdf")
     shutil.copyfile(audit, target / "native/pdf/source-audit.json")
-    shutil.copyfile(helper, target / "vira-updater.exe")
+    shutil.copyfile(helper, target / "noa-updater.exe")
     stamp = read(target / "version.json")
     stamp["version"] = version
     dump(target / "version.json", stamp)
@@ -124,7 +124,7 @@ def check_packet(base: Path, target: Path, archive: Path) -> dict:
             changed
         ):
             raise ValueError("Delta operation set does not exactly match changed payload files")
-        if "native/pdf/bin/pango-1.0-0.dll" not in changed or "vira-updater.exe" not in changed:
+        if "native/pdf/bin/pango-1.0-0.dll" not in changed or "noa-updater.exe" not in changed:
             raise ValueError("Genuine native AND installed-helper replacement must be exercised")
         if any(n.endswith(".exe") and "Setup" in n for n in z.namelist()):
             raise ValueError("Full setup must never enter routine update")
@@ -481,7 +481,7 @@ def _run_owned(
         or b["dll_count"] != 21
     ):
         raise ValueError("Independent genuine native target proof differs")
-    if sha(target_helper) == sha(root / "vira-updater.exe"):
+    if sha(target_helper) == sha(root / "noa-updater.exe"):
         raise ValueError("Need distinct real helper bytes to prove EXE replacement")
     home, work = profile / "VIRA/private-native-installed", root.parent / "native-transaction-work"
     work.mkdir()
@@ -501,7 +501,7 @@ def _run_owned(
         root / "native/pdf",
         baseline_audit,
         "99.30.2",
-        root / "vira-updater.exe",
+        root / "noa-updater.exe",
         pin,
     )
     forward_zip = packet(root, forward, forward_pin, feed_dir)

@@ -4,13 +4,13 @@ import path from "node:path";
 import { execSync } from "node:child_process";
 
 /**
- * Build id of the SPA bundle. Stamped into index.html («vira-build») and read
+ * Build id of the SPA bundle. Stamped into index.html («noa-build») and read
  * back by the running UI: «سیستم و عملیات» compares it with the id the
  * installation ships, so a browser stuck on a cached bundle is visible instead
  * of silently hiding every new screen (v1.0.5 incident).
  */
 function buildId(): string {
-  if (process.env.VIRA_BUILD_ID) return process.env.VIRA_BUILD_ID;
+  if (process.env.NOA_BUILD_ID) return process.env.NOA_BUILD_ID;
   const sha = process.env.GITHUB_SHA?.slice(0, 7) ?? process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7);
   if (sha) return sha;
   try {
@@ -23,16 +23,16 @@ function buildId(): string {
 }
 const BUILD_ID = buildId();
 
-function viraBuildStamp() {
+function noaBuildStamp() {
   return {
-    name: "vira-build-stamp",
+    name: "noa-build-stamp",
     transformIndexHtml(html: string) {
       return {
         html,
         tags: [
           {
             tag: "meta",
-            attrs: { name: "vira-build", content: BUILD_ID },
+            attrs: { name: "noa-build", content: BUILD_ID },
             injectTo: "head-prepend" as const,
           },
         ],
@@ -43,8 +43,8 @@ function viraBuildStamp() {
 
 // Vite config — dev server proxies /api to the FastAPI backend (same-origin in prod).
 export default defineConfig({
-  plugins: [react(), viraBuildStamp()],
-  define: { __VIRA_BUILD_ID__: JSON.stringify(BUILD_ID) },
+  plugins: [react(), noaBuildStamp()],
+  define: { __NOA_BUILD_ID__: JSON.stringify(BUILD_ID) },
   resolve: {
     alias: { "@": path.resolve(__dirname, "src") },
   },
@@ -54,7 +54,7 @@ export default defineConfig({
     allowedHosts: true,
     proxy: {
       "/api": {
-        target: process.env.VIRA_API_URL || "http://127.0.0.1:8787",
+        target: process.env.NOA_API_URL || "http://127.0.0.1:8787",
         changeOrigin: false,
       },
     },

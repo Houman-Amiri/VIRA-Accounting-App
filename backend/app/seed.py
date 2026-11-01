@@ -128,7 +128,7 @@ def seed_owner_user(session: Session, *, username: str = "owner", password: str 
         import secrets
 
         password = secrets.token_urlsafe(12)
-        log.warning("created user %s with generated password (set VIRA_ADMIN_PASSWORD)", username)
+        log.warning("created user %s with generated password (set NOA_ADMIN_PASSWORD)", username)
     user = User(
         id=uuid7(),
         username=username,
@@ -181,8 +181,8 @@ def seed_all(
 def main() -> None:
     """CLI: `python -m app.seed` (idempotent).
 
-    Environment: VIRA_ADMIN_PASSWORD sets the owner password;
-    VIRA_CHART selects the chart (`business` default, or `personal`).
+    Environment: NOA_ADMIN_PASSWORD sets the owner password;
+    NOA_CHART selects the chart (`business` default, or `personal`).
     """
     import json as _json
     import os
@@ -192,10 +192,10 @@ def main() -> None:
 
     settings = Settings()
     db = Database(settings)
-    password = os.environ.get("VIRA_ADMIN_PASSWORD") or None
-    chart = os.environ.get("VIRA_CHART", "business")
+    password = os.environ.get("NOA_ADMIN_PASSWORD") or None
+    chart = os.environ.get("NOA_CHART", "business")
     if chart not in CHARTS:
-        raise SystemExit(f"VIRA_CHART must be one of {sorted(CHARTS)}, got {chart!r}")
+        raise SystemExit(f"NOA_CHART must be one of {sorted(CHARTS)}, got {chart!r}")
     with db.write_session() as session:
         result = seed_all(
             session,

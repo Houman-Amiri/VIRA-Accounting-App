@@ -49,17 +49,17 @@ def test_exif_metadata_stripped_on_save(tmp_path: Path) -> None:
 
     img = Image.new("RGB", (8, 8), color=(1, 2, 3))
     exif = img.getexif()
-    exif[271] = "VIRA-Camera"  # Make
+    exif[271] = "NOA-Camera"  # Make
     raw = io.BytesIO()
     img.save(raw, format="JPEG", exif=exif)
     data = raw.getvalue()
-    assert b"VIRA-Camera" in data  # metadata present before save
+    assert b"NOA-Camera" in data  # metadata present before save
     from app.services.storage import ALLOWED_MEDIA
 
     kind = validate_upload(data, "photo.jpg")
     assert kind == "jpg"
     clean = strip_image_metadata(data, kind)
-    assert b"VIRA-Camera" not in clean
+    assert b"NOA-Camera" not in clean
     # re-openable image
     img2 = Image.open(io.BytesIO(clean))
     assert img2.size == (8, 8)
@@ -95,13 +95,13 @@ def test_s3_backend_sse_presigned_layout(monkeypatch: pytest.MonkeyPatch) -> Non
             return fake
 
     monkeypatch.setitem(__import__("sys").modules, "boto3", _Boto3)
-    backend = S3StorageBackend("vira-bucket", endpoint_url="http://minio:9000", sse="AES256")
+    backend = S3StorageBackend("noa-bucket", endpoint_url="http://minio:9000", sse="AES256")
     data = _png_with_exif()
     sha, key = backend.store(data, kind="png")
     assert key == f"{sha[:2]}/{sha[2:4]}/{sha}.png"
     # server-side encryption enforced on write
     assert fake.puts[0]["ServerSideEncryption"] == "AES256"
-    assert fake.puts[0]["Bucket"] == "vira-bucket"
+    assert fake.puts[0]["Bucket"] == "noa-bucket"
     assert backend.load(sha, "png") == data
     url = backend.url_for(sha, "png", expires_seconds=60)
     assert url is not None and url.startswith("https://bucket.example/")

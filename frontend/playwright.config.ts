@@ -1,5 +1,5 @@
 /**
- * Playwright — end-to-end smoke for the V.I.R.A SPA (Persian RTL).
+ * Playwright — end-to-end smoke for the NOA SPA (Persian RTL).
  * Run: pnpm e2e (requires `playwright install chromium`).
  */
 import { defineConfig, devices } from "@playwright/test";
@@ -8,7 +8,7 @@ export default defineConfig({
   testDir: "./e2e",
   timeout: 60_000,
   use: {
-    baseURL: process.env.VIRA_E2E_BASE_URL || "http://127.0.0.1:5173",
+    baseURL: process.env.NOA_E2E_BASE_URL || "http://127.0.0.1:5173",
     locale: "fa-IR",
     timezoneId: "Asia/Tehran",
     viewport: { width: 1440, height: 900 },

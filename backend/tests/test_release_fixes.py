@@ -24,7 +24,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 def test_spa_static_dir_installed_and_dev_layouts(tmp_path: Path) -> None:
     # installed payload: {app}/app/main.py → {app}/static
-    inst = tmp_path / "VIRA"
+    inst = tmp_path / "NOA"
     (inst / "app").mkdir(parents=True)
     (inst / "static").mkdir()
     main_py = inst / "app" / "main.py"
@@ -100,11 +100,11 @@ def test_single_source_of_version_keeps_lock_and_persian_notes_aligned():
 
     root = Path(__file__).resolve().parents[2]
     pyproject = re.search(r'^version = "([^"]+)"', (root / "pyproject.toml").read_text(encoding="utf-8"), re.M).group(1)
-    locked = re.search(r'\[\[package\]\]\nname = "vira-accounting"\nversion = "([^"]+)"', (root / "uv.lock").read_text(encoding="utf-8")).group(1)
+    locked = re.search(r'\[\[package\]\]\nname = "noa-accounting"\nversion = "([^"]+)"', (root / "uv.lock").read_text(encoding="utf-8")).group(1)
     assert pyproject == locked, "uv.lock drifted from the project version"
     assert (root / f"docs/releases/v{pyproject}-fa.md").is_file(), "Persian notes must exist before tagging"
     workflow = (root / ".github/workflows/release.yml").read_text(encoding="utf-8")
-    assert "--target-version $env:VIRA_VERSION" in workflow
+    assert "--target-version $env:NOA_VERSION" in workflow
     assert "Refuse unsigned tagged publication" in workflow
 
 
@@ -125,8 +125,8 @@ def test_native_in_app_update_smoke_is_not_gated_to_one_version():
     workflow = (Path(__file__).resolve().parents[2] / ".github/workflows/release.yml").read_text(encoding="utf-8")
     # A version-pinned step condition silently skipped the whole real updater test
     # for every release after 1.0.10.
-    assert "env.VIRA_VERSION == '1.0.10'" not in workflow
-    assert "!startsWith(env.VIRA_VERSION, '0.0.0')" in workflow
+    assert "env.NOA_VERSION == '1.0.10'" not in workflow
+    assert "!startsWith(env.NOA_VERSION, '0.0.0')" in workflow
     assert "keep its delta baseline in the window" in workflow
     assert 'if key(version) > (1, 0, 10)' in workflow
 
@@ -135,7 +135,7 @@ def test_compiled_updater_install_retries_a_transient_gallery_failure_only():
     from pathlib import Path
 
     workflow = (Path(__file__).resolve().parents[2] / ".github/workflows/release.yml").read_text(encoding="utf-8")
-    step = workflow[workflow.index("Compile vira-updater.exe"):]
+    step = workflow[workflow.index("Compile noa-updater.exe"):]
     step = step[:step.index("- name:", 10)]
     assert "./scripts/install_ps2exe.ps1" in step
     assert "refusing to build without a compiled updater" in step
@@ -199,7 +199,7 @@ def _native_smoke_module():
     import importlib.util
 
     path = REPO_ROOT / "scripts/update_native_smoke.py"
-    spec = importlib.util.spec_from_file_location("vira_native_smoke_under_test", path)
+    spec = importlib.util.spec_from_file_location("noa_native_smoke_under_test", path)
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module  # dataclasses need a registered module
     spec.loader.exec_module(module)

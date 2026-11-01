@@ -9,13 +9,13 @@ import { faNumber } from "../src/lib/fa";
 
 export async function auditDashboard(page: Page): Promise<void> {
   expect(
-    process.env.VIRA_E2E_DISPOSABLE_DATABASE,
+    process.env.NOA_E2E_DISPOSABLE_DATABASE,
     "Financial fixtures require an explicitly disposable database",
   ).toBe("1");
   await page.goto("/");
   await expect(page.getByTestId("kpi-assets").locator(".num")).toBeVisible();
   async function post(path: string, data: Record<string, unknown> = {}) {
-    const csrf = (await page.context().cookies()).find((c) => c.name === "vira_csrf")?.value;
+    const csrf = (await page.context().cookies()).find((c) => c.name === "noa_csrf")?.value;
     expect(csrf).toBeTruthy();
     const response = await page.request.post(path, {
       headers: { "X-CSRF-Token": decodeURIComponent(csrf!) },
@@ -167,7 +167,7 @@ export async function auditDashboard(page: Page): Promise<void> {
     const plot = page.getByTestId("chart-pnl").locator("svg");
     const bounds = await plot.boundingBox();
     await plot.hover({ position: { x: bounds!.width / 2, y: bounds!.height / 2 } });
-    const tooltip = page.locator(".vira-chart-tooltip:visible");
+    const tooltip = page.locator(".noa-chart-tooltip:visible");
     await expect(tooltip).toBeVisible();
     await expect(tooltip).toHaveCSS("font-family", /Vazirmatn/);
     if (dark) await page.screenshot({ path: "test-results/dashboard-dark.png", fullPage: true });

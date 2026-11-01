@@ -27,7 +27,7 @@ const state: {
     downloaded_bytes: 0,
     verified: false,
     staged_path: "",
-    log_path: "C:\\Users\\x\\AppData\\Local\\VIRA\\updates\\2.0.0\\update.log",
+    log_path: "C:\\Users\\x\\AppData\\Local\\NOA\\updates\\2.0.0\\update.log",
     error_fa: null,
     machine_state: "idle",
   },

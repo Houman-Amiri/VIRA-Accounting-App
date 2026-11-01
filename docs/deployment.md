@@ -1,6 +1,6 @@
-# V.I.R.A — Windows-Native Deployment & Operations (Phase 6)
+# NOA — Windows-Native Deployment & Operations (Phase 6)
 
-راهنمای استقرار و بهره‌برداری ویرا. **بدون Docker** — همه چیز بومی روی ویندوز
+راهنمای استقرار و بهره‌برداری نوا. **بدون Docker** — همه چیز بومی روی ویندوز
 اجرا می‌شود. این سند مکمل [`docs/security.md`](security.md) است.
 
 ## 1. نسخه‌های پشتیبانی‌شده
@@ -24,18 +24,18 @@ cd VIRA-Accounting-App
 
 اسکریپت انجام می‌دهد: ساخت `.venv` و نصب وابستگی‌ها (`uv sync --frozen` یا pip)،
 نصب وابستگی‌های فرانت (`pnpm install --frozen-lockfile`)، ساخت مسیرهای داده در
-`%LOCALAPPDATA%\VIRA` (data, receipt_storage, backups, logs)، اعتبارسنجی SQLite
+`%LOCALAPPDATA%\NOA` (data, receipt_storage, backups, logs)، اعتبارسنجی SQLite
 (≥ 3.37 برای STRICT tables)، و اجرای **چرخه امن مهاجرت** (بخش ۵).
 
 راه‌اندازی / توقف:
 
 ```powershell
-.\scripts\start_vira.bat      # بک‌اند روی http://127.0.0.1:8787 (+ SPA ساخته‌شده)
-.\scripts\stop_vira.bat
+.\scripts\start_noa.bat      # بک‌اند روی http://127.0.0.1:8787 (+ SPA ساخته‌شده)
+.\scripts\stop_noa.bat
 ```
 
 - توسعه فرانت: `cd frontend; pnpm dev` (Vite روی 5173 با proxy به 8787).
-- دیتابیس پیش‌فرض: `%LOCALAPPDATA%\VIRA\data\vira.sqlite3` — قابل تغییر با
+- دیتابیس پیش‌فرض: `%LOCALAPPDATA%\NOA\data\noa.sqlite3` — قابل تغییر با
   `SQLITE_DATABASE_PATH`. دیتابیس، پشتیبان‌ها، کلیدها و رسیدها **هرگز** داخل
   مخزن نیستند (`.gitignore` + `.gitattributes`).
 
@@ -44,24 +44,24 @@ cd VIRA-Accounting-App
 **پشتیبان روزانه** (رمزگذاری‌شده):
 
 ```powershell
-.\scripts\backup_vira.ps1 -InstallScheduledTask -TaskTime 02:00 -PassphraseFile C:\secure\vira-pass.txt
+.\scripts\backup_noa.ps1 -InstallScheduledTask -TaskTime 02:00 -PassphraseFile C:\secure\noa-pass.txt
 ```
 
 **اجرای هنگام ورود کاربر** (اختیاری):
 
 ```powershell
-$action  = New-ScheduledTaskAction -Execute "$PWD\scripts\start_vira.bat"
+$action  = New-ScheduledTaskAction -Execute "$PWD\scripts\start_noa.bat"
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User "$env:USERNAME"
-Register-ScheduledTask -TaskName VIRA-Startup -Action $action -Trigger $trigger
+Register-ScheduledTask -TaskName NOA-Startup -Action $action -Trigger $trigger
 ```
 
 **سرویس ویندوز** (اختیاری): از یک wrapper نگهداری‌شده مانند **NSSM** با حساب
 کم‌امتیاز استفاده کنید — هیچ‌گاه سرویس مبتنی بر container نسازید:
 
 ```powershell
-nssm install VIRA "$PWD\.venv\Scripts\python.exe" "-m" "uvicorn app.main:app --host 127.0.0.1 --port 8787"
-nssm set VIRA AppDirectory "$PWD\backend"
-nssm set VIRA Start SERVICE_AUTO_START
+nssm install NOA "$PWD\.venv\Scripts\python.exe" "-m" "uvicorn app.main:app --host 127.0.0.1 --port 8787"
+nssm set NOA AppDirectory "$PWD\backend"
+nssm set NOA Start SERVICE_AUTO_START
 ```
 
 ## 4. ساخت تکرارپذیر (Reproducible Builds)
@@ -86,24 +86,24 @@ nssm set VIRA Start SERVICE_AUTO_START
 
 ```powershell
 cd backend
-$env:SQLITE_DATABASE_PATH = "$env:LOCALAPPDATA\VIRA\data\vira.sqlite3"
+$env:SQLITE_DATABASE_PATH = "$env:LOCALAPPDATA\NOA\data\noa.sqlite3"
 ..\ .venv\Scripts\python.exe -m alembic revision --autogenerate -m "add table x"
-# → فایل جدید را در GitHub Web بازبینی کنید؛ CI باید سبز باشد؛ سپس با migrate_vira.ps1 اعمال کنید
+# → فایل جدید را در GitHub Web بازبینی کنید؛ CI باید سبز باشد؛ سپس با migrate_noa.ps1 اعمال کنید
 ```
 
 ## 5. چرخه امن مهاجرت پایگاه‌داده (§7)
 
 ```powershell
-.\scripts\migrate_vira.ps1
+.\scripts\migrate_noa.ps1
 # یا با گزارش JSON:
-.\scripts\migrate_vira.ps1 -Report migration-report.json
+.\scripts\migrate_noa.ps1 -Report migration-report.json
 ```
 
-ترتیب دقیق (پیاده‌سازی: `scripts/migrate_vira.py`):
+ترتیب دقیق (پیاده‌سازی: `scripts/migrate_noa.py`):
 
 1. **قفل تک‌فرآیندی** — فایل `*.migrate.lock` (SQLite advisory lock ندارد).
 2. **پشتیبان آنلاین** با `sqlite3.Connection.backup()` در
-   `%LOCALAPPDATA%\VIRA\backups\pre-migration-<timestamp>.sqlite3` +
+   `%LOCALAPPDATA%\NOA\backups\pre-migration-<timestamp>.sqlite3` +
    `PRAGMA integrity_check` روی خود snapshot.
 3. `alembic upgrade head` — تک فرآیند، روی همان فایل دیتابیس.
 4. **دروازه سلامت**: `PRAGMA foreign_key_check` + بازنگری Alembic مورد انتظار +
@@ -113,8 +113,8 @@ $env:SQLITE_DATABASE_PATH = "$env:LOCALAPPDATA\VIRA\data\vira.sqlite3"
 **بازیابی (در صورت شکست مهاجرت):**
 
 ```powershell
-# سرویس/برنامه را متوقف کنید (stop_vira.bat) سپس:
-.\scripts\migrate_vira.ps1 -Restore "$env:LOCALAPPDATA\VIRA\backups"
+# سرویس/برنامه را متوقف کنید (stop_noa.bat) سپس:
+.\scripts\migrate_noa.ps1 -Restore "$env:LOCALAPPDATA\NOA\backups"
 ```
 
 `restore_bundle` ابتدا snapshot را verify (integrity_check) و سپس جایگزین
@@ -122,7 +122,7 @@ $env:SQLITE_DATABASE_PATH = "$env:LOCALAPPDATA\VIRA\data\vira.sqlite3"
 
 ## 6. پشتیبان‌گیری رمزگذاری‌شده و «سیستم و عملیات» (§8)
 
-- **زمان‌بندی‌شده**: Task Scheduler → `backup_vira.ps1` (بخش ۳) — snapshot آنلاین
+- **زمان‌بندی‌شده**: Task Scheduler → `backup_noa.ps1` (بخش ۳) — snapshot آنلاین
   + کپی رسیدها + رمزنگاری (PBKDF2-480k + AES). آپلود به S3/خارجی فقط در صورت
   پیکربندی (`-Destination`)؛ پیش‌فرض فقط دیسک محلی/شبکه داخلی.
 - **درون برنامه**: مسیر **«سیستم و عملیات»** در SPA (پس از احراز هویت مجدد/Sudo):
@@ -163,7 +163,7 @@ Manager / متغیرهای محیطی محدودشده خارج از مخزن �
 
 ```powershell
 # ذخیره رمز عبور پشتیبان در Credential Manager (مثال):
-cmdkey /generic:VIRA-Backup /user:vira /pass:(Read-Host "Passphrase")
+cmdkey /generic:NOA-Backup /user:noa /pass:(Read-Host "Passphrase")
 ```
 
 اگر از self-hosted runner استفاده می‌کنید: دسترسی مخزن/محیط را محدود کنید،
@@ -173,7 +173,7 @@ cmdkey /generic:VIRA-Backup /user:vira /pass:(Read-Host "Passphrase")
 ## 9. لاگ‌ها، سلامت و دسترسی خصوصی (§9)
 
 - **چرخش لاگ**: `backend/app/logging_setup.py` — RotatingFileHandler در
-  `%LOCALAPPDATA%\VIRA\logs\vira.log` (۲ مگابایت × ۵ نسخه). لاگ‌ها بدون
+  `%LOCALAPPDATA%\NOA\logs\noa.log` (۲ مگابایت × ۵ نسخه). لاگ‌ها بدون
   رمز/PII (pipeline حذف حساس در `security/redact.py`).
 - **سلامت**: `GET /api/v1/health/live` (زنده) و `GET /api/v1/health/ready`
   (اتصال دیتابیس، pragmaها، بازنگری Alembic، مسیر رسیدها قابل‌نوشتن،
@@ -203,22 +203,22 @@ UI localization is Persian-only: react-i18next namespaces under `frontend/src/lo
 2. Full test suite (pytest + Hypothesis + Vitest + Playwright) via the CI workflow.
 3. `scripts/stage_app_payload.ps1` assembles `dist-release/app/` (backend +
    site-packages, SPA `static/`, scripts, `version.json`, `install_manifest.json`).
-4. `iscc installer/vira.iss` compiles `VIRA-Setup-vX.Y.Z.exe` (Inno Setup 6 via choco).
-5. `ps2exe` compiles `scripts/vira_updater.ps1` → `vira-updater.exe`.
-6. `scripts/build_deltas.ps1` generates `VIRA-vX.Y.Z-delta-from-vA.B.C.zip` for the
+4. `iscc installer/noa.iss` compiles `NOA-Setup-vX.Y.Z.exe` (Inno Setup 6 via choco).
+5. `ps2exe` compiles `scripts/noa_updater.ps1` → `noa-updater.exe`.
+6. `scripts/build_deltas.ps1` generates `NOA-vX.Y.Z-delta-from-vA.B.C.zip` for the
    last K = 3 tags, finalizes `latest.json` (schema_version 1) and `SHA256SUMS.txt`,
-   and Ed25519-signs `latest.json` when the `VIRA_UPDATE_SIGNING_KEY` secret is set.
+   and Ed25519-signs `latest.json` when the `NOA_UPDATE_SIGNING_KEY` secret is set.
 7. The setup is uploaded **both** as a workflow artifact (90-day retention) and as an
    immutable GitHub Release asset, together with deltas, `latest.json`, `SHA256SUMS.txt`
    and Persian release notes.
 
-### Installer (`installer/vira.iss`)
+### Installer (`installer/noa.iss`)
 
-- Mandatory «مسیر نصب» page (`DisableDirPage=no`), default `{autopf}\VIRA`;
+- Mandatory «مسیر نصب» page (`DisableDirPage=no`), default `{autopf}\NOA`;
   `/VERYSILENT /DIR=<temp>` for automation.
-- Chosen `InstallDir` recorded at `HKLM/HKCU\SOFTWARE\VIRA\InstallDir` for the
+- Chosen `InstallDir` recorded at `HKLM/HKCU\SOFTWARE\NOA\InstallDir` for the
   updater and uninstaller.
-- Uninstaller never deletes `%LOCALAPPDATA%\VIRA` (SQLite, receipts, keys, logs,
+- Uninstaller never deletes `%LOCALAPPDATA%\NOA` (SQLite, receipts, keys, logs,
   backups) — a "delete application data" opt-in exists but is unchecked and double-confirmed.
 
 ### Update channel
@@ -229,12 +229,12 @@ UI localization is Persian-only: react-i18next namespaces under `frontend/src/lo
 - `APP_UPDATE_URL` overrides the channel with a self-hosted mirror;
   `UPDATE_PUBLIC_KEY` (Ed25519 PEM) enables signature enforcement.
 - Download/apply: `POST /api/v1/system/update/download` → SHA-256-verified staging
-  under `%LOCALAPPDATA%\VIRA\updates\<version>\`; `POST /api/v1/system/update/apply`
-  creates `backups/pre-update-*.sqlite3` then launches `vira-updater.exe`.
+  under `%LOCALAPPDATA%\NOA\updates\<version>\`; `POST /api/v1/system/update/apply`
+  creates `backups/pre-update-*.sqlite3` then launches `noa-updater.exe`.
 
 ### Delta packages
 
-`VIRA-vX.Y.Z-delta-from-vA.B.C.zip` contains `update.json` (ordered
+`NOA-vX.Y.Z-delta-from-vA.B.C.zip` contains `update.json` (ordered
 add/replace/patch/delete ops), `files/` (new/changed small files), `patches/`
 (BSDIFF40 patches for changed files > 256 KB), `delete.json`. Client selection:
 matching delta (typical download ≈ delta size, never the full setup) → bounded
@@ -243,7 +243,7 @@ delta chain → full installer silent upgrade. Patches are applied by `{app}\too
 
 ### Zero data loss
 
-User data lives exclusively in `%LOCALAPPDATA%\VIRA\`. Before first boot of a new
+User data lives exclusively in `%LOCALAPPDATA%\NOA\`. Before first boot of a new
 version the updater keeps `rollback/prev/` + `pre-update-*.sqlite3`; any failure
 restores the previous version with all data intact (forced-failure rollback is
 exercised in CI). The safe migration lifecycle (Phase 6 §7) runs after restart.
@@ -259,13 +259,13 @@ tag never gets moved; fixes ship as a new patch version.
 
 ### Installed app (v1.0.3+)
 
-* Launch from the Desktop/Start-Menu shortcut (`{app}\start_vira.cmd`): runs
+* Launch from the Desktop/Start-Menu shortcut (`{app}\start_noa.cmd`): runs
   migrations + seed (idempotent), then serves the SPA at `http://127.0.0.1:8787`.
 * The app is self-contained — a bundled CPython 3.11 lives in `{app}\python`;
   no system Python is required.
 * First run prints the initial login (user `owner`) and writes
-  `%LOCALAPPDATA%\VIRA\first-run-credentials.txt`. Change the password after
-  first login. `VIRA_PORT` / `SQLITE_DATABASE_PATH` / `SESSION_SECRET` env vars
+  `%LOCALAPPDATA%\NOA\first-run-credentials.txt`. Change the password after
+  first login. `NOA_PORT` / `SQLITE_DATABASE_PATH` / `SESSION_SECRET` env vars
   override the defaults; the session secret is generated once into
-  `%LOCALAPPDATA%\VIRA\session.secret`.
+  `%LOCALAPPDATA%\NOA\session.secret`.
 

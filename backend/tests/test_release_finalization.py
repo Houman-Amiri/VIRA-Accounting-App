@@ -28,7 +28,7 @@ def assets(tmp_path, monkeypatch):
     out = tmp_path / "release"
     out.mkdir()
     (out / "latest.json").write_bytes(b'{"schema_version":1,"version":"1.0.11"}\n')
-    (out / "VIRA-Setup-1.0.11.exe").write_bytes(b"OPAQUE NOT AN EXECUTABLE")
+    (out / "NOA-Setup-1.0.11.exe").write_bytes(b"OPAQUE NOT AN EXECUTABLE")
     (out / "delta.zip").write_bytes(b"OPAQUE NOT AN UPDATE")
     (out / "release-notes-fa.md").write_text("یادداشت آزمایشی، نه انتشار", encoding="utf-8")
     (out / "app").mkdir()
@@ -131,7 +131,7 @@ def test_finalizer_rejects_foreign_paths_secrets_and_unfinished_assets(assets, t
 
 
 def test_real_cli_hides_bad_key_and_returns_failure_without_partial_signing(assets):
-    env = dict(os.environ, VIRA_UPDATE_SIGNING_KEY="SENSITIVE INVALID KEY MUST NOT APPEAR", GITHUB_REF="refs/tags/v1.0.11")
+    env = dict(os.environ, NOA_UPDATE_SIGNING_KEY="SENSITIVE INVALID KEY MUST NOT APPEAR", GITHUB_REF="refs/tags/v1.0.11")
     child = subprocess.run([sys.executable, str(ROOT / "scripts/finalize_release_assets.py"), str(assets)],
                            env=env, capture_output=True, text=True, timeout=15)
     assert child.returncode == 1
@@ -141,7 +141,7 @@ def test_real_cli_hides_bad_key_and_returns_failure_without_partial_signing(asse
 
 def test_real_cli_produces_verifiable_signature_without_writing_a_key(assets):
     key = Ed25519PrivateKey.generate()
-    env = dict(os.environ, VIRA_UPDATE_SIGNING_KEY=pem(key), GITHUB_REF="refs/tags/v1.0.11")
+    env = dict(os.environ, NOA_UPDATE_SIGNING_KEY=pem(key), GITHUB_REF="refs/tags/v1.0.11")
     child = subprocess.run([sys.executable, str(ROOT / "scripts/finalize_release_assets.py"), str(assets)],
                            env=env, capture_output=True, text=True, timeout=15)
     assert child.returncode == 0, child.stderr
@@ -166,7 +166,7 @@ def test_actual_release_workflow_finalizes_after_smoke_and_before_upload_or_publ
 def test_dated_owner_authorization_allows_one_unsigned_tagged_publication(assets, monkeypatch):
     """The secret cannot be created by an App token; the owner authorized this."""
     monkeypatch.setenv("GITHUB_REF", "refs/tags/v1.0.11")
-    monkeypatch.setenv("VIRA_UNSIGNED_PUBLICATION_APPROVAL", "owner-authorized-2026-10-31")
+    monkeypatch.setenv("NOA_UNSIGNED_PUBLICATION_APPROVAL", "owner-authorized-2026-10-31")
     result = MODULE["finalize"](assets, None)
     assert result == dict(signed=False, checksummed_assets=4, unsigned_approval="owner-authorized-2026-10-31")
     assert not (assets / "latest.json.sig").exists()
@@ -180,7 +180,7 @@ def test_dated_owner_authorization_allows_one_unsigned_tagged_publication(assets
 )
 def test_a_hand_typed_or_partial_authorization_never_publishes_unsigned_labels(assets, monkeypatch, approval):
     monkeypatch.setenv("GITHUB_REF", "refs/tags/v1.0.11")
-    monkeypatch.setenv("VIRA_UNSIGNED_PUBLICATION_APPROVAL", approval)
+    monkeypatch.setenv("NOA_UNSIGNED_PUBLICATION_APPROVAL", approval)
     before = {p.name: p.read_bytes() for p in assets.iterdir() if p.is_file()}
     with pytest.raises(ValueError, match="no unsigned fallback"):
         MODULE["finalize"](assets, None)
@@ -189,11 +189,11 @@ def test_a_hand_typed_or_partial_authorization_never_publishes_unsigned_labels(a
 
 def test_unsigned_publication_is_announced_loudly_and_never_leaks_a_key(assets, monkeypatch):
     monkeypatch.setenv("GITHUB_REF", "refs/tags/v1.0.11")
-    monkeypatch.setenv("VIRA_UNSIGNED_PUBLICATION_APPROVAL", "owner-authorized-2026-10-31")
+    monkeypatch.setenv("NOA_UNSIGNED_PUBLICATION_APPROVAL", "owner-authorized-2026-10-31")
     child = subprocess.run(
         [sys.executable, str(ROOT / "scripts/finalize_release_assets.py"), str(assets)],
         capture_output=True, text=True, encoding="utf-8", cwd=ROOT,
-        env={k: v for k, v in os.environ.items() if k != "VIRA_UPDATE_SIGNING_KEY"},
+        env={k: v for k, v in os.environ.items() if k != "NOA_UPDATE_SIGNING_KEY"},
     )
     assert child.returncode == 0, child.stderr
     assert "::warning title=unsigned-release::" in child.stdout
@@ -203,7 +203,7 @@ def test_unsigned_publication_is_announced_loudly_and_never_leaks_a_key(assets, 
 
 def test_the_workflow_carries_exactly_this_dated_authorization_and_keeps_failing_closed():
     text = (ROOT / ".github/workflows/release.yml").read_text()
-    assert 'VIRA_UNSIGNED_PUBLICATION_APPROVAL: "owner-authorized-2026-10-31"' in text
+    assert 'NOA_UNSIGNED_PUBLICATION_APPROVAL: "owner-authorized-2026-10-31"' in text
     guard = text[text.index("Refuse unsigned tagged publication"):]
     guard = guard[:guard.index("- uses:")]
     assert 'throw "Tagged publication requires the configured Ed25519 signing key; no unsigned fallback"' in guard

@@ -53,7 +53,7 @@ def sha(path: Path) -> str:
 
 def seed_business() -> None:
     """Dedicated disposable fixture with a posted ledger and a completed order."""
-    if os.environ.get("VIRA_E2E_DISPOSABLE_DATABASE") != "1":
+    if os.environ.get("NOA_E2E_DISPOSABLE_DATABASE") != "1":
         raise RuntimeError("refusing to seed without disposable database acknowledgement")
     from app.config import load_settings
     from app.db import Database
@@ -143,13 +143,23 @@ PUBLISHED_BASE_COMMIT = "7d78720"
 DEFAULT_REPOSITORY = "Houman-Amiri/VIRA-Accounting-App"
 
 
-def published_base_url(repository: str | None = None) -> str:
-    """Public release asset of the pinned client; never a locally rebuilt tree."""
+# Releases published before the NOA rename keep their original asset names; a
+# pinned historical client must still be downloadable by name.
+LEGACY_ASSET_PREFIXES = ("noa", "vira")
+
+
+def published_base_urls(repository: str | None = None) -> list[str]:
+    """Public release assets of the pinned client, never a locally rebuilt tree."""
     repo = repository or os.environ.get("GITHUB_REPOSITORY") or DEFAULT_REPOSITORY
-    return (
+    return [
         f"https://github.com/{repo}/releases/download/v{PUBLISHED_BASE_VERSION}"
-        f"/vira-v{PUBLISHED_BASE_VERSION}-app.zip"
-    )
+        f"/{prefix}-v{PUBLISHED_BASE_VERSION}-app.zip"
+        for prefix in LEGACY_ASSET_PREFIXES
+    ]
+
+
+def published_base_url(repository: str | None = None) -> str:
+    return published_base_urls(repository)[0]
 
 
 def ensure_published_base(
@@ -173,12 +183,20 @@ def ensure_published_base(
         return base
     cache.mkdir(parents=True, exist_ok=True)
     pending = archive.with_suffix(".zip.part")
-    try:
-        with urllib.request.urlopen(url or published_base_url(), timeout=120) as response, pending.open("wb") as stream:
-            shutil.copyfileobj(response, stream)
-    except Exception:
-        pending.unlink(missing_ok=True)
-        raise
+    candidates = [url] if url else published_base_urls()
+    last: Exception | None = None
+    for candidate in candidates:
+        try:
+            with urllib.request.urlopen(candidate, timeout=120) as response, pending.open("wb") as stream:
+                shutil.copyfileobj(response, stream)
+        except Exception as exc:  # noqa: BLE001 - try the other published name
+            pending.unlink(missing_ok=True)
+            last = exc
+            continue
+        last = None
+        break
+    if last is not None:
+        raise last
     if sha(pending) != archive_sha256:
         pending.unlink(missing_ok=True)
         raise ValueError(f"published {PUBLISHED_BASE_VERSION} ZIP digest mismatch")
@@ -237,7 +255,7 @@ def verify_payload(root: Path, *, runtime: bool = False) -> None:
 def normalize_target_version(value: str | None) -> str:
     """A tag names its version ``vX.Y.Z``; packaging always writes ``X.Y.Z``.
 
-    The release workflow passes ``VIRA_VERSION`` straight from the tag
+    The release workflow passes ``NOA_VERSION`` straight from the tag
     (``v1.0.11``) while payload ``version.json`` carries ``1.0.11``. Comparing
     the two shapes verbatim failed the real updater audit on the first tagged
     run of a version-independent smoke.
@@ -268,7 +286,7 @@ class PublishedUpgrade:
 
     @property
     def delta_name(self) -> str:
-        return f"VIRA-v{self.target_version}-delta-from-v{self.base_version}.zip"
+        return f"NOA-v{self.target_version}-delta-from-v{self.base_version}.zip"
 
     @property
     def delta(self) -> Path:
@@ -320,6 +338,8 @@ def published_fixture(
             published.target_version,
             "--out",
             str(root),
+            # The published pre-rename client needs its helper under the old name.
+            "--compat-helper",
         )
         archive = root / archive.name
     return install, install / "start_vira.cmd", archive
@@ -340,7 +360,7 @@ def source_fixture(root: Path, rollback: bool) -> tuple[Path, Path, Path]:
     index = install / "static/index.html"
     index.write_text(
         re.sub(
-            r'(name="vira-build"\s+content=")[^"]+',
+            r'(name="noa-build"\s+content=")[^"]+',
             r"\g<1>native-old",
             index.read_text(encoding="utf-8"),
         ),
@@ -348,16 +368,16 @@ def source_fixture(root: Path, rollback: bool) -> tuple[Path, Path, Path]:
     )
     (install / "static/delete-me.txt").write_text("restore this deleted file")
     (install / "static/replaced.txt").write_text("old bytes")
-    (install / "vira-updater.exe").write_bytes(b"MZ-source-helper-fixture-not-executed")
+    (install / "noa-updater.exe").write_bytes(b"MZ-source-helper-fixture-not-executed")
     bootstrap = install / "bootstrap.py"
     bootstrap.write_text(f"""import os
 from pathlib import Path
 from app.services import update
 import uvicorn
-update._updater_command = lambda settings, stage: (["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", {str(ROOT / "scripts/vira_updater.ps1")!r}, "-Stage", stage, "-Log", str(Path(stage)/"update.log"), "-InstallDir", {str(install)!r}, "-HealthTimeoutSeconds", "15"], Path(stage)/"update.log")
-uvicorn.run("app.main:app", host="127.0.0.1", port=int(os.environ["VIRA_PORT"]))
+update._updater_command = lambda settings, stage: (["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", {str(ROOT / "scripts/noa_updater.ps1")!r}, "-Stage", stage, "-Log", str(Path(stage)/"update.log"), "-InstallDir", {str(install)!r}, "-HealthTimeoutSeconds", "15"], Path(stage)/"update.log")
+uvicorn.run("app.main:app", host="127.0.0.1", port=int(os.environ["NOA_PORT"]))
 """)
-    (install / "start_vira.cmd").write_text(
+    (install / "start_noa.cmd").write_text(
         f'@echo off\r\ncd /d "%~dp0"\r\n"{sys.executable}" "{bootstrap}" >> "{root / "server.log"}" 2>&1\r\n'
     )
     run(
@@ -410,7 +430,7 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
     else:
         install, bootstrap, archive = source_fixture(root, rollback)
         old_version, new_version = "99.0.0", "99.0.1"
-    database = data / "vira.sqlite3"
+    database = data / "noa.sqlite3"
     env = {
         **os.environ,
         "DATA_DIR": str(data),
@@ -426,16 +446,17 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
         # Seeding a published client with the repo migrator planted a revision the
         # released app cannot resolve (real 1.0.11 run: Can't locate '0006_item_catalog').
         baseline_env = {**env, "PYTHONPATH": str(install)}
+        # The pinned pre-rename client ships its own migrator and env prefix.
         run(sys.executable, str(install / "scripts/migrate_vira.py"), "--database", str(database), env=baseline_env, cwd=install)
         run(sys.executable, "-m", "app.seed", env={**baseline_env, "VIRA_ADMIN_PASSWORD": password}, cwd=install)
-        run(sys.executable, "-c", f"import sys;sys.path.insert(0,{str(ROOT)!r});from scripts.update_native_smoke import seed_business;sys.path.insert(0,{str(install)!r});seed_business()", env={**baseline_env, "VIRA_E2E_DISPOSABLE_DATABASE":"1"}, cwd=install)
+        run(sys.executable, "-c", f"import sys;sys.path.insert(0,{str(ROOT)!r});from scripts.update_native_smoke import seed_business;sys.path.insert(0,{str(install)!r});seed_business()", env={**baseline_env, "NOA_E2E_DISPOSABLE_DATABASE":"1"}, cwd=install)
         with closing(sqlite3.connect(database)) as old_db:
             assert old_db.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "0005_pricing_settings"
             assert old_db.execute("SELECT count(*) FROM sqlite_master WHERE name='item_types'").fetchone()[0] == 0
     else:
-        run(sys.executable, str(ROOT / "scripts/migrate_vira.py"), "--database", str(database), env=env)
-        run(sys.executable, "-m", "app.seed", env={**env, "VIRA_ADMIN_PASSWORD": password})
-        run(sys.executable, "-c", "from scripts.update_native_smoke import seed_business; seed_business()", env={**env, "VIRA_E2E_DISPOSABLE_DATABASE": "1"})
+        run(sys.executable, str(ROOT / "scripts/migrate_noa.py"), "--database", str(database), env=env)
+        run(sys.executable, "-m", "app.seed", env={**env, "NOA_ADMIN_PASSWORD": password})
+        run(sys.executable, "-c", "from scripts.update_native_smoke import seed_business; seed_business()", env={**env, "NOA_E2E_DISPOSABLE_DATABASE": "1"})
     with closing(sqlite3.connect(database)) as db:
         db.execute("CREATE TABLE phase8_sentinel(value TEXT NOT NULL)")
         db.execute("INSERT INTO phase8_sentinel VALUES ('exact business data 123.4567')")
@@ -447,7 +468,7 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
     checkpoint_hash = None
     checkpoint_fingerprint = None
     if published and published.schema_rollback:
-        env["VIRA_SCHEMA_PROOF_REPORT"] = str(root / "migration-proof.json")
+        env["NOA_SCHEMA_PROOF_REPORT"] = str(root / "migration-proof.json")
     base_revision = None
     if published:
         with closing(sqlite3.connect(database)) as probe:
@@ -630,15 +651,18 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
     app_port = port()
     url = f"http://127.0.0.1:{app_port}"
     env.update(
-        VIRA_PORT=str(app_port),
+        NOA_PORT=str(app_port),
         BIND_PORT=str(app_port),
-        VIRA_APP_DIR=str(install),
+        NOA_APP_DIR=str(install),
         APP_UPDATE_URL=feed_url + "/latest.json",
         PYTHONPATH=str(install),
     )
     if published:
+        # The pinned pre-rename client reads its own env prefix; the candidate
+        # reads the NOA one. Both point at the same disposable install.
+        env.update(VIRA_PORT=str(app_port), VIRA_APP_DIR=str(install))
         # The released launcher uses LOCALAPPDATA as well as DATA_DIR. Both are
-        # disposable; never reuse the runner's ordinary VIRA profile.
+        # disposable; never reuse the runner's ordinary profile.
         # Playwright's installation stays in the runner's real cache, even
         # though the product and its default Edge opener use an isolated profile.
         env.setdefault(
@@ -647,7 +671,7 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
         env["LOCALAPPDATA"] = str(root / "local profile")
         Path(env["LOCALAPPDATA"]).mkdir()
     # Ensure the repo's external environment cannot stamp our private fixture.
-    for name in ("VIRA_VERSION", "VIRA_GIT_COMMIT", "VIRA_SPA_BUILD"):
+    for name in ("NOA_VERSION", "NOA_GIT_COMMIT", "NOA_SPA_BUILD"):
         env.pop(name, None)
     browser_pids = ""
     if published:
@@ -667,7 +691,9 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
         )
     log = (root / "initial-server.log").open("w")
     argv = (
-        ["cmd.exe", "/d", "/c", "start_vira.cmd"] if published else [sys.executable, str(bootstrap)]
+        ["cmd.exe", "/d", "/c", Path(bootstrap).name]
+        if published
+        else [sys.executable, str(bootstrap)]
     )
     server = subprocess.Popen(
         argv, cwd=install, env=env, stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT
@@ -688,14 +714,14 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
             ],
             env={
                 **env,
-                "VIRA_NATIVE_BASE": url,
-                "VIRA_NATIVE_FEED": feed_url,
-                "VIRA_NATIVE_PASSWORD": password,
-                "VIRA_NATIVE_EXPECTED": "rolled_back" if rollback else "committed",
-                "VIRA_NATIVE_TARGET": new_version,
-                "VIRA_NATIVE_LEGACY": "1" if published else "0",
-                "VIRA_NATIVE_BASE_VERSION": old_version,
-                "VIRA_NATIVE_BASE_COMMIT": published.base_commit if published else "native-old",
+                "NOA_NATIVE_BASE": url,
+                "NOA_NATIVE_FEED": feed_url,
+                "NOA_NATIVE_PASSWORD": password,
+                "NOA_NATIVE_EXPECTED": "rolled_back" if rollback else "committed",
+                "NOA_NATIVE_TARGET": new_version,
+                "NOA_NATIVE_LEGACY": "1" if published else "0",
+                "NOA_NATIVE_BASE_VERSION": old_version,
+                "NOA_NATIVE_BASE_COMMIT": published.base_commit if published else "native-old",
             },
             capture_output=True,
             text=True,
@@ -748,7 +774,7 @@ def scenario(root: Path, rollback: bool, published: PublishedUpgrade | None = No
             emit_diagnostic(diagnostic)
         raise
     finally:
-        # Stop only this fixture's listener; never touch another VIRA installation.
+        # Stop only this fixture's listener; never touch another NOA installation.
         command = f"Get-NetTCPConnection -LocalPort {app_port} -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object {{ $p = Get-Process -Id $_ -ErrorAction SilentlyContinue; if ($p) {{ Stop-Process -Id $p.Id -Force; if (-not $p.WaitForExit(10000)) {{ throw 'fixture process still alive' }} }} }}"
         subprocess.run(
             ["powershell.exe", "-NoProfile", "-Command", command], check=True, timeout=30
@@ -818,7 +844,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--target-version",
-        default=os.environ.get("VIRA_VERSION") or PublishedUpgrade.target_version,
+        default=os.environ.get("NOA_VERSION") or PublishedUpgrade.target_version,
         type=normalize_target_version,
     )
     args = parser.parse_args()
@@ -836,7 +862,7 @@ def main() -> None:
             gate_delta=args.published_delta.resolve() if args.published_delta else None,
         )
         published.validate()
-    with tempfile.TemporaryDirectory(prefix="vira-in-app-", dir=os.environ["RUNNER_TEMP"]) as tmp:
+    with tempfile.TemporaryDirectory(prefix="noa-in-app-", dir=os.environ["RUNNER_TEMP"]) as tmp:
         scenario(Path(tmp) / "success", False, published)
         scenario(Path(tmp) / "rollback", True, published)
     print(

@@ -23,7 +23,7 @@ export const api = createClient<paths>({
   fetch: (...args: Parameters<typeof fetch>) => globalThis.fetch(...args),
 });
 
-const CSRF_COOKIE = "vira_csrf";
+const CSRF_COOKIE = "noa_csrf";
 const CSRF_HEADER = "X-CSRF-Token";
 const IDEM_HEADER = "Idempotency-Key";
 const SUDO_HEADER = "X-Sudo-Token";
