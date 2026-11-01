@@ -45,7 +45,7 @@ test("app shell and all menu themes render in Persian RTL", async ({ page }) => 
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   await expect(page.locator("html")).toHaveAttribute("lang", "fa");
   await expect(page.getByRole("navigation", { name: "ناوبری اصلی" })).toBeVisible();
-  await expect(page.getByText("حسابداری ویرا")).toBeVisible();
+  await expect(page.getByText("حسابداری نوا")).toBeVisible();
   await auditDashboard(page);
   await auditMenuThemes(page);
 });

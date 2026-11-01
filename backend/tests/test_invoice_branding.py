@@ -1,4 +1,4 @@
-"""The printed invoice carries the owner's logo and the V.I.R.A name.
+"""The printed invoice carries the owner's logo and the NOA name.
 
 The mark is inlined as a data: PNG so a printed/previewed invoice stays
 self-contained: no file path on the customer's machine, no network fetch, and
@@ -38,13 +38,13 @@ ORDER = {
     "discount": "۰",
     "total": "۵٬۵۲۱٬۴۹۷",
 }
-COMPANY = {"name": "V.I.R.A", "tagline": "چاپ سه‌بعدی و فروش محصولات"}
+COMPANY = {"name": "NOA", "tagline": "چاپ سه‌بعدی و فروش محصولات"}
 
 
 def test_the_invoice_header_shows_the_logo_and_the_name():
     html = render_html("proforma.html", {"company": COMPANY, "order": ORDER})
     assert '<img class="brand-logo" src="data:image/png;base64,' in html
-    assert '<div class="brand-name">V.I.R.A</div>' in html
+    assert '<div class="brand-name">NOA</div>' in html
     assert COMPANY["tagline"] in html
     # the title still says what the document is
     assert "پیش‌فاکتور فروش" in html

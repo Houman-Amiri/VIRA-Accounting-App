@@ -17,7 +17,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 TEMPLATES_DIR = Path(__file__).resolve().parents[1] / "templates"
 FONTS_DIR = TEMPLATES_DIR.parent / "assets" / "fonts"
 BRANDING_DIR = TEMPLATES_DIR.parent / "assets" / "branding"
-LOGO_FILENAME = "vira-logo.png"
+LOGO_FILENAME = "noa-logo.png"
 #: PNG signature — the shared asset must really be a PNG before it is inlined.
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 PRINTABLE_HTML_CSP = (
@@ -29,7 +29,7 @@ PRINTABLE_HTML_CSP = (
 
 
 def logo_data_uri() -> str:
-    """The V.I.R.A mark as a self-contained data: URI (no network, no file URLs)."""
+    """The NOA mark as a self-contained data: URI (no network, no file URLs)."""
     path = BRANDING_DIR / LOGO_FILENAME
     raw = path.read_bytes()
     if not raw.startswith(_PNG_SIGNATURE):
@@ -53,7 +53,7 @@ def render_html(
         **context,
         "brand": {
             "logo_url": font_urls["logo_url"],
-            "name": company.get("name") or "V.I.R.A",
+            "name": company.get("name") or "NOA",
             "tagline": company.get("tagline") or "",
         },
     }
@@ -91,7 +91,7 @@ def read_bundled(
         return table[url]
     except KeyError:
         raise ValueError(
-            "Only the bundled Vazirmatn font files and the V.I.R.A logo may be fetched"
+            "Only the bundled Vazirmatn font files and the NOA logo may be fetched"
         ) from None
 
 
@@ -141,7 +141,7 @@ def proforma_context(order: dict[str, Any]) -> dict[str, Any]:
     """Build the rendering context for a sales proforma invoice."""
     return {
         "company": {
-            "name": "V.I.R.A",
+            "name": "NOA",
             "tagline": "فروشگاه محصولات سه‌بعدی",
             "address": "",
             "phone": "",

@@ -240,7 +240,7 @@ async def test_a_registered_invoice_prints_with_the_logo_and_the_name(client):
     if response.headers["content-type"].startswith("text/html"):
         html = response.text
         assert '<img class="brand-logo" src="data:image/png;base64,' in html
-        assert '<div class="brand-name">V.I.R.A</div>' in html
+        assert '<div class="brand-name">NOA</div>' in html
         assert "فاکتور فروش" in html
         assert "آقای مشتری" in html
         # 3,750,001.5 Rial is printed as 375,000.15 Toman (÷10 exactly once)

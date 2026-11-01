@@ -1,8 +1,8 @@
 {
   "app": {
-    "title": "حسابداری ویرا",
-    "subtitle": "V.I.R.A",
-    "initial": "و"
+    "title": "حسابداری نوا",
+    "subtitle": "NOA",
+    "initial": "ن"
   },
   "nav": {
     "primary": "ناوبری اصلی",
@@ -49,7 +49,7 @@
     "hint": "Ctrl+K"
   },
   "login": {
-    "heading": "حسابداری ویرا",
+    "heading": "حسابداری نوا",
     "prompt": "برای ادامه وارد شوید",
     "username": "نام کاربری",
     "password": "رمز عبور",

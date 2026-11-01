@@ -83,7 +83,7 @@ const postedEntry = {
   metadata: {
     invoice: {
       kind: "sale",
-      seller: "فروشگاه ویرا",
+      seller: "فروشگاه نوا",
       buyer: "آقای مشتری",
       note: null,
       lines: [

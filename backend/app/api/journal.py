@@ -185,7 +185,7 @@ def invoice_document(
 ) -> Response:
     """فاکتور فروش — the printed document of one registered invoice entry.
 
-    Same branded header as the proforma (logo + V.I.R.A), rendered from the
+    Same branded header as the proforma (logo + NOA), rendered from the
     invoice detail the entry already carries. WeasyPrint's native libraries are
     optional, so the very same HTML is returned when PDF is unavailable and the
     browser's «چاپ → ذخیره به‌عنوان PDF» still works.
@@ -199,7 +199,7 @@ def invoice_document(
             f"سند شماره {entry.entry_number} از فاکتور ساخته نشده است؛ فاکتور چاپی ندارد"
         )
     context = {
-        "company": {"name": "V.I.R.A", "tagline": "چاپ سه‌بعدی و فروش محصولات"},
+        "company": {"name": "NOA", "tagline": "چاپ سه‌بعدی و فروش محصولات"},
         "invoice": {
             "entry_number": entry.entry_number,
             "entry_date": entry.transaction_date,

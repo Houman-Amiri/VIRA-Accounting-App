@@ -1,4 +1,4 @@
-"""ORM models for the VIRA backend."""
+"""ORM models for the NOA backend."""
 
 from .bank import BankImportBatch, BankStatementLine, ReconciliationSession
 from .base import Base

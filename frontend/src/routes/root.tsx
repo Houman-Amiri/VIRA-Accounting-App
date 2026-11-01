@@ -11,7 +11,7 @@ import { useUiStore } from "@/store/ui";
 import { useUpdateCheck } from "@/lib/update";
 import { Moon, Sun, Command } from "lucide-react";
 // The owner's mark, shared with the printed invoices (backend/app/assets/branding).
-import brandLogo from "@/assets/vira-logo.png";
+import brandLogo from "@/assets/noa-logo.png";
 import {
   BookOpenText,
   Building2,

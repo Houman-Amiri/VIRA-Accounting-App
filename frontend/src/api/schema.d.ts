@@ -318,7 +318,7 @@ export interface paths {
          * Invoice Document
          * @description فاکتور فروش — the printed document of one registered invoice entry.
          *
-         *     Same branded header as the proforma (logo + V.I.R.A), rendered from the
+         *     Same branded header as the proforma (logo + NOA), rendered from the
          *     invoice detail the entry already carries. WeasyPrint's native libraries are
          *     optional, so the very same HTML is returned when PDF is unavailable and the
          *     browser's «چاپ → ذخیره به‌عنوان PDF» still works.

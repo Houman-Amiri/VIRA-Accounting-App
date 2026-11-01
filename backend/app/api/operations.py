@@ -598,7 +598,7 @@ def proforma_pdf(
     order = service.get_order(order_id)
     read = _order_read(order)
     context = {
-        "company": {"name": "V.I.R.A", "tagline": "چاپ سه‌بعدی و فروش محصولات"},
+        "company": {"name": "NOA", "tagline": "چاپ سه‌بعدی و فروش محصولات"},
         "order": {
             "order_number": read.order_number,
             "order_date": read.order_date,

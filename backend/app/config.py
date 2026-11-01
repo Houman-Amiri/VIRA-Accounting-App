@@ -41,7 +41,7 @@ def default_data_dir() -> Path:
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    app_name: str = "VIRA Accounting"
+    app_name: str = "NOA Accounting"
     environment: str = Field(default="development")  # development|production
     bind_host: str = "127.0.0.1"
     bind_port: int = 8787

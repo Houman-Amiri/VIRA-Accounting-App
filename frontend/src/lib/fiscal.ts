@@ -1,7 +1,7 @@
 /**
  * Fiscal year & Jalali report dating (Phase 7 §3).
  *
- * The V.I.R.A fiscal year is the full Iranian calendar year: it starts on
+ * The NOA fiscal year is the full Iranian calendar year: it starts on
  * 1 Farvardin and ends on 29/30 Esfand.  All report date ranges and PDF/print
  * headers follow the display calendar via lib/fa; fiscal boundaries stay Jalali.
  */

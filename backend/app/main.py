@@ -131,7 +131,7 @@ def create_app(
             database.dispose()
 
     app = FastAPI(
-        title="VIRA Accounting API",
+        title="NOA Accounting API",
         version="0.1.0",
         lifespan=lifespan,
         docs_url="/api/docs",

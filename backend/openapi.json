@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "VIRA Accounting API",
+    "title": "NOA Accounting API",
     "version": "0.1.0"
   },
   "paths": {
@@ -1941,7 +1941,7 @@
           "journal"
         ],
         "summary": "Invoice Document",
-        "description": "فاکتور فروش — the printed document of one registered invoice entry.\n\nSame branded header as the proforma (logo + V.I.R.A), rendered from the\ninvoice detail the entry already carries. WeasyPrint's native libraries are\noptional, so the very same HTML is returned when PDF is unavailable and the\nbrowser's «چاپ → ذخیره به‌عنوان PDF» still works.",
+        "description": "فاکتور فروش — the printed document of one registered invoice entry.\n\nSame branded header as the proforma (logo + NOA), rendered from the\ninvoice detail the entry already carries. WeasyPrint's native libraries are\noptional, so the very same HTML is returned when PDF is unavailable and the\nbrowser's «چاپ → ذخیره به‌عنوان PDF» still works.",
         "operationId": "invoice_document_api_v1_journal_entries__entry_id__invoice_pdf_get",
         "parameters": [
           {
