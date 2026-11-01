@@ -44,9 +44,17 @@ function Find-PortableUrl([string]$Repo, [string]$Tag, [string]$BaseV) {
 # Exclude the target BEFORE counting bases, so tagged builds and branch dry
 # runs retain the same K bases (including the installed v1.0.6 for v1.0.9).
 $tags = git tag --list "v*" --sort=-v:refname | Where-Object { $_ -ne "v$v" } | Select-Object -First $Keep
-$deltas = @()
+$deltas = @()      # advertised in latest.json
+$built = 0         # ZIPs actually produced (advertising is decided per base)
 $script:probeLog = @()
 $probeHit = $false
+# A package can only be applied by a client that accepts the renamed root files.
+# 1.0.15 is the first such client: every earlier client's allowlist names only
+# start_vira.cmd / vira-updater.exe and refuses a renamed payload. Their deltas
+# are still built (release gates and the Windows smoke need a real package), but
+# they are never advertised, so those installs are offered the full setup, which
+# is also what moves the install folder to NOA.
+$FirstRenamedClient = [version]"1.0.15"
 $tmp = Join-Path ([IO.Path]::GetTempPath()) "noa-delta-base"
 New-Item -ItemType Directory -Force -Path $tmp | Out-Null
 
@@ -94,19 +102,24 @@ foreach ($tag in $tags) {
     $zipName = "NOA-v$v-delta-from-v$baseV.zip"
     $zipPath = Join-Path $OutDir $zipName
     if (Test-Path $zipPath) {
+        $built++
         Write-Host ("::notice title=build_deltas::$zipName BUILT ($((Get-Item $zipPath).Length) bytes)")
         $hash = (Get-FileHash -Algorithm SHA256 $zipPath).Hash.ToLower()
-        $deltas += @{ from_version = $baseV; url = "https://github.com/$repo/releases/download/v$v/$zipName"; sha256 = $hash; size = (Get-Item $zipPath).Length }
+        if ([version]$baseV -ge $FirstRenamedClient) {
+            $deltas += @{ from_version = $baseV; url = "https://github.com/$repo/releases/download/v$v/$zipName"; sha256 = $hash; size = (Get-Item $zipPath).Length }
+        } else {
+            Write-Host ("::notice title=build_deltas::$zipName NOT ADVERTISED — a v$baseV client cannot install a renamed payload; that install is offered the full setup")
+        }
     } else {
         Write-Host ("::notice title=build_deltas::$zipName MISSING after gen_delta — output: " + (($out | Out-String) -replace "`n", " | "))
     }
 }
 Write-Host ("[build_deltas] probe log: " + ($script:probeLog -join "; "))
-Write-Host ("::notice title=build_deltas::done — $($deltas.Count) delta(s) from tags: $($tags -join ', ')")
-if ($deltas.Count -eq 0 -and $probeHit) {
+Write-Host ("::notice title=build_deltas::done — $built delta(s) built, $($deltas.Count) advertised, from tags: $($tags -join ', ')")
+if ($built -eq 0 -and $probeHit) {
     throw "a portable base exists but 0 deltas were built — probe log: $($script:probeLog -join '; ')"
 }
-if ($deltas.Count -eq 0 -and ($script:probeLog | Where-Object { $_ -match "HTTP0" })) {
+if ($built -eq 0 -and ($script:probeLog | Where-Object { $_ -match "HTTP0" })) {
     throw "asset probes errored (HTTP0) — cannot confirm any base; probe log: $($script:probeLog -join '; ')"
 }
 

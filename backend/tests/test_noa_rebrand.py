@@ -211,3 +211,19 @@ def test_delta_without_the_compat_flag_ships_only_the_current_helper(tmp_path: P
     built = _delta_fixture(tmp_path)
     assert "noa-updater.exe" in built["names"]
     assert "vira-updater.exe" not in built["names"]
+
+
+def test_pre_rename_deltas_are_built_but_never_advertised() -> None:
+    """A v1.0.14 client cannot install a renamed payload, so it must get the setup.
+
+    Its own allowlist only accepts start_vira.cmd / vira-updater.exe, so the delta
+    from those bases is still built (the release gates need a real package) but it
+    is never written into latest.json — otherwise the client downloads a package it
+    is guaranteed to reject.
+    """
+    text = (ROOT / "scripts/build_deltas.ps1").read_text(encoding="utf-8")
+    assert '$FirstRenamedClient = [version]"1.0.15"' in text
+    assert "if ([version]$baseV -ge $FirstRenamedClient) {" in text
+    assert "NOT ADVERTISED" in text
+    # Building is still mandatory: the gates and the Windows smoke need the ZIPs.
+    assert "$built -eq 0 -and $probeHit" in text

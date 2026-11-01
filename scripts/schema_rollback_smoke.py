@@ -87,6 +87,8 @@ def main() -> None:
             "99.0.1",
             "--out",
             str(packages),
+            # The pinned 1.0.10 client refuses a package without its helper name.
+            "--compat-helper",
         )
         published = PublishedUpgrade(
             base,
