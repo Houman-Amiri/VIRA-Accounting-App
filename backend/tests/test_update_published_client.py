@@ -218,4 +218,11 @@ def test_workflow_builds_the_gate_delta_outside_the_shipped_assets():
     assert "--published-delta $gateDelta" in step
     assert "scripts/gen_delta.py" in step and "--base-version 1.0.9" in step
     assert '$gateDeltaDir = Join-Path $env:RUNNER_TEMP "noa-gate-delta"' in step
-    assert "$gateDeltaDir --compat-helper *>&1" in step, "the gate delta must never be written into dist-release"
+    # Built from a copy that keeps the pre-rename root names: the pinned 1.0.9
+    # client refuses a package that installs start_noa.cmd / noa-updater.exe.
+    assert '$gateTarget = Join-Path $env:RUNNER_TEMP "noa-gate-target"' in step
+    assert "--target-dir $gateTarget" in step
+    assert "--helper-file $gateHelper" in step
+    assert "$gateDeltaDir --compat-helper --helper-file $gateHelper *>&1" in step, (
+        "the gate delta must never be written into dist-release"
+    )

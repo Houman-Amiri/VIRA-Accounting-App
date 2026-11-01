@@ -23,9 +23,15 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 - `DefaultDirName` is `D:\3D PRINT\NOA-Accounting` with `UsePreviousAppDir=no`,
   so the upgrade really moves instead of re-installing under the old name; the
   same `AppId` keeps one Add/Remove Programs entry.
-- Deltas built for pre-rename clients also carry the updater under its old file
-  name, so a 1.0.14 install can still take the delta; the helper it extracts is
-  the new one and restarts `start_noa.cmd`.
+- A pre-rename install (1.0.14 and earlier) is offered the **full setup**, not a
+  delta: its own package validator accepts only `start_vira.cmd` /
+  `vira-updater.exe` and rejects a renamed payload, so advertising a delta would
+  guarantee a failed download. `build_deltas.ps1` still builds every base delta
+  (the release gates and the Windows smoke need real packages) but only
+  advertises bases from 1.0.15 on. The release gates that must drive a pinned
+  pre-rename client build their package with `--compat-helper` and
+  `--helper-file`, so the old client accepts it and the new compiled helper —
+  which restarts either launcher name — performs the upgrade.
 - Deliberately unchanged: the GitHub repository slug, already-published asset
   names (both prefixes are probed), the frozen native PDF build kit and its MIT
   grant, and the recorded CI evidence under `docs/dependencies/` and

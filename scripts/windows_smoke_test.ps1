@@ -117,7 +117,7 @@ foreach ($delta in $deltaZips) {
     $tag = "v$fromV"
     $pUrl = $null
     # Pre-rename releases keep their original asset names.
-    foreach ($pName in @("noa-v$fromV-app.zip", "noa-v$fromV-app.zip", "noa-v$fromV-portable.zip", "noa-v$fromV-portable.zip", "NOA-v$fromV.zip", "NOA-v$fromV.zip")) {
+    foreach ($pName in @("noa-v$fromV-app.zip", "vira-v$fromV-app.zip", "noa-v$fromV-portable.zip", "vira-v$fromV-portable.zip", "NOA-v$fromV.zip", "VIRA-v$fromV.zip", "NOA-v$fromV-portable.zip", "VIRA-v$fromV-portable.zip")) {
         $tryUrl = "https://github.com/$repo/releases/download/$tag/$pName"
         try {
             $resp = Invoke-WebRequest -Uri $tryUrl -Method Head -SkipHttpErrorCheck -MaximumRedirection 5 -TimeoutSec 30

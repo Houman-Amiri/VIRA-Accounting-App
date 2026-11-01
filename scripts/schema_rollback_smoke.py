@@ -56,7 +56,10 @@ def main() -> None:
         packages = root / "private-candidate"
         target = packages / "app"
         shutil.copytree(base, target)
-        shutil.copy2(args.helper, target / "noa-updater.exe")
+        # The compiled helper travels inside the package, never at the target's
+        # root: the pinned 1.0.10 client refuses a renamed root file, and this
+        # gate is about the real migration and rollback, not about the rename.
+
         shutil.copy2(ROOT / "scripts/update_database.py", target / "scripts/update_database.py")
         import json
 
@@ -89,6 +92,8 @@ def main() -> None:
             str(packages),
             # The pinned 1.0.10 client refuses a package without its helper name.
             "--compat-helper",
+            "--helper-file",
+            str(args.helper),
         )
         published = PublishedUpgrade(
             base,

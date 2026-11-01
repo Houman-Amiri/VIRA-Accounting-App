@@ -61,6 +61,14 @@ def main() -> int:
         action="store_true",
         help="also ship the updater as vira-updater.exe for pre-rename clients",
     )
+    # A gate whose target is a pre-rename client's own tree cannot carry the new
+    # helper file at its root (that client refuses the renamed path), so the
+    # compiled helper is supplied out of band and travels inside the package.
+    parser.add_argument(
+        "--helper-file",
+        type=Path,
+        help="compiled updater to embed instead of <target-dir>/noa-updater.exe",
+    )
     args = parser.parse_args()
     if args.private_source_anchor and os.environ.get("GITHUB_ACTIONS") != "true":
         parser.error("Private source delta Windows CI only")
@@ -105,7 +113,7 @@ def main() -> int:
             zf.writestr("version.json", target_version_json.read_bytes())
         # Run the new helper OUTSIDE {app}: an installed/running .exe cannot
         # replace itself on Windows. Older clients already prefer this location.
-        helper = args.target_dir / "noa-updater.exe"
+        helper = args.helper_file or (args.target_dir / "noa-updater.exe")
         if helper.is_file():
             data = helper.read_bytes()
             zf.writestr("noa-updater.exe", data)

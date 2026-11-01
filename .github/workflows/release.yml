@@ -255,8 +255,21 @@ jobs:
           $gateDeltaDir = Join-Path $env:RUNNER_TEMP "noa-gate-delta"
           New-Item -ItemType Directory -Force -Path $gateDeltaDir | Out-Null
           $gateDelta = Join-Path $gateDeltaDir "NOA-v$version-delta-from-v1.0.9.zip"
+          # The pinned 1.0.9 client only accepts the root files it was built with
+          # (start_vira.cmd / vira-updater.exe); it refuses a package that installs
+          # the renamed ones. So this gate applies the NEW application under the OLD
+          # root names: everything it proves — real feed, real delta, real compiled
+          # helper, restart, migrated schema, preserved data, rollback — is unchanged.
+          # The renamed files themselves are proven by the Windows install/upgrade
+          # smoke below, which runs this very release's setup and deltas.
+          $gateTarget = Join-Path $env:RUNNER_TEMP "noa-gate-target"
+          Remove-Item $gateTarget -Recurse -Force -ErrorAction SilentlyContinue
+          Copy-Item dist-release/app $gateTarget -Recurse
+          $gateHelper = Join-Path $env:RUNNER_TEMP "noa-gate-helper.exe"
+          Move-Item (Join-Path $gateTarget 'noa-updater.exe') $gateHelper -Force
+          Move-Item (Join-Path $gateTarget 'start_noa.cmd') (Join-Path $gateTarget 'start_vira.cmd') -Force
           if (-not (Test-Path $gateDelta)) {
-            $out += (& uv run python scripts/gen_delta.py --base-manifest $baseManifest.FullName --base-dir $baseManifest.Directory.FullName --target-dir dist-release/app --base-version 1.0.9 --target-version $version --out $gateDeltaDir --compat-helper *>&1 | Out-String)
+            $out += (& uv run python scripts/gen_delta.py --base-manifest $baseManifest.FullName --base-dir $baseManifest.Directory.FullName --target-dir $gateTarget --base-version 1.0.9 --target-version $version --out $gateDeltaDir --compat-helper --helper-file $gateHelper *>&1 | Out-String)
             if ($LASTEXITCODE -ne 0 -or -not (Test-Path $gateDelta)) {
               $out | Out-File -FilePath reports/in-app-step-output.txt -Encoding utf8
               throw "gate delta from the pinned 1.0.9 client could not be built: $gateDelta"

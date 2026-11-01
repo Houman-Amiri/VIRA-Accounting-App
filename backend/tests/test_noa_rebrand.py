@@ -227,3 +227,56 @@ def test_pre_rename_deltas_are_built_but_never_advertised() -> None:
     assert "NOT ADVERTISED" in text
     # Building is still mandatory: the gates and the Windows smoke need the ZIPs.
     assert "$built -eq 0 -and $probeHit" in text
+
+
+def test_helper_can_travel_inside_a_package_built_for_a_pre_rename_target(tmp_path: Path) -> None:
+    """A pre-rename target cannot hold the renamed helper at its root.
+
+    The pinned 1.0.9/1.0.10 clients reject any operation on a renamed root file,
+    so the compiled helper is supplied with --helper-file and travels as a package
+    member the old client installs under its own name.
+    """
+    import json
+    import subprocess
+    import sys
+    import zipfile
+
+    from app.services.update_engine import build_manifest, manifest_to_json
+
+    base, target = tmp_path / "base", tmp_path / "target"
+    (base / "app").mkdir(parents=True)
+    (base / "app" / "main.py").write_bytes(b"old\n" * 60)
+    (base / "version.json").write_text(json.dumps({"version": "1.0.9"}), encoding="utf-8")
+    (base / "start_vira.cmd").write_bytes(b"@echo off\nold\n")
+    manifest = base / "install_manifest.json"
+    manifest.write_text(json.dumps(manifest_to_json(build_manifest(base))), encoding="utf-8")
+    (target / "app").mkdir(parents=True)
+    (target / "app" / "main.py").write_bytes(b"new\n" * 60)
+    (target / "version.json").write_text(json.dumps({"version": "1.0.15"}), encoding="utf-8")
+    (target / "start_vira.cmd").write_bytes(b"@echo off\nnew\n")
+    helper = tmp_path / "helper.exe"
+    helper.write_bytes(b"MZ-real-compiled-helper")
+    subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts" / "gen_delta.py"),
+            "--base-manifest", str(manifest),
+            "--base-dir", str(base),
+            "--target-dir", str(target),
+            "--base-version", "1.0.9",
+            "--target-version", "1.0.15",
+            "--out", str(tmp_path / "out"),
+            "--compat-helper",
+            "--helper-file", str(helper),
+        ],
+        check=True,
+        capture_output=True,
+    )
+    with zipfile.ZipFile(tmp_path / "out" / "NOA-v1.0.15-delta-from-v1.0.9.zip") as zf:
+        doc = json.loads(zf.read("update.json"))
+        assert zf.read("vira-updater.exe") == b"MZ-real-compiled-helper"
+        assert zf.read("noa-updater.exe") == b"MZ-real-compiled-helper"
+    assert doc["hashes"]["vira-updater.exe"] == doc["hashes"]["noa-updater.exe"]
+    # Nothing at the target root carries the renamed name, so an old client accepts it.
+    assert not any(op["path"] == "noa-updater.exe" for op in doc["operations"])
+    assert "start_noa.cmd" not in {op["path"] for op in doc["operations"]}
