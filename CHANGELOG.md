@@ -5,7 +5,15 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
-## [Unreleased]
+## [1.0.15] — 2026-11-01
+
+Published: tag `v1.0.15`, release run 41325795193, all six jobs green
+(1448 backend tests, 242 UI tests, OpenAPI contract, Windows-native smoke,
+Playwright, asset build and publication). The Windows install/upgrade/rollback
+smoke — including a delta upgrade from the released 1.0.14 portable and a
+rollback — passed before anything was published. Unsigned (owner-authorized in
+`.github/workflows/release.yml`); the Persian notes are
+`docs/releases/v1.0.15-fa.md`.
 
 ### VIRA renamed to NOA — the app, its files and its data folder
 - Every place the owner sees the name now says **NOA**: the printed invoice and
@@ -40,6 +48,12 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
   names (both prefixes are probed), the frozen native PDF build kit and its MIT
   grant, and the recorded CI evidence under `docs/dependencies/` and
   `docs/reports/` — rewriting those would falsify measurements.
+
+## [1.0.11] – [1.0.14] — 2026-10-20 … 2026-10-31
+
+This log kept the last four releases in one block; the per-release Persian notes
+(`docs/releases/v1.0.11-fa.md` … `v1.0.14-fa.md`) say exactly which release
+carried what, and the native-PDF research entries below never shipped.
 
 ### The owner's logo and the NOA name on every invoice the app prints
 - Both generated documents now open with the brand header: the mark, «NOA»
