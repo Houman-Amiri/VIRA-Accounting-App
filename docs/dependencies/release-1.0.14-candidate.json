@@ -1,0 +1,82 @@
+{
+  "role": "RELEASED_UNSIGNED_UNDER_DATED_OWNER_AUTHORIZATION",
+  "version": "1.0.14",
+  "tag": "v1.0.14",
+  "tag_commit": "a4efd53",
+  "tag_type": "annotated (immutable; one tag per release)",
+  "published_at": "2026-11-01T09:13:47Z",
+  "release_run": 41290072254,
+  "release_jobs": {
+    "Full test suite / Frontend — lint, types, contract, tests, build": "success",
+    "Full test suite / Backend — lint, type, security, tests": "success",
+    "Full test suite / OpenAPI contract is in sync": "success",
+    "Full test suite / Playwright e2e (native processes)": "success",
+    "Full test suite / Windows-native smoke (SQLite paths, venv, build)": "success",
+    "Build & publish release assets": "success"
+  },
+  "release_artifact": {
+    "name": "release-assets-v1.0.14",
+    "id": 13077910523,
+    "bytes": 547512069,
+    "sha256": "a80fa6b120840aef66ed268096f976ddcfaa66468e52f162cefcf62812a3a4e1"
+  },
+  "published_assets": {
+    "VIRA-Setup-v1.0.14.exe": 128337532,
+    "vira-v1.0.14-app.zip": 201976813,
+    "VIRA-v1.0.14-delta-from-v1.0.11.zip": 4799535,
+    "VIRA-v1.0.14-delta-from-v1.0.12.zip": 4759604,
+    "VIRA-v1.0.14-delta-from-v1.0.13.zip": 4516938,
+    "vira-v1.0.14-portable.zip": 5625106,
+    "vira-updater.exe": 57344,
+    "latest.json": 1520,
+    "SHA256SUMS.txt": 821,
+    "release-notes-fa.md": 7971,
+    "latest.json.sig": null
+  },
+  "windows_native_pdf_witnesses": {
+    "artifact": {
+      "name": "native-pdf-proof",
+      "id": 13076464762,
+      "bytes": 305182
+    },
+    "single_page": {
+      "bytes": 148125,
+      "sha256": "48f383eb6772349fdacc26800dcde4d1a55a139e15b2dc9722f19e96ac53951e"
+    },
+    "multi_page": {
+      "pages": 4,
+      "sha256": "48cf995590b9de29510c24e7337a6061cd6a138581fba7bdc8bf9f9eb8c5de47"
+    },
+    "scope": "Synthetic native rendering only; NOT installed payload or business/visual acceptance"
+  },
+  "unsigned_authorization": {
+    "record": "VIRA_UNSIGNED_PUBLICATION_APPROVAL: owner-authorized-2026-10-31 in .github/workflows/release.yml",
+    "owner_instruction": "«نسخهٔ ۱.۰.۱۴ را با همین اصلاح منتشر کن» (2026-11-01), after reading docs/releases/v1.0.14-fa.md",
+    "why": "The repository secret VIRA_UPDATE_SIGNING_KEY cannot be created by the GitHub App token used here; every 1.0.x release so far shipped unsigned.",
+    "unchanged_protection": "The dated-token guard still fails closed on any other value, and SHA-256 is verified for every asset and for SHA256SUMS.txt."
+  },
+  "scope": [
+    "the update check reads latest.json from the release asset, not api.github.com, so it spends none of the 60 anonymous requests per hour per IP",
+    "the GitHub API stays only as a fallback for a release without a latest.json asset",
+    "a bare 403 is no longer called a rate limit; 429 / X-RateLimit-Remaining: 0 / Retry-After keep that copy and now state the real wait in Persian digits",
+    "the download path reports a real 403 as a refused link, not a quota problem",
+    "no signature request is made when no update public key is baked in",
+    "no database change: schema stays 0007_production_filaments"
+  ],
+  "defects_found_and_fixed_in_this_cycle": [
+    "update check spent one anonymous API request per check on api.github.com (60/hour/IP, shared behind NAT); the owner's first check was refused with «تعداد درخواست‌ها بیش از حد مجاز است» and restarting the app could not change it",
+    "every 403 was reported as a rate limit even when GitHub refused for another reason, so the message named the wrong cause",
+    "the frontend statements drill-down test hard-coded today as 2026-10-31 and started failing on 2026-11-01 with no code change; the clock is now frozen for that file"
+  ],
+  "measurement_limits": [
+    "the release asset download host is unreachable from this development environment, so the real GitHub request was verified by simulated responses, not by a live call",
+    "installed-user acceptance of the new wording was not observed"
+  ],
+  "not_claimed": {
+    "signed_latest_json": false,
+    "installed_user_acceptance": false,
+    "legal_gates_closed": false,
+    "native_source_build_proven": false,
+    "live_github_check_measured_here": false
+  }
+}
