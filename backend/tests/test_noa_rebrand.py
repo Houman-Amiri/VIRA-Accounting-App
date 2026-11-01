@@ -13,7 +13,9 @@ from pathlib import Path
 
 from app.config import (
     LEGACY_APP_DIR_NAME,
+    LEGACY_CSRF_COOKIE_NAME,
     LEGACY_DATABASE_FILENAME,
+    LEGACY_SESSION_COOKIE_NAME,
     Settings,
     migrate_legacy_data_dir,
 )
@@ -132,6 +134,8 @@ def test_no_user_visible_string_still_says_the_old_brand() -> None:
         # The pre-rename root file names must still be named, because the upgrade
         # package has to delete exactly them (see update_staging.INSTALL_FILES).
         text = text.replace("start_vira.cmd", "").replace("vira-updater.exe", "")
+        # The retired cookie names are read once, for the upgrade (see config.py).
+        text = text.replace(LEGACY_SESSION_COOKIE_NAME, "").replace(LEGACY_CSRF_COOKIE_NAME, "")
         text = text.replace("VIRA-Accounting-App", "")  # the GitHub slug, unrenamed
         if re.search(r"V\.I\.R\.A|VIRA|Vira|vira|ویرا(?!ی)", text):
             offenders.append(str(path.relative_to(ROOT)))
@@ -353,3 +357,34 @@ def test_a_delta_that_renames_an_existing_install_passes_the_shipped_validator(
     # The shipped validator accepts it; nothing is written outside the app folders.
     extract_delta(archive, tmp_path / "payload", "1.0.14", "1.0.15")
     assert (tmp_path / "payload" / "files" / "start_noa.cmd").is_file()
+
+
+def test_an_existing_session_survives_the_rename(database) -> None:
+    """The upgrade must not log the owner out: the old cookie carries the same token."""
+    from fastapi.testclient import TestClient
+
+    from app.config import LEGACY_CSRF_COOKIE_NAME, LEGACY_SESSION_COOKIE_NAME
+    from app.main import create_app
+
+    app = create_app(database.settings)  # conftest seeds the owner account
+    with TestClient(app) as client:
+        login = client.post(
+            "/api/v1/auth/login",
+            json={"username": "owner", "password": "test-password-1"},
+        )
+        assert login.status_code == 200
+        token = client.cookies.get(database.settings.session_cookie_name)
+        csrf = login.json()["csrf_token"]
+        assert token
+
+    # The pre-rename client would present the same values under the old names.
+    legacy_cookies = {LEGACY_SESSION_COOKIE_NAME: token, LEGACY_CSRF_COOKIE_NAME: csrf}
+    with TestClient(app, cookies=legacy_cookies) as legacy:
+        who = legacy.get("/api/v1/auth/me")
+        assert who.status_code == 200, who.text
+        assert who.json()["username"] == "owner"
+        legacy.headers["X-CSRF-Token"] = csrf
+        assert legacy.post("/api/v1/auth/logout").status_code in (200, 204)
+
+    with TestClient(app, cookies={LEGACY_SESSION_COOKIE_NAME: "not-a-signed-token"}) as stranger:
+        assert stranger.get("/api/v1/auth/me").status_code == 401

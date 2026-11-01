@@ -41,6 +41,11 @@ APP_DIR_NAME = "NOA"
 # Byte-for-byte the file name the pre-rename installs used. It is a lookup key
 # for existing data, so it must keep the old spelling even after the rebrand.
 LEGACY_DATABASE_FILENAME = "vira.sqlite3"  # noqa: S105 - a file name, not a secret
+# Cookie names the pre-rename install issued. They hold the very same signed
+# session token, so reading them once keeps the owner logged in across the
+# 1.0.15 upgrade instead of forcing a re-login for a pure rename.
+LEGACY_SESSION_COOKIE_NAME = "vira_session"  # noqa: S105 - a cookie name
+LEGACY_CSRF_COOKIE_NAME = "vira_csrf"  # noqa: S105 - a cookie name
 
 
 def app_data_root() -> Path:

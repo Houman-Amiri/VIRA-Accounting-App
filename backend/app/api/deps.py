@@ -8,7 +8,7 @@ from typing import Annotated
 from fastapi import Cookie, Depends, Header, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from ..config import Settings
+from ..config import LEGACY_CSRF_COOKIE_NAME, LEGACY_SESSION_COOKIE_NAME, Settings
 from ..db import Database
 from ..security.session import SessionManager, SessionUser, csrf_matches
 from ..services.audit import set_actor
@@ -35,9 +35,12 @@ def get_current_user(
     session_manager: Annotated[SessionManager, Depends(get_session_manager)],
     noa_session: Annotated[str | None, Cookie()] = None,
 ) -> SessionUser | None:
-    if not noa_session:
+    # A pre-rename install signs its session under the old cookie name; the token
+    # is identical, so honouring it avoids logging the owner out on the upgrade.
+    token = noa_session or request.cookies.get(LEGACY_SESSION_COOKIE_NAME)
+    if not token:
         return None
-    user = session_manager.parse(noa_session)
+    user = session_manager.parse(token)
     if user is not None:
         set_actor(user.user_id)
     return user
@@ -71,7 +74,8 @@ def enforce_csrf(
     # the custom X-API-Key header is itself the CSRF defense for that path.
     if x_api_key:
         return
-    if request.method in WRITE_METHODS and not csrf_matches(noa_csrf, x_csrf_token):
+    csrf_cookie = noa_csrf or request.cookies.get(LEGACY_CSRF_COOKIE_NAME)
+    if request.method in WRITE_METHODS and not csrf_matches(csrf_cookie, x_csrf_token):
         raise HTTPException(status_code=403, detail="CSRF token missing or invalid")
 
 
