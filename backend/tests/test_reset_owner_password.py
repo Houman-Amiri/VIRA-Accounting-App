@@ -127,6 +127,60 @@ def test_a_short_password_is_refused_without_writing_anything(tmp_path) -> None:
     assert _backups(tmp_path) == []
 
 
+def test_it_can_rename_the_login_to_NOA_in_the_same_run(tmp_path) -> None:
+    database = _database(tmp_path)
+    module = _load_module()
+
+    assert (
+        module.main(
+            [
+                "--database",
+                str(database),
+                "--password",
+                "540210.321",
+                "--new-username",
+                "NOA",
+            ]
+        )
+        == 0
+    )
+
+    after = _hashes(database)
+    assert "owner" not in after
+    assert _hasher.verify("540210.321", after["NOA"])
+    # the other account keeps its own name
+    assert _hasher.verify("oldpassword", after["auditor"])
+
+
+def test_a_name_that_is_already_taken_renames_nothing(tmp_path) -> None:
+    database = _database(tmp_path)
+    before = _hashes(database)
+    module = _load_module()
+
+    with pytest.raises(SystemExit) as raised:
+        module.main(
+            ["--database", str(database), "--password", "540210.321", "--new-username", "AUDITOR"]
+        )
+
+    assert raised.value.code == 1
+    assert _hashes(database) == before
+    assert _backups(tmp_path) == []
+
+
+@pytest.mark.parametrize("wanted", ["ab", "with space", "semi;colon"])
+def test_a_name_that_is_not_an_identifier_renames_nothing(tmp_path, wanted: str) -> None:
+    database = _database(tmp_path)
+    before = _hashes(database)
+    module = _load_module()
+
+    with pytest.raises(SystemExit):
+        module.main(
+            ["--database", str(database), "--password", "540210.321", "--new-username", wanted]
+        )
+
+    assert _hashes(database) == before
+
+
 def test_it_refuses_while_the_server_still_holds_the_database(tmp_path) -> None:
     database = _database(tmp_path)
     before = _hashes(database)

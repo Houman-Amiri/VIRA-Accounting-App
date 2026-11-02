@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
+import re
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
-from ..config import Settings
+from ..config import LEGACY_CSRF_COOKIE_NAME, Settings
 from ..ids import utc_now_iso, uuid7
 from ..models import MfaRecoveryCode, User
 from ..security.envelope import EnvelopeError, get_envelope
@@ -56,10 +57,16 @@ class UserRead(BaseModel):
 
 
 def _set_cookies(
-    response: Response, settings: Settings, session_manager: SessionManager, user: SessionUser
+    response: Response,
+    settings: Settings,
+    session_manager: SessionManager,
+    user: SessionUser,
+    *,
+    csrf: str | None = None,
 ) -> str:
+    """Re-issue both cookies; ``csrf`` keeps a token the caller already holds."""
     token = session_manager.issue(user)
-    csrf = new_csrf_token()
+    csrf = csrf or new_csrf_token()
     response.set_cookie(
         settings.session_cookie_name,
         token,
@@ -333,3 +340,182 @@ def create_user(
     session.add(user)
     session.flush()
     return user
+
+
+# ------------------------------------------------------ account credentials ---
+# The password and the login name are the owner's own settings, so they are
+# changed from the running app instead of by hand in SQLite. Both routes demand
+# the *current* password: a stolen session cookie alone cannot lock the owner
+# out of their own books. Sessions are signed cookies, so a change re-issues the
+# caller's pair (same user, fresh TTL) and every other open browser keeps its
+# session until that cookie expires — the settings screen says so in plain words.
+
+USERNAME_MIN_LENGTH = 3
+USERNAME_MAX_LENGTH = 32
+USERNAME_PATTERN = r"^[A-Za-z0-9._-]+$"
+NEW_PASSWORD_MIN_LENGTH = 8
+NEW_PASSWORD_MAX_LENGTH = 200
+
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str = Field(min_length=1, max_length=200)
+    new_password: str = Field(
+        min_length=NEW_PASSWORD_MIN_LENGTH, max_length=NEW_PASSWORD_MAX_LENGTH
+    )
+
+
+class UsernameChangeRequest(BaseModel):
+    username: str = Field(min_length=USERNAME_MIN_LENGTH, max_length=USERNAME_MAX_LENGTH)
+    password: str = Field(min_length=1, max_length=200)
+
+
+def _current_csrf(request: Request, settings: Settings) -> str | None:
+    """The double-submit token this request already proved it holds.
+
+    Re-issuing the cookies with a *new* token would invalidate every request the
+    caller had already prepared with the old one (the browser re-reads the
+    cookie, but a script or an in-flight retry would not).
+    """
+    return request.cookies.get(settings.csrf_cookie_name) or request.cookies.get(
+        LEGACY_CSRF_COOKIE_NAME
+    )
+
+
+def _own_row(session: Session, user: SessionUser) -> User:
+    row = session.get(User, user.user_id)
+    if row is None or not row.is_active:
+        from ..services.errors import NotFoundError
+
+        raise NotFoundError("user not found")
+    return row
+
+
+def _confirm_password(
+    *,
+    request: Request,
+    session: Session,
+    row: User,
+    password: str,
+    purpose: str,
+) -> None:
+    """Verify the current password, rate-limited and audited on failure."""
+    from ..services.errors import WrongPasswordError
+
+    ip = client_ip(request)
+    identity = f"{row.username}@{ip}"
+    if not limiter.allow(purpose, identity):
+        raise HTTPException(
+            status_code=429,
+            detail="تلاش‌های ناموفق زیاد بود؛ چند دقیقه بعد دوباره امتحان کنید.",
+        )
+    if not verify_password(password, row.password_hash):
+        limiter.register_failure(purpose, identity)
+        record_security_event(
+            session,
+            "PASSWORD_CHANGE_FAILED",
+            actor_id=row.id,
+            ip=ip,
+            user_agent=request.headers.get("user-agent"),
+            detail={"kind": purpose},
+        )
+        session.commit()  # the audit row must survive the raised error
+        raise WrongPasswordError("رمز فعلی درست نیست.")
+    limiter.register_success(purpose, identity)
+
+
+@router.post("/password", response_model=UserRead, dependencies=[Depends(enforce_csrf)])
+def change_password(
+    request: Request,
+    response: Response,
+    payload: PasswordChangeRequest,
+    user: Annotated[SessionUser, Depends(require_user)],
+    session: Annotated[Session, Depends(get_db)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    session_manager: Annotated[SessionManager, Depends(get_session_manager)],
+) -> UserRead:
+    """Replace the signed-in user's password ("تغییر رمز عبور" in settings)."""
+    row = _own_row(session, user)
+    _confirm_password(
+        request=request,
+        session=session,
+        row=row,
+        password=payload.current_password,
+        purpose="password-change",
+    )
+    if verify_password(payload.new_password, row.password_hash):
+        raise HTTPException(
+            status_code=400, detail="رمز تازه با رمز فعلی یکسان است؛ رمز دیگری انتخاب کنید."
+        )
+    row.password_hash = hash_password(payload.new_password)
+    session.flush()
+    record_security_event(
+        session,
+        "PASSWORD_CHANGED",
+        actor_id=row.id,
+        ip=client_ip(request),
+        user_agent=request.headers.get("user-agent"),
+    )
+    _set_cookies(
+        response,
+        settings,
+        session_manager,
+        SessionUser(user_id=row.id, username=row.username, role=row.role),
+        csrf=_current_csrf(request, settings),
+    )
+    return UserRead(user_id=row.id, username=row.username, role=row.role)
+
+
+@router.put("/username", response_model=UserRead, dependencies=[Depends(enforce_csrf)])
+def change_username(
+    request: Request,
+    response: Response,
+    payload: UsernameChangeRequest,
+    user: Annotated[SessionUser, Depends(require_user)],
+    session: Annotated[Session, Depends(get_db)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    session_manager: Annotated[SessionManager, Depends(get_session_manager)],
+) -> UserRead:
+    """Rename the signed-in user ("تغییر نام کاربری" in settings)."""
+    from ..services.errors import UsernameTakenError
+
+    row = _own_row(session, user)
+    _confirm_password(
+        request=request,
+        session=session,
+        row=row,
+        password=payload.password,
+        purpose="username-change",
+    )
+    wanted = payload.username.strip()
+    if not re.fullmatch(USERNAME_PATTERN, wanted):
+        raise HTTPException(
+            status_code=400,
+            detail="نام کاربری فقط می‌تواند حروف انگلیسی، رقم، نقطه، خط تیره و زیرخط داشته باشد.",
+        )
+    if wanted != row.username:
+        clash = session.scalar(
+            select(User).where(func.lower(User.username) == wanted.lower(), User.id != row.id)
+        )
+        if clash is not None:
+            raise UsernameTakenError("این نام کاربری قبلاً استفاده شده است؛ نام دیگری انتخاب کنید.")
+        previous = row.username
+        row.username = wanted
+        session.flush()
+        record_security_event(
+            session,
+            "USERNAME_CHANGED",
+            actor_id=row.id,
+            ip=client_ip(request),
+            user_agent=request.headers.get("user-agent"),
+            detail={"from": previous, "to": wanted},
+        )
+    # The session token carries the login name, so the renamed owner would keep
+    # seeing the old name in the header until the cookie expired.
+    _set_cookies(
+        response,
+        settings,
+        session_manager,
+        SessionUser(user_id=row.id, username=row.username, role=row.role),
+        csrf=_current_csrf(request, settings),
+    )
+    return UserRead(user_id=row.id, username=row.username, role=row.role)

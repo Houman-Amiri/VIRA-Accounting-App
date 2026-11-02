@@ -5,6 +5,42 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
+## [1.0.16] — 2026-11-02
+
+The login name and the password can finally be changed where the owner would
+look for them — in the app itself — and an offline script covers the case where
+the current password is forgotten.
+
+Published as v1.0.16 with 1476 backend tests and 248 UI tests green.
+
+### «امنیت و ورود»: change your own login name and password
+- New card in **تنظیمات** (`components/account-security-settings.tsx`) showing
+  the current login name, a rename form and a password form (current, new,
+  repeat; the button stays disabled until both entries match and reach 8
+  characters). The typed password is never rendered back and is cleared once
+  stored.
+- Two new routes: `POST /api/v1/auth/password` and `PUT /api/v1/auth/username`.
+  Both require the *current* password — a session cookie alone cannot lock the
+  owner out — and both re-issue the session pair with the same CSRF token, so the
+  tab that made the change keeps working and the header shows the new name at
+  once.
+- Renaming is case-insensitively unique (`AUDITOR` collides with `auditor`) and
+  limited to `[A-Za-z0-9._-]{3,32}`; the old name stops working and the new one
+  signs in with the unchanged password.
+- New audited events `PASSWORD_CHANGED`, `PASSWORD_CHANGE_FAILED` and
+  `USERNAME_CHANGED`; the trail records who/where, never the password itself.
+- `docs/security.md` lists the new events; `openapi.json` and `schema.d.ts` were
+  regenerated from a live app.
+
+### Offline recovery when the current password is forgotten
+- `scripts/reset_owner_password.py` + a double-click `.cmd`: refuses while the
+  server holds the database, backs the file up, hashes with the app's own
+  Argon2id helper, updates exactly one row (now also `--new-username`), and
+  verifies the result by reading it back.
+- Sessions are signed cookies, so a change does not revoke other open browsers;
+  the release notes say so plainly and name `session.secret` as the way to end
+  them.
+
 ## [1.0.15] — 2026-11-01
 
 Published: tag `v1.0.15`, release run 41325795193, all six jobs green

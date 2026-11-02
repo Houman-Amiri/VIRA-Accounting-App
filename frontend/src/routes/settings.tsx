@@ -1,3 +1,4 @@
+import { AccountSecuritySettings } from "@/components/account-security-settings";
 import { ItemCatalogSettings } from "@/components/item-catalog-settings";
 import { CalendarSettingsCard } from "@/components/calendar-settings";
 import * as React from "react";
@@ -68,11 +69,15 @@ export function SettingsPage(): React.JSX.Element {
         <a href="#item-catalog-settings" className="text-primary">
           اطلاعات پایهٔ کالا
         </a>
+        <a href="#account-security" className="text-primary">
+          امنیت و ورود
+        </a>
         <Link to="/system" className="text-muted-foreground hover:text-foreground">
           سیستم و عملیات
         </Link>
       </nav>
       <CalendarSettingsCard />
+      <AccountSecuritySettings />
       <ItemCatalogSettings />
       <Card id="pricing-constants">
         <CardHeader>

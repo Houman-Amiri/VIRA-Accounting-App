@@ -132,3 +132,15 @@ class DuplicateEntityError(DomainError):
     code = "duplicate_entity"
     title = "Entity already exists"
     status = 409
+
+
+class WrongPasswordError(DomainError):
+    code = "wrong_password"
+    title = "Current password is incorrect"
+    status = 403
+
+
+class UsernameTakenError(DomainError):
+    code = "username_taken"
+    title = "Username already in use"
+    status = 409

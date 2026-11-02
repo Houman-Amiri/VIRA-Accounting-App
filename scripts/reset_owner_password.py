@@ -19,10 +19,14 @@ Rules it follows, so it cannot corrupt the books:
   result is verified by reading it back and checking the new password against
   it.
 
+It can also rename the login in the same run (``--new-username``), which is how
+a fresh install gets the owner's own name instead of the seeded ``owner``.
+
 Usage (from the installed folder, ``D:\\3D PRINT\\NOA-Accounting``)::
 
     python\\python.exe scripts\\reset_owner_password.py
     python\\python.exe scripts\\reset_owner_password.py --username owner
+    python\\python.exe scripts\\reset_owner_password.py --new-username NOA
     python\\python.exe scripts\\reset_owner_password.py --database "C:\\path\\noa.sqlite3"
 
 The password is asked twice and never echoed; ``NOA_NEW_PASSWORD`` in the
@@ -34,6 +38,7 @@ from __future__ import annotations
 import argparse
 import getpass
 import os
+import re
 import shutil
 import sqlite3
 import sys
@@ -41,6 +46,7 @@ from datetime import datetime
 from pathlib import Path
 
 MIN_LENGTH = 8
+USERNAME_PATTERN = r"^[A-Za-z0-9._-]{3,32}$"
 APP_DIR_NAME = "NOA"
 LEGACY_APP_DIR_NAME = "VIRA"
 DATABASE_FILE_NAME = "noa.sqlite3"
@@ -167,6 +173,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--username", default="owner", help="کاربری که رمزش عوض می‌شود (پیش‌فرض: owner)")
     parser.add_argument("--password", help="رمز تازه (اگر ندهید، پرسیده می‌شود)")
     parser.add_argument(
+        "--new-username",
+        help="نام کاربری تازه برای همین حساب (اختیاری؛ مثلاً NOA)",
+    )
+    parser.add_argument(
         "--allow-running",
         action="store_true",
         help="حتی اگر برنامه باز باشد ادامه بده (توصیه نمی‌شود)",
@@ -179,6 +189,13 @@ def main(argv: list[str] | None = None) -> int:
             "به‌نظر می‌رسد برنامه باز است (فایل‌های ‎-wal/-shm‎ کنار دیتابیس هست). "
             "اول NOA را ببندید (پنجرهٔ کنسولش را ببندید) و بعد این اسکریپت را دوباره اجرا کنید. "
             "اگر مطمئنید باز نیست، با --allow-running اجرا کنید."
+        )
+
+    wanted_username = (args.new_username or "").strip() or None
+    if wanted_username is not None and not re.fullmatch(USERNAME_PATTERN, wanted_username):
+        _fail(
+            "نام کاربری تازه فقط می‌تواند حروف انگلیسی، رقم، نقطه، خط تیره و زیرخط داشته "
+            "باشد و بین ۳ تا ۳۲ نویسه باشد؛ چیزی تغییر نکرد."
         )
 
     app_root = _find_app_root()
@@ -202,6 +219,17 @@ def main(argv: list[str] | None = None) -> int:
             connection.rollback()
             _fail(f"کاربری با نام «{args.username}» در این دیتابیس نیست؛ چیزی تغییر نکرد.")
         user_id, role = row
+        if wanted_username is not None:
+            clash = connection.execute(
+                "SELECT username FROM users WHERE lower(username) = lower(?) AND id <> ?",
+                (wanted_username, user_id),
+            ).fetchone()
+            if clash is not None:
+                connection.rollback()
+                _fail(
+                    f"نام کاربری «{wanted_username}» قبلاً برای حساب دیگری ثبت شده است؛ "
+                    "چیزی تغییر نکرد."
+                )
         connection.rollback()
     finally:
         connection.close()
@@ -212,12 +240,18 @@ def main(argv: list[str] | None = None) -> int:
     connection = sqlite3.connect(database)
     try:
         connection.execute("BEGIN IMMEDIATE")
-        connection.execute(
-            "UPDATE users SET password_hash = ? WHERE id = ?", (new_hash, user_id)
-        )
+        if wanted_username is None:
+            connection.execute(
+                "UPDATE users SET password_hash = ? WHERE id = ?", (new_hash, user_id)
+            )
+        else:
+            connection.execute(
+                "UPDATE users SET password_hash = ?, username = ? WHERE id = ?",
+                (new_hash, wanted_username, user_id),
+            )
         connection.commit()
         stored = connection.execute(
-            "SELECT password_hash FROM users WHERE id = ?", (user_id,)
+            "SELECT password_hash, username FROM users WHERE id = ?", (user_id,)
         ).fetchone()
     except sqlite3.DatabaseError as exc:
         connection.rollback()
@@ -232,7 +266,7 @@ def main(argv: list[str] | None = None) -> int:
         )
 
     print("\n[NOA] رمز تغییر کرد و بررسی شد.")
-    print(f"[NOA] کاربر: {args.username}  (نقش: {role})")
+    print(f"[NOA] نام کاربری برای ورود: {stored[1]}  (نقش: {role})")
     print(f"[NOA] دیتابیس: {database}")
     print("[NOA] نشست‌هایی که همین حالا در مرورگر بازند تا پایان عمرشان معتبر می‌مانند؛")
     print("      برای اینکه همه‌جا از حساب خارج شوید، برنامه را ببندید و فایل")

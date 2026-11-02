@@ -80,7 +80,8 @@
 - `security_audit_logs` — append-only (SQLite triggers reject UPDATE/DELETE):
   LOGIN_SUCCESS/FAILED/LOCKED_OUT, MFA_CHALLENGE_FAILED, SUDO_ELEVATION,
   PERIOD_UNLOCKED, BACKUP_EXPORTED, API_KEY_CREATED/REVOKED, WEBHOOK_*,
-  RECOVERY_CODE_USED — each with UTC timestamp, actor, IP, user-agent.
+  RECOVERY_CODE_USED, PASSWORD_CHANGED/FAILED, USERNAME_CHANGED — each with UTC
+  timestamp, actor, IP, user-agent (never the password itself).
 - structlog pipeline with mandatory **redaction** (password, token,
   authorization, cookie, secret, IBAN-shaped strings, account_number…).
 
