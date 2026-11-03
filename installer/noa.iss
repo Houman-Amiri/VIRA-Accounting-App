@@ -59,6 +59,10 @@ DisableProgramGroupPage=yes
 ; license page is optional per Phase 8 §1 — add LicenseFile=..\docs\LICENSE.txt when a license ships
 OutputDir=Output
 OutputBaseFilename=NOA-Setup-{#AppVersion}
+; The owner's own mark: setup window, Programs and Features entry, and the
+; desktop/Start-menu shortcuts (the icon ships inside the payload as
+; static/noa.ico, so a delta can refresh it without touching a root file).
+SetupIconFile=assets\noa.ico
 Compression=lzma2/max
 SolidCompression=yes
 ArchitecturesInstallIn64BitMode=x64
@@ -70,7 +74,12 @@ PrivilegesRequiredOverridesAllowed=dialog
 UninstallFilesDir={#PrivateSourceProfile}\NOA\private-native-installed\uninstaller
 #endif
 UninstallDisplayName={#AppName}
+#ifdef PrivateSourceCI
+; The isolated private fixtures stage no static/ folder.
 UninstallDisplayIcon={app}\{#AppExeName}
+#else
+UninstallDisplayIcon={app}\static\noa.ico
+#endif
 WizardStyle=modern
 ; silent install for CI smoke tests: NOA-Setup-x.y.z.exe /VERYSILENT /DIR=<temp>
 SetupLogging=yes
@@ -117,17 +126,17 @@ Type: filesandordirs; Name: "{app}\backend"
 #ifdef PrivateSourceCI
 Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Parameters: "-I -S -B -X utf8 ""{app}\app\private_installed_source.py"""; WorkingDir: "{#LaunchWorkingDir}"
 #else
-Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{#LaunchWorkingDir}"
+Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{#LaunchWorkingDir}"; IconFilename: "{app}\static\noa.ico"
 #endif
 #ifdef PrivateSourceCI
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Parameters: "-I -S -B -X utf8 ""{app}\app\private_installed_source.py"""; WorkingDir: "{#LaunchWorkingDir}"; Tasks: desktopicon
 #else
-Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{#LaunchWorkingDir}"; Tasks: desktopicon
+Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{#LaunchWorkingDir}"; IconFilename: "{app}\static\noa.ico"; Tasks: desktopicon
 #endif
 #ifdef PrivateSourceCI
 Name: "{userstartup}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Parameters: "-I -S -B -X utf8 ""{app}\app\private_installed_source.py"""; WorkingDir: "{#LaunchWorkingDir}"; Tasks: startup
 #else
-Name: "{userstartup}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{#LaunchWorkingDir}"; Tasks: startup
+Name: "{userstartup}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{#LaunchWorkingDir}"; IconFilename: "{app}\static\noa.ico"; Tasks: startup
 #endif
 
 [Registry]

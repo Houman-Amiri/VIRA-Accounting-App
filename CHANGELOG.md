@@ -5,6 +5,30 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
+## [1.0.17] — 2026-11-03
+
+The owner's logo is now the app's own icon: on the desktop shortcut, in the
+Start menu, in Programs and Features, on the setup wizard and in the browser
+tab.
+
+### The mark replaces the generic batch-file icon
+- `installer/assets/noa.ico` is generated from
+  `backend/app/assets/branding/noa-logo.png` at 16/24/32/48/64/128/256 px, so the
+  16 px taskbar glyph stays readable instead of blurring.
+- The installer sets `SetupIconFile` and points **every** shortcut
+  (Start menu, desktop, startup) and `UninstallDisplayIcon` at
+  `{app}\static\noa.ico`.
+- The icon lives inside the payload (`frontend/public/noa.ico` → `dist/` →
+  `static/`) instead of at the installation root: `static` is an allowed install
+  root, so a delta can refresh the icon while an older client still accepts the
+  package (`INSTALL_FILES` gained no new entry).
+- The browser tab uses the same file (`<link rel="icon" href="/noa.ico">`) plus
+  a 192 px `apple-touch-icon`, instead of the large logo PNG scaled down by the
+  browser.
+- Five tests pin the wiring: the wizard/Programs entries, all six shortcut
+  lines, the payload location and roots, the sizes inside the `.ico`, and that
+  the shipped `.ico` is byte-identical to the public copy.
+
 ## [1.0.16] — 2026-11-02
 
 The login name and the password can finally be changed where the owner would
