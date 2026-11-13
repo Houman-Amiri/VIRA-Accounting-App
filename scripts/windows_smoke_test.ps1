@@ -207,7 +207,18 @@ foreach ($delta in $deltaZips) {
         $ulog = Join-Path $stage "update.log"
         $tail = if (Test-Path $ulog) { (Get-Content $ulog -Raw) } else { "<no update.log>" }
         if ($tail.Length -gt 2500) { $tail = $tail.Substring($tail.Length - 2500) }
-        throw "legacy upgrade reached version '$ver', expected '$v' — updater log:`n$tail"
+        # The updater only reports that readiness failed; the application's own
+        # log says whether it crashed, refused to migrate, or never started.
+        $appTail = @()
+        foreach ($logDir in @((Join-Path $env:LOCALAPPDATA "NOA\logs"), (Join-Path $env:LOCALAPPDATA "VIRA\logs"), (Join-Path $legacy "logs"))) {
+            foreach ($f in @(Get-ChildItem -Path $logDir -Filter "*.log" -ErrorAction SilentlyContinue)) {
+                $t = Get-Content $f.FullName -Raw -ErrorAction SilentlyContinue
+                if ($t -and $t.Length -gt 1200) { $t = $t.Substring($t.Length - 1200) }
+                $appTail += "--- $($f.FullName)`n$t"
+            }
+        }
+        if ($appTail.Count -eq 0) { $appTail = @("--- no application log found under LOCALAPPDATA") }
+        throw "legacy upgrade reached version '$ver', expected '$v' — updater log:`n$tail`napplication log:`n$($appTail -join "`n")"
     }
     $man = Get-Content (Join-Path $legacy "install_manifest.json") -Raw | ConvertFrom-Json
     if (-not $man.files_manifest_sha256) { throw "legacy upgrade did not rewrite install_manifest.json" }

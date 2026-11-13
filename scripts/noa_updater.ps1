@@ -350,6 +350,9 @@ function Start-App {
 
 function Wait-Healthy($Stamp) {
     $deadline = (Get-Date).AddSeconds($HealthTimeoutSeconds)
+    # Never fail blind: the caller only sees this message, so it must say what
+    # the app actually answered (or why it never answered).
+    $lastProblem = "no response from http://127.0.0.1:$Port within $($HealthTimeoutSeconds)s"
     do {
         try {
             $health = Invoke-RestMethod "http://127.0.0.1:$Port/api/v1/health/ready" -TimeoutSec 2
@@ -362,10 +365,15 @@ function Wait-Healthy($Stamp) {
             if ($health.status -eq "ready" -and $health.invariants.integrity_check -eq "ok" -and
                 $health.invariants.foreign_key_violations -eq 0 -and $health.invariants.balanced -eq $true -and
                 (-not $expected -or $build -eq $expected)) { return }
-        } catch { }
+            $lastProblem = "status=$($health.status) integrity=$($health.invariants.integrity_check) " +
+                "foreign_keys=$($health.invariants.foreign_key_violations) balanced=$($health.invariants.balanced) " +
+                "spa_build=$build expected=$expected"
+        } catch {
+            $lastProblem = "health probe failed: $($_.Exception.Message)"
+        }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
-    throw "restarted application did not pass readiness/build validation"
+    throw "restarted application did not pass readiness/build validation — $lastProblem"
 }
 
 # ---------------------------------------------------------------- mutex ----
