@@ -59,6 +59,20 @@ $db = Join-Path $dataDir "noa.sqlite3"
 if (Test-Path $db) { throw "Smoke requires a clean CI data directory; refusing to overwrite an existing database." }
 & uv run python scripts/migrate_noa.py --database $db | Out-Null
 if ($LASTEXITCODE -ne 0) { throw "could not migrate the smoke SQLite fixture" }
+# A real install always has an owner account. Seed it here as well: since
+# v1.0.18 the application repairs a database that has no user at startup, and
+# that legitimate row would otherwise look like changed user data below.
+$previousDatabase = $env:SQLITE_DATABASE_PATH
+$previousDataDir = $env:DATA_DIR
+$previousOwnerPassword = $env:NOA_OWNER_PASSWORD
+$env:SQLITE_DATABASE_PATH = $db
+$env:DATA_DIR = (Join-Path $env:LOCALAPPDATA "NOA")
+$env:NOA_OWNER_PASSWORD = "smoke-owner-password-1"
+& uv run python -m app.seed | Out-Null
+if ($LASTEXITCODE -ne 0) { throw "could not seed the smoke owner account" }
+if ($previousDatabase) { $env:SQLITE_DATABASE_PATH = $previousDatabase } else { Remove-Item Env:SQLITE_DATABASE_PATH -ErrorAction SilentlyContinue }
+if ($previousDataDir) { $env:DATA_DIR = $previousDataDir } else { Remove-Item Env:DATA_DIR -ErrorAction SilentlyContinue }
+if ($previousOwnerPassword) { $env:NOA_OWNER_PASSWORD = $previousOwnerPassword } else { Remove-Item Env:NOA_OWNER_PASSWORD -ErrorAction SilentlyContinue }
 $env:NOA_SMOKE_DATABASE = $db
 @'
 import os
