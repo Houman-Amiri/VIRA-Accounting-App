@@ -43,9 +43,14 @@ export function LoginPage() {
         className="w-full max-w-sm space-y-4 rounded-xl border bg-card p-6 shadow-sm"
       >
         <div className="text-center">
-          <div className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-primary-foreground text-xl font-bold">
-            و
-          </div>
+          <img
+            src="/noa-icon-192.png"
+            alt="NOA"
+            width={56}
+            height={56}
+            className="mx-auto mb-2 h-14 w-14 rounded-xl"
+            data-testid="login-logo"
+          />
           <h1 className="text-lg font-bold">{t("login.heading")}</h1>
           <p className="text-xs text-muted-foreground">{t("login.prompt")}</p>
         </div>
@@ -88,6 +93,15 @@ export function LoginPage() {
         >
           {busy ? t("login.busy") : t("login.submit")}
         </button>
+        <details className="rounded-md bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
+          <summary className="cursor-pointer font-medium text-foreground">
+            {t("login.forgotTitle")}
+          </summary>
+          <p className="mt-1 leading-6" data-testid="login-forgot">
+            {t("login.forgotBody")}
+          </p>
+          <p className="mt-1 leading-6">{t("login.forgotLockout")}</p>
+        </details>
       </form>
     </div>
   );

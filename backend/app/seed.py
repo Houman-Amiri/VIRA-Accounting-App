@@ -8,6 +8,8 @@ Covers a small-business 3D-printing chart of accounts in the Iranian context
 from __future__ import annotations
 
 import logging
+from pathlib import Path
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -15,7 +17,7 @@ from sqlalchemy.orm import Session
 from .ids import utc_now_iso, uuid7
 from .models import Account, Currency, User
 from .schemas.ledger import NORMAL_BY_TYPE
-from .security.passwords import hash_password
+from .security.passwords import hash_password, verify_password
 
 log = logging.getLogger(__name__)
 
@@ -128,7 +130,7 @@ def seed_owner_user(session: Session, *, username: str = "owner", password: str 
         import secrets
 
         password = secrets.token_urlsafe(12)
-        log.warning("created user %s with generated password (set NOA_ADMIN_PASSWORD)", username)
+        log.warning("created user %s with generated password (set NOA_OWNER_PASSWORD)", username)
     user = User(
         id=uuid7(),
         username=username,
@@ -140,6 +142,53 @@ def seed_owner_user(session: Session, *, username: str = "owner", password: str 
     session.add(user)
     session.flush()
     return user
+
+
+def ensure_owner_user(
+    session: Session,
+    *,
+    username: str = "owner",
+    password: str | None = None,
+    rotate: bool = False,
+) -> dict[str, Any]:
+    """Make sure the owner can sign in, and optionally pin the password.
+
+    Two states used to be unrecoverable from the app itself:
+
+    * the database exists but has **no** user row (an interrupted first launch,
+      or a database copied from a pre-rename install whose seeding never ran) —
+      every password is refused and nothing in the UI can create an account;
+    * the owner forgot the password that was generated on the first run.
+
+    ``rotate=True`` writes ``password`` over the stored hash, so the launcher can
+    apply a password the owner pinned in a local file on every start. Passing no
+    password only repairs a missing account.
+    """
+    existing = session.scalar(select(User).where(User.username == username))
+    if existing is None:
+        seed_owner_user(session, username=username, password=password)
+        return {
+            "created": True,
+            "rotated": False,
+            "username": username,
+            "generated": password is None,
+        }
+    if existing.role != "OWNER":
+        existing.role = "OWNER"
+    if existing.is_active != 1:
+        existing.is_active = 1
+    rotated = False
+    if password and rotate and not verify_password(password, existing.password_hash):
+        existing.password_hash = hash_password(password)
+        rotated = True
+        log.warning("owner password re-applied from the pinned credential file")
+    session.flush()
+    return {
+        "created": False,
+        "rotated": rotated,
+        "username": existing.username,
+        "generated": False,
+    }
 
 
 def seed_currencies(session: Session) -> int:
@@ -163,26 +212,42 @@ def seed_all(
     chart: str = "business",
     admin_username: str = "owner",
     admin_password: str | None = None,
+    pin_owner_password: bool = False,
 ) -> dict[str, int]:
     from sqlalchemy import func
 
     currencies = seed_currencies(session)
     accounts = seed_chart_of_accounts(session, currency=currency, chart=chart)
     users_before = session.scalar(select(func.count()).select_from(User)) or 0
-    seed_owner_user(session, username=admin_username, password=admin_password)
+    # No password at all → still create the account (a database without a user
+    # is a locked door nobody can open from the UI).
+    outcome = ensure_owner_user(
+        session,
+        username=admin_username,
+        password=admin_password,
+        rotate=pin_owner_password,
+    )
     users_after = session.scalar(select(func.count()).select_from(User)) or 0
     return {
         "currencies_created": currencies,
         "accounts_created": accounts,
         "users_created": int(users_after - users_before),
+        "owner_created": int(bool(outcome["created"])),
+        "owner_password_rotated": int(bool(outcome["rotated"])),
     }
 
 
 def main() -> None:
-    """CLI: `python -m app.seed` (idempotent).
+    """CLI: `python -m app.seed` (idempotent, run on every start).
 
-    Environment: NOA_ADMIN_PASSWORD sets the owner password;
-    NOA_CHART selects the chart (`business` default, or `personal`).
+    Environment:
+
+    * ``NOA_OWNER_PASSWORD`` — the password the owner pinned in
+      ``%LOCALAPPDATA%\\NOA\\owner-password.txt``; **applied on every start**, so
+      a forgotten password is replaced by the pinned one instead of locking the
+      owner out.
+    * ``NOA_ADMIN_PASSWORD`` — legacy: used only when the owner is created.
+    * ``NOA_CHART`` selects the chart (`business` default, or `personal`).
     """
     import json as _json
     import os
@@ -192,7 +257,23 @@ def main() -> None:
 
     settings = Settings()
     db = Database(settings)
-    password = os.environ.get("NOA_ADMIN_PASSWORD") or None
+    pinned = read_pinned_password(settings)
+    if pinned is None:
+        # Notepad may save the pinned file as UTF-8 with a BOM and with a
+        # trailing newline; neither belongs to the password.
+        pinned = (os.environ.get("NOA_OWNER_PASSWORD") or "").strip() or None
+    if pinned is not None and len(pinned) < 8:
+        raise SystemExit(
+            "owner-password.txt: the password must be at least 8 characters "
+            "(رمز فایل owner-password.txt باید حداقل ۸ نویسه باشد)"
+        )
+    initial = pinned or (os.environ.get("NOA_ADMIN_PASSWORD") or None)
+    generated: str | None = None
+    if initial is None:
+        import secrets
+
+        generated = secrets.token_urlsafe(12)
+        initial = generated
     chart = os.environ.get("NOA_CHART", "business")
     if chart not in CHARTS:
         raise SystemExit(f"NOA_CHART must be one of {sorted(CHARTS)}, got {chart!r}")
@@ -201,9 +282,98 @@ def main() -> None:
             session,
             currency=settings.base_currency,
             chart=chart,
-            admin_password=password,
+            admin_password=initial,
+            pin_owner_password=pinned is not None,
+        )
+    if generated is not None and result.get("owner_created"):
+        target = write_pinned_password(settings, generated)
+        print(
+            f"[NOA] First login: username=owner password={generated}\n"
+            f"[NOA] The password is saved in {target} — edit that file to change it."
         )
     print(_json.dumps(result))
+
+
+
+# ----------------------------------------------------------- pinned password ---
+# The login password lives in a file the owner can open with Notepad:
+#     %LOCALAPPDATA%\NOA\owner-password.txt
+# Whatever it holds is applied on every start (see apply_pinned_owner_password),
+# which is what makes a forgotten password recoverable without a terminal — and
+# what the owner asked for: one fixed password, always the same.
+PINNED_PASSWORD_FILENAME = "owner-password.txt"
+
+
+def pinned_password_path(settings: Any) -> Path:
+    data_dir = getattr(settings, "data_dir", None)
+    if data_dir is None:
+        raise ValueError("settings.data_dir is required to locate the pinned password")
+    return Path(data_dir) / PINNED_PASSWORD_FILENAME
+
+
+def read_pinned_password(settings: Any) -> str | None:
+    """The pinned password, or ``None``. Notepad may add a BOM/blank lines."""
+    import os
+
+    path = pinned_password_path(settings)
+    if path.is_file():
+        try:
+            text = path.read_text(encoding="utf-8-sig").strip()
+        except OSError:
+            text = ""
+        if text:
+            return text
+    env = (os.environ.get("NOA_OWNER_PASSWORD") or "").strip()
+    return env or None
+
+
+def write_pinned_password(settings: Any, password: str) -> Path:
+    """Persist the password where the owner can read and edit it."""
+    path = pinned_password_path(settings)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(password + "\n", encoding="utf-8")
+    return path
+
+
+def apply_pinned_owner_password(settings: Any, database: Any = None) -> dict[str, Any]:
+    """Make the owner account usable at application startup.
+
+    * no owner row  → create one; the password is the pinned one, else a fresh
+      random one that is written to the pinned file and logged once;
+    * pinned file   → whatever it holds becomes the password (the recovery
+      path the owner asked for);
+    * pinned file absent, owner present → the stored password is left alone, so
+      an upgrade never silently changes somebody's working password.
+    """
+    import secrets
+
+    pinned = read_pinned_password(settings)
+    owned = database is None
+    if database is None:
+        from .db import Database
+
+        database = Database(settings)
+    try:
+        with database.write_session() as session:
+            existing = session.scalar(select(User).where(User.username == "owner"))
+            if existing is None:
+                password = pinned or secrets.token_urlsafe(12)
+                outcome = ensure_owner_user(session, password=password, rotate=True)
+                if pinned is None:
+                    write_pinned_password(settings, password)
+                log.warning(
+                    "no owner account existed; created one — the password is in %s",
+                    pinned_password_path(settings),
+                )
+                outcome["password_written"] = pinned is None
+                return outcome
+            if pinned is None:
+                return {"created": False, "rotated": False, "username": existing.username}
+            outcome = ensure_owner_user(session, password=pinned, rotate=True)
+            return outcome
+    finally:
+        if owned:
+            database.dispose()
 
 
 if __name__ == "__main__":

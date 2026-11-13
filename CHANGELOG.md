@@ -5,6 +5,39 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
+## [1.0.18] — 2026-11-03
+
+The owner could not sign in at all: "there is no password and nothing I type
+works". Two states made the app a closed door, and both are now repaired.
+
+### The login password is a file the owner controls
+- `%LOCALAPPDATA%\NOA\owner-password.txt` holds the owner's password. Whatever
+  it contains is applied **on every start** (`apply_pinned_owner_password` in the
+  app's lifespan and the `app.seed` CLI), so a forgotten password is replaced by
+  a known one instead of locking the owner out. Put `540210.321` in that file,
+  restart NOA, and that is the password — permanently, not just once.
+- `scripts/set_owner_password.cmd` (double-click) opens that file in Notepad, so
+  nobody has to type a path or use a terminal. An empty file means "no pin", so
+  the helper cannot accidentally set a blank password.
+- BOM and trailing blank lines are stripped: Notepad's UTF-8 BOM used to be
+  invisible and would have become part of the password.
+
+### A database with no user is repaired instead of refusing everyone
+- Seeding only ran when the database *file* was new. A database left behind
+  without a user row — an interrupted first launch, or data carried over from a
+  pre-rename install whose seeding never ran — refused every password and had no
+  way back. Startup now ensures the owner account exists, re-enables it if it
+  was disabled or demoted, and records a generated password in the pinned file.
+- An upgrade never silently replaces a password that still works: the pin is
+  applied only when the file exists (or the account is missing).
+
+### The login screen finally explains this
+- The «و» placeholder is replaced by the real mark, and a «رمز را فراموش
+  کردهاید؟» panel names the pinned file, says what to do with it, and explains
+  that the "too many attempts" lockout is cleared by closing and reopening NOA.
+- The launcher itself is untouched (its bytes are pinned by the Phase-2
+  evidence test); all new behaviour is in the application and its helpers.
+
 ## [1.0.17] — 2026-11-03
 
 The owner's logo is now the app's own icon: on the desktop shortcut, in the

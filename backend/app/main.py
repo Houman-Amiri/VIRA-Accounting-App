@@ -123,6 +123,20 @@ def create_app(
         nonlocal scheduler
         pragmas = database.verify()
         log.info("SQLite pragmas verified: %s", pragmas)
+        # A database without a user row, or with a password the owner has
+        # forgotten, is a door nobody can open from the interface. The pinned
+        # file (%LOCALAPPDATA%\NOA\owner-password.txt) is applied here, on every
+        # start, so access never depends on a value that was printed once.
+        try:
+            from .seed import apply_pinned_owner_password
+
+            outcome = apply_pinned_owner_password(settings, database)
+            if outcome.get("rotated"):
+                log.warning("owner password re-applied from the pinned password file")
+            if outcome.get("created"):
+                log.warning("owner account was missing and has been created")
+        except Exception:  # never keep the app down because of the credential repair
+            log.exception("could not apply the pinned owner password")
         if settings.scheduler_enabled:
             scheduler = SchedulerManager(database.session_factory, write_gate=update_write_blocked)
             scheduler.start()
