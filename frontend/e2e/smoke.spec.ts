@@ -162,10 +162,11 @@ test("pricing reproduces the original Excel cells for single and multiple quanti
   await expect(final).toContainText("۳۱۱٬۱۹۴.۸۵");
   await expect(page.getByTestId("sheet-policy")).toHaveCount(0);
   await expect(page.getByText(/اکسل|xlsx/)).toHaveCount(0);
-  await page.getByRole("link", { name: "تغییر ثابت‌ها در تنظیمات" }).click();
+  await page.getByRole("link", { name: "تغییر ثابت‌های قیمت‌گذاری" }).click();
+  await expect(page.getByTestId("const-filamentPerGram")).toBeVisible();
   await page.getByTestId("const-filamentPerGram").fill("۹۰۰۰");
-  await page.getByRole("button", { name: "ذخیرهٔ تغییرات" }).click();
-  await expect(page.getByText("ثابت‌های قیمت‌گذاری ذخیره شدند.")).toBeVisible();
+  await page.getByRole("button", { name: "ذخیرهٔ ثابت‌های اصلی" }).click();
+  await expect(page.getByText("ثابت‌های اصلی ذخیره شدند.")).toBeVisible();
   try {
     await page.reload();
     await expect(page.getByTestId("const-filamentPerGram")).toHaveValue("9000.0000");
@@ -191,10 +192,10 @@ test("pricing reproduces the original Excel cells for single and multiple quanti
     await page.getByTestId("input-qty").fill("1");
     await expect(page.getByTestId("row-unitFinalPrice")).toContainText("۷٬۲۳۹٬۵۰۸.۵");
   } finally {
-    await page.goto("/settings");
+    await page.goto("/pricing-settings");
     await page.getByTestId("const-filamentPerGram").fill("3000");
-    await page.getByRole("button", { name: "ذخیرهٔ تغییرات" }).click();
-    await expect(page.getByText("ثابت‌های قیمت‌گذاری ذخیره شدند.")).toBeVisible();
+    await page.getByRole("button", { name: "ذخیرهٔ ثابت‌های اصلی" }).click();
+    await expect(page.getByText("ثابت‌های اصلی ذخیره شدند.")).toBeVisible();
   }
   await page.goto("/price-calc");
   // Back on the shared constants, the same entry reproduces the sheet amount.

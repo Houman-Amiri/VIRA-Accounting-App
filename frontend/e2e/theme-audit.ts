@@ -177,6 +177,7 @@ export async function auditMenuThemes(page: Page): Promise<void> {
         ["/production", 6],
         ["/warehouse", 5],
         ["/bank-import", 5],
+        ["/pricing-settings", 1],
         ["/settings", 1],
         ["/journal", 0],
         ["/accounts", 0],
@@ -250,8 +251,11 @@ export async function auditMenuThemes(page: Page): Promise<void> {
             ),
           });
         }
-        if (path === "/settings") {
+        if (path === "/pricing-settings") {
           await expect(page.getByTestId("const-filamentPerGram")).toBeVisible();
+        }
+        if (path === "/settings") {
+          await expect(page.getByTestId("open-pricing-settings")).toBeVisible();
         }
         await auditNative(page, count, dark);
         await auditSurfaces(page, dark);

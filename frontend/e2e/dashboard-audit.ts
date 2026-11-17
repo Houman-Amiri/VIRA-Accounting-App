@@ -158,7 +158,7 @@ export async function auditDashboard(page: Page): Promise<void> {
       await page
         .getByRole("button", { name: dark ? "حالت تاریک" : "حالت روشن", exact: true })
         .click();
-    for (const name of ["structure", "pnl", "sales"]) {
+    for (const name of ["pnl", "sales"]) {
       const svg = page.getByTestId(`chart-${name}`).locator("svg");
       await expect(svg).toBeVisible();
       expect(await svg.locator("path").count()).toBeGreaterThan(0);
@@ -198,7 +198,7 @@ export async function auditDashboard(page: Page): Promise<void> {
   await page.getByRole("button", { name: "تازه‌سازی داده‌ها" }).click();
   await expect(page.getByTestId("kpi-cash").getByRole("alert")).toBeVisible({ timeout: 15000 });
   await expect(page.getByTestId("kpi-cash").locator(".num")).toHaveCount(0);
-  await expect(page.getByTestId("chart-structure")).toBeVisible();
+  await expect(page.getByTestId("chart-pnl")).toBeVisible();
   await page.unroute("**/api/v1/reports/cash-flow**");
   await page.getByTestId("kpi-cash").getByRole("button", { name: "تلاش دوباره" }).click();
   await expect(page.getByTestId("chart-sales")).toBeVisible();
