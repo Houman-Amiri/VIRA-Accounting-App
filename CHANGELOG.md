@@ -5,6 +5,56 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
+## [1.0.20] — 2026-10-14
+
+Three changes the owner asked for, all in his own words: an order no longer
+needs warehouse stock, the dashboard lost its confusing chart, and pricing
+constants became something he can add and define himself.
+
+### An order needs no warehouse stock
+- `POST /api/v1/orders` accepts a free product line: a product name plus
+  quantity and unit price, with **no `inventory_item_id`** and no inventory
+  record at all. The order still moves through confirmation → production →
+  delivery exactly as before.
+- The order form offers «محصول بدون موجودی» next to the warehouse picker; the
+  typed name is what the order and the production job carry.
+- Stock is still decremented when a line *is* linked to a warehouse item, and
+  nothing is invented for a free line.
+
+### Dashboard cleaned up
+- «ساختار مالی تا امروز» is gone; it duplicated the trial balance and made the
+  page look broken. The page is now: header → one five-KPI card → alerts and
+  actions → two honest trend charts («روند سود و زیان», «روند فروش») → orders
+  and production tables → the disclaimer.
+- Layout is a single column of aligned cards with consistent spacing; empty
+  charts say so instead of drawing a flat line.
+
+### Pricing settings, in one place
+- New page «قیمت‌گذاری» (`/pricing-settings`) holding the seven built-in
+  constants (unchanged semantics) **and** the owner's own constants.
+- New endpoints, additive only:
+  `GET/POST /api/v1/settings/pricing/constants` and
+  `PATCH/DELETE /api/v1/settings/pricing/constants/{constant_id}`.
+- Each custom constant has a name, a value, an on/off switch and a **method**:
+  a fixed amount per piece, a fixed amount per shipment (split over the run),
+  a percentage of the production cost, or a percentage of the selling price.
+- Names are unique (case-insensitive) and shown in Persian; the calculator
+  applies active constants on top of the sheet-exact price and shows each line,
+  so the owner sees the effect before he saves anything.
+- Percentages always come from the workbook amounts, never from a running
+  total, so reordering the rows cannot change the money.
+- `computePrice` itself is untouched: with no custom constants the calculator
+  is byte-identical to the Excel model.
+
+### Tests
+- 15 new server tests (`backend/tests/test_pricing_custom_constants.py`) and 4
+  new order tests; the migration test now expects the new table.
+- 17 new UI tests: the pricing page (add / edit / switch off / delete / preview)
+  and `applyCustomConstants` (all four methods, order independence, off rows
+  ignored, negative rejected).
+- Totals: **1523 server tests**, **283 UI tests**, plus the OpenAPI contract,
+  native Windows smoke, Playwright and the install/upgrade/rollback job.
+
 ## [1.0.19] — 2026-11-17
 
 Bank reconciliation used to be a mock-up: three invented rows («شرکت آریا»,

@@ -536,11 +536,17 @@ class OperationsService:
                 f"{reason} «{product_name}»: فیلامنت کافی نیست — " + "؛ ".join(shortages)
             )
 
-    def _warehouse_product(self, line: OrderItemIn) -> InventoryItem:
+    def _warehouse_product(self, line: OrderItemIn) -> InventoryItem | None:
+        """The warehouse product behind a line, or ``None`` for a free line.
+
+        A line without ``inventory_item_id`` is a product the owner sells but
+        has not stocked yet (a custom order). It is allowed: it carries its own
+        name and price, skips the stock checks, and goes to production without a
+        known filament composition — exactly like a warehouse product that has
+        never been produced here.
+        """
         if not line.inventory_item_id:
-            raise DomainError(
-                "هر ردیف سفارش باید یک محصول از انبار باشد؛ ابتدا محصول را در انبار ثبت کنید"
-            )
+            return None
         item = self.get_item(line.inventory_item_id)
         if item.kind != "PRODUCT" or item.unit != "PCS" or not item.is_active:
             raise DomainError(
@@ -549,16 +555,25 @@ class OperationsService:
         return item
 
     def _validate_order_lines(self, items: list[OrderItemIn]) -> None:
-        """Only warehouse products are orderable; the rest is stock-dependent.
+        """Every line is either a warehouse product or a named free line.
 
-        A product that is not in the warehouse at all can never be ordered
-        (item 7). A product that *is* in the warehouse but short of stock is
+        A free line needs a name and a price of its own, because nothing in the
+        warehouse can supply them. A warehouse product that is short of stock is
         allowed — the missing pieces go to production — and the shortage is
-        reported as a warning. Ordering more than the spools can print is
-        still refused (item 5), because that order could never be delivered.
+        reported as a warning. Ordering more than the spools can print is still
+        refused (item 5), because that order could never be delivered.
         """
         for line in items:
             item = self._warehouse_product(line)
+            if item is None:
+                name = (line.product_name or "").strip()
+                if not name:
+                    raise DomainError(
+                        "برای ردیفی که از انبار انتخاب نشده، نام کالا را بنویسید"
+                    )
+                if Decimal(line.unit_price) <= 0:
+                    raise DomainError(f"برای «{name}» قیمت فروش هر عدد را وارد کنید")
+                continue
             pieces = Decimal(line.quantity)
             if pieces > Decimal(item.quantity):
                 recipe = self._recipe_for(item.id)
@@ -572,11 +587,16 @@ class OperationsService:
 
     def _apply_items(self, order: Order, items: list[OrderItemIn]) -> None:
         self._validate_order_lines(items)
-        priced: list[tuple[OrderItemIn, InventoryItem, Decimal, Decimal]] = []
+        priced: list[tuple[OrderItemIn, InventoryItem | None, Decimal, Decimal]] = []
         for line in items:
             item = self._warehouse_product(line)
             unit_price = Decimal(line.unit_price)
             unit_cost = Decimal(line.unit_cost)
+            if item is None:
+                # A free line is priced entirely by the owner; there is no
+                # catalogue price or past job cost to fall back on.
+                priced.append((line, None, unit_price, unit_cost))
+                continue
             if unit_price <= 0:
                 # The warehouse price is the catalogue price; the order only
                 # snapshots it (v1.0.11 defect: production could re-price it).
@@ -596,7 +616,8 @@ class OperationsService:
                     id=uuid7(),
                     order_id=order.id,
                     position=index,
-                    product_name=(line.product_name or "").strip() or item.name,
+                    product_name=(line.product_name or "").strip()
+                    or (item.name if item is not None else ""),
                     variant=line.variant,
                     quantity=Decimal(line.quantity),
                     unit_price=unit_price,
@@ -604,7 +625,7 @@ class OperationsService:
                     # Grams/hours are asked on the production job, not the order.
                     weight_g=Decimal(0),
                     print_hours=Decimal(0),
-                    inventory_item_id=item.id,
+                    inventory_item_id=item.id if item is not None else None,
                     notes=line.notes,
                 )
             )

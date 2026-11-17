@@ -9,6 +9,7 @@
 import * as React from "react";
 import {
   BREAKDOWN_ROWS,
+  applyCustomConstants,
   computePrice,
   SALE_ROWS,
   type PriceBreakdown,
@@ -21,7 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
 import { Link } from "@tanstack/react-router";
-import { pricingConstants, usePricingSettings } from "@/lib/pricing-settings";
+import { pricingConstants, useCustomConstants, usePricingSettings } from "@/lib/pricing-settings";
 
 /**
  * Empty by default (item 8 of the owner's change list): the calculator never
@@ -49,6 +50,7 @@ export function PriceCalcPage(): React.JSX.Element {
     () => (settings.data ? pricingConstants(settings.data) : null),
     [settings.data],
   );
+  const customs = useCustomConstants();
   const [inputs, setInputs] = React.useState<PriceInputs>(EMPTY_INPUTS);
 
   // «محاسبه فقط پس از ورود»: nothing is computed until weight, time and run
@@ -75,6 +77,17 @@ export function PriceCalcPage(): React.JSX.Element {
     }
   }, [inputs, constants, filled]);
 
+  // The owner's own constants sit on top of the sheet-exact breakdown; the
+  // table above keeps showing the workbook's numbers untouched.
+  const added = React.useMemo(() => {
+    if (!plain) return null;
+    try {
+      return applyCustomConstants(plain, customs.data ?? [], inputs.quantity);
+    } catch {
+      return null;
+    }
+  }, [plain, customs.data, inputs.quantity]);
+
   const rows = [...BREAKDOWN_ROWS, ...SALE_ROWS];
 
   if (settings.isPending) return <p role="status">در حال دریافت ثابت‌های قیمت‌گذاری…</p>;
@@ -94,13 +107,17 @@ export function PriceCalcPage(): React.JSX.Element {
         <h1 className="text-xl font-bold">ماشین‌حساب قیمت‌گذاری</h1>
         {plain && (
           <Badge variant="success" data-testid="final-badge">
-            قیمت نهایی هر عدد: <Money value={plain.unitFinalPrice.toFixed(4)} currency="TOMAN" />
+            قیمت نهایی هر عدد:{" "}
+            <Money
+              value={(added ? added.unitFinalPrice : plain.unitFinalPrice).toFixed(4)}
+              currency="TOMAN"
+            />
           </Badge>
         )}
       </div>
 
-      <Link to="/settings" className="inline-block text-sm text-primary hover:underline">
-        تغییر ثابت‌ها در تنظیمات
+      <Link to="/pricing-settings" className="inline-block text-sm text-primary hover:underline">
+        تغییر ثابت‌های قیمت‌گذاری
       </Link>
 
       <div className="space-y-4">
@@ -236,6 +253,28 @@ export function PriceCalcPage(): React.JSX.Element {
           )}
         </CardContent>
       </Card>
+
+      {added && added.lines.length > 0 && (
+        <Card data-testid="custom-lines">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">ثابت‌های شما</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            {added.lines.map((line) => (
+              <div key={line.name} className="flex items-center justify-between border-b pb-1">
+                <span className="text-xs text-muted-foreground">{line.name}</span>
+                <span>
+                  + <Money value={line.amount.toFixed(4)} currency="TOMAN" hideCurrency />
+                </span>
+              </div>
+            ))}
+            <div className="flex items-center justify-between pt-1 font-semibold">
+              <span>قیمت نهایی هر عدد با ثابت‌های شما</span>
+              <Money value={added.unitFinalPrice.toFixed(4)} currency="TOMAN" hideCurrency />
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

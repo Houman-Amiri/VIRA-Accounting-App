@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
 import { vi } from "vitest";
-import type { PricingSettings } from "@/lib/pricing-settings";
+import type { CustomConstant, PricingSettings } from "@/lib/pricing-settings";
 
 // Router navigation itself is covered by Playwright; retain real hooks and math here.
 vi.mock("@tanstack/react-router", () => ({
@@ -29,6 +29,7 @@ export function renderWithPricing(
   ui: ReactNode,
   overrides: Partial<PricingSettings> = {},
   seed = true,
+  customs: CustomConstant[] = [],
 ) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity }, mutations: { retry: false } },
@@ -45,5 +46,6 @@ export function renderWithPricing(
   client.setQueryData(["warehouse", "catalog", "units"], []);
   client.setQueryData(["warehouse", "suppliers"], []);
   if (seed) client.setQueryData(["pricing-settings"], { ...SETTINGS, ...overrides });
+  client.setQueryData(["pricing-custom-constants"], customs);
   return { ...render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>), client };
 }

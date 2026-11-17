@@ -925,6 +925,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/settings/pricing/constants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Custom Constants
+         * @description The owner's own pricing constants, in display order.
+         */
+        get: operations["list_custom_constants_api_v1_settings_pricing_constants_get"];
+        put?: never;
+        /** Create Custom Constant */
+        post: operations["create_custom_constant_api_v1_settings_pricing_constants_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/pricing/constants/{constant_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Custom Constant */
+        delete: operations["delete_custom_constant_api_v1_settings_pricing_constants__constant_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Custom Constant
+         * @description Change the name, the method or the value of a custom constant.
+         */
+        patch: operations["update_custom_constant_api_v1_settings_pricing_constants__constant_id__patch"];
+        trace?: never;
+    };
     "/api/v1/system/status": {
         parameters: {
             query?: never;
@@ -2567,6 +2609,59 @@ export interface components {
             quantity: string;
             /** Filaments */
             filaments?: components["schemas"]["ProductionFilamentRead"][];
+        };
+        /**
+         * PricingCustomConstantCreate
+         * @description One owner-defined constant: a name, a method and a value.
+         */
+        PricingCustomConstantCreate: {
+            /** Name */
+            name: string;
+            /**
+             * Method
+             * @enum {string}
+             */
+            method: "PER_UNIT" | "PER_BATCH" | "PERCENT_OF_COST" | "PERCENT_OF_PRICE";
+            /** Value */
+            value: number | string;
+            /**
+             * Is Active
+             * @default true
+             */
+            is_active: boolean;
+        };
+        /** PricingCustomConstantRead */
+        PricingCustomConstantRead: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /**
+             * Method
+             * @enum {string}
+             */
+            method: "PER_UNIT" | "PER_BATCH" | "PERCENT_OF_COST" | "PERCENT_OF_PRICE";
+            /** Value */
+            value: string;
+            /** Is Active */
+            is_active: boolean;
+            /** Position */
+            position: number;
+            /** Created At */
+            created_at: string;
+            /** Updated At */
+            updated_at: string;
+        };
+        /** PricingCustomConstantUpdate */
+        PricingCustomConstantUpdate: {
+            /** Name */
+            name?: string | null;
+            /** Method */
+            method?: ("PER_UNIT" | "PER_BATCH" | "PERCENT_OF_COST" | "PERCENT_OF_PRICE") | null;
+            /** Value */
+            value?: number | string | null;
+            /** Is Active */
+            is_active?: boolean | null;
         };
         /** PricingRead */
         PricingRead: {
@@ -5476,6 +5571,156 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PricingRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_custom_constants_api_v1_settings_pricing_constants_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                noa_session?: string | null;
+                noa_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PricingCustomConstantRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_custom_constant_api_v1_settings_pricing_constants_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                noa_session?: string | null;
+                noa_csrf?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PricingCustomConstantCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PricingCustomConstantRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_custom_constant_api_v1_settings_pricing_constants__constant_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                constant_id: string;
+            };
+            cookie?: {
+                noa_session?: string | null;
+                noa_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_custom_constant_api_v1_settings_pricing_constants__constant_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                constant_id: string;
+            };
+            cookie?: {
+                noa_session?: string | null;
+                noa_csrf?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PricingCustomConstantUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PricingCustomConstantRead"];
                 };
             };
             /** @description Validation Error */

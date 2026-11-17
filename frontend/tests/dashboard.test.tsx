@@ -124,10 +124,14 @@ it("keeps money exact until plotting, with one unit conversion", () => {
   );
 });
 
-it("shows five real KPIs, three plots, supplier/action links, and correct order units", async () => {
+it("shows five real KPIs, two plots, supplier/action links, and correct order units", async () => {
   mount();
   await waitFor(() => expect(screen.getByTestId("kpi-assets")).toHaveTextContent(faNumber("800")));
-  expect(screen.getByLabelText("شاخص‌های کلیدی").children).toHaveLength(5);
+  expect(
+    within(screen.getByLabelText("شاخص‌های کلیدی")).getAllByTestId(
+      /^kpi-(assets|liabilities|equity|profit|cash)$/,
+    ),
+  ).toHaveLength(5);
   expect(screen.getByTestId("kpi-equity")).toHaveTextContent(faNumber("700"));
   // item 10: the warehouse-value card and the 8-item value chart are gone
   expect(screen.queryByTestId("kpi-stock")).not.toBeInTheDocument();
@@ -139,8 +143,10 @@ it("shows five real KPIs, three plots, supplier/action links, and correct order 
   expect(screen.getByTestId("alert-orders")).toHaveTextContent(faNumber("203"));
   expect(screen.getByTestId("alert-stock")).toHaveTextContent("فروشندهٔ پیشنهادی");
   expect(screen.getByTestId("dash-job-job")).toHaveTextContent(faNumber("25.25"));
-  for (const id of ["chart-structure", "chart-pnl", "chart-sales"])
-    expect(screen.getByTestId(id)).toBeInTheDocument();
+  // the owner asked for «ساختار مالی تا امروز» to be gone; the two real trends stay
+  expect(screen.queryByTestId("chart-structure")).not.toBeInTheDocument();
+  expect(screen.queryByText("ساختار مالی تا امروز")).not.toBeInTheDocument();
+  for (const id of ["chart-pnl", "chart-sales"]) expect(screen.getByTestId(id)).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "رسیدگی به موجودی" }));
   expect(mocks.navigate).toHaveBeenCalledWith({ to: "/warehouse" });
   expect(
@@ -178,7 +184,6 @@ it("converts plot values only once and fills all 30 dates without altering reven
       .reverse()
       .find((p) => p["data-testid"] === id);
   const theme = { primary: "#123", muted: "#456", border: "#789" };
-  expect(props("chart-structure").buildOption(theme).series[0].data).toEqual([800, 100, 700]);
   expect(props("chart-pnl").buildOption(theme).series[0].data).toEqual([300, 100, 200]);
   const daily = props("chart-sales").buildOption(theme).series[0].data;
   expect(daily).toHaveLength(30);
@@ -208,7 +213,7 @@ it("one failed query hides its stale values; other sections remain usable and re
     expect(within(screen.getByTestId("kpi-cash")).getByRole("alert")).toBeInTheDocument(),
   );
   expect(screen.getByTestId("kpi-cash")).not.toHaveTextContent(faNumber("800"));
-  expect(screen.getByTestId("chart-structure")).toBeInTheDocument();
+  expect(screen.getByTestId("chart-pnl")).toBeInTheDocument();
   vi.mocked(api.GET).mockImplementation((async (path: string) => ({
     data: data[path],
     response: new Response(),
@@ -241,7 +246,7 @@ it("flags even a four-decimal trial difference instead of treating it as zero", 
   await screen.findByText("اختلاف در تراز حسابداری");
 });
 
-it("successful empty data shows genuine zeroes and three honest empty chart panels", async () => {
+it("successful empty data shows genuine zeroes and two honest empty chart panels", async () => {
   const empty: Record<string, unknown> = {
     ...data,
     "/api/v1/reports/trial-balance": [],
@@ -272,7 +277,7 @@ it("successful empty data shows genuine zeroes and three honest empty chart pane
   mount();
   await screen.findByText("تراز بدهکار و بستانکار برابر است.");
   expect(screen.getByTestId("kpi-assets")).toHaveTextContent("۰تومان");
-  expect(screen.getAllByText("برای این بازه مبلغ غیرصفر ثبت نشده است.")).toHaveLength(3);
+  expect(screen.getAllByText("برای این بازه مبلغ غیرصفر ثبت نشده است.")).toHaveLength(2);
   expect(screen.queryByTestId("chart-structure")).not.toBeInTheDocument();
   expect(screen.getByText("هنوز سفارشی ثبت نشده است.")).toBeInTheDocument();
   expect(screen.getByText("کار تولیدی در جریان نیست.")).toBeInTheDocument();

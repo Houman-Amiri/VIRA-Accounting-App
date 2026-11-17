@@ -24,8 +24,10 @@ import { tehranToday, validIso } from "@/lib/calendar";
 import { faDate, faNumber } from "@/lib/fa";
 
 type OrderLine = {
-  /** The ordered product always comes from the warehouse (item 7). */
+  /** Warehouse item, when the owner picks one; empty means a free line. */
   inventory_item_id: string;
+  /** The product name. A free line carries its own; a warehouse line may too. */
+  product_name: string;
   variant: "plain" | "chain";
   quantity: string;
   unit_price: string;
@@ -125,11 +127,26 @@ const NEXT_STATUSES: Record<string, string[]> = {
 
 const emptyLine = (): OrderLine => ({
   inventory_item_id: "",
+  product_name: "",
   variant: "plain",
   quantity: "1",
   unit_price: "",
   unit_cost: "",
 });
+
+/** A line is usable when it names its product or points at a warehouse item. */
+function lineReady(line: OrderLine): boolean {
+  if (!line.product_name.trim() && !line.inventory_item_id) return false;
+  // A free line has no catalogue price to fall back on, so the owner sets one.
+  if (!line.inventory_item_id) {
+    try {
+      return parseNum(line.unit_price).gt(0);
+    } catch {
+      return false;
+    }
+  }
+  return true;
+}
 
 function errText(error: unknown): string {
   return error instanceof Error ? error.message : "خطای نامشخص";
@@ -224,9 +241,10 @@ export function OrdersPage(): React.JSX.Element {
           channel: form.channel,
           notes: form.notes || null,
           items: form.items.map((line) => ({
-            // Empty name => the server uses the warehouse item's own name.
-            product_name: "",
-            inventory_item_id: line.inventory_item_id,
+            // A free line carries its name; a warehouse line falls back to the
+            // item's own name on the server when this is empty.
+            product_name: line.product_name.trim(),
+            inventory_item_id: line.inventory_item_id || null,
             variant: line.variant,
             quantity: parseNum(line.quantity || "1").toString(),
             // 0 means "use the warehouse price", decided by the server
@@ -305,6 +323,7 @@ export function OrdersPage(): React.JSX.Element {
     const item = productById.get(itemId);
     updateLine(index, {
       inventory_item_id: itemId,
+      product_name: item ? item.name : "",
       // the warehouse price is the reference price; the user may still edit it
       unit_price: item ? item.unit_price : "",
     });
@@ -634,13 +653,15 @@ export function OrdersPage(): React.JSX.Element {
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium">اقلام سفارش</p>
                 <p className="text-xs text-muted-foreground">
-                  فقط محصولات انبار قابل انتخاب‌اند؛ کمبود از خط تولید تأمین می‌شود.
+                  نام کالا را بنویسید؛ اگر در انبار موجود است از فهرست هم می‌توانید انتخاب کنید.
+                  کالای بدون موجودی مستقیم به خط تولید می‌رود.
                 </p>
               </div>
               <QueryNotice query={warehouseQuery} />
               {warehouseQuery.isSuccess && orderable.length === 0 && (
                 <p className="rounded-md bg-muted px-2 py-1 text-xs" role="status">
-                  هیچ محصولی در انبار ثبت نشده است؛ ابتدا محصول را در «انبار» بسازید.
+                  انبار خالی است؛ نام کالا را دستی بنویسید و قیمت هر عدد را وارد کنید. لازم نیست اول
+                  محصول را در انبار بسازید.
                 </p>
               )}
               {form.items.map((line, index) => (
@@ -650,14 +671,32 @@ export function OrdersPage(): React.JSX.Element {
                   data-testid={`line-${index}`}
                 >
                   <div className="grid grid-cols-2 gap-1">
+                    <Input
+                      className="h-8 text-xs"
+                      aria-label={`نام کالای ردیف ${faNumber(String(index + 1))}`}
+                      data-testid={`line-name-${index}`}
+                      placeholder="نام کالا"
+                      value={line.product_name}
+                      onChange={(e) => {
+                        const name = e.target.value;
+                        const item = productById.get(line.inventory_item_id);
+                        // Typing a new name means the line is no longer that item.
+                        updateLine(
+                          index,
+                          item && item.name !== name
+                            ? { product_name: name, inventory_item_id: "" }
+                            : { product_name: name },
+                        );
+                      }}
+                    />
                     <select
-                      aria-label={`محصول ردیف ${faNumber(String(index + 1))}`}
+                      aria-label={`محصول انبار برای ردیف ${faNumber(String(index + 1))}`}
                       data-testid={`line-product-${index}`}
                       className="flex h-8 w-full rounded-md border border-input bg-background px-2 text-xs text-foreground"
                       value={line.inventory_item_id}
                       onChange={(e) => pickProduct(index, e.target.value)}
                     >
-                      <option value="">— محصول از انبار —</option>
+                      <option value="">— بدون موجودی در انبار —</option>
                       {orderable.map((item) => (
                         <option key={item.id} value={item.id}>
                           {item.name} ({faNumber(item.quantity)} عدد موجود)
@@ -747,7 +786,7 @@ export function OrdersPage(): React.JSX.Element {
                 !calendarReady ||
                 !validIso(form.order_date) ||
                 !form.items.length ||
-                form.items.some((line) => !line.inventory_item_id)
+                form.items.some((line) => !lineReady(line))
               }
               onClick={() => {
                 setCreateWarnings([]);

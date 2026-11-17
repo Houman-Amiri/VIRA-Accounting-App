@@ -230,3 +230,90 @@ export const SHEET_EXAMPLE_INPUTS: PriceInputs = {
 
 /** Independently checked against the original cached B35/E35, not normalized math. */
 export const SHEET_EXPECTED = { plain: "2760748.5", chain: "2780748.5" } as const;
+
+// -------------------------------------------- owner-defined price additions ---
+/**
+ * The owner's own constants (added on the «قیمت‌گذاری» page), applied on top of
+ * the sheet-exact breakdown. `computePrice` itself is untouched: the workbook
+ * parity is a hard constraint, so the extra costs live in this separate step.
+ */
+export type CustomMethod = "PER_UNIT" | "PER_BATCH" | "PERCENT_OF_COST" | "PERCENT_OF_PRICE";
+
+export interface CustomConstantInput {
+  name: string;
+  method: CustomMethod;
+  value: MoneyLike;
+  is_active: boolean;
+}
+
+export interface CustomConstantLine {
+  name: string;
+  method: CustomMethod;
+  /** Per-unit effect of this constant, in the same unit as the breakdown. */
+  amount: Decimal;
+}
+
+export interface CustomPriceResult {
+  lines: CustomConstantLine[];
+  /** Sum of every line — what one unit gains on top of the sheet price. */
+  perUnit: Decimal;
+  unitFinalPrice: Decimal;
+  batchFinalPrice: Decimal;
+}
+
+/**
+ * Turn one custom constant into a per-unit amount.
+ *
+ * - `PER_UNIT`         the value itself;
+ * - `PER_BATCH`        the value split over the run size;
+ * - `PERCENT_OF_COST`  a percentage of the unit production cost;
+ * - `PERCENT_OF_PRICE` a percentage of the sheet's unit final price.
+ *
+ * Percentages are always taken from the *sheet* amounts, never from a total
+ * that already contains other custom constants, so the order of the rows can
+ * never change the money.
+ */
+export function customConstantAmount(
+  constant: CustomConstantInput,
+  base: PriceBreakdown,
+  quantity: MoneyLike,
+): Decimal {
+  const value = parseNum(constant.value);
+  if (value.isNegative()) throw new Error("ثابت‌های قیمت‌گذاری نباید منفی باشند");
+  switch (constant.method) {
+    case "PER_UNIT":
+      return value;
+    case "PER_BATCH": {
+      const q = parseNum(quantity);
+      if (q.lte(0)) throw new Error("تیراژ باید بزرگ‌تر از صفر باشد");
+      return value.div(q);
+    }
+    case "PERCENT_OF_COST":
+      return base.unitProductionCost.times(value).div(100);
+    case "PERCENT_OF_PRICE":
+      return base.unitFinalPrice.times(value).div(100);
+    default:
+      return new Decimal(0);
+  }
+}
+
+export function applyCustomConstants(
+  base: PriceBreakdown,
+  constants: readonly CustomConstantInput[],
+  quantity: MoneyLike,
+): CustomPriceResult {
+  const active = constants.filter((constant) => constant.is_active);
+  const lines = active.map((constant) => ({
+    name: constant.name,
+    method: constant.method,
+    amount: customConstantAmount(constant, base, quantity),
+  }));
+  const perUnit = lines.reduce((sum, line) => sum.plus(line.amount), new Decimal(0));
+  const unitFinalPrice = base.unitFinalPrice.plus(perUnit);
+  return {
+    lines,
+    perUnit,
+    unitFinalPrice,
+    batchFinalPrice: unitFinalPrice.times(parseNum(quantity)),
+  };
+}

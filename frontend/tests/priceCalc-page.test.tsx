@@ -111,9 +111,9 @@ describe("pricing page — literal Excel model", () => {
       filamentPerGram: "4000.0000",
     });
     expect(screen.queryByTestId("const-filamentPerGram")).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "تغییر ثابت‌ها در تنظیمات" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "تغییر ثابت‌های قیمت‌گذاری" })).toHaveAttribute(
       "href",
-      "/settings",
+      "/pricing-settings",
     );
   });
 

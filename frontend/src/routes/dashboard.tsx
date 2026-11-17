@@ -68,26 +68,40 @@ function Kpi({
   id: string;
 }): React.JSX.Element {
   return (
-    <Card data-testid={id}>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm text-muted-foreground">{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <DataState query={query}>
+    <div data-testid={id} className="min-w-0 bg-card p-4">
+      <p className="truncate text-xs text-muted-foreground">{title}</p>
+      <DataState query={query}>
+        <div className="mt-1 min-w-0">
           <Money
             value={value}
             currency={unit}
-            className="text-xl font-bold"
+            className="text-lg font-bold leading-tight"
             signedColors={id === "kpi-profit" || toDecimal(value).isNegative()}
           />
-          <p className="mt-2 text-xs text-muted-foreground">{hint}</p>
-        </DataState>
-      </CardContent>
-    </Card>
+        </div>
+        <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-muted-foreground">{hint}</p>
+      </DataState>
+    </div>
   );
 }
 
 type ChartRow = { key?: string; label: string; value: MoneyLike };
+
+/** One heading per band; keeps the page from turning into stacked boxes. */
+function SectionTitle({
+  children,
+  hint,
+}: {
+  children: React.ReactNode;
+  hint?: string;
+}): React.JSX.Element {
+  return (
+    <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+      <h2 className="text-sm font-semibold text-muted-foreground">{children}</h2>
+      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+    </div>
+  );
+}
 /** Monetary plots have one comparable unit, with exact accessible source values. */
 function MoneyChart({
   title,
@@ -159,16 +173,16 @@ function MoneyChart({
   );
   const hasValues = rows.some((r) => !toDecimal(r.value).isZero());
   return (
-    <Card data-testid={`${id}-panel`} className="min-w-0">
-      <CardHeader>
+    <Card data-testid={`${id}-panel`} className="flex min-w-0 flex-col">
+      <CardHeader className="pb-3">
         <CardTitle className="text-base">{title}</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1">
         <DataState query={query}>
           {hasValues ? (
-            <EChart buildOption={buildOption} data-testid={id} />
+            <EChart buildOption={buildOption} data-testid={id} height={260} />
           ) : (
-            <p className="flex h-[280px] items-center justify-center text-sm text-muted-foreground">
+            <p className="flex h-[260px] items-center justify-center text-sm text-muted-foreground">
               برای این بازه مبلغ غیرصفر ثبت نشده است.
             </p>
           )}
@@ -328,11 +342,6 @@ export function DashboardPage(): React.JSX.Element {
   const activeJobs = (production.data?.jobs ?? [])
     .filter((j) => j.status === "PLANNED" || j.status === "IN_PROGRESS")
     .slice(0, 6);
-  const structure: ChartRow[] = [
-    { label: "دارایی", value: balance.data?.total_assets ?? "0" },
-    { label: "بدهی", value: balance.data?.total_liabilities ?? "0" },
-    { label: "حقوق صاحبان سهام", value: equity },
-  ];
   const profit: ChartRow[] = [
     { label: "درآمد", value: income.data?.total_income ?? "0" },
     { label: "هزینه", value: income.data?.total_expenses ?? "0" },
@@ -361,278 +370,337 @@ export function DashboardPage(): React.JSX.Element {
   );
 
   return (
-    <div className="space-y-5" dir="rtl" data-testid="dashboard">
-      <header className="flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-6" dir="rtl" data-testid="dashboard">
+      <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold">داشبورد مدیریت</h1>
-          <p className="text-xs text-muted-foreground">{periodHint} — تاریخ تهران</p>
+          <p className="mt-1 text-xs text-muted-foreground">{periodHint} — تاریخ تهران</p>
         </div>
-        <div className="flex flex-wrap items-center gap-3 text-xs">
-          <span role="status" data-testid="dashboard-health">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <span
+            role="status"
+            data-testid="dashboard-health"
+            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 ${
+              health.isError
+                ? "border-destructive/40 text-destructive"
+                : "border-border text-muted-foreground"
+            }`}
+          >
+            <span
+              aria-hidden
+              className={`h-1.5 w-1.5 rounded-full ${
+                health.isError
+                  ? "bg-destructive"
+                  : health.isPending
+                    ? "bg-amber-500"
+                    : "bg-positive"
+              }`}
+            />
             {health.isError
               ? "ارتباط با سرویس ناموفق"
               : health.isPending
                 ? "در حال بررسی سرویس…"
                 : "سرویس در دسترس"}
           </span>
-          {action(
-            "/system",
-            update.data?.checked && update.data.update_available
-              ? `نسخهٔ ${update.data.latest} در آخرین بررسی موجود بود`
-              : "بررسی به‌روزرسانی",
-          )}
           <button
             type="button"
-            className="rounded border px-3 py-2"
+            className="rounded-full border px-3 py-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            onClick={() => void navigate({ to: "/system" })}
+          >
+            {update.data?.checked && update.data.update_available
+              ? `نسخهٔ ${update.data.latest} موجود است`
+              : "بررسی به‌روزرسانی"}
+          </button>
+          <button
+            type="button"
+            className="rounded-full border px-3 py-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-50"
             disabled={fetching}
             onClick={() => void Promise.all(queries.map((q) => q.refetch()))}
           >
-            تازه‌سازی داده‌ها
+            {fetching ? "در حال تازه‌سازی…" : "تازه‌سازی داده‌ها"}
           </button>
         </div>
       </header>
-      <p className="text-xs text-muted-foreground">
-        همهٔ مبالغ به تومان؛ صورت‌های مالی فقط از اسناد قطعی حسابداری هستند. سفارش‌ها و انبار گزارش
-        عملیاتی مستقل‌اند و خودکار سند حسابداری نمی‌سازند.
-      </p>
-      <section aria-label="شاخص‌های کلیدی" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        <Kpi
-          id="kpi-assets"
-          title="دارایی‌ها"
-          value={balance.data?.total_assets ?? "0"}
-          query={balance}
-          hint={`مانده تا ${dashboardDate(today)}`}
-        />
-        <Kpi
-          id="kpi-liabilities"
-          title="بدهی‌ها"
-          value={balance.data?.total_liabilities ?? "0"}
-          query={balance}
-          hint={`مانده تا ${dashboardDate(today)}`}
-        />
-        <Kpi
-          id="kpi-equity"
-          title="حقوق صاحبان سهام"
-          value={equity}
-          query={balance}
-          hint="شامل سود / زیان انباشته"
-        />
-        <Kpi
-          id="kpi-profit"
-          title="سود / زیان خالص"
-          value={income.data?.net_income ?? "0"}
-          query={income}
-          hint={periodHint}
-        />
-        <Kpi
-          id="kpi-cash"
-          title="موجودی نقد و بانک"
-          value={cash.data ?? "0"}
-          query={cash}
-          hint="ماندهٔ حساب‌های با پیش‌شمارهٔ ۱۰۱ و ۱۰۲ تا امروز"
-        />
-      </section>
-      <section
-        aria-label="هشدارها و اقدام‌ها"
-        data-testid="dashboard-alerts"
-        className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
-      >
-        <Card data-testid="alert-trial">
-          <CardHeader>
-            <CardTitle className="text-sm">تراز حسابداری</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DataState query={trial}>
-              <p className={toDecimal(difference).isZero() ? "text-positive" : "text-destructive"}>
-                {toDecimal(difference).isZero()
-                  ? "تراز بدهکار و بستانکار برابر است."
-                  : "اختلاف در تراز حسابداری"}
-              </p>
-              {!toDecimal(difference).isZero() && <Money value={difference} signedColors />}
-              {action("/journal", "بررسی اسناد حسابداری")}
-            </DataState>
-          </CardContent>
-        </Card>
-        <Card data-testid="alert-stock">
-          <CardHeader>
-            <CardTitle className="text-sm">کمبود موجودی</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DataState query={alarms}>
-              <p>
-                {alarms.data?.length
-                  ? `${faNumber(String(alarms.data.length))} قلم در حداقل موجودی یا کمتر`
-                  : "هیچ قلمی در حداقل موجودی یا کمتر نیست."}
-              </p>
-              <ul className="mt-2 space-y-2 text-xs">
-                {alarms.data?.slice(0, 3).map((a) => (
-                  <li key={a.item_id}>
-                    {a.name}: {faNumber(a.quantity)} / حداقل {faNumber(a.min_quantity)}{" "}
-                    {itemUnitLabel(a)}
-                    <br />
-                    تأمین‌کنندهٔ پیشنهادی: {a.suggested_supplier ?? "ثبت نشده"}
-                  </li>
-                ))}
-              </ul>
-              {action("/warehouse", "رسیدگی به موجودی")}
-            </DataState>
-          </CardContent>
-        </Card>
-        <Card data-testid="alert-production">
-          <CardHeader>
-            <CardTitle className="text-sm">صف تولید</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DataState query={production}>
-              <p>
-                {faNumber(String(production.data?.planned ?? 0))} برنامه‌ریزی‌شده؛{" "}
-                {faNumber(String(production.data?.in_progress ?? 0))} در حال تولید
-              </p>
-              <p className="mt-2 text-xs">
-                فیلامنت مورد نیاز: {faNumber(production.data?.filament_grams_planned ?? "0")} گرم
-              </p>
-              {action("/production", "پیگیری تولید")}
-            </DataState>
-          </CardContent>
-        </Card>
-        <Card data-testid="alert-orders">
-          <CardHeader>
-            <CardTitle className="text-sm">سفارش‌های در انتظار تولید</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DataState query={orderCounts}>
-              <p>{faNumber(String(pendingOrders))} سفارش جدید یا تأییدشده</p>
-              <p className="mt-2 text-xs">
-                از مجموع {faNumber(String(orderCounts.data?.total ?? 0))} سفارش؛ مستقل از محدودیت
-                فهرست اخیر
-              </p>
-              {action("/orders", "پیگیری سفارش‌ها")}
-            </DataState>
-          </CardContent>
+
+      <section aria-label="شاخص‌های کلیدی">
+        <Card className="overflow-hidden">
+          <div
+            data-testid="kpi-grid"
+            className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5"
+          >
+            <Kpi
+              id="kpi-assets"
+              title="دارایی‌ها"
+              value={balance.data?.total_assets ?? "0"}
+              query={balance}
+              hint={`مانده تا ${dashboardDate(today)}`}
+            />
+            <Kpi
+              id="kpi-liabilities"
+              title="بدهی‌ها"
+              value={balance.data?.total_liabilities ?? "0"}
+              query={balance}
+              hint={`مانده تا ${dashboardDate(today)}`}
+            />
+            <Kpi
+              id="kpi-equity"
+              title="حقوق صاحبان سهام"
+              value={equity}
+              query={balance}
+              hint="شامل سود / زیان انباشته"
+            />
+            <Kpi
+              id="kpi-profit"
+              title="سود / زیان خالص"
+              value={income.data?.net_income ?? "0"}
+              query={income}
+              hint={periodHint}
+            />
+            <Kpi
+              id="kpi-cash"
+              title="موجودی نقد و بانک"
+              value={cash.data ?? "0"}
+              query={cash}
+              hint="صندوق و بانک تا امروز"
+            />
+          </div>
         </Card>
       </section>
-      <section aria-label="نمودارهای مدیریتی" className="grid gap-4 lg:grid-cols-2">
-        <MoneyChart
-          id="chart-structure"
-          title="ساختار مالی تا امروز"
-          rows={structure}
-          query={balance}
-        />
-        <MoneyChart
-          id="chart-pnl"
-          title={`درآمد و هزینه — ${periodHint}`}
-          rows={profit}
-          query={income}
-        />
-        <MoneyChart
-          id="chart-sales"
-          title="فروش سفارش‌ها — ۳۰ روز تا امروز"
-          rows={daily}
-          unit="TOMAN"
-          query={sales}
-          line
-        />
+
+      <section aria-label="هشدارها و اقدام‌ها" data-testid="dashboard-alerts">
+        <SectionTitle hint="هر کارت به صفحهٔ رسیدگی همان موضوع می‌رود">
+          هشدارها و اقدام‌ها
+        </SectionTitle>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <Card data-testid="alert-trial" className="flex h-full flex-col">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">تراز حسابداری</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-1 flex-col">
+              <DataState query={trial}>
+                <p
+                  className={`text-sm ${
+                    toDecimal(difference).isZero() ? "text-positive" : "text-destructive"
+                  }`}
+                >
+                  {toDecimal(difference).isZero()
+                    ? "تراز بدهکار و بستانکار برابر است."
+                    : "اختلاف در تراز حسابداری"}
+                </p>
+                {!toDecimal(difference).isZero() && (
+                  <p className="mt-2">
+                    <Money value={difference} signedColors />
+                  </p>
+                )}
+                <div className="mt-auto pt-3">{action("/journal", "بررسی اسناد حسابداری")}</div>
+              </DataState>
+            </CardContent>
+          </Card>
+          <Card data-testid="alert-stock" className="flex h-full flex-col">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">کمبود موجودی</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-1 flex-col">
+              <DataState query={alarms}>
+                <p className="text-sm">
+                  {alarms.data?.length
+                    ? `${faNumber(String(alarms.data.length))} قلم در حداقل موجودی یا کمتر`
+                    : "هیچ قلمی در حداقل موجودی یا کمتر نیست."}
+                </p>
+                <ul className="mt-2 space-y-2 text-xs text-muted-foreground">
+                  {alarms.data?.slice(0, 3).map((a) => (
+                    <li key={a.item_id}>
+                      <span className="text-foreground">{a.name}</span>: {faNumber(a.quantity)} /{" "}
+                      حداقل {faNumber(a.min_quantity)} {itemUnitLabel(a)}
+                      <br />
+                      تأمین‌کنندهٔ پیشنهادی: {a.suggested_supplier ?? "ثبت نشده"}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-auto pt-3">{action("/warehouse", "رسیدگی به موجودی")}</div>
+              </DataState>
+            </CardContent>
+          </Card>
+          <Card data-testid="alert-production" className="flex h-full flex-col">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">صف تولید</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-1 flex-col">
+              <DataState query={production}>
+                <p className="text-sm">
+                  {faNumber(String(production.data?.planned ?? 0))} برنامه‌ریزی‌شده؛{" "}
+                  {faNumber(String(production.data?.in_progress ?? 0))} در حال تولید
+                </p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  فیلامنت مورد نیاز: {faNumber(production.data?.filament_grams_planned ?? "0")} گرم
+                </p>
+                <div className="mt-auto pt-3">{action("/production", "پیگیری تولید")}</div>
+              </DataState>
+            </CardContent>
+          </Card>
+          <Card data-testid="alert-orders" className="flex h-full flex-col">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">سفارش‌های در انتظار تولید</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-1 flex-col">
+              <DataState query={orderCounts}>
+                <p className="text-sm">{faNumber(String(pendingOrders))} سفارش جدید یا تأییدشده</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  از مجموع {faNumber(String(orderCounts.data?.total ?? 0))} سفارش
+                </p>
+                <div className="mt-auto pt-3">{action("/orders", "پیگیری سفارش‌ها")}</div>
+              </DataState>
+            </CardContent>
+          </Card>
+        </div>
       </section>
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">سفارش‌های اخیر</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DataState query={orders}>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr>
-                      <th className="text-start">شماره / تاریخ</th>
-                      <th className="text-start">مشتری</th>
-                      <th className="text-start">وضعیت</th>
-                      <th className="text-end">مبلغ (تومان)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {orders.data?.slice(0, 6).map((o) => (
-                      <tr key={o.id} data-testid={`dash-order-${o.id}`} className="border-b">
-                        <td className="py-2">
-                          {faNumber(String(o.order_number))}
-                          <br />
-                          {dashboardDate(o.order_date)}
-                        </td>
-                        <td>{o.customer_name}</td>
-                        <td>
-                          {
+
+      <section aria-label="نمودارهای مدیریتی">
+        <SectionTitle hint="مبالغ به تومان">روند مالی</SectionTitle>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <MoneyChart
+            id="chart-pnl"
+            title={`درآمد و هزینه — ${periodHint}`}
+            rows={profit}
+            query={income}
+          />
+          <MoneyChart
+            id="chart-sales"
+            title="فروش سفارش‌ها — ۳۰ روز تا امروز"
+            rows={daily}
+            unit="TOMAN"
+            query={sales}
+            line
+          />
+        </div>
+      </section>
+
+      <section aria-label="سفارش‌ها و تولید">
+        <SectionTitle hint="آخرین ردیف‌های هر دو فهرست">سفارش‌ها و تولید</SectionTitle>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Card className="flex min-w-0 flex-col">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">سفارش‌های اخیر</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-1 flex-col">
+              <DataState query={orders}>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b text-xs text-muted-foreground">
+                        <th scope="col" className="py-2 text-start font-medium">
+                          شماره / تاریخ
+                        </th>
+                        <th scope="col" className="py-2 text-start font-medium">
+                          مشتری
+                        </th>
+                        <th scope="col" className="py-2 text-start font-medium">
+                          وضعیت
+                        </th>
+                        <th scope="col" className="py-2 text-end font-medium">
+                          مبلغ (تومان)
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {orders.data?.slice(0, 6).map((o) => (
+                        <tr key={o.id} data-testid={`dash-order-${o.id}`} className="border-b">
+                          <td className="py-2">
+                            {faNumber(String(o.order_number))}
+                            <br />
+                            <span className="text-xs text-muted-foreground">
+                              {dashboardDate(o.order_date)}
+                            </span>
+                          </td>
+                          <td>{o.customer_name}</td>
+                          <td>
                             {
-                              NEW: "جدید",
-                              IN_PRODUCTION: "در حال تولید",
-                              READY: "آماده",
-                              DELIVERED: "تحویل‌شده",
-                              CONFIRMED: "تأییدشده",
-                              SHIPPED: "ارسال‌شده",
-                              CANCELLED: "لغوشده",
-                            }[o.status]
-                          }
-                        </td>
-                        <td className="text-end">
-                          <Money value={o.total} currency="TOMAN" />
-                        </td>
+                              {
+                                NEW: "جدید",
+                                IN_PRODUCTION: "در حال تولید",
+                                READY: "آماده",
+                                DELIVERED: "تحویل‌شده",
+                                CONFIRMED: "تأییدشده",
+                                SHIPPED: "ارسال‌شده",
+                                CANCELLED: "لغوشده",
+                              }[o.status]
+                            }
+                          </td>
+                          <td className="text-end">
+                            <Money value={o.total} currency="TOMAN" />
+                          </td>
+                        </tr>
+                      ))}
+                      {orders.data?.length === 0 && (
+                        <tr>
+                          <td colSpan={4} className="py-6 text-center text-muted-foreground">
+                            هنوز سفارشی ثبت نشده است.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="mt-auto pt-3">{action("/orders", "همهٔ سفارش‌ها")}</div>
+              </DataState>
+            </CardContent>
+          </Card>
+          <Card className="flex min-w-0 flex-col">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">کارهای تولید در جریان</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-1 flex-col">
+              <DataState query={production}>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b text-xs text-muted-foreground">
+                        <th scope="col" className="py-2 text-start font-medium">
+                          شماره
+                        </th>
+                        <th scope="col" className="py-2 text-start font-medium">
+                          محصول
+                        </th>
+                        <th scope="col" className="py-2 text-start font-medium">
+                          تعداد
+                        </th>
+                        <th scope="col" className="py-2 text-end font-medium">
+                          فیلامنت (گرم)
+                        </th>
                       </tr>
-                    ))}
-                    {orders.data?.length === 0 && (
-                      <tr>
-                        <td colSpan={4} className="py-6 text-center text-muted-foreground">
-                          هنوز سفارشی ثبت نشده است.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-              {action("/orders", "همهٔ سفارش‌ها")}
-            </DataState>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">کارهای تولید در جریان</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DataState query={production}>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr>
-                      <th className="text-start">شماره</th>
-                      <th className="text-start">محصول</th>
-                      <th className="text-start">تعداد</th>
-                      <th className="text-end">فیلامنت (گرم)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {activeJobs.map((j) => (
-                      <tr key={j.id} data-testid={`dash-job-${j.id}`} className="border-b">
-                        <td className="py-2">{faNumber(String(j.job_number))}</td>
-                        <td>{j.product_name}</td>
-                        <td>{faNumber(j.quantity)}</td>
-                        <td className="text-end">
-                          {faNumber(toDecimal(j.filament_grams).times(j.quantity).toString())}
-                        </td>
-                      </tr>
-                    ))}
-                    {activeJobs.length === 0 && (
-                      <tr>
-                        <td colSpan={4} className="py-6 text-center text-muted-foreground">
-                          کار تولیدی در جریان نیست.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-              {action("/production", "همهٔ کارهای تولید")}
-            </DataState>
-          </CardContent>
-        </Card>
-      </div>
+                    </thead>
+                    <tbody>
+                      {activeJobs.map((j) => (
+                        <tr key={j.id} data-testid={`dash-job-${j.id}`} className="border-b">
+                          <td className="py-2">{faNumber(String(j.job_number))}</td>
+                          <td>{j.product_name}</td>
+                          <td>{faNumber(j.quantity)}</td>
+                          <td className="text-end">
+                            {faNumber(toDecimal(j.filament_grams).times(j.quantity).toString())}
+                          </td>
+                        </tr>
+                      ))}
+                      {activeJobs.length === 0 && (
+                        <tr>
+                          <td colSpan={4} className="py-6 text-center text-muted-foreground">
+                            کار تولیدی در جریان نیست.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="mt-auto pt-3">{action("/production", "همهٔ کارهای تولید")}</div>
+              </DataState>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      <p className="border-t pt-3 text-[11px] leading-5 text-muted-foreground">
+        همهٔ مبالغ به تومان است. صورت‌های مالی فقط از اسناد قطعی حسابداری ساخته می‌شوند؛ سفارش‌ها و
+        انبار گزارش عملیاتی مستقل‌اند و خودکار سند حسابداری نمی‌سازند.
+      </p>
     </div>
   );
 }

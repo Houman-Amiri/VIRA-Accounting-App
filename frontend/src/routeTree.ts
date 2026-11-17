@@ -10,6 +10,7 @@ import { BankImportPage } from "@/routes/bank-import";
 import { ReconcilePage } from "@/routes/reconcile";
 import { StatementsPage } from "@/routes/statements";
 import { PriceCalcPage } from "@/routes/price-calc";
+import { PricingSettingsPage } from "@/routes/pricing-settings";
 import { ReceiptsPage } from "@/routes/receipts";
 import { SettingsPage } from "@/routes/settings";
 import { SystemPage } from "@/routes/system";
@@ -28,6 +29,11 @@ export const routes = [
   createRoute({ getParentRoute: () => rootRoute, path: "/reconcile", component: ReconcilePage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/statements", component: StatementsPage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/price-calc", component: PriceCalcPage }),
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/pricing-settings",
+    component: PricingSettingsPage,
+  }),
   createRoute({ getParentRoute: () => rootRoute, path: "/warehouse", component: WarehousePage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/orders", component: OrdersPage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/production", component: ProductionPage }),

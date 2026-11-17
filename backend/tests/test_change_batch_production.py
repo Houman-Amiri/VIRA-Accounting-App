@@ -218,19 +218,72 @@ async def test_deleting_a_stale_item_is_refused_with_409(client):
     assert response.status_code == 409
 
 
-# ------------------------------------ 7 + 5: ordering from the warehouse only ---
-async def test_order_line_without_a_warehouse_product_is_refused(client):
+# ------------------------------- a product that is not in the warehouse at all ---
+async def test_an_order_line_can_be_a_product_the_warehouse_does_not_stock(client):
+    """The owner reversed item 7: a custom product can be ordered unstocked."""
     response = await client.post(
         "/api/v1/orders",
         json={
             "order_date": "2026-10-20",
             "customer_name": "مشتری",
-            "items": [{"product_name": "چیز نامعلوم", "quantity": "1", "unit_price": "10"}],
+            "items": [{"product_name": "چیز نامعلوم", "quantity": "2", "unit_price": "10"}],
+        },
+    )
+    assert response.status_code == 201, response.text
+    body = response.json()
+    assert body["items"][0]["product_name"] == "چیز نامعلوم"
+    assert body["items"][0]["inventory_item_id"] is None
+    assert Decimal(body["total"]) == Decimal("20")
+    assert len((await client.get("/api/v1/orders")).json()) == 1
+
+
+async def test_a_free_order_line_needs_a_name(client):
+    response = await client.post(
+        "/api/v1/orders",
+        json={
+            "order_date": "2026-10-20",
+            "customer_name": "مشتری",
+            "items": [{"product_name": "   ", "quantity": "1", "unit_price": "10"}],
         },
     )
     assert response.status_code == 400
-    assert "انبار" in response.json()["detail"]
+    assert "نام کالا" in response.json()["detail"]
     assert (await client.get("/api/v1/orders")).json() == []
+
+
+async def test_a_free_order_line_needs_its_own_price(client):
+    response = await client.post(
+        "/api/v1/orders",
+        json={
+            "order_date": "2026-10-20",
+            "customer_name": "مشتری",
+            "items": [{"product_name": "چیز نامعلوم", "quantity": "1", "unit_price": "0"}],
+        },
+    )
+    assert response.status_code == 400
+    assert "قیمت" in response.json()["detail"]
+
+
+async def test_a_free_order_line_can_still_go_to_production(client):
+    """Without a warehouse item there is no recipe: plan with a warning."""
+    created = (
+        await client.post(
+            "/api/v1/orders",
+            json={
+                "order_date": "2026-10-20",
+                "customer_name": "مشتری",
+                "items": [
+                    {"product_name": "چیز نامعلوم", "quantity": "2", "unit_price": "10"}
+                ],
+            },
+        )
+    ).json()
+    plan = await client.post(f"/api/v1/orders/{created['id']}/production")
+    assert plan.status_code == 201, plan.text
+    body = plan.json()
+    assert len(body["created"]) == 1
+    assert body["created"][0]["product_name"] == "چیز نامعلوم"
+    assert any("فرمول ساخت" in warning for warning in body["warnings"])
 
 
 async def test_a_filament_item_cannot_be_sold_as_an_order_line(client):
