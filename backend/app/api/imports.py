@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Form, UploadFile
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -76,14 +77,18 @@ def list_batches(
 def list_lines(
     session: Annotated[Session, Depends(get_db)],
     batch_id: str | None = None,
+    account_id: str | None = None,
 ) -> list[dict[str, object]]:
     stmt = select(BankStatementLine).order_by(BankStatementLine.value_date)
     if batch_id:
         stmt = stmt.where(BankStatementLine.batch_id == batch_id)
+    if account_id:
+        stmt = stmt.where(BankStatementLine.account_id == account_id)
     rows = session.scalars(stmt)
     return [
         {
             "id": ln.id,
+            "account_id": ln.account_id,
             "value_date": ln.value_date,
             "payee_raw": ln.payee_raw,
             "description_raw": ln.description_raw,
@@ -94,3 +99,29 @@ def list_lines(
         }
         for ln in rows
     ]
+
+class LineStatusUpdate(BaseModel):
+    status: str = Field(pattern=r"^(UNMATCHED|MATCHED|IGNORED)$")
+
+
+@router.post("/lines/{line_id}/status")
+def set_line_status(
+    line_id: str,
+    payload: LineStatusUpdate,
+    session: Annotated[Session, Depends(get_db)],
+    _user: Annotated[object, Depends(require_roles("OWNER", "BOOKKEEPER"))],
+) -> dict[str, object]:
+    """Mark a statement line ignored / matched / back to unmatched.
+
+    The reconciliation screen needs this so «نادیده گرفتن» and «تطبیق» are real
+    actions instead of local UI state: an ignored line leaves the work list, and
+    a matched one is no longer offered as a candidate.
+    """
+    line = session.get(BankStatementLine, line_id)
+    if line is None:
+        from ..services.errors import NotFoundError
+
+        raise NotFoundError("ردیف صورت‌حساب یافت نشد")
+    line.status = payload.status
+    session.flush()
+    return {"id": line.id, "status": line.status}

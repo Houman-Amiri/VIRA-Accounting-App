@@ -16,6 +16,8 @@ const UMAMI_WEBSITE_ID = import.meta.env.VITE_UMAMI_WEBSITE_ID as string | undef
 export type AnalyticsEvent =
   | "journal_entry_created"
   | "bank_statement_imported"
+  | "reconciliation_started"
+  | "reconciliation_linked"
   | "reconciliation_completed"
   | "report_viewed";
 

@@ -5,8 +5,9 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Header, Response
+from fastapi import APIRouter, Depends, Header, Query, Response
 from pydantic import BaseModel, Field
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..models import ReconciliationSession
@@ -58,6 +59,20 @@ def _read(rec: ReconciliationSession) -> SessionRead:
         completed_at=rec.completed_at,
         created_at=rec.created_at,
     )
+
+
+@router.get("/sessions", response_model=list[SessionRead])
+def list_sessions(
+    session: Annotated[Session, Depends(get_db)],
+    account_id: Annotated[str | None, Query()] = None,
+) -> list[SessionRead]:
+    """All reconciliation sessions, newest first (optionally one account's)."""
+    stmt = select(ReconciliationSession).order_by(
+        ReconciliationSession.created_at.desc(), ReconciliationSession.id.desc()
+    )
+    if account_id is not None:
+        stmt = stmt.where(ReconciliationSession.account_id == account_id)
+    return [_read(rec) for rec in session.scalars(stmt)]
 
 
 @router.post("/sessions", response_model=SessionRead, status_code=201)

@@ -5,6 +5,51 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
+## [1.0.19] — 2026-11-17
+
+Bank reconciliation used to be a mock-up: three invented rows («شرکت آریا»,
+«پایه موبایل», …) sat on the screen and every button only changed local state,
+so nothing was ever saved and the numbers came from nowhere. The screen now
+works on the owner's own books, and every button writes to the server.
+
+### No invented data
+- The demo fixtures are gone. The page reads the statement lines that
+  `ورود صورت‌حساب بانکی` actually imported, the posted movements of the chosen
+  bank/cash account, and the reconciliation session that ties them together.
+- `GET /reconciliation/sessions` (new, filterable by account) makes the open
+  session part of the server state instead of a screen-local variable.
+- Ledger rows now carry `split_id` and `reconciliation_status`: a reconciliation
+  links a *split*, and the screen needs to know which one.
+
+### Every button does something real
+- «شروع تطبیق» creates a session with the entered beginning/ending balances.
+- «تأیید پیشنهاد» links the suggested split and marks the statement line
+  `MATCHED`; «نادیده گرفتن» persists `IGNORED` on the line;
+  «بازگردانی» puts an ignored line back into the work list
+  (`POST /imports/lines/{id}/status`, new).
+- «تطبیق» links the book movement the owner selected explicitly, and
+  «تأیید پیشنهادهای مطمئن» clears every line whose amount matches exactly and
+  whose date is within a week.
+- «تکمیل تطبیق» completes the session (idempotent, `Idempotency-Key`); an
+  unbalanced session asks for confirmation first. «بازگشایی» is sudo-guarded and
+  «انصراف از جلسه» abandons the open one.
+- The live difference and the matched counter come from the server's
+  `/progress` endpoint, not from a local tally.
+
+### Honest states
+- A failed request says the state is unknown and offers a retry; an empty result
+  says there is nothing yet and links to the screen that creates it (accounts or
+  bank import).
+
+### Tests
+- 12 new server tests (`backend/tests/test_reconciliation_api.py`) including the
+  whole owner path: import → suggest → link → complete → the split reads back as
+  `RECONCILED`.
+- 16 new UI tests (`frontend/tests/reconcile-page.test.tsx`) pinning that no
+  invented row can appear and that every button reaches its endpoint.
+- Totals: **1505 server tests**, **266 UI tests**, OpenAPI contract, native
+  Windows smoke, Playwright, and the install/upgrade/rollback job.
+
 ## [1.0.18] — 2026-11-03
 
 The owner could not sign in at all: "there is no password and nothing I type

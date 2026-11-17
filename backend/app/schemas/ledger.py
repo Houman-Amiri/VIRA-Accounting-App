@@ -186,15 +186,22 @@ class JournalEntryRead(BaseModel):
 
 
 class AccountLedgerRow(BaseModel):
-    """One posted movement on an account — the drill-down behind a statement line."""
+    """One posted movement on an account — the drill-down behind a statement line.
+
+    ``split_id`` is the *split* behind the movement, which is exactly what a
+    reconciliation session links; ``reconciliation_status`` says whether it has
+    already been cleared by an earlier session.
+    """
 
     entry_id: str
+    split_id: str
     entry_number: int
     transaction_date: str
     description: str
     payee: str | None
     debit: str
     credit: str
+    reconciliation_status: ReconciliationStatus
 
 
 class AccountLedgerRead(BaseModel):

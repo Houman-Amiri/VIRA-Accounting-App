@@ -469,12 +469,14 @@ class LedgerService:
             rows=[
                 AccountLedgerRow(
                     entry_id=entry.id,
+                    split_id=split.id,
                     entry_number=entry.entry_number,
                     transaction_date=entry.transaction_date,
                     description=entry.description,
                     payee=entry.payee,
                     debit=f"{from_scaled(split.debit):.4f}",
                     credit=f"{from_scaled(split.credit):.4f}",
+                    reconciliation_status=split.reconciliation_status,
                 )
                 for split, entry in movements
             ],

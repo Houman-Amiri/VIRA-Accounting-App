@@ -599,7 +599,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/reconciliation/sessions": {
+    "/api/v1/imports/lines/{line_id}/status": {
         parameters: {
             query?: never;
             header?: never;
@@ -607,6 +607,34 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
+        put?: never;
+        /**
+         * Set Line Status
+         * @description Mark a statement line ignored / matched / back to unmatched.
+         *
+         *     The reconciliation screen needs this so «نادیده گرفتن» and «تطبیق» are real
+         *     actions instead of local UI state: an ignored line leaves the work list, and
+         *     a matched one is no longer offered as a candidate.
+         */
+        post: operations["set_line_status_api_v1_imports_lines__line_id__status_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reconciliation/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Sessions
+         * @description All reconciliation sessions, newest first (optionally one account's).
+         */
+        get: operations["list_sessions_api_v1_reconciliation_sessions_get"];
         put?: never;
         /** Create Session */
         post: operations["create_session_api_v1_reconciliation_sessions_post"];
@@ -1641,10 +1669,16 @@ export interface components {
         /**
          * AccountLedgerRow
          * @description One posted movement on an account — the drill-down behind a statement line.
+         *
+         *     ``split_id`` is the *split* behind the movement, which is exactly what a
+         *     reconciliation session links; ``reconciliation_status`` says whether it has
+         *     already been cleared by an earlier session.
          */
         AccountLedgerRow: {
             /** Entry Id */
             entry_id: string;
+            /** Split Id */
+            split_id: string;
             /** Entry Number */
             entry_number: number;
             /** Transaction Date */
@@ -1657,6 +1691,11 @@ export interface components {
             debit: string;
             /** Credit */
             credit: string;
+            /**
+             * Reconciliation Status
+             * @enum {string}
+             */
+            reconciliation_status: "UNRECONCILED" | "CLEARED" | "RECONCILED";
         };
         /** AccountRead */
         AccountRead: {
@@ -2263,6 +2302,11 @@ export interface components {
             splits?: components["schemas"]["SplitCreate"][] | null;
             /** Version Id */
             version_id?: number | null;
+        };
+        /** LineStatusUpdate */
+        LineStatusUpdate: {
+            /** Status */
+            status: string;
         };
         /** LoginRequest */
         LoginRequest: {
@@ -4569,6 +4613,7 @@ export interface operations {
         parameters: {
             query?: {
                 batch_id?: string | null;
+                account_id?: string | null;
             };
             header?: {
                 "x-csrf-token"?: string | null;
@@ -4591,6 +4636,86 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_line_status_api_v1_imports_lines__line_id__status_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                line_id: string;
+            };
+            cookie?: {
+                noa_session?: string | null;
+                noa_csrf?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LineStatusUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_sessions_api_v1_reconciliation_sessions_get: {
+        parameters: {
+            query?: {
+                account_id?: string | null;
+            };
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: {
+                noa_session?: string | null;
+                noa_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionRead"][];
                 };
             };
             /** @description Validation Error */

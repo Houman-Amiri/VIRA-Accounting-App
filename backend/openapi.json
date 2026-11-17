@@ -3410,6 +3410,22 @@
             }
           },
           {
+            "name": "account_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Account Id"
+            }
+          },
+          {
             "name": "x-csrf-token",
             "in": "header",
             "required": false,
@@ -3503,7 +3519,242 @@
         }
       }
     },
+    "/api/v1/imports/lines/{line_id}/status": {
+      "post": {
+        "tags": [
+          "imports"
+        ],
+        "summary": "Set Line Status",
+        "description": "Mark a statement line ignored / matched / back to unmatched.\n\nThe reconciliation screen needs this so «نادیده گرفتن» and «تطبیق» are real\nactions instead of local UI state: an ignored line leaves the work list, and\na matched one is no longer offered as a candidate.",
+        "operationId": "set_line_status_api_v1_imports_lines__line_id__status_post",
+        "parameters": [
+          {
+            "name": "line_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Line Id"
+            }
+          },
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "noa_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Noa Session"
+            }
+          },
+          {
+            "name": "noa_csrf",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Noa Csrf"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LineStatusUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Set Line Status Api V1 Imports Lines  Line Id  Status Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/reconciliation/sessions": {
+      "get": {
+        "tags": [
+          "reconciliation"
+        ],
+        "summary": "List Sessions",
+        "description": "All reconciliation sessions, newest first (optionally one account's).",
+        "operationId": "list_sessions_api_v1_reconciliation_sessions_get",
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Account Id"
+            }
+          },
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "name": "noa_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Noa Session"
+            }
+          },
+          {
+            "name": "noa_csrf",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Noa Csrf"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SessionRead"
+                  },
+                  "title": "Response List Sessions Api V1 Reconciliation Sessions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
           "reconciliation"
@@ -10979,6 +11230,10 @@
             "type": "string",
             "title": "Entry Id"
           },
+          "split_id": {
+            "type": "string",
+            "title": "Split Id"
+          },
           "entry_number": {
             "type": "integer",
             "title": "Entry Number"
@@ -11009,20 +11264,31 @@
           "credit": {
             "type": "string",
             "title": "Credit"
+          },
+          "reconciliation_status": {
+            "type": "string",
+            "enum": [
+              "UNRECONCILED",
+              "CLEARED",
+              "RECONCILED"
+            ],
+            "title": "Reconciliation Status"
           }
         },
         "type": "object",
         "required": [
           "entry_id",
+          "split_id",
           "entry_number",
           "transaction_date",
           "description",
           "payee",
           "debit",
-          "credit"
+          "credit",
+          "reconciliation_status"
         ],
         "title": "AccountLedgerRow",
-        "description": "One posted movement on an account — the drill-down behind a statement line."
+        "description": "One posted movement on an account — the drill-down behind a statement line.\n\n``split_id`` is the *split* behind the movement, which is exactly what a\nreconciliation session links; ``reconciliation_status`` says whether it has\nalready been cleared by an earlier session."
       },
       "AccountRead": {
         "properties": {
@@ -12777,6 +13043,20 @@
         ],
         "title": "JournalEntryUpdate",
         "description": "An edit of an existing entry — status is preserved, history is versioned.\n\n``splits`` replaces the entry's lines (double-entry validated as on create);\nomit it to change only the date/description/counterparty. ``version_id``\nturns the call into an optimistic-concurrency update."
+      },
+      "LineStatusUpdate": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "pattern": "^(UNMATCHED|MATCHED|IGNORED)$",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "LineStatusUpdate"
       },
       "LoginRequest": {
         "properties": {
