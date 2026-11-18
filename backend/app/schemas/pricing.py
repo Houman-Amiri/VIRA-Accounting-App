@@ -101,3 +101,86 @@ class PricingCustomConstantRead(BaseModel):
     position: int
     created_at: str
     updated_at: str
+
+
+# -------------------------------------------------- owner-defined variables ---
+VariableScope = Literal["PER_UNIT", "PER_ORDER"]
+VariableBasis = Literal["AMOUNT", "PERCENT_OF_COST", "PERCENT_OF_PRICE"]
+VariableAllocation = Literal["ONE_TIME", "SPLIT"]
+
+
+def _check_variable(name: str | None, basis: VariableBasis | None, value: Amount | None) -> None:
+    """Shared rule: a percentage is bounded, an amount is money."""
+    if (
+        basis is not None
+        and basis.startswith("PERCENT")
+        and value is not None
+        and value > MAX_PERCENT
+    ):
+        raise ValueError(f"درصد نمی‌تواند از {MAX_PERCENT} بیشتر باشد")
+
+
+class PricingVariableCreate(BaseModel):
+    """One owner-defined variable and the way it changes the price.
+
+    ``allocation`` only matters when ``scope == "PER_ORDER"``: ``ONE_TIME`` adds
+    the value once to the order total, ``SPLIT`` spreads it over the quantity.
+    A per-piece variable is always a per-piece addition, so the server stores
+    ``SPLIT`` for it whatever was sent.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(min_length=1, max_length=80)
+    scope: VariableScope
+    basis: VariableBasis = "AMOUNT"
+    allocation: VariableAllocation = "ONE_TIME"
+    value: Amount
+    is_active: bool = True
+
+    @field_validator("name")
+    @classmethod
+    def strip_name(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("نام متغیر نمی‌تواند خالی باشد")
+        return cleaned
+
+    @model_validator(mode="after")
+    def bound_percent(self) -> "PricingVariableCreate":
+        _check_variable(self.name, self.basis, self.value)
+        return self
+
+
+class PricingVariableUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str | None = Field(default=None, min_length=1, max_length=80)
+    scope: VariableScope | None = None
+    basis: VariableBasis | None = None
+    allocation: VariableAllocation | None = None
+    value: Amount | None = None
+    is_active: bool | None = None
+
+    @field_validator("name")
+    @classmethod
+    def strip_name(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("نام متغیر نمی‌تواند خالی باشد")
+        return cleaned
+
+
+class PricingVariableRead(BaseModel):
+    id: str
+    name: str
+    scope: VariableScope
+    basis: VariableBasis
+    allocation: VariableAllocation
+    value: str
+    is_active: bool
+    position: int
+    created_at: str
+    updated_at: str

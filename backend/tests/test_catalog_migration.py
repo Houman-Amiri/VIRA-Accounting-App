@@ -110,6 +110,7 @@ def test_catalog_migration_preserves_every_old_row_and_references(db_path):
         "item_units",
         "production_job_filaments",
         "pricing_custom_constants",
+        "pricing_variables",
     }
     for table, rows in before.items():
         if table != "alembic_version":

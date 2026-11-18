@@ -177,7 +177,9 @@ export async function auditMenuThemes(page: Page): Promise<void> {
         ["/production", 6],
         ["/warehouse", 5],
         ["/bank-import", 5],
-        ["/pricing-settings", 1],
+        // constants method + variable scope + variable basis (allocation
+        // only appears for a کلی variable)
+        ["/pricing-settings", 3],
         ["/settings", 1],
         ["/journal", 0],
         ["/accounts", 0],

@@ -25,21 +25,42 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { faNumber } from "@/lib/fa";
-import { DEFAULT_CONSTANTS, computePrice, parseNum, type PriceBreakdown } from "@/lib/priceCalc";
+import {
+  DEFAULT_CONSTANTS,
+  applyVariables,
+  computePrice,
+  customConstantAmount,
+  parseNum,
+  type PriceBreakdown,
+} from "@/lib/priceCalc";
 import {
   CUSTOM_METHODS,
   CUSTOM_METHOD_LABEL,
   PRICING_FIELDS,
   pricingConstants,
+  VARIABLE_ALLOCATIONS,
+  VARIABLE_ALLOCATION_LABEL,
+  VARIABLE_BASES,
+  VARIABLE_BASIS_LABEL,
+  VARIABLE_SCOPES,
+  VARIABLE_SCOPE_LABEL,
   useCreateCustomConstant,
+  useCreateVariable,
   useCustomConstants,
   useDeleteCustomConstant,
+  useDeleteVariable,
   usePricingSettings,
   useSavePricingSettings,
   useUpdateCustomConstant,
+  useUpdateVariable,
+  useVariables,
   type CustomConstant,
   type CustomMethod,
   type EditableConstant,
+  type PricingVariable,
+  type VariableAllocation,
+  type VariableBasis,
+  type VariableScope,
 } from "@/lib/pricing-settings";
 
 /** A small, honest sample so the owner can watch his constants act. */
@@ -49,32 +70,31 @@ function errText(error: unknown, fallback: string): string {
   return error instanceof Error && error.message ? error.message : fallback;
 }
 
-/** Preview the effect of every custom constant without saving anything. */
+/**
+ * Watch the owner's additions act on a small sample — nothing is saved here.
+ * Constants and variables are both shown, because they meet on the same price.
+ */
 function Preview({
   base,
   constants,
+  variables,
 }: {
   base: PriceBreakdown;
   constants: CustomConstant[];
+  variables: PricingVariable[];
 }): React.JSX.Element {
   const quantity = PREVIEW.quantity;
-  const rows = constants
+  const constantRows = constants
     .filter((constant) => constant.is_active)
-    .map((constant) => {
-      const value = parseNum(constant.value);
-      let amount = parseNum("0");
-      if (constant.method === "PER_UNIT") amount = value;
-      else if (constant.method === "PER_BATCH") amount = value.div(quantity);
-      else if (constant.method === "PERCENT_OF_COST")
-        amount = base.unitProductionCost.times(value).div(100);
-      else amount = base.unitFinalPrice.times(value).div(100);
-      return { constant, amount };
-    });
-  const total = rows.reduce((sum, row) => sum.plus(row.amount), parseNum("0"));
+    .map((constant) => ({ constant, amount: customConstantAmount(constant, base, quantity) }));
+  const constantTotal = constantRows.reduce((sum, row) => sum.plus(row.amount), parseNum("0"));
+  const applied = applyVariables(base, variables, quantity);
+  const unitFinal = base.unitFinalPrice.plus(constantTotal).plus(applied.perUnit);
+  const orderTotal = unitFinal.times(quantity).plus(applied.oneTime);
   return (
     <Card data-testid="pricing-preview">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base">اثر ثابت‌ها روی یک نمونه</CardTitle>
+        <CardTitle className="text-base">اثر ثابت‌ها و متغیرها روی یک نمونه</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2 text-sm">
         <p className="text-xs text-muted-foreground">
@@ -83,10 +103,10 @@ function Preview({
           نمی‌کند.
         </p>
         <div className="flex items-center justify-between border-b pb-1">
-          <span>قیمت نهایی هر عدد بدون ثابت‌های من</span>
+          <span>قیمت نهایی هر عدد بدون افزوده‌های شما</span>
           <Money value={base.unitFinalPrice} currency="TOMAN" hideCurrency />
         </div>
-        {rows.map(({ constant, amount }) => (
+        {constantRows.map(({ constant, amount }) => (
           <div
             key={constant.id}
             className="flex items-center justify-between text-xs text-muted-foreground"
@@ -102,14 +122,63 @@ function Preview({
             </span>
           </div>
         ))}
+        {applied.lines.map((line) => (
+          <div
+            key={line.name}
+            className="flex items-center justify-between text-xs text-muted-foreground"
+            data-testid={`preview-variable-${line.name}`}
+          >
+            <span>
+              {line.name}
+              <span className="mx-1 text-[10px]">
+                ({VARIABLE_SCOPE_LABEL[line.scope]}
+                {line.scope === "PER_ORDER"
+                  ? `، ${VARIABLE_ALLOCATION_LABEL[line.allocation]}`
+                  : ""}
+                )
+              </span>
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="text-muted-foreground">+</span>
+              <Money
+                value={line.oneTime ? line.orderTotal : line.perUnit}
+                currency="TOMAN"
+                hideCurrency
+              />
+              <span className="text-[10px]">{line.oneTime ? "به جمع کل" : "هر عدد"}</span>
+            </span>
+          </div>
+        ))}
         <div className="flex items-center justify-between border-t pt-1 font-semibold">
           <span>قیمت نهایی هر عدد</span>
-          <Money value={base.unitFinalPrice.plus(total)} currency="TOMAN" hideCurrency />
+          <Money value={unitFinal} currency="TOMAN" hideCurrency />
+        </div>
+        <div className="flex items-center justify-between text-xs">
+          <span>جمع نمونه ({faNumber(quantity)} عدد)</span>
+          <Money value={orderTotal} currency="TOMAN" hideCurrency />
         </div>
       </CardContent>
     </Card>
   );
 }
+
+/** The variable form works for both «افزودن» and «ویرایش». */
+interface VariableDraft {
+  id?: string;
+  name: string;
+  scope: VariableScope;
+  basis: VariableBasis;
+  allocation: VariableAllocation;
+  value: string;
+}
+
+const EMPTY_VARIABLE: VariableDraft = {
+  name: "",
+  scope: "PER_UNIT",
+  basis: "AMOUNT",
+  allocation: "SPLIT",
+  value: "",
+};
 
 export function PricingSettingsPage(): React.JSX.Element {
   const settings = usePricingSettings();
@@ -134,6 +203,13 @@ export function PricingSettingsPage(): React.JSX.Element {
     method: CustomMethod;
     value: string;
   } | null>(null);
+
+  const variables = useVariables();
+  const createVariable = useCreateVariable();
+  const updateVariable = useUpdateVariable();
+  const deleteVariable = useDeleteVariable();
+  const [variableDraft, setVariableDraft] = React.useState<VariableDraft>(EMPTY_VARIABLE);
+  const [variableError, setVariableError] = React.useState<string | null>(null);
 
   const constants = React.useMemo(
     () => (settings.data ? pricingConstants(settings.data) : null),
@@ -230,7 +306,39 @@ export function PricingSettingsPage(): React.JSX.Element {
     }
   }
 
+  async function submitVariable(event: React.FormEvent): Promise<void> {
+    event.preventDefault();
+    setVariableError(null);
+    try {
+      const name = variableDraft.name.trim();
+      if (!name) throw new Error("برای متغیر یک نام بنویسید.");
+      if (!variableDraft.value.trim()) throw new Error("مقدار پیش‌فرض متغیر را وارد کنید.");
+      const value = parseNum(variableDraft.value);
+      if (value.isNegative()) throw new Error("مقدار متغیر نمی‌تواند منفی باشد.");
+      if (variableDraft.basis.startsWith("PERCENT") && value.gt(1000)) {
+        throw new Error("درصد نمی‌تواند از ۱۰۰۰ بیشتر باشد.");
+      }
+      const body = {
+        name,
+        scope: variableDraft.scope,
+        basis: variableDraft.basis,
+        allocation:
+          variableDraft.scope === "PER_UNIT" ? ("SPLIT" as const) : variableDraft.allocation,
+        value: value.toFixed(4),
+      };
+      if (variableDraft.id) {
+        await updateVariable.mutateAsync({ id: variableDraft.id, patch: body });
+      } else {
+        await createVariable.mutateAsync({ ...body, is_active: true });
+      }
+      setVariableDraft(EMPTY_VARIABLE);
+    } catch (error) {
+      setVariableError(errText(error, "ذخیرهٔ متغیر ناموفق بود."));
+    }
+  }
+
   const customList = customs.data ?? [];
+  const variableList = variables.data ?? [];
   const busy =
     createCustom.isPending ||
     updateCustom.isPending ||
@@ -595,7 +703,292 @@ export function PricingSettingsPage(): React.JSX.Element {
         </CardContent>
       </Card>
 
-      {previewBase && <Preview base={previewBase} constants={customList} />}
+      {/* ------------------------------------------------------- variables --- */}
+      <Card data-testid="variables-card">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            متغیرها
+            <Badge variant="secondary">عدد روز را هر بار وارد می‌کنید</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-xs text-muted-foreground">
+            متغیر برای عددی است که هر سفارش عوض می‌شود — نرخ دلار، اجرت پرسنل، کرایهٔ ارسال. مقدار
+            پیش‌فرض را اینجا ذخیره می‌کنید و در «ماشین‌حساب قیمت» می‌توانید برای همان محاسبه عدد
+            دیگری بنویسید. برای هر متغیر مشخص می‌کنید <b>جزیی</b> باشد (روی هر عدد) یا <b>کلی</b>
+            (روی کل سفارش؛ یک‌جا یا تقسیم‌شده بین تعداد).
+          </p>
+          <QueryNotice query={variables} />
+
+          {variables.isSuccess && variableList.length === 0 && (
+            <p className="rounded-md bg-muted px-3 py-2 text-sm" data-testid="variables-empty">
+              هنوز متغیری نساخته‌اید. نمونه: «نرخ دلار» با روش «درصدی از بهای تمام‌شده» و دامنهٔ
+              جزیی.
+            </p>
+          )}
+
+          {variableList.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm" aria-label="متغیرهای قیمت‌گذاری">
+                <thead>
+                  <tr className="border-b text-xs text-muted-foreground">
+                    <th scope="col" className="py-2 text-start font-medium">
+                      نام
+                    </th>
+                    <th scope="col" className="py-2 text-start font-medium">
+                      دامنه
+                    </th>
+                    <th scope="col" className="py-2 text-start font-medium">
+                      نحوهٔ محاسبه
+                    </th>
+                    <th scope="col" className="py-2 text-start font-medium">
+                      مقدار پیش‌فرض
+                    </th>
+                    <th scope="col" className="py-2 text-start font-medium">
+                      وضعیت
+                    </th>
+                    <th scope="col" className="py-2 text-end font-medium">
+                      کارها
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {variableList.map((variable) => (
+                    <tr
+                      key={variable.id}
+                      data-testid={`variable-row-${variable.id}`}
+                      className="border-b"
+                    >
+                      <td className="py-2">{variable.name}</td>
+                      <td className="py-2 text-xs">
+                        {VARIABLE_SCOPE_LABEL[variable.scope as VariableScope]}
+                        {variable.scope === "PER_ORDER" && (
+                          <div className="text-[10px] text-muted-foreground">
+                            {VARIABLE_ALLOCATION_LABEL[variable.allocation as VariableAllocation]}
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-2 text-xs">
+                        {VARIABLE_BASIS_LABEL[variable.basis as VariableBasis]}
+                      </td>
+                      <td className="num py-2">
+                        {variable.basis.startsWith("PERCENT") ? (
+                          <>{faNumber(variable.value)}٪</>
+                        ) : (
+                          <Money value={variable.value} currency="TOMAN" hideCurrency />
+                        )}
+                      </td>
+                      <td className="py-2">
+                        <Badge variant={variable.is_active ? "success" : "outline"}>
+                          {variable.is_active ? "فعال" : "خاموش"}
+                        </Badge>
+                      </td>
+                      <td className="py-2">
+                        <div className="flex flex-wrap items-center justify-end gap-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            data-testid={`variable-edit-${variable.id}`}
+                            disabled={busy}
+                            onClick={() => {
+                              setVariableError(null);
+                              setVariableDraft({
+                                id: variable.id,
+                                name: variable.name,
+                                scope: variable.scope as VariableScope,
+                                basis: variable.basis as VariableBasis,
+                                allocation: variable.allocation as VariableAllocation,
+                                value: variable.value,
+                              });
+                            }}
+                          >
+                            ویرایش
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            data-testid={`variable-toggle-${variable.id}`}
+                            disabled={busy}
+                            onClick={() =>
+                              void updateVariable.mutateAsync({
+                                id: variable.id,
+                                patch: { is_active: !variable.is_active },
+                              })
+                            }
+                          >
+                            {variable.is_active ? "خاموش کن" : "روشن کن"}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive"
+                            data-testid={`variable-delete-${variable.id}`}
+                            disabled={busy}
+                            onClick={() => void deleteVariable.mutateAsync(variable.id)}
+                          >
+                            حذف
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          <form
+            onSubmit={(event) => void submitVariable(event)}
+            className="space-y-3 rounded-lg border bg-muted/30 p-3"
+            data-testid="variable-form"
+          >
+            <p className="text-sm font-medium">
+              {variableDraft.id ? "ویرایش متغیر" : "افزودن متغیر جدید"}
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label htmlFor="variable-name" className="text-xs">
+                  نام متغیر
+                </Label>
+                <Input
+                  id="variable-name"
+                  data-testid="variable-name"
+                  className="h-9"
+                  placeholder="مثلاً نرخ دلار"
+                  value={variableDraft.name}
+                  onChange={(event) =>
+                    setVariableDraft((current) => ({ ...current, name: event.target.value }))
+                  }
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="variable-value" className="text-xs">
+                  {variableDraft.basis.startsWith("PERCENT")
+                    ? "درصد پیش‌فرض"
+                    : "مبلغ پیش‌فرض (تومان)"}
+                </Label>
+                <Input
+                  id="variable-value"
+                  data-testid="variable-value"
+                  className="num h-9"
+                  inputMode="decimal"
+                  value={variableDraft.value}
+                  onChange={(event) =>
+                    setVariableDraft((current) => ({ ...current, value: event.target.value }))
+                  }
+                />
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="space-y-1">
+                <Label htmlFor="variable-scope" className="text-xs">
+                  دامنهٔ اثر
+                </Label>
+                <select
+                  id="variable-scope"
+                  data-testid="variable-scope"
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
+                  value={variableDraft.scope}
+                  onChange={(event) =>
+                    setVariableDraft((current) => ({
+                      ...current,
+                      scope: event.target.value as VariableScope,
+                    }))
+                  }
+                >
+                  {VARIABLE_SCOPES.map((scope) => (
+                    <option key={scope.value} value={scope.value}>
+                      {scope.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="variable-basis" className="text-xs">
+                  نحوهٔ محاسبه
+                </Label>
+                <select
+                  id="variable-basis"
+                  data-testid="variable-basis"
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
+                  value={variableDraft.basis}
+                  onChange={(event) =>
+                    setVariableDraft((current) => ({
+                      ...current,
+                      basis: event.target.value as VariableBasis,
+                    }))
+                  }
+                >
+                  {VARIABLE_BASES.map((basis) => (
+                    <option key={basis.value} value={basis.value}>
+                      {basis.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {variableDraft.scope === "PER_ORDER" && (
+                <div className="space-y-1">
+                  <Label htmlFor="variable-allocation" className="text-xs">
+                    چطور روی کل سفارش بنشیند
+                  </Label>
+                  <select
+                    id="variable-allocation"
+                    data-testid="variable-allocation"
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
+                    value={variableDraft.allocation}
+                    onChange={(event) =>
+                      setVariableDraft((current) => ({
+                        ...current,
+                        allocation: event.target.value as VariableAllocation,
+                      }))
+                    }
+                  >
+                    {VARIABLE_ALLOCATIONS.map((allocation) => (
+                      <option key={allocation.value} value={allocation.value}>
+                        {allocation.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground" data-testid="variable-hint">
+              {VARIABLE_SCOPES.find((scope) => scope.value === variableDraft.scope)?.hint}{" "}
+              {variableDraft.scope === "PER_ORDER"
+                ? VARIABLE_ALLOCATIONS.find(
+                    (allocation) => allocation.value === variableDraft.allocation,
+                  )?.hint
+                : VARIABLE_BASES.find((basis) => basis.value === variableDraft.basis)?.hint}
+            </p>
+            {variableError && (
+              <p role="alert" className="text-sm text-destructive">
+                {variableError}
+              </p>
+            )}
+            <div className="flex flex-wrap gap-2">
+              <Button type="submit" data-testid="variable-submit" disabled={busy}>
+                {variableDraft.id ? "ذخیرهٔ تغییرات متغیر" : "افزودن متغیر"}
+              </Button>
+              {variableDraft.id && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setVariableDraft(EMPTY_VARIABLE);
+                    setVariableError(null);
+                  }}
+                >
+                  لغو ویرایش
+                </Button>
+              )}
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      {previewBase && (
+        <Preview base={previewBase} constants={customList} variables={variableList} />
+      )}
 
       <p className="border-t pt-3 text-[11px] leading-5 text-muted-foreground">
         قیمت‌های ذخیره‌شده روی سفارش‌ها و کارهای تولید تغییر نمی‌کنند. این صفحه فقط اعداد ماشین‌حساب

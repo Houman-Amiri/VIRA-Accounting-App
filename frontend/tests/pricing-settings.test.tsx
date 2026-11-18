@@ -4,7 +4,7 @@ import { api } from "@/api/client";
 import { renderWithPricing, SETTINGS } from "./helpers/pricing";
 import { PricingSettingsPage } from "@/routes/pricing-settings";
 import { PriceCalcPage } from "@/routes/price-calc";
-import type { CustomConstant } from "@/lib/pricing-settings";
+import type { CustomConstant, PricingVariable } from "@/lib/pricing-settings";
 
 afterEach(() => {
   cleanup();
@@ -22,9 +22,22 @@ const PACKAGING: CustomConstant = {
   updated_at: "2026-10-16T00:00:00Z",
 };
 
-/** Render the pricing page with the given custom constants already cached. */
-function renderPricingPage(customs: CustomConstant[] = []) {
-  return renderWithPricing(<PricingSettingsPage />, {}, true, customs);
+const RATE: PricingVariable = {
+  id: "v1",
+  name: "نرخ دلار",
+  scope: "PER_UNIT",
+  basis: "PERCENT_OF_COST",
+  allocation: "SPLIT",
+  value: "7.5000",
+  is_active: true,
+  position: 1,
+  created_at: "2026-10-16T00:00:00Z",
+  updated_at: "2026-10-16T00:00:00Z",
+};
+
+/** Render the pricing page with the owner's constants and variables cached. */
+function renderPricingPage(customs: CustomConstant[] = [], variables: PricingVariable[] = []) {
+  return renderWithPricing(<PricingSettingsPage />, {}, true, customs, variables);
 }
 
 describe("pricing settings page", () => {
@@ -206,5 +219,149 @@ describe("pricing settings page", () => {
     renderWithPricing(<PriceCalcPage />, {}, false);
     await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("ناموفق"));
     expect(screen.queryByTestId("row-unitFinalPrice")).not.toBeInTheDocument();
+  });
+});
+
+describe("pricing variables", () => {
+  it("lists a variable with its scope, basis and default value", () => {
+    renderPricingPage([], [RATE]);
+    const row = within(screen.getByTestId(`variable-row-${RATE.id}`));
+    expect(row.getByText("نرخ دلار")).toBeInTheDocument();
+    expect(row.getByText("جزیی (هر عدد)")).toBeInTheDocument();
+    expect(row.getByText("درصدی از بهای تمام‌شده")).toBeInTheDocument();
+    expect(row.getByText("۷.۵۰۰۰٪")).toBeInTheDocument();
+    expect(row.getByText("فعال")).toBeInTheDocument();
+  });
+
+  it("shows the whole-order allocation only for a کلی variable", () => {
+    renderPricingPage([], [{ ...RATE, id: "v2", scope: "PER_ORDER", allocation: "ONE_TIME" }]);
+    const row = within(screen.getByTestId("variable-row-v2"));
+    expect(row.getByText("کلی (کل سفارش)")).toBeInTheDocument();
+    expect(row.getByText("یک‌جا روی جمع کل سفارش")).toBeInTheDocument();
+    // a per-piece variable never shows the allocation choice as a row detail
+    renderPricingPage([], [RATE]);
+    expect(within(screen.getByTestId(`variable-row-${RATE.id}`)).queryByText(/یک‌جا/)).toBeNull();
+  });
+
+  it("adds a variable through POST with the normalized allocation", async () => {
+    const post = vi
+      .spyOn(api, "POST")
+      .mockResolvedValue({ data: { ...RATE, id: "new" }, response: new Response() } as never);
+    renderPricingPage();
+    expect(screen.getByTestId("variables-empty")).toBeInTheDocument();
+    fireEvent.change(screen.getByTestId("variable-name"), { target: { value: "  نرخ دلار  " } });
+    fireEvent.change(screen.getByTestId("variable-basis"), {
+      target: { value: "PERCENT_OF_COST" },
+    });
+    fireEvent.change(screen.getByTestId("variable-value"), { target: { value: "۷٫۵" } });
+    fireEvent.click(screen.getByTestId("variable-submit"));
+    await waitFor(() => expect(post).toHaveBeenCalled());
+    expect(post).toHaveBeenCalledWith("/api/v1/settings/pricing/variables", {
+      body: {
+        name: "نرخ دلار",
+        scope: "PER_UNIT",
+        basis: "PERCENT_OF_COST",
+        allocation: "SPLIT",
+        value: "7.5000",
+        is_active: true,
+      },
+    });
+  });
+
+  it("offers the یکی/تقسیم choice only when the scope is کلی", async () => {
+    const post = vi
+      .spyOn(api, "POST")
+      .mockResolvedValue({ data: RATE, response: new Response() } as never);
+    renderPricingPage();
+    expect(screen.queryByTestId("variable-allocation")).not.toBeInTheDocument();
+    fireEvent.change(screen.getByTestId("variable-scope"), { target: { value: "PER_ORDER" } });
+    expect(screen.getByTestId("variable-allocation")).toBeInTheDocument();
+    fireEvent.change(screen.getByTestId("variable-name"), { target: { value: "مالیات" } });
+    fireEvent.change(screen.getByTestId("variable-basis"), {
+      target: { value: "PERCENT_OF_PRICE" },
+    });
+    fireEvent.change(screen.getByTestId("variable-allocation"), {
+      target: { value: "ONE_TIME" },
+    });
+    fireEvent.change(screen.getByTestId("variable-value"), { target: { value: "9" } });
+    fireEvent.click(screen.getByTestId("variable-submit"));
+    await waitFor(() => expect(post).toHaveBeenCalled());
+    expect(post).toHaveBeenCalledWith("/api/v1/settings/pricing/variables", {
+      body: {
+        name: "مالیات",
+        scope: "PER_ORDER",
+        basis: "PERCENT_OF_PRICE",
+        allocation: "ONE_TIME",
+        value: "9.0000",
+        is_active: true,
+      },
+    });
+  });
+
+  it("refuses a blank name or a negative default", async () => {
+    const post = vi.spyOn(api, "POST");
+    renderPricingPage();
+    fireEvent.change(screen.getByTestId("variable-value"), { target: { value: "10" } });
+    fireEvent.click(screen.getByTestId("variable-submit"));
+    expect(await screen.findByRole("alert")).toHaveTextContent("نام");
+    fireEvent.change(screen.getByTestId("variable-name"), { target: { value: "نرخ" } });
+    fireEvent.change(screen.getByTestId("variable-value"), { target: { value: "-2" } });
+    fireEvent.click(screen.getByTestId("variable-submit"));
+    expect(await screen.findByRole("alert")).toHaveTextContent("منفی");
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("edits a variable through PATCH", async () => {
+    const patch = vi
+      .spyOn(api, "PATCH")
+      .mockResolvedValue({ data: RATE, response: new Response() } as never);
+    renderPricingPage([], [RATE]);
+    fireEvent.click(screen.getByTestId(`variable-edit-${RATE.id}`));
+    expect(screen.getByTestId("variable-name")).toHaveValue("نرخ دلار");
+    fireEvent.change(screen.getByTestId("variable-value"), { target: { value: "10" } });
+    fireEvent.click(screen.getByTestId("variable-submit"));
+    await waitFor(() => expect(patch).toHaveBeenCalled());
+    expect(patch).toHaveBeenCalledWith("/api/v1/settings/pricing/variables/{variable_id}", {
+      params: { path: { variable_id: RATE.id } },
+      body: {
+        name: "نرخ دلار",
+        scope: "PER_UNIT",
+        basis: "PERCENT_OF_COST",
+        allocation: "SPLIT",
+        value: "10.0000",
+      },
+    });
+  });
+
+  it("turns a variable off and deletes it", async () => {
+    const patch = vi.spyOn(api, "PATCH").mockResolvedValue({
+      data: { ...RATE, is_active: false },
+      response: new Response(),
+    } as never);
+    const del = vi.spyOn(api, "DELETE").mockResolvedValue({
+      data: undefined,
+      response: new Response(null, { status: 204 }),
+    } as never);
+    renderPricingPage([], [RATE]);
+    fireEvent.click(screen.getByTestId(`variable-toggle-${RATE.id}`));
+    await waitFor(() =>
+      expect(patch).toHaveBeenCalledWith("/api/v1/settings/pricing/variables/{variable_id}", {
+        params: { path: { variable_id: RATE.id } },
+        body: { is_active: false },
+      }),
+    );
+    fireEvent.click(screen.getByTestId(`variable-delete-${RATE.id}`));
+    await waitFor(() =>
+      expect(del).toHaveBeenCalledWith("/api/v1/settings/pricing/variables/{variable_id}", {
+        params: { path: { variable_id: RATE.id } },
+      }),
+    );
+  });
+
+  it("shows the variable in the sample preview", () => {
+    renderPricingPage([PACKAGING], [RATE]);
+    const preview = within(screen.getByTestId("pricing-preview"));
+    expect(preview.getByTestId("preview-variable-نرخ دلار")).toHaveTextContent("نرخ دلار");
+    expect(preview.getByText("جمع نمونه (۱۰ عدد)")).toBeInTheDocument();
   });
 });

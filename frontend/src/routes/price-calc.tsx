@@ -10,7 +10,9 @@ import * as React from "react";
 import {
   BREAKDOWN_ROWS,
   applyCustomConstants,
+  applyVariables,
   computePrice,
+  parseNum,
   SALE_ROWS,
   type PriceBreakdown,
   type PriceInputs,
@@ -22,7 +24,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
 import { Link } from "@tanstack/react-router";
-import { pricingConstants, useCustomConstants, usePricingSettings } from "@/lib/pricing-settings";
+import {
+  pricingConstants,
+  useCustomConstants,
+  usePricingSettings,
+  useVariables,
+} from "@/lib/pricing-settings";
+import { faNumber } from "@/lib/fa";
 
 /**
  * Empty by default (item 8 of the owner's change list): the calculator never
@@ -51,7 +59,10 @@ export function PriceCalcPage(): React.JSX.Element {
     [settings.data],
   );
   const customs = useCustomConstants();
+  const variableQuery = useVariables();
   const [inputs, setInputs] = React.useState<PriceInputs>(EMPTY_INPUTS);
+  // Values typed for *this* calculation; the saved value is only the default.
+  const [variableValues, setVariableValues] = React.useState<Record<string, string>>({});
 
   // «محاسبه فقط پس از ورود»: nothing is computed until weight, time and run
   // size are filled in by the user.
@@ -88,6 +99,46 @@ export function PriceCalcPage(): React.JSX.Element {
     }
   }, [plain, customs.data, inputs.quantity]);
 
+  const activeVariables = React.useMemo(
+    () =>
+      (variableQuery.data ?? [])
+        .filter((variable) => variable.is_active)
+        .map((variable) => ({
+          ...variable,
+          value: variableValues[variable.id] ?? variable.value,
+        })),
+    [variableQuery.data, variableValues],
+  );
+
+  const variablesApplied = React.useMemo(() => {
+    if (!plain) return null;
+    try {
+      return applyVariables(plain, activeVariables, inputs.quantity);
+    } catch {
+      return null;
+    }
+  }, [plain, activeVariables, inputs.quantity]);
+
+  // Everything the owner added, in one place: his constants and his variables.
+  const unitFinal = React.useMemo(
+    () =>
+      plain
+        ? plain.unitFinalPrice
+            .plus(added ? added.perUnit : 0)
+            .plus(variablesApplied ? variablesApplied.perUnit : 0)
+        : null,
+    [plain, added, variablesApplied],
+  );
+  const orderTotal = React.useMemo(() => {
+    if (!unitFinal) return null;
+    try {
+      const quantity = parseNum(inputs.quantity);
+      return unitFinal.times(quantity).plus(variablesApplied ? variablesApplied.oneTime : 0);
+    } catch {
+      return null;
+    }
+  }, [unitFinal, inputs.quantity, variablesApplied]);
+
   const rows = [...BREAKDOWN_ROWS, ...SALE_ROWS];
 
   if (settings.isPending) return <p role="status">در حال دریافت ثابت‌های قیمت‌گذاری…</p>;
@@ -108,10 +159,7 @@ export function PriceCalcPage(): React.JSX.Element {
         {plain && (
           <Badge variant="success" data-testid="final-badge">
             قیمت نهایی هر عدد:{" "}
-            <Money
-              value={(added ? added.unitFinalPrice : plain.unitFinalPrice).toFixed(4)}
-              currency="TOMAN"
-            />
+            <Money value={(unitFinal ?? plain.unitFinalPrice).toFixed(4)} currency="TOMAN" />
           </Badge>
         )}
       </div>
@@ -253,6 +301,71 @@ export function PriceCalcPage(): React.JSX.Element {
           )}
         </CardContent>
       </Card>
+
+      {activeVariables.length > 0 && (
+        <Card data-testid="variable-lines">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">متغیرهای شما</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <p className="text-xs text-muted-foreground">
+              مقدار هر متغیر برای همین محاسبه؛ مقدار ذخیره‌شده در صفحهٔ قیمت‌گذاری دست‌نخورده
+              می‌ماند.
+            </p>
+            {activeVariables.map((variable) => {
+              const line = variablesApplied?.lines.find((row) => row.name === variable.name);
+              return (
+                <div
+                  key={variable.id}
+                  className="flex flex-wrap items-center justify-between gap-2 border-b pb-1"
+                  data-testid={`variable-line-${variable.id}`}
+                >
+                  <span className="text-xs text-muted-foreground">{variable.name}</span>
+                  <span className="flex items-center gap-2">
+                    <Input
+                      aria-label={`مقدار ${variable.name}`}
+                      data-testid={`variable-input-${variable.id}`}
+                      className="num h-7 w-28 text-xs"
+                      inputMode="decimal"
+                      value={variable.value}
+                      onChange={(event) =>
+                        setVariableValues((current) => ({
+                          ...current,
+                          [variable.id]: event.target.value,
+                        }))
+                      }
+                    />
+                    <span className="text-xs">
+                      {line ? (
+                        <>
+                          {line.oneTime ? "به جمع کل: " : "هر عدد: "}
+                          <Money
+                            value={(line.oneTime ? line.orderTotal : line.perUnit).toFixed(4)}
+                            currency="TOMAN"
+                            hideCurrency
+                          />
+                        </>
+                      ) : (
+                        "—"
+                      )}
+                    </span>
+                  </span>
+                </div>
+              );
+            })}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-1 font-semibold">
+              <span>قیمت نهایی هر عدد</span>
+              <Money value={(unitFinal ?? "0").toString()} currency="TOMAN" hideCurrency />
+            </div>
+            {orderTotal && (
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span>جمع کل سفارش ({faNumber(String(inputs.quantity))} عدد)</span>
+                <Money value={orderTotal.toString()} currency="TOMAN" hideCurrency />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {added && added.lines.length > 0 && (
         <Card data-testid="custom-lines">

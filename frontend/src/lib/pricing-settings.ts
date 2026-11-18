@@ -145,3 +145,141 @@ export function useDeleteCustomConstant() {
     onSuccess: () => void client.invalidateQueries({ queryKey: CUSTOM_KEY }),
   });
 }
+
+// ------------------------------------------------- owner-defined variables ---
+export type VariableScope = "PER_UNIT" | "PER_ORDER";
+export type VariableBasis = "AMOUNT" | "PERCENT_OF_COST" | "PERCENT_OF_PRICE";
+export type VariableAllocation = "ONE_TIME" | "SPLIT";
+export type PricingVariable = components["schemas"]["PricingVariableRead"];
+
+/**
+ * جزیی means the number lands on every piece; کلی means it lands on the order
+ * as a whole — and then either once on the total or spread over the quantity.
+ */
+export const VARIABLE_SCOPES: ReadonlyArray<{
+  value: VariableScope;
+  label: string;
+  hint: string;
+}> = [
+  {
+    value: "PER_UNIT",
+    label: "جزیی — روی هر عدد",
+    hint: "این مقدار در قیمت هر عدد حساب می‌شود؛ با تغییر تیراژ، قیمت هر عدد ثابت می‌ماند.",
+  },
+  {
+    value: "PER_ORDER",
+    label: "کلی — روی کل سفارش",
+    hint: "این مقدار برای کل سفارش حساب می‌شود؛ می‌توانید یک‌جا به جمع کل اضافه شود یا بین تعداد تقسیم شود.",
+  },
+];
+
+export const VARIABLE_BASES: ReadonlyArray<{
+  value: VariableBasis;
+  label: string;
+  hint: string;
+}> = [
+  { value: "AMOUNT", label: "مبلغ (تومان)", hint: "یک مبلغ ثابت که خودتان هر بار می‌نویسید." },
+  {
+    value: "PERCENT_OF_COST",
+    label: "درصدی از بهای تمام‌شده",
+    hint: "درصدی از هزینهٔ تولید هر عدد (فیلامنت + برق + استهلاک) که در فایل محاسبه آمده است.",
+  },
+  {
+    value: "PERCENT_OF_PRICE",
+    label: "درصدی از قیمت فروش",
+    hint: "درصدی از قیمت فروش هر عدد پیش از افزودن ثابت‌ها و متغیرها.",
+  },
+];
+
+export const VARIABLE_ALLOCATIONS: ReadonlyArray<{
+  value: VariableAllocation;
+  label: string;
+  hint: string;
+}> = [
+  {
+    value: "ONE_TIME",
+    label: "یک‌جا روی جمع کل سفارش",
+    hint: "فقط یک بار به جمع کل اضافه می‌شود و قیمت هر عدد را تغییر نمی‌دهد (مثل مالیات یا کرایهٔ ارسال).",
+  },
+  {
+    value: "SPLIT",
+    label: "تقسیم بین تعداد",
+    hint: "بین تعداد سفارش تقسیم می‌شود و سهم هر عدد در قیمت واحد می‌آید (مثل اجرت کارگاه).",
+  },
+];
+
+export const VARIABLE_SCOPE_LABEL: Record<VariableScope, string> = {
+  PER_UNIT: "جزیی (هر عدد)",
+  PER_ORDER: "کلی (کل سفارش)",
+};
+
+export const VARIABLE_BASIS_LABEL: Record<VariableBasis, string> = Object.fromEntries(
+  VARIABLE_BASES.map((basis) => [basis.value, basis.label]),
+) as Record<VariableBasis, string>;
+
+export const VARIABLE_ALLOCATION_LABEL: Record<VariableAllocation, string> = Object.fromEntries(
+  VARIABLE_ALLOCATIONS.map((allocation) => [allocation.value, allocation.label]),
+) as Record<VariableAllocation, string>;
+
+const VARIABLE_KEY = ["pricing-variables"];
+
+export function useVariables() {
+  return useQuery({
+    queryKey: VARIABLE_KEY,
+    queryFn: async () => {
+      const res = await api.GET("/api/v1/settings/pricing/variables");
+      if (res.error) throw await parseError(res.response);
+      return (res.data ?? []) as unknown as PricingVariable[];
+    },
+    retry: false,
+  });
+}
+
+export function useCreateVariable() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: components["schemas"]["PricingVariableCreate"]) => {
+      const res = await api.POST("/api/v1/settings/pricing/variables", { body });
+      if (res.error) throw await parseError(res.response);
+      if (!res.data) throw new Error("افزودن متغیر ناموفق بود.");
+      return res.data;
+    },
+    onSuccess: () => void client.invalidateQueries({ queryKey: VARIABLE_KEY }),
+  });
+}
+
+export function useUpdateVariable() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      patch,
+    }: {
+      id: string;
+      patch: components["schemas"]["PricingVariableUpdate"];
+    }) => {
+      const res = await api.PATCH("/api/v1/settings/pricing/variables/{variable_id}", {
+        params: { path: { variable_id: id } },
+        body: patch,
+      });
+      if (res.error) throw await parseError(res.response);
+      if (!res.data) throw new Error("ذخیرهٔ متغیر ناموفق بود.");
+      return res.data;
+    },
+    onSuccess: () => void client.invalidateQueries({ queryKey: VARIABLE_KEY }),
+  });
+}
+
+export function useDeleteVariable() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await api.DELETE("/api/v1/settings/pricing/variables/{variable_id}", {
+        params: { path: { variable_id: id } },
+      });
+      if (res.error) throw await parseError(res.response);
+      return id;
+    },
+    onSuccess: () => void client.invalidateQueries({ queryKey: VARIABLE_KEY }),
+  });
+}

@@ -317,3 +317,108 @@ export function applyCustomConstants(
     batchFinalPrice: unitFinalPrice.times(parseNum(quantity)),
   };
 }
+
+// ------------------------------------------------------- owner variables ---
+/**
+ * A *variable* is a number the owner re-enters for each job («نرخ دلار امروز»,
+ * «اجرت پرسنل»). Unlike a constant, it carries a **scope**:
+ *
+ * - `PER_UNIT`  (جزیی) — the number lands on every piece;
+ * - `PER_ORDER` (کلی)  — the number lands on the order as a whole, either added
+ *   once to the total (`ONE_TIME`) or spread over the quantity (`SPLIT`).
+ *
+ * Percent bases are always taken from the sheet amounts, never from a running
+ * total, so the order of the rows can never change the money.
+ */
+export type VariableScope = "PER_UNIT" | "PER_ORDER";
+export type VariableBasis = "AMOUNT" | "PERCENT_OF_COST" | "PERCENT_OF_PRICE";
+export type VariableAllocation = "ONE_TIME" | "SPLIT";
+
+export interface VariableInput {
+  name: string;
+  scope: VariableScope;
+  basis: VariableBasis;
+  allocation: VariableAllocation;
+  value: MoneyLike;
+  is_active: boolean;
+}
+
+export interface VariableLine {
+  name: string;
+  scope: VariableScope;
+  basis: VariableBasis;
+  allocation: VariableAllocation;
+  /** Effect on the price of one piece (zero for a one-time order amount). */
+  perUnit: Decimal;
+  /** Effect on the order total, whichever scope applies. */
+  orderTotal: Decimal;
+  /** True when the amount is added once to the total, not per piece. */
+  oneTime: boolean;
+}
+
+export interface VariableResult {
+  lines: VariableLine[];
+  /** Sum of the per-piece effects — what one unit gains. */
+  perUnit: Decimal;
+  /** Sum of the amounts that only hit the order total. */
+  oneTime: Decimal;
+}
+
+/** One variable's effect on a single unit and on the whole order. */
+export function variableEffect(
+  variable: VariableInput,
+  base: PriceBreakdown,
+  quantity: MoneyLike,
+): VariableLine {
+  const value = parseNum(variable.value);
+  if (value.isNegative()) throw new Error("متغیرهای قیمت‌گذاری نباید منفی باشند");
+  const q = parseNum(quantity);
+  if (q.lte(0)) throw new Error("تیراژ باید بزرگ‌تر از صفر باشد");
+
+  const perPiece =
+    variable.basis === "AMOUNT"
+      ? value
+      : variable.basis === "PERCENT_OF_COST"
+        ? base.unitProductionCost.times(value).div(100)
+        : base.unitFinalPrice.times(value).div(100);
+
+  if (variable.scope === "PER_UNIT") {
+    return {
+      name: variable.name,
+      scope: variable.scope,
+      basis: variable.basis,
+      allocation: variable.allocation,
+      perUnit: perPiece,
+      orderTotal: perPiece.times(q),
+      oneTime: false,
+    };
+  }
+  const orderTotal = variable.basis === "AMOUNT" ? value : perPiece.times(q);
+  const split = variable.allocation === "SPLIT";
+  return {
+    name: variable.name,
+    scope: variable.scope,
+    basis: variable.basis,
+    allocation: variable.allocation,
+    perUnit: split ? orderTotal.div(q) : new Decimal(0),
+    orderTotal,
+    oneTime: !split,
+  };
+}
+
+export function applyVariables(
+  base: PriceBreakdown,
+  variables: readonly VariableInput[],
+  quantity: MoneyLike,
+): VariableResult {
+  const lines = variables
+    .filter((variable) => variable.is_active)
+    .map((variable) => variableEffect(variable, base, quantity));
+  return {
+    lines,
+    perUnit: lines.reduce((sum, line) => sum.plus(line.perUnit), new Decimal(0)),
+    oneTime: lines
+      .filter((line) => line.oneTime)
+      .reduce((sum, line) => sum.plus(line.orderTotal), new Decimal(0)),
+  };
+}

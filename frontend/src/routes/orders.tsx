@@ -22,6 +22,7 @@ import { CalendarInput } from "@/components/calendar-input";
 import { useCalendar } from "@/lib/calendar-settings";
 import { tehranToday, validIso } from "@/lib/calendar";
 import { faDate, faNumber } from "@/lib/fa";
+import { cn } from "@/lib/cn";
 
 type OrderLine = {
   /** Warehouse item, when the owner picks one; empty means a free line. */
@@ -158,6 +159,9 @@ export function OrdersPage(): React.JSX.Element {
   const [toInvalid, setToInvalid] = React.useState(false);
   const queryClient = useQueryClient();
   const [page, setPage] = React.useState(0);
+  // «اقلام» is a dropdown: one order's items are expanded at a time, so the
+  // table stays compact even when an order carries many lines.
+  const [openItems, setOpenItems] = React.useState<string | null>(null);
   const [statusFilter, setStatusFilter] = React.useState("");
   const [channelFilter, setChannelFilter] = React.useState("");
   const [search, setSearch] = React.useState("");
@@ -221,6 +225,14 @@ export function OrdersPage(): React.JSX.Element {
       return res.data as unknown as SalesReport;
     },
   });
+
+  /** Drop a line; the form always keeps at least one empty row to fill. */
+  const removeLine = (index: number): void => {
+    setForm((current) => {
+      const remaining = current.items.filter((_, position) => position !== index);
+      return { ...current, items: remaining.length ? remaining : [emptyLine()] };
+    });
+  };
 
   const invalidate = (): void => {
     void queryClient.invalidateQueries({ queryKey: ["orders"] });
@@ -489,86 +501,151 @@ export function OrdersPage(): React.JSX.Element {
                     ? ordersQuery.data.slice(0, OPERATION_PAGE_SIZE)
                     : []
                   ).map((order) => (
-                    <tr key={order.id} className="border-b" data-testid={`order-${order.id}`}>
-                      <td className="num py-2">{faNumber(String(order.order_number))}</td>
-                      <td className="py-2">
-                        {faDate(order.order_date, calendar)}
-                        <div className="text-xs text-muted-foreground">
-                          {order.channel === "marketplace" ? "بازارگاه" : "مستقیم"}
-                        </div>
-                      </td>
-                      <td className="py-2">
-                        {order.customer_name}
-                        {order.customer_phone && (
-                          <div className="num text-xs text-muted-foreground">
-                            {faNumber(order.customer_phone)}
+                    <React.Fragment key={order.id}>
+                      <tr className="border-b" data-testid={`order-${order.id}`}>
+                        <td className="num py-2">{faNumber(String(order.order_number))}</td>
+                        <td className="py-2">
+                          {faDate(order.order_date, calendar)}
+                          <div className="text-xs text-muted-foreground">
+                            {order.channel === "marketplace" ? "بازارگاه" : "مستقیم"}
                           </div>
-                        )}
-                      </td>
-                      <td className="py-2">
-                        {order.items.map((line, i) => (
-                          <div key={i} className="text-xs">
-                            {line.product_name}
-                            {line.variant === "chain" ? " (زنجیر)" : ""} ×{" "}
-                            <span className="num">{faNumber(line.quantity)}</span>
-                          </div>
-                        ))}
-                        {(order.warnings ?? []).length > 0 && (
-                          <div
-                            className="mt-1 text-[11px] text-amber-700 dark:text-amber-400"
-                            data-testid={`order-${order.id}-warning`}
-                          >
-                            {(order.warnings ?? []).join(" | ")}
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-2">
-                        <Money value={order.total} currency="TOMAN" />
-                      </td>
-                      <td className="py-2">
-                        <Money value={order.profit} currency="TOMAN" />
-                      </td>
-                      <td className="py-2">
-                        <Badge variant={STATUS_VARIANT[order.status]}>
-                          {STATUS_LABEL[order.status]}
-                        </Badge>
-                      </td>
-                      <td className="py-2">
-                        <div className="flex flex-wrap gap-1">
-                          {(NEXT_STATUSES[order.status] ?? []).map((next) => (
-                            <Button
-                              key={next}
-                              size="sm"
-                              variant={next === "CANCELLED" ? "ghost" : "outline"}
-                              data-testid={`order-${order.id}-${next}`}
-                              disabled={setStatus.isPending}
-                              onClick={() => setStatus.mutate({ order, status: next })}
-                            >
-                              {STATUS_LABEL[next]}
-                            </Button>
-                          ))}
-                          {!["CANCELLED", "SHIPPED", "DELIVERED"].includes(order.status) && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              data-testid={`order-${order.id}-to-production`}
-                              disabled={planProduction.isPending}
-                              onClick={() => planProduction.mutate(order)}
-                            >
-                              افزودن به خط تولید
-                            </Button>
+                        </td>
+                        <td className="py-2">
+                          {order.customer_name}
+                          {order.customer_phone && (
+                            <div className="num text-xs text-muted-foreground">
+                              {faNumber(order.customer_phone)}
+                            </div>
                           )}
-                          <a
-                            className="inline-flex h-8 items-center rounded-md border border-input px-3 text-xs hover:bg-accent"
-                            href={`/api/v1/orders/${order.id}/proforma.pdf`}
-                            target="_blank"
-                            rel="noreferrer"
+                        </td>
+                        <td className="py-2">
+                          <button
+                            type="button"
+                            aria-expanded={openItems === order.id}
+                            aria-controls={`order-items-${order.id}`}
+                            data-testid={`order-${order.id}-items-toggle`}
+                            onClick={() =>
+                              setOpenItems((current) => (current === order.id ? null : order.id))
+                            }
+                            className={cn(
+                              "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-accent",
+                              openItems === order.id && "bg-accent",
+                            )}
                           >
-                            پیش‌فاکتور
-                          </a>
-                        </div>
-                      </td>
-                    </tr>
+                            <span className="num">{faNumber(String(order.items.length))}</span>
+                            قلم
+                            {(order.warnings ?? []).length > 0 && (
+                              <span className="rounded-full bg-amber-100 px-1.5 text-[10px] text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
+                                کمبود
+                              </span>
+                            )}
+                            <span aria-hidden className="text-[10px] text-muted-foreground">
+                              {openItems === order.id ? "▲" : "▼"}
+                            </span>
+                          </button>
+                        </td>
+                        <td className="py-2">
+                          <Money value={order.total} currency="TOMAN" />
+                        </td>
+                        <td className="py-2">
+                          <Money value={order.profit} currency="TOMAN" />
+                        </td>
+                        <td className="py-2">
+                          <Badge variant={STATUS_VARIANT[order.status]}>
+                            {STATUS_LABEL[order.status]}
+                          </Badge>
+                        </td>
+                        <td className="py-2">
+                          <div className="flex flex-wrap gap-1">
+                            {(NEXT_STATUSES[order.status] ?? []).map((next) => (
+                              <Button
+                                key={next}
+                                size="sm"
+                                variant={next === "CANCELLED" ? "ghost" : "outline"}
+                                data-testid={`order-${order.id}-${next}`}
+                                disabled={setStatus.isPending}
+                                onClick={() => setStatus.mutate({ order, status: next })}
+                              >
+                                {STATUS_LABEL[next]}
+                              </Button>
+                            ))}
+                            {!["CANCELLED", "SHIPPED", "DELIVERED"].includes(order.status) && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                data-testid={`order-${order.id}-to-production`}
+                                disabled={planProduction.isPending}
+                                onClick={() => planProduction.mutate(order)}
+                              >
+                                افزودن به خط تولید
+                              </Button>
+                            )}
+                            <a
+                              className="inline-flex h-8 items-center rounded-md border border-input px-3 text-xs hover:bg-accent"
+                              href={`/api/v1/orders/${order.id}/proforma.pdf`}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              پیش‌فاکتور
+                            </a>
+                          </div>
+                        </td>
+                      </tr>
+                      {openItems === order.id && (
+                        <tr
+                          id={`order-items-${order.id}`}
+                          data-testid={`order-${order.id}-items`}
+                          className="border-b bg-muted/40"
+                        >
+                          <td colSpan={8} className="px-2 py-2">
+                            <div className="grid gap-2 sm:grid-cols-2">
+                              <ul className="space-y-1 text-xs" aria-label="اقلام سفارش">
+                                {order.items.map((line, index) => (
+                                  <li
+                                    key={index}
+                                    className="flex items-center justify-between gap-2 rounded border bg-background px-2 py-1"
+                                  >
+                                    <span>
+                                      {line.product_name}
+                                      {line.variant === "chain" ? " (زنجیر)" : ""}
+                                      {!line.inventory_item_id && (
+                                        <span className="ms-1 text-[10px] text-muted-foreground">
+                                          بدون موجودی انبار
+                                        </span>
+                                      )}
+                                    </span>
+                                    <span className="num text-muted-foreground">
+                                      ×{faNumber(line.quantity)}
+                                      {line.unit_price && (
+                                        <>
+                                          {" — "}
+                                          <Money
+                                            value={line.unit_price}
+                                            currency="TOMAN"
+                                            hideCurrency
+                                          />
+                                        </>
+                                      )}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                              {(order.warnings ?? []).length > 0 && (
+                                <ul
+                                  className="space-y-1 rounded-md bg-amber-50 px-2 py-1 text-[11px] text-amber-800 dark:bg-amber-900/30 dark:text-amber-200"
+                                  data-testid={`order-${order.id}-warning`}
+                                  aria-label="کمبود موجودی"
+                                >
+                                  {(order.warnings ?? []).map((warning) => (
+                                    <li key={warning}>{warning}</li>
+                                  ))}
+                                </ul>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   ))}
                   {filtersReady && ordersQuery.isSuccess && ordersQuery.data.length === 0 && (
                     <tr>
@@ -667,9 +744,27 @@ export function OrdersPage(): React.JSX.Element {
               {form.items.map((line, index) => (
                 <div
                   key={index}
-                  className="space-y-1 border-b pb-2 last:border-0"
+                  className="space-y-1 rounded-md border-b bg-background/40 p-2 pb-2 last:border-0"
                   data-testid={`line-${index}`}
                 >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-muted-foreground">
+                      ردیف <span className="num">{faNumber(String(index + 1))}</span>
+                    </span>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 px-2 text-[11px] text-destructive hover:bg-destructive/10"
+                      aria-label={`حذف ردیف ${faNumber(String(index + 1))}`}
+                      data-testid={`line-remove-${index}`}
+                      disabled={form.items.length === 1 && !lineReady(line)}
+                      title="حذف این ردیف"
+                      onClick={() => removeLine(index)}
+                    >
+                      حذف ردیف
+                    </Button>
+                  </div>
                   <div className="grid grid-cols-2 gap-1">
                     <Input
                       className="h-8 text-xs"

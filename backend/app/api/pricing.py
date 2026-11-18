@@ -7,7 +7,7 @@ from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 from ..ids import utc_now_iso, uuid7
-from ..models.pricing import PricingCustomConstant, PricingSettings
+from ..models.pricing import PricingCustomConstant, PricingSettings, PricingVariable
 from ..schemas.pricing import (
     MAX_PERCENT,
     PricingCustomConstantCreate,
@@ -16,6 +16,9 @@ from ..schemas.pricing import (
     PricingRead,
     PricingUpdate,
     PricingValues,
+    PricingVariableCreate,
+    PricingVariableRead,
+    PricingVariableUpdate,
 )
 from ..security.session import SessionUser
 from ..services.errors import DomainError, NotFoundError, StaleVersionError
@@ -200,3 +203,159 @@ def _custom_name_taken(
     if exclude_id is not None:
         stmt = stmt.where(PricingCustomConstant.id != exclude_id)
     return session.scalar(stmt) is not None
+
+
+# -------------------------------------------------- owner-defined variables ---
+def _variable_storage(basis: str, value: Decimal) -> Decimal:
+    """Money is stored as scaled Rial (×10); a percentage is stored as-is."""
+    if basis.startswith("PERCENT"):
+        return value
+    return value * Decimal(10)
+
+
+def _variable_value(row: PricingVariable) -> Decimal:
+    if row.basis.startswith("PERCENT"):
+        return row.value
+    return row.value / Decimal(10)
+
+
+def _read_variable(row: PricingVariable) -> PricingVariableRead:
+    return PricingVariableRead(
+        id=row.id,
+        name=row.name,
+        scope=row.scope,  # type: ignore[arg-type]
+        basis=row.basis,  # type: ignore[arg-type]
+        allocation=row.allocation,  # type: ignore[arg-type]
+        value=f"{_variable_value(row):.4f}",
+        is_active=bool(row.is_active),
+        position=row.position,
+        created_at=row.created_at,
+        updated_at=row.updated_at,
+    )
+
+
+def _variable_name_taken(
+    session: Session, name: str, *, exclude_id: str | None = None
+) -> bool:
+    stmt = select(PricingVariable.id).where(
+        func.lower(PricingVariable.name) == name.strip().lower()
+    )
+    if exclude_id is not None:
+        stmt = stmt.where(PricingVariable.id != exclude_id)
+    return session.scalar(stmt) is not None
+
+
+def _normalized_allocation(scope: str, allocation: str) -> str:
+    """A per-piece variable is inherently spread over the pieces."""
+    return "SPLIT" if scope == "PER_UNIT" else allocation
+
+
+@router.get("/variables", response_model=list[PricingVariableRead])
+def list_variables(
+    session: Annotated[Session, Depends(get_db)],
+    _user: Annotated[SessionUser, Depends(require_roles("OWNER", "BOOKKEEPER", "AUDITOR"))],
+) -> list[PricingVariableRead]:
+    """The owner's variables (default values), in display order."""
+    rows = session.scalars(
+        select(PricingVariable).order_by(PricingVariable.position, PricingVariable.created_at)
+    )
+    return [_read_variable(row) for row in rows]
+
+
+@router.post("/variables", response_model=PricingVariableRead, status_code=201)
+def create_variable(
+    body: PricingVariableCreate,
+    session: Annotated[Session, Depends(get_db)],
+    user: Annotated[SessionUser, Depends(require_roles("OWNER", "BOOKKEEPER"))],
+) -> PricingVariableRead:
+    if _variable_name_taken(session, body.name):
+        raise DomainError("متغیری با این نام از قبل وجود دارد؛ نام دیگری انتخاب کنید.")
+    now = utc_now_iso()
+    last = session.scalar(select(func.max(PricingVariable.position))) or 0
+    row = PricingVariable(
+        id=uuid7(),
+        name=body.name,
+        scope=body.scope,
+        basis=body.basis,
+        allocation=_normalized_allocation(body.scope, body.allocation),
+        value=_variable_storage(body.basis, body.value),
+        is_active=1 if body.is_active else 0,
+        position=int(last) + 1,
+        created_at=now,
+        updated_at=now,
+    )
+    session.add(row)
+    session.flush()
+    record_security_event(
+        session,
+        "PRICING_VARIABLE_CREATED",
+        actor_id=user.user_id,
+        detail={"variable_id": row.id, "scope": row.scope, "basis": row.basis},
+    )
+    return _read_variable(row)
+
+
+@router.patch("/variables/{variable_id}", response_model=PricingVariableRead)
+def update_variable(
+    variable_id: str,
+    body: PricingVariableUpdate,
+    session: Annotated[Session, Depends(get_db)],
+    user: Annotated[SessionUser, Depends(require_roles("OWNER", "BOOKKEEPER"))],
+) -> PricingVariableRead:
+    """Change a variable's name, scope, basis, allocation, value or on/off."""
+    row = session.get(PricingVariable, variable_id)
+    if row is None:
+        raise NotFoundError("متغیر قیمت‌گذاری پیدا نشد")
+    payload = body.model_dump(exclude_unset=True)
+    previous_basis = row.basis
+    # What the owner sees today, so changing only the basis does not silently
+    # divide his number by ten (12.5% must stay 12.5, not become 1.25 Toman).
+    display_value = _variable_value(row)
+    if "name" in payload and payload["name"] is not None:
+        if _variable_name_taken(session, payload["name"], exclude_id=row.id):
+            raise DomainError("متغیری با این نام از قبل وجود دارد؛ نام دیگری انتخاب کنید.")
+        row.name = payload["name"]
+    if payload.get("scope") is not None:
+        row.scope = payload["scope"]
+    if payload.get("basis") is not None:
+        row.basis = payload["basis"]
+    if payload.get("allocation") is not None:
+        row.allocation = payload["allocation"]
+    if payload.get("value") is not None:
+        row.value = _variable_storage(row.basis, payload["value"])
+    elif row.basis != previous_basis:
+        row.value = _variable_storage(row.basis, display_value)
+    if payload.get("is_active") is not None:
+        row.is_active = 1 if payload["is_active"] else 0
+    row.allocation = _normalized_allocation(row.scope, row.allocation)
+    if row.basis.startswith("PERCENT") and row.value > MAX_PERCENT:
+        raise DomainError(f"درصد نمی‌تواند از {MAX_PERCENT} بیشتر باشد")
+    row.updated_at = utc_now_iso()
+    session.flush()
+    record_security_event(
+        session,
+        "PRICING_VARIABLE_UPDATED",
+        actor_id=user.user_id,
+        detail={"variable_id": row.id, "scope": row.scope, "basis": row.basis},
+    )
+    return _read_variable(row)
+
+
+@router.delete("/variables/{variable_id}", status_code=204)
+def delete_variable(
+    variable_id: str,
+    session: Annotated[Session, Depends(get_db)],
+    user: Annotated[SessionUser, Depends(require_roles("OWNER", "BOOKKEEPER"))],
+) -> Response:
+    row = session.get(PricingVariable, variable_id)
+    if row is None:
+        raise NotFoundError("متغیر قیمت‌گذاری پیدا نشد")
+    session.delete(row)
+    session.flush()
+    record_security_event(
+        session,
+        "PRICING_VARIABLE_DELETED",
+        actor_id=user.user_id,
+        detail={"variable_id": variable_id},
+    )
+    return Response(status_code=204)

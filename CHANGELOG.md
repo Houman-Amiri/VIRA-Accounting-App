@@ -5,6 +5,61 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
+## [1.0.21] — 2026-10-14
+
+Three requests from the owner, all about the screens he uses every day: a
+compact items column, a delete button on every order line, and variables next
+to the pricing constants.
+
+### Orders — «اقلام» is a dropdown
+- The items column no longer prints every line of every order. It shows
+  «۳ قلم» (plus a «کمبود» badge when the server reported a shortage); opening
+  it reveals the lines, the warehouse link and the shortage text in one panel,
+  one order at a time.
+- The table keeps its columns aligned and stays readable with long orders.
+
+### Orders — delete a line
+- Every line of «اقلام سفارش» has «حذف ردیف». The form always keeps one row to
+  fill, so it can never become empty by accident; deleting the last *filled*
+  row clears it instead.
+
+### Pricing — variables
+- New «متغیرها» section on the pricing page, next to the constants. A variable
+  is a number the owner re-enters per job («نرخ دلار امروز»، «اجرت پرسنل»); the
+  settings page stores its default and the calculator lets him retype it for
+  the calculation at hand.
+- Each variable carries two independent choices:
+  - **دامنه**: جزیی (on every piece) or کلی (on the whole order);
+  - **نحوهٔ محاسبه**: a fixed amount, a percentage of the production cost, or a
+    percentage of the selling price.
+- A کلی variable also chooses **how it lands**: once on the order total
+  («یک‌جا روی جمع کل» — tax, shipping) or spread over the quantity
+  («تقسیم بین تعداد» — workshop labour).
+- Percent bases are always taken from the workbook amounts, so the order of the
+  rows cannot change the money, and `computePrice` itself is untouched.
+- The calculator shows an input per active variable, prefilled with the saved
+  default, plus the per-unit price and the whole-order total — the stored
+  default is not overwritten by a one-off calculation.
+
+### API (additive only)
+- `GET/POST /api/v1/settings/pricing/variables` and
+  `PATCH/DELETE /api/v1/settings/pricing/variables/{variable_id}`.
+- Migration `0009_pricing_variables` creates one STRICT table with CHECKs for
+  scope, basis, allocation, value and name; nothing else changes.
+- Audit events `PRICING_VARIABLE_CREATED/UPDATED/DELETED`.
+- Changing only the basis keeps the number the owner sees (12.5% stays 12.5,
+  it does not silently become 1.25 Toman).
+
+### Tests
+- 18 new server tests (`backend/tests/test_pricing_variables.py`) and 10 new
+  arithmetic tests for the scopes and bases; the migration test now expects the
+  new table.
+- 11 new UI tests: the variables card (add / edit / switch off / delete /
+  allocation only for کلی / preview) and the orders page (collapsed items,
+  removing a line, the always-one-row rule).
+- Totals: **1541 server tests**, **304 UI tests**, OpenAPI contract, native
+  Windows smoke, Playwright and the install/upgrade/rollback job.
+
 ## [1.0.20] — 2026-10-14
 
 Three changes the owner asked for, all in his own words: an order no longer
