@@ -212,5 +212,8 @@ export async function auditOperations(page: Page): Promise<void> {
   await page.getByTestId("orders-history-link").click();
   await expect(page.getByTestId(`history-order-${order.id}`)).toContainText("تحویل‌شده");
   await page.getByTestId("orders-history-back").click();
+  // The delivery above went through the API, so the cached list is reloaded
+  // rather than invalidated by a UI mutation.
+  await page.reload();
   await expect(page.getByTestId(`order-${order.id}`)).toHaveCount(0);
 }
