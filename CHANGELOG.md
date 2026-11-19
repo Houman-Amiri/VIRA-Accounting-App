@@ -5,6 +5,31 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
+## [1.0.23] — 2026-11-19
+
+A same-day follow-up to 1.0.22 for one report: on a job that came from an order,
+changing the filament looked saved but had no effect. The save itself was
+always correct on the server; the screen was hiding the ways it could fail.
+
+### Production — a filament edit always lands, and always says so
+- **A switched-off destination no longer freezes the job.** If the product that
+  1.0.22 matched automatically was later deactivated (or deleted, which
+  deactivates it), *every* edit of that job was rejected with a message drawn at
+  the top of the page, away from the row. The dead link is dropped, the filament
+  edit saves, and «پایان چاپ» names the product that has to be re-activated.
+- **A stale revision retries itself.** If the job moved on in another tab, the
+  editor reloaded the job's current revision and saved once more instead of
+  keeping a version that could never succeed.
+- **A half-filled row is refused, not dropped.** Picking a spool without
+  «گرم هر عدد» used to save an empty composition. It now shows an error inside
+  the editor and sends nothing.
+- **Feedback lives where the click was.** The «فیلامنت‌ها» button no longer goes
+  away when the warehouse list fails, filament saves report inside the editor,
+  and a rejected شروع/پایان/لغو shows under its own row. A concurrency conflict
+  reads in Persian instead of the server's English text.
+- **The row changes immediately** — the server's answer is written into the job
+  list on save, before the refetch arrives.
+
 ## [1.0.22] — 2026-11-19
 
 The owner's second list, all on the two screens he uses while working: production
