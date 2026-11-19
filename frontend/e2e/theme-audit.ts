@@ -174,7 +174,7 @@ export async function auditMenuThemes(page: Page): Promise<void> {
         ["/price-calc", 1],
         ["/journal/new", 1],
         ["/orders", 6],
-        ["/production", 6],
+        ["/production", 5],
         ["/warehouse", 5],
         ["/bank-import", 5],
         // constants method + variable scope + variable basis (allocation

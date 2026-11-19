@@ -153,11 +153,14 @@ export async function auditOperations(page: Page): Promise<void> {
   // quantity against the ordered quantity (2 of 2 for the first line).
   await page.getByRole("link", { name: "تولید", exact: true }).click();
   const jobRow = page.getByTestId(`job-${a.id}`);
-  await expect(jobRow).toContainText(`سفارش #${order.order_number}`);
+  const faDigits = (value: string | number) =>
+    String(value).replace(/[0-9]/g, (digit) => "۰۱۲۳۴۵۶۷۸۹"[Number(digit)]);
+  await expect(jobRow).toContainText(`سفارش #${faDigits(order.order_number)}`);
   await expect(jobRow).toContainText("کل تعداد سفارش");
   // a finished order is no longer offered for a new production job
   await page.getByTestId("job-order").selectOption("");
-  await expect(page.getByTestId("job-order")).not.toContainText("آمادهٔ ارسال");
+  const offered = page.getByTestId("job-order").locator("option");
+  await expect(offered).toHaveCount(1);
 
   // Items 8 and 9: an unconfirmed order keeps its lines editable and deletable.
   await page.getByRole("link", { name: "سفارش‌ها", exact: true }).click();
