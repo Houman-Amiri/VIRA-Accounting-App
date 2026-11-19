@@ -304,6 +304,9 @@ $launcher = Join-Path $install "start_noa.cmd"
 if (-not (Test-Path $launcher)) { throw "launcher missing at $launcher" }
 # isolated first-run DB — leg 3's sentinel at data\noa.sqlite3 must stay untouched
 Remove-Item Env:NOA_PORT -ErrorAction SilentlyContinue   # the app must bind 8787 here
+# ...and it must not quietly pick another port: strict mode fails instead, so a
+# leftover process can never be mistaken for the app this leg just started.
+$env:NOA_STRICT_PORT = "1"
 $env:SQLITE_DATABASE_PATH = Join-Path $env:LOCALAPPDATA "NOA\data\noa-smoke-e2e.sqlite3"
 Remove-Item $env:SQLITE_DATABASE_PATH -Force -ErrorAction SilentlyContinue
 $launchLog = Join-Path $env:LOCALAPPDATA "NOA\logs\smoke-launch.log"

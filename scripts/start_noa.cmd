@@ -97,11 +97,12 @@ if defined NOA_FIRST_RUN (
   echo.
 )
 
-REM --------- browser opener (waits for health) + server in this console ----
-echo [NOA] Starting server on http://127.0.0.1:%NOA_PORT% (logs below — Ctrl+C or close to stop)
-start "" powershell -NoProfile -Command ^
-  "$u='http://127.0.0.1:%NOA_PORT%/';for($i=0;$i -lt 180;$i++){try{$r=Invoke-WebRequest -UseBasicParsing ($u+'api/v1/health/live') -TimeoutSec 2;if($r.StatusCode -eq 200){Start-Process $u;exit 0}}catch{};Start-Sleep -Milliseconds 500}"
-"%NOA_PY%" -m uvicorn app.main:app --host 127.0.0.1 --port %NOA_PORT%
+REM ------------- single instance, then server in this console ----
+REM An earlier NOA (a second click on the shortcut, a minimised window) is
+REM opened instead of starting a second writer on the same database, and a port
+REM taken by another program moves NOA to the next free one. The helper prints
+REM what it did and opens the browser at the port it actually serves.
+"%NOA_PY%" "%~dp0scripts\start_noa_server.py"
 if errorlevel 1 goto :fail
 exit /b 0
 

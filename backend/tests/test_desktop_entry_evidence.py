@@ -69,7 +69,11 @@ def test_authenticated_real_cmd_windows_witness_and_frozen_code(tmp_path):
         "backend/app/seed.py",
     }
     for name, digest in proof["frozen_implementation_git_blob_sha256"].items():
-        source = (DATA / "phase2-frozen-implementation" / Path(name).name) if name in extended else ROOT / name
+        source = (
+            (DATA / "phase2-frozen-implementation" / Path(name).name)
+            if name in extended
+            else ROOT / name
+        )
         assert hashlib.sha256(source.read_bytes().replace(b"\r\n", b"\n")).hexdigest() == digest
     for case in witness["cases"].values():
         completed = case["completed"]
@@ -203,7 +207,35 @@ def _rebranded(text: str) -> str:
     return text
 
 
+# The exact bytes v1.0.24 put in place of the archived launch block. Pinned here
+# so the deviation below can never grow silently: everything else in the shipped
+# launcher must still equal the archived one, brand renamed.
+LAUNCH_BLOCK_V1024 = """REM ------------- single instance, then server in this console ----
+REM An earlier NOA (a second click on the shortcut, a minimised window) is
+REM opened instead of starting a second writer on the same database, and a port
+REM taken by another program moves NOA to the next free one. The helper prints
+REM what it did and opens the browser at the port it actually serves.
+"%NOA_PY%" "%~dp0scripts\\start_noa_server.py"
+if errorlevel 1 goto :fail
+exit /b 0"""
+
+LAUNCH_BLOCK_ARCHIVED = """REM --------- browser opener (waits for health) + server in this console ----
+echo [NOA] Starting server on http://127.0.0.1:%NOA_PORT% (logs below — Ctrl+C or close to stop)
+start "" powershell -NoProfile -Command ^
+  "$u='http://127.0.0.1:%NOA_PORT%/';for($i=0;$i -lt 180;$i++){try{$r=Invoke-WebRequest -UseBasicParsing ($u+'api/v1/health/live') -TimeoutSec 2;if($r.StatusCode -eq 200){Start-Process $u;exit 0}}catch{};Start-Sleep -Milliseconds 500}"
+"%NOA_PY%" -m uvicorn app.main:app --host 127.0.0.1 --port %NOA_PORT%
+if errorlevel 1 goto :fail
+exit /b 0"""
+
+
 def test_shipped_launcher_is_the_archived_one_with_only_the_brand_renamed():
-    archived = (DATA / "phase2-frozen-implementation" / "start_vira.cmd").read_text(encoding="utf-8")
+    archived = (DATA / "phase2-frozen-implementation" / "start_vira.cmd").read_text(
+        encoding="utf-8"
+    )
     shipped = (ROOT / "scripts/start_noa.cmd").read_text(encoding="utf-8")
-    assert shipped == _rebranded(archived)
+    # One deliberate deviation: the owner no longer gets WinError 10048 when an
+    # earlier NOA is still running (v1.0.24). The private-source branch the
+    # evidence workflow exercises is untouched by it.
+    assert LAUNCH_BLOCK_V1024 in shipped
+    assert LAUNCH_BLOCK_ARCHIVED in _rebranded(archived)
+    assert shipped.replace(LAUNCH_BLOCK_V1024, LAUNCH_BLOCK_ARCHIVED) == _rebranded(archived)

@@ -5,6 +5,29 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
+## [1.0.24] — 2026-11-19
+
+The owner reported the console from a second start: NOA died with
+`[Errno 10048] ... only one usage of each socket address` and «Startup failed»,
+and no window opened. The app was fine — an earlier session still had the port.
+Starting a desktop app twice must not look like a crash.
+
+### Launcher — one instance, one window
+- The shortcut now recognises a NOA that is already running (its own
+  `instance.json` in `%LOCALAPPDATA%\NOA` plus the live `/health/live` and
+  OpenAPI signature) and **opens it in the browser** instead of starting a
+  second writer on the same SQLite file.
+- If the port is held by some **other program**, NOA starts on the next free
+  port and opens the browser there, saying which port it used.
+- A port that frees up within a few seconds (the updater kills the old process
+  and relaunches immediately) is reused, so an update restart still lands on
+  8787.
+- A lost race between the check and the bind moves to the next port instead of
+  printing a raw socket error; when nothing is free the message says what to
+  close.
+- `NOA_STRICT_PORT=1` (set by the Windows smoke test) keeps the CI guarantee:
+  the app must bind the port it was given, or fail loudly.
+
 ## [1.0.23] — 2026-11-19
 
 A same-day follow-up to 1.0.22 for one report: on a job that came from an order,
