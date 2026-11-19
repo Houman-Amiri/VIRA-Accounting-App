@@ -131,9 +131,7 @@ async def test_finish_without_a_mapped_product_stores_the_models_by_name(client)
 
 async def test_delivering_an_order_takes_its_items_out_of_stock(client):
     product = await item(client, "جامدادی", quantity="5")
-    order = await new_order(
-        client, "جامدادی", quantity="2", inventory_item_id=product["id"]
-    )
+    order = await new_order(client, "جامدادی", quantity="2", inventory_item_id=product["id"])
     delivered = await client.patch(
         f"/api/v1/orders/{order['id']}",
         json={"version_id": order["version_id"], "status": "DELIVERED"},
@@ -158,9 +156,7 @@ async def test_delivering_an_order_takes_its_items_out_of_stock(client):
 
 async def test_delivery_deducts_what_exists_when_stock_is_short(client):
     product = await item(client, "کوسن", quantity="1")
-    order = await new_order(
-        client, "کوسن", quantity="4", inventory_item_id=product["id"]
-    )
+    order = await new_order(client, "کوسن", quantity="4", inventory_item_id=product["id"])
     delivered = await client.patch(
         f"/api/v1/orders/{order['id']}",
         json={"version_id": order["version_id"], "status": "DELIVERED"},
@@ -291,3 +287,38 @@ async def test_a_second_job_reuses_the_product_created_by_the_first_finish(clien
     assert len(matches) == 1
     assert Decimal(matches[0]["quantity"]) == Decimal(3)
     assert await stock(client, "ABS خاکستری") == Decimal(470)
+
+
+async def test_deactivated_destination_does_not_block_filament_edits(client):
+    """A destination the owner switched off must not freeze the whole job."""
+    spool = await item(client, "ASA سبز", kind="FILAMENT", unit="G", quantity="500")
+    product = await item(client, "گیره موبایل", quantity="0")
+    order = await new_order(client, "گیره موبایل", quantity="2", inventory_item_id=product["id"])
+    planned = await client.post(f"/api/v1/orders/{order['id']}/production")
+    assert planned.status_code == 201, planned.text
+    job = (await client.get("/api/v1/production/jobs")).json()[0]
+    assert job["product_item_id"] == product["id"]
+
+    off = await client.patch(
+        f"/api/v1/warehouse/items/{product['id']}",
+        json={"version_id": product["version_id"], "is_active": False},
+    )
+    assert off.status_code == 200, off.text
+
+    patched = await client.patch(
+        f"/api/v1/production/jobs/{job['id']}",
+        json={
+            "version_id": job["version_id"],
+            "filaments": [{"filament_item_id": spool["id"], "grams_per_unit": "25"}],
+        },
+    )
+    assert patched.status_code == 200, patched.text
+    body = patched.json()
+    assert body["filament_ready"] is True
+    assert body["filaments"][0]["filament_item_name"] == "ASA سبز"
+    assert body["product_item_id"] is None  # the dead destination link is dropped
+
+    # Finishing still refuses, but now with the actionable reason.
+    finished = await client.post(f"/api/v1/production/jobs/{job['id']}/finish")
+    assert finished.status_code == 400, finished.text
+    assert "غیرفعال" in finished.json()["detail"]

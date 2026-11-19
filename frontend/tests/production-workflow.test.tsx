@@ -170,6 +170,119 @@ it("picks a job's filament composition inline with its current revision", async 
   await waitFor(() => expect(screen.queryByTestId("job-filament-editor")).not.toBeInTheDocument());
 });
 
+it("retries a stale filament save with the job's fresh revision", async () => {
+  const saved = {
+    ...job,
+    version_id: 8,
+    filament_grams: "12.5",
+    filament_ready: true,
+    filaments: [
+      {
+        id: "pf1",
+        filament_item_id: "f",
+        filament_item_name: "فیلامنت",
+        grams_per_unit: "12.5",
+        grams_total: "12.5",
+      },
+    ],
+  };
+  let list: unknown[] = [job];
+  vi.mocked(api.GET).mockImplementation((async (path: string) => {
+    if (path === "/api/v1/production/jobs/{job_id}")
+      return { data: { ...job, version_id: 8 }, response: new Response() };
+    return {
+      data: path === "/api/v1/production/jobs" ? list : queries[path],
+      response: new Response(),
+    };
+  }) as typeof api.GET);
+  const conflict = {
+    title: "Conflict",
+    status: 409,
+    detail: "production job #1 was modified concurrently (expected 1, found 8)",
+    code: "stale_version",
+  };
+  vi.mocked(api.PATCH)
+    .mockResolvedValueOnce({
+      error: conflict,
+      response: new Response(JSON.stringify(conflict), {
+        status: 409,
+        headers: { "Content-Type": "application/problem+json" },
+      }),
+    } as never)
+    .mockImplementationOnce((async () => {
+      list = [saved];
+      return { data: saved, response: new Response() };
+    }) as typeof api.PATCH);
+
+  mount();
+  await screen.findByTestId("job-j1-filaments");
+  fireEvent.click(screen.getByTestId("job-j1-filaments"));
+  fireEvent.change(screen.getByTestId("job-filament-editor-item-0"), {
+    target: { value: "f" },
+  });
+  fireEvent.change(screen.getByTestId("job-filament-editor-grams-0"), {
+    target: { value: "12.5" },
+  });
+  fireEvent.click(screen.getByTestId("job-filament-editor-save"));
+
+  await waitFor(() => expect(api.PATCH).toHaveBeenCalledTimes(2));
+  const calls = vi.mocked(api.PATCH).mock.calls as unknown as Array<
+    [string, { body: { version_id: number; filaments: unknown[] } }]
+  >;
+  expect(calls.map((call) => call[1].body.version_id)).toEqual([1, 8]);
+  expect(calls[1][1].body.filaments).toEqual([{ filament_item_id: "f", grams_per_unit: "12.5" }]);
+  await waitFor(() => expect(screen.queryByTestId("job-filament-editor")).not.toBeInTheDocument());
+  expect(screen.getByTestId("job-j1-spools")).toHaveTextContent("فیلامنت");
+});
+
+it("keeps a half-filled filament row instead of saving an empty composition", async () => {
+  mount();
+  await screen.findByTestId("job-j1-filaments");
+  fireEvent.click(screen.getByTestId("job-j1-filaments"));
+  fireEvent.change(screen.getByTestId("job-filament-editor-item-0"), {
+    target: { value: "f" },
+  });
+  fireEvent.click(screen.getByTestId("job-filament-editor-save"));
+
+  expect(await screen.findByTestId("job-filament-editor-error")).toHaveTextContent(
+    "«گرم هر عدد» را وارد کنید",
+  );
+  expect(api.PATCH).not.toHaveBeenCalled();
+  expect(screen.getByTestId("job-filament-editor")).toBeInTheDocument();
+});
+
+it("shows a rejected filament save inside the editor", async () => {
+  const problem = {
+    title: "Bad Request",
+    status: 400,
+    detail: "«فیلامنت» فیلامنت فعال با واحد گرم نیست و در تولید قابل انتخاب نیست",
+    code: "invalid_item",
+  };
+  vi.mocked(api.PATCH).mockResolvedValue({
+    error: problem,
+    response: new Response(JSON.stringify(problem), {
+      status: 400,
+      headers: { "Content-Type": "application/problem+json" },
+    }),
+  } as never);
+
+  mount();
+  await screen.findByTestId("job-j1-filaments");
+  fireEvent.click(screen.getByTestId("job-j1-filaments"));
+  fireEvent.change(screen.getByTestId("job-filament-editor-item-0"), {
+    target: { value: "f" },
+  });
+  fireEvent.change(screen.getByTestId("job-filament-editor-grams-0"), {
+    target: { value: "12.5" },
+  });
+  fireEvent.click(screen.getByTestId("job-filament-editor-save"));
+
+  expect(await screen.findByTestId("job-filament-editor-error")).toHaveTextContent(
+    "فیلامنت فعال با واحد گرم نیست",
+  );
+  expect(screen.getByTestId("job-filament-editor")).toBeInTheDocument();
+});
+
 it("asks for the missing spools instead of disabling the finish button", async () => {
   mount();
   const finish = await screen.findByTestId("job-j1-finish");
@@ -178,6 +291,49 @@ it("asks for the missing spools instead of disabling the finish button", async (
   expect(api.POST).not.toHaveBeenCalled();
   expect(screen.getByTestId("job-filament-editor")).toBeInTheDocument();
   expect(screen.getByTestId("production-message")).toHaveTextContent("ابتدا فیلامنت‌های مصرفی");
+});
+
+it("shows a rejected finish beside its own row", async () => {
+  const ready = {
+    ...job,
+    status: "IN_PROGRESS",
+    filament_ready: true,
+    filament_grams: "12.5",
+    filaments: [
+      {
+        id: "pf1",
+        filament_item_id: "f",
+        filament_item_name: "فیلامنت",
+        grams_per_unit: "12.5",
+        grams_total: "12.5",
+      },
+    ],
+  };
+  vi.mocked(api.GET).mockImplementation((async (path: string) => ({
+    data: path === "/api/v1/production/jobs" ? [ready] : queries[path],
+    response: new Response(),
+  })) as typeof api.GET);
+  const problem = {
+    title: "Bad Request",
+    status: 400,
+    detail: "محصول «محصول» در انبار غیرفعال است؛ ابتدا آن را در انبار فعال کنید",
+    code: "invalid_item",
+  };
+  vi.mocked(api.POST).mockResolvedValue({
+    error: problem,
+    response: new Response(JSON.stringify(problem), {
+      status: 400,
+      headers: { "Content-Type": "application/problem+json" },
+    }),
+  } as never);
+
+  mount();
+  fireEvent.click(await screen.findByTestId("job-j1-finish"));
+
+  expect(await screen.findByTestId("job-j1-action-error")).toHaveTextContent(
+    "در انبار غیرفعال است",
+  );
+  expect(screen.getByTestId("production-message")).toHaveTextContent("در انبار غیرفعال است");
 });
 
 it("finishes a job that has its filaments, and the order quantity is beside it", async () => {

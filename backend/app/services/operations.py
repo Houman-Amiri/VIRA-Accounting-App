@@ -504,8 +504,11 @@ class OperationsService:
         """
         if job.product_item_id:
             item = self.session.get(InventoryItem, job.product_item_id)
-            if item is not None:
+            if item is not None and item.is_active:
                 return item
+            # A destination the owner deactivated (or removed) must not block
+            # the finished goods: forget it and match the product by name below.
+            job.product_item_id = None
         name = (job.product_name or "").strip() or f"محصول کار #{job.job_number}"
         existing = self.session.scalar(
             select(InventoryItem)
@@ -1154,6 +1157,13 @@ class OperationsService:
         payload = data.model_dump(exclude={"version_id", "filaments"}, exclude_unset=True)
         for field, value in payload.items():
             setattr(job, field, value)
+        if job.product_item_id:
+            destination = self.session.get(InventoryItem, job.product_item_id)
+            if destination is None or not destination.is_active:
+                # The auto-resolved destination was deactivated/removed; the
+                # next finish matches (or creates) the product by name. Keeping
+                # the dead link would reject every edit of this job.
+                job.product_item_id = None
         if data.filaments is not None:
             self._set_components(job, data.filaments)
         self._validate_job(job)

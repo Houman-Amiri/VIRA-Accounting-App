@@ -124,6 +124,8 @@ export function ProductionPage(): React.JSX.Element {
   const [page, setPage] = React.useState(0);
   /** Inline filament editor — the only place a job's spools are chosen. */
   const [spoolJob, setSpoolJob] = React.useState<{ job: Job; rows: SpoolRow[] } | null>(null);
+  /** Feedback stays inside the editor: the page-level note is out of sight there. */
+  const [spoolError, setSpoolError] = React.useState<string | null>(null);
   const [statusFilter, setStatusFilter] = React.useState("");
   const [message, setMessage] = React.useState<string | null>(null);
   const [form, setForm] = React.useState({
@@ -270,6 +272,8 @@ export function ProductionPage(): React.JSX.Element {
     onError: (e) => setMessage(errText(e)),
   });
 
+  /** A rejected row action stays beside that row; the page note is far above it. */
+  const [actError, setActError] = React.useState<{ jobId: string; text: string } | null>(null);
   const act = useMutation({
     mutationFn: async (payload: { job: Job; action: "start" | "finish" | "cancel" }) => {
       const res = await api.POST(`/api/v1/production/jobs/{job_id}/${payload.action}`, {
@@ -279,6 +283,7 @@ export function ProductionPage(): React.JSX.Element {
       return res.data;
     },
     onSuccess: (_data, payload) => {
+      setActError(null);
       setMessage(
         payload.action === "finish"
           ? "پایان چاپ ثبت شد ✓ محصول به انبار اضافه شد و فیلامنت کسر شد."
@@ -286,33 +291,86 @@ export function ProductionPage(): React.JSX.Element {
       );
       invalidate();
     },
-    onError: (e) => setMessage(errText(e)),
+    onError: (e, payload) => {
+      const text = errText(e);
+      setActError({ jobId: payload.job.id, text });
+      setMessage(text);
+    },
   });
 
   const saveFilaments = useMutation({
     mutationFn: async () => {
       if (!spoolJob) throw new Error("کاری انتخاب نشده است");
-      const rows = spoolJob.rows
-        .filter((row) => row.item_id && row.grams.trim() !== "")
-        .map((row) => ({
-          filament_item_id: row.item_id,
-          grams_per_unit: parseNum(row.grams).toString(),
-        }));
+      const job = spoolJob.job;
+      // A row the owner started (picked a spool or typed grams) must be
+      // complete. Dropping it silently used to look like "nothing changed".
+      const started = spoolJob.rows.filter((row) => row.item_id !== "" || row.grams.trim() !== "");
+      if (started.length === 0)
+        throw new Error("حداقل یک فیلامنت انتخاب کنید و «گرم هر عدد» آن را بنویسید.");
+      started.forEach((row, index) => {
+        const label = `ردیف ${faNumber(String(index + 1))}`;
+        if (!row.item_id) throw new Error(`${label}: فیلامنت را انتخاب کنید.`);
+        if (!row.grams.trim()) throw new Error(`${label}: «گرم هر عدد» را وارد کنید.`);
+      });
+      const rows = started.map((row) => ({
+        filament_item_id: row.item_id,
+        grams_per_unit: parseNum(row.grams).toString(),
+      }));
       if (new Set(rows.map((row) => row.filament_item_id)).size !== rows.length)
         throw new Error("هر فیلامنت فقط یک بار در یک کار تولید قابل انتخاب است.");
-      const res = await api.PATCH("/api/v1/production/jobs/{job_id}", {
-        params: { path: { job_id: spoolJob.job.id } },
-        body: { version_id: spoolJob.job.version_id, filaments: rows },
-      });
-      if (res.error) throw await parseError(res.response);
-      return res.data;
+      const send = (versionId: number) =>
+        api.PATCH("/api/v1/production/jobs/{job_id}", {
+          params: { path: { job_id: job.id } },
+          body: { version_id: versionId, filaments: rows },
+        });
+      let res = await send(job.version_id);
+      if (res.error && res.response.status === 409) {
+        // Someone (another tab, or a start/finish click) moved the job on.
+        // Reload its revision and save once more instead of failing forever.
+        const fresh = await api.GET("/api/v1/production/jobs/{job_id}", {
+          params: { path: { job_id: job.id } },
+        });
+        if (fresh.error) throw await parseError(fresh.response);
+        res = await send((fresh.data as unknown as Job).version_id);
+      }
+      if (res.error) {
+        const error = await parseError(res.response);
+        throw new Error(
+          error.isStale
+            ? "این کار همین حالا تغییر کرده بود؛ فهرست تازه شد — یک بار دیگر ذخیره کنید."
+            : error.message,
+        );
+      }
+      return (res.data ?? null) as unknown as Job | null;
     },
-    onSuccess: () => {
+    onSuccess: (saved) => {
+      // The row updates from the server's answer immediately, before any refetch.
+      if (saved?.id) {
+        queryClient.setQueriesData<Job[]>({ queryKey: ["production", "jobs"] }, (old) =>
+          Array.isArray(old) ? old.map((row) => (row.id === saved.id ? (saved as Job) : row)) : old,
+        );
+      }
       setSpoolJob(null);
-      setMessage("فیلامنت‌های کار تولید ذخیره شد ✓");
+      setSpoolError(null);
+      const spools = saved?.filaments?.length
+        ? ` — ${saved.filaments
+            .map(
+              (row) =>
+                `${row.filament_item_name ?? "فیلامنت"} ${faNumber(row.grams_per_unit)} گرم/عدد`,
+            )
+            .join(" + ")}`
+        : "";
+      setMessage(
+        saved?.job_number
+          ? `فیلامنت‌های کار #${faNumber(String(saved.job_number))} ذخیره شد ✓${spools}`
+          : "فیلامنت‌های کار تولید ذخیره شد ✓",
+      );
       invalidate();
     },
-    onError: (e) => setMessage(errText(e)),
+    onError: (e) => {
+      setSpoolError(errText(e));
+      setMessage(errText(e));
+    },
   });
 
   const filaments = (itemsQuery.data ?? []).filter((i) => i.kind === "FILAMENT" && i.unit === "G");
@@ -342,6 +400,8 @@ export function ProductionPage(): React.JSX.Element {
   };
 
   const openSpools = (job: Job): void => {
+    setSpoolError(null);
+    setActError(null);
     setSpoolJob({
       job,
       rows: job.filaments.length
@@ -389,7 +449,11 @@ export function ProductionPage(): React.JSX.Element {
       </div>
 
       {message && (
-        <p className="rounded-md bg-muted px-3 py-2 text-sm" data-testid="production-message">
+        <p
+          role="status"
+          className="rounded-md bg-muted px-3 py-2 text-sm"
+          data-testid="production-message"
+        >
           {message}
         </p>
       )}
@@ -515,7 +579,6 @@ export function ProductionPage(): React.JSX.Element {
                                     size="sm"
                                     variant="outline"
                                     data-testid={`job-${job.id}-filaments`}
-                                    disabled={!itemsQuery.isSuccess}
                                     onClick={() => openSpools(job)}
                                   >
                                     فیلامنت‌ها
@@ -532,6 +595,15 @@ export function ProductionPage(): React.JSX.Element {
                                 </>
                               )}
                             </div>
+                            {actError?.jobId === job.id && (
+                              <p
+                                role="alert"
+                                data-testid={`job-${job.id}-action-error`}
+                                className="mt-1 max-w-56 text-[11px] text-destructive"
+                              >
+                                {actError.text}
+                              </p>
+                            )}
                           </td>
                         </tr>
                       );
@@ -564,6 +636,21 @@ export function ProductionPage(): React.JSX.Element {
                   و محصول به انبار اضافه می‌شود.
                 </p>
                 <QueryNotice query={itemsQuery} />
+                {itemsQuery.isSuccess && filaments.length === 0 && (
+                  <p className="rounded-md bg-amber-50 px-2 py-1 text-xs text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
+                    هیچ فیلامنت فعالی با واحد گرم در انبار نیست؛ اول در صفحهٔ «انبار» یک فیلامنت
+                    بسازید.
+                  </p>
+                )}
+                {spoolError && (
+                  <p
+                    role="alert"
+                    data-testid="job-filament-editor-error"
+                    className="rounded-md bg-destructive/10 px-2 py-1 text-xs text-destructive"
+                  >
+                    {spoolError}
+                  </p>
+                )}
                 {spoolJob.rows.map((row, index) => (
                   <div key={index} className="grid grid-cols-[1fr_6rem_auto] gap-1">
                     <select
@@ -650,12 +737,22 @@ export function ProductionPage(): React.JSX.Element {
                   <Button
                     size="sm"
                     data-testid="job-filament-editor-save"
-                    disabled={saveFilaments.isPending || !itemsQuery.isSuccess}
-                    onClick={() => saveFilaments.mutate()}
+                    disabled={saveFilaments.isPending}
+                    onClick={() => {
+                      setSpoolError(null);
+                      saveFilaments.mutate();
+                    }}
                   >
                     ذخیرهٔ فیلامنت‌ها
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setSpoolJob(null)}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setSpoolError(null);
+                      setSpoolJob(null);
+                    }}
+                  >
                     انصراف
                   </Button>
                 </div>
