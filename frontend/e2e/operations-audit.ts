@@ -159,8 +159,7 @@ export async function auditOperations(page: Page): Promise<void> {
   await expect(jobRow).toContainText("کل تعداد سفارش");
   // a finished order is no longer offered for a new production job
   await page.getByTestId("job-order").selectOption("");
-  const offered = page.getByTestId("job-order").locator("option");
-  await expect(offered).toHaveCount(1);
+  await expect(page.getByTestId("job-order")).not.toContainText(base);
 
   // Items 8 and 9: an unconfirmed order keeps its lines editable and deletable.
   await page.getByRole("link", { name: "سفارش‌ها", exact: true }).click();
