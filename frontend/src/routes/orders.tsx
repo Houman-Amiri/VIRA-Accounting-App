@@ -7,6 +7,7 @@
  * sales report.
  */
 import * as React from "react";
+import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, parseError } from "@/api/client";
 import { QueryNotice } from "@/components/query-notice";
@@ -126,6 +127,9 @@ const NEXT_STATUSES: Record<string, string[]> = {
   CANCELLED: [],
 };
 
+/** The orders page lists live work; finished/cancelled orders live in history. */
+const ACTIVE_STATUSES = ["NEW", "CONFIRMED", "IN_PRODUCTION", "READY"];
+
 const emptyLine = (): OrderLine => ({
   inventory_item_id: "",
   product_name: "",
@@ -133,6 +137,17 @@ const emptyLine = (): OrderLine => ({
   quantity: "1",
   unit_price: "",
   unit_cost: "",
+});
+
+/** A pristine order form — used on cancel and after a successful edit. */
+const blankForm = () => ({
+  order_date: tehranToday(),
+  customer_name: "",
+  customer_phone: "",
+  customer_address: "",
+  channel: "marketplace" as "direct" | "marketplace",
+  notes: "",
+  items: [emptyLine()],
 });
 
 /** A line is usable when it names its product or points at a warehouse item. */
@@ -170,15 +185,11 @@ export function OrdersPage(): React.JSX.Element {
   const [period, setPeriod] = React.useState<"daily" | "weekly" | "monthly" | "annual">("monthly");
   const [message, setMessage] = React.useState<string | null>(null);
   const [createWarnings, setCreateWarnings] = React.useState<string[]>([]);
-  const [form, setForm] = React.useState({
-    order_date: tehranToday(),
-    customer_name: "",
-    customer_phone: "",
-    customer_address: "",
-    channel: "marketplace" as "direct" | "marketplace",
-    notes: "",
-    items: [emptyLine()],
-  });
+  /** Item 8: a NEW (not yet confirmed) order stays fully editable. */
+  const [editing, setEditing] = React.useState<Order | null>(null);
+  /** Item 9: deleting asks once inside the row, no browser prompt. */
+  const [confirmDelete, setConfirmDelete] = React.useState<string | null>(null);
+  const [form, setForm] = React.useState(blankForm);
 
   const filtersReady =
     calendarReady && !fromInvalid && !toInvalid && !(dateFrom && dateTo && dateFrom > dateTo);
@@ -191,6 +202,7 @@ export function OrdersPage(): React.JSX.Element {
           query: {
             limit: OPERATION_PAGE_SIZE + 1,
             offset: page * OPERATION_PAGE_SIZE,
+            status_group: "active" as const,
             ...(statusFilter ? { status: statusFilter } : {}),
             ...(channelFilter ? { channel: channelFilter } : {}),
             ...(search ? { search } : {}),
@@ -232,6 +244,35 @@ export function OrdersPage(): React.JSX.Element {
       const remaining = current.items.filter((_, position) => position !== index);
       return { ...current, items: remaining.length ? remaining : [emptyLine()] };
     });
+  };
+
+  const startEditing = (order: Order): void => {
+    setConfirmDelete(null);
+    setCreateWarnings([]);
+    setEditing(order);
+    setForm({
+      order_date: order.order_date,
+      customer_name: order.customer_name,
+      customer_phone: order.customer_phone ?? "",
+      customer_address: order.customer_address ?? "",
+      channel: order.channel,
+      notes: order.notes ?? "",
+      items: order.items.map((line) => ({
+        inventory_item_id: line.inventory_item_id ?? "",
+        product_name: line.product_name,
+        variant: line.variant,
+        quantity: line.quantity,
+        unit_price: line.unit_price,
+        unit_cost: line.unit_cost,
+      })),
+    });
+    setPage(0);
+    setMessage(null);
+  };
+
+  const cancelEditing = (): void => {
+    setEditing(null);
+    setForm((f) => ({ ...blankForm(), order_date: f.order_date, channel: f.channel }));
   };
 
   const invalidate = (): void => {
@@ -285,6 +326,64 @@ export function OrdersPage(): React.JSX.Element {
       invalidate();
     },
     onError: (e) => setMessage(errText(e)),
+  });
+
+  const saveOrder = useMutation({
+    mutationFn: async () => {
+      if (!editing) throw new Error("سفارشی برای ویرایش انتخاب نشده است");
+      if (!calendarReady || !validIso(form.order_date))
+        throw new Error("تاریخ معتبر و تنظیم تقویم باید دریافت شوند.");
+      const res = await api.PATCH("/api/v1/orders/{order_id}", {
+        params: { path: { order_id: editing.id } },
+        body: {
+          version_id: editing.version_id,
+          order_date: form.order_date,
+          customer_name: form.customer_name,
+          customer_phone: form.customer_phone || null,
+          customer_address: form.customer_address || null,
+          channel: form.channel,
+          notes: form.notes || null,
+          items: form.items.map((line) => ({
+            product_name: line.product_name.trim(),
+            inventory_item_id: line.inventory_item_id || null,
+            variant: line.variant,
+            quantity: parseNum(line.quantity || "1").toString(),
+            unit_price: line.unit_price.trim() ? parseNum(line.unit_price).toString() : "0",
+            unit_cost: line.unit_cost.trim() ? parseNum(line.unit_cost).toString() : "0",
+          })),
+        },
+      });
+      if (res.error) throw await parseError(res.response);
+      return res.data as unknown as Order;
+    },
+    onSuccess: (saved: Order) => {
+      setMessage(`سفارش #${faNumber(String(saved.order_number))} ویرایش شد ✓`);
+      setEditing(null);
+      setCreateWarnings([]);
+      setForm((f) => ({ ...blankForm(), order_date: f.order_date, channel: f.channel }));
+      invalidate();
+    },
+    onError: (e) => setMessage(errText(e)),
+  });
+
+  const deleteOrder = useMutation({
+    mutationFn: async (order: Order) => {
+      const res = await api.DELETE("/api/v1/orders/{order_id}", {
+        params: { path: { order_id: order.id } },
+      });
+      if (res.error) throw await parseError(res.response);
+      return order;
+    },
+    onSuccess: (order: Order) => {
+      setMessage(`سفارش #${faNumber(String(order.order_number))} حذف شد ✓`);
+      setConfirmDelete(null);
+      if (editing?.id === order.id) setEditing(null);
+      invalidate();
+    },
+    onError: (e) => {
+      setConfirmDelete(null);
+      setMessage(errText(e));
+    },
   });
 
   const setStatus = useMutation({
@@ -381,15 +480,29 @@ export function OrdersPage(): React.JSX.Element {
   return (
     <div className="space-y-6" dir="rtl">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-bold">سفارش‌ها</h1>
-        <Badge variant="outline">
-          فروش دوره:{" "}
-          {reportQuery.isSuccess ? (
-            <Money value={reportQuery.data.revenue} currency="TOMAN" />
-          ) : (
-            "نامشخص"
-          )}
-        </Badge>
+        <div>
+          <h1 className="text-xl font-bold">سفارش‌ها</h1>
+          <p className="text-xs text-muted-foreground">
+            سفارش‌های فعال؛ سفارش‌های تحویل‌شده و لغوشده در تاریخچهٔ سفارشات هستند.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            to="/orders/history"
+            data-testid="orders-history-link"
+            className="inline-flex h-9 items-center rounded-md border border-input px-3 text-sm hover:bg-accent"
+          >
+            تاریخچهٔ سفارشات
+          </Link>
+          <Badge variant="outline">
+            فروش دوره:{" "}
+            {reportQuery.isSuccess ? (
+              <Money value={reportQuery.data.revenue} currency="TOMAN" />
+            ) : (
+              "نامشخص"
+            )}
+          </Badge>
+        </div>
       </div>
 
       {message && (
@@ -422,15 +535,16 @@ export function OrdersPage(): React.JSX.Element {
                 <select
                   className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
                   value={statusFilter}
+                  data-testid="orders-status"
                   onChange={(e) => {
                     setStatusFilter(e.target.value);
                     setPage(0);
                   }}
                 >
                   <option value="">همه</option>
-                  {Object.entries(STATUS_LABEL).map(([value, label]) => (
+                  {ACTIVE_STATUSES.map((value) => (
                     <option key={value} value={value}>
-                      {label}
+                      {STATUS_LABEL[value]}
                     </option>
                   ))}
                 </select>
@@ -569,7 +683,7 @@ export function OrdersPage(): React.JSX.Element {
                                 {STATUS_LABEL[next]}
                               </Button>
                             ))}
-                            {!["CANCELLED", "SHIPPED", "DELIVERED"].includes(order.status) && (
+                            {ACTIVE_STATUSES.includes(order.status) && order.status !== "READY" && (
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -579,6 +693,48 @@ export function OrdersPage(): React.JSX.Element {
                               >
                                 افزودن به خط تولید
                               </Button>
+                            )}
+                            {order.status === "NEW" && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  data-testid={`order-${order.id}-edit`}
+                                  onClick={() => startEditing(order)}
+                                >
+                                  ویرایش
+                                </Button>
+                                {confirmDelete === order.id ? (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      data-testid={`order-${order.id}-delete-confirm`}
+                                      disabled={deleteOrder.isPending}
+                                      onClick={() => deleteOrder.mutate(order)}
+                                    >
+                                      تأیید حذف
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => setConfirmDelete(null)}
+                                    >
+                                      انصراف
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="text-destructive"
+                                    data-testid={`order-${order.id}-delete`}
+                                    onClick={() => setConfirmDelete(order.id)}
+                                  >
+                                    حذف
+                                  </Button>
+                                )}
+                              </>
                             )}
                             <a
                               className="inline-flex h-8 items-center rounded-md border border-input px-3 text-xs hover:bg-accent"
@@ -671,8 +827,11 @@ export function OrdersPage(): React.JSX.Element {
         </Card>
 
         <Card className="min-w-0 xl:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-base">ثبت سفارش</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base">
+              {editing ? `ویرایش سفارش #${faNumber(String(editing.order_number))}` : "ثبت سفارش"}
+            </CardTitle>
+            {editing && <Badge variant="secondary">تأییدنشده — قابل ویرایش</Badge>}
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -713,6 +872,7 @@ export function OrdersPage(): React.JSX.Element {
                 <Label className="text-xs">تلفن</Label>
                 <Input
                   className="num"
+                  data-testid="order-phone"
                   value={form.customer_phone}
                   onChange={(e) => setForm((f) => ({ ...f, customer_phone: e.target.value }))}
                 />
@@ -720,10 +880,20 @@ export function OrdersPage(): React.JSX.Element {
               <div>
                 <Label className="text-xs">آدرس</Label>
                 <Input
+                  data-testid="order-address"
                   value={form.customer_address}
                   onChange={(e) => setForm((f) => ({ ...f, customer_address: e.target.value }))}
                 />
               </div>
+            </div>
+            <div>
+              <Label className="text-xs">یادداشت سفارش</Label>
+              <Input
+                data-testid="order-notes"
+                value={form.notes}
+                placeholder="مثلاً رنگ، بسته‌بندی یا زمان تحویل"
+                onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+              />
             </div>
 
             <div className="space-y-2 rounded-md border p-2">
@@ -872,24 +1042,32 @@ export function OrdersPage(): React.JSX.Element {
               </ul>
             )}
 
-            <Button
-              className="w-full"
-              data-testid="order-submit"
-              disabled={
-                createOrder.isPending ||
-                !form.customer_name.trim() ||
-                !calendarReady ||
-                !validIso(form.order_date) ||
-                !form.items.length ||
-                form.items.some((line) => !lineReady(line))
-              }
-              onClick={() => {
-                setCreateWarnings([]);
-                createOrder.mutate();
-              }}
-            >
-              ثبت سفارش
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                className="flex-1"
+                data-testid="order-submit"
+                disabled={
+                  (editing ? saveOrder.isPending : createOrder.isPending) ||
+                  !form.customer_name.trim() ||
+                  !calendarReady ||
+                  !validIso(form.order_date) ||
+                  !form.items.length ||
+                  form.items.some((line) => !lineReady(line))
+                }
+                onClick={() => {
+                  setCreateWarnings([]);
+                  if (editing) saveOrder.mutate();
+                  else createOrder.mutate();
+                }}
+              >
+                {editing ? "ذخیرهٔ تغییرات" : "ثبت سفارش"}
+              </Button>
+              {editing && (
+                <Button variant="outline" data-testid="order-edit-cancel" onClick={cancelEditing}>
+                  انصراف از ویرایش
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>

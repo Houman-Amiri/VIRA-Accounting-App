@@ -5,6 +5,55 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
+## [1.0.22] — 2026-11-19
+
+The owner's second list, all on the two screens he uses while working: production
+and orders. Nothing was removed from the warehouse; the stock now moves by itself
+when a job is printed and when an order is delivered.
+
+### Production — a job reads like a work order
+- The row now leads with **کار # / سفارش #** in one cell, then the product (with
+  its نوع and کانال), then the quantity in bold with «عدد». When the job is a
+  share of an order line, the ordered quantity sits underneath («از ۵ عدد
+  سفارش»), so a split production can never look like a wrong count.
+- **«قیمت واحد» was removed** from the table to give the remaining columns room.
+- **«اتصال انبار» was removed.** The job no longer needs a hand-picked
+  destination: at «پایان چاپ» the product is matched by name in the warehouse and
+  created there on first use.
+
+### Production — filaments and finishing
+- Every open job has «فیلامنت‌ها»: a small inline editor to pick one or more
+  spools and grams per piece, also for jobs that came from an order. Saving it
+  updates the same job in place (with its revision), no separate mapping screen.
+- «پایان چاپ» is never dead any more. If the job has no spools yet, pressing it
+  opens the filament editor and says why; with spools, finishing deducts the
+  filament and puts the produced pieces into stock.
+- «از روی سفارش» lists only active, unfinished orders (جدید، تأییدشده، در حال
+  تولید); آمادهٔ ارسال، ارسال‌شده، تحویل‌شده and لغوشده are gone from the list.
+
+### Orders — active page, history page
+- «سفارش‌ها» shows only live orders (جدید → آمادهٔ ارسال). A new page
+  **«تاریخچهٔ سفارشات»** (in the sidebar) holds ارسال‌شده، تحویل‌شده and لغوشده,
+  with search, status and date filters and the proforma link; it is read-only.
+- An order that is still **تأییدنشده (جدید)** keeps «ویرایش»: the same form loads
+  its lines, quantity, price, cost, type, customer, phone, address, channel, date
+  and notes, and saves them in one PATCH.
+- The same order has «حذف», confirmed inside the row; only unconfirmed orders can
+  be deleted, and their planned jobs go with them.
+
+### Stock follows the order
+- Finishing a job moves the produced quantity **into** the warehouse (IN), using
+  the product of the same name.
+- Changing the order to **تحویل‌شده** takes its lines **out** of the warehouse
+  (OUT, reason «sale»), once per delivery. If the shelf holds less than the order,
+  only what exists is deducted and the shortage is written in the movement note —
+  the delivery itself is never blocked.
+
+### API
+- `GET /orders?status_group=active|history` and `DELETE /orders/{id}` (NEW only).
+- `ProductionJobRead.order_item_quantity` exposes the ordered quantity of the
+  linked line for the production table.
+
 ## [1.0.21] — 2026-10-14
 
 Three requests from the owner, all about the screens he uses every day: a

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import { ProductionPage } from "@/routes/production";
@@ -146,26 +146,98 @@ it("selects any order line and preserves its old cost, price, variant and direct
   });
 });
 
-it("repairs a saved job's stock mapping using its current optimistic revision", async () => {
+it("picks a job's filament composition inline with its current revision", async () => {
   mount();
-  await screen.findByTestId("job-j1-configure");
-  expect(screen.getByTestId("job-j1-finish")).toBeDisabled();
-  fireEvent.click(screen.getByTestId("job-j1-configure"));
-  fireEvent.click(screen.getByTestId("job-mapping-add"));
-  fireEvent.change(screen.getByTestId("job-mapping-filament-0"), { target: { value: "f" } });
-  fireEvent.change(screen.getByTestId("job-mapping-product"), { target: { value: "p" } });
-  fireEvent.change(screen.getByTestId("job-mapping-grams-0"), { target: { value: "۱۲.۵" } });
-  fireEvent.click(screen.getByTestId("job-mapping-save"));
+  await screen.findByTestId("job-j1-filaments");
+  // the old «اتصال انبار» mapping panel is gone
+  expect(screen.queryByTestId("job-stock-editor")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByTestId("job-j1-filaments"));
+  fireEvent.change(screen.getByTestId("job-filament-editor-item-0"), {
+    target: { value: "f" },
+  });
+  fireEvent.change(screen.getByTestId("job-filament-editor-grams-0"), {
+    target: { value: "۱۲.۵" },
+  });
+  fireEvent.click(screen.getByTestId("job-filament-editor-save"));
   await waitFor(() => expect(api.PATCH).toHaveBeenCalled());
   const calls = vi.mocked(api.PATCH).mock.calls as unknown as Array<
     [string, { body: Record<string, unknown> }]
   >;
   expect(calls[0][1].body).toMatchObject({
     version_id: 1,
-    product_item_id: "p",
     filaments: [{ filament_item_id: "f", grams_per_unit: "12.5" }],
   });
-  await waitFor(() => expect(screen.queryByTestId("job-stock-editor")).not.toBeInTheDocument());
+  await waitFor(() => expect(screen.queryByTestId("job-filament-editor")).not.toBeInTheDocument());
+});
+
+it("asks for the missing spools instead of disabling the finish button", async () => {
+  mount();
+  const finish = await screen.findByTestId("job-j1-finish");
+  expect(finish).toBeEnabled();
+  fireEvent.click(finish);
+  expect(api.POST).not.toHaveBeenCalled();
+  expect(screen.getByTestId("job-filament-editor")).toBeInTheDocument();
+  expect(screen.getByTestId("production-message")).toHaveTextContent("ابتدا فیلامنت‌های مصرفی");
+});
+
+it("finishes a job that has its filaments, and the order quantity is beside it", async () => {
+  const ready = {
+    ...job,
+    order_number: 7,
+    order_item_quantity: "5",
+    quantity: "2",
+    filament_ready: true,
+    filaments: [
+      {
+        id: "pf1",
+        filament_item_id: "f",
+        filament_item_name: "فیلامنت",
+        grams_per_unit: "10",
+        unit_cost: "100",
+        grams_total: "20",
+      },
+    ],
+  };
+  vi.mocked(api.GET).mockImplementation((async (path: string) => ({
+    data: path === "/api/v1/production/jobs" ? [ready] : (queries as Record<string, unknown>)[path],
+    response: new Response(),
+  })) as typeof api.GET);
+  mount();
+  const row = await screen.findByTestId("job-j1");
+  expect(row).toHaveTextContent("سفارش #۷");
+  expect(row).toHaveTextContent("۲ عدد");
+  expect(row).toHaveTextContent("از ۵ عدد سفارش");
+  fireEvent.click(screen.getByTestId("job-j1-finish"));
+  await waitFor(() => expect(api.POST).toHaveBeenCalled());
+  const calls = vi.mocked(api.POST).mock.calls as unknown as Array<[string]>;
+  expect(calls[0][0]).toBe("/api/v1/production/jobs/{job_id}/finish");
+});
+
+it("offers only active, unfinished orders for a new production job", async () => {
+  const baseOrder = {
+    id: "o1",
+    order_number: 1,
+    customer_name: "مشتری",
+    channel: "direct",
+    items: lines,
+  };
+  vi.mocked(api.GET).mockImplementation((async (path: string) => ({
+    data:
+      path === "/api/v1/orders"
+        ? [
+            { ...baseOrder, status: "CONFIRMED" },
+            { ...baseOrder, id: "o2", order_number: 2, status: "READY" },
+            { ...baseOrder, id: "o3", order_number: 3, status: "SHIPPED" },
+            { ...baseOrder, id: "o4", order_number: 4, status: "CANCELLED" },
+          ]
+        : (queries as Record<string, unknown>)[path],
+    response: new Response(),
+  })) as typeof api.GET);
+  mount();
+  const select = await screen.findByTestId("job-order");
+  await waitFor(() => expect(within(select).getAllByRole("option")).toHaveLength(2));
+  expect(within(select).getByRole("option", { name: /#1/ })).toBeInTheDocument();
+  expect(within(select).queryByRole("option", { name: /#2/ })).not.toBeInTheDocument();
 });
 
 it("failed job loading never claims an empty queue and offers retry", async () => {
@@ -177,7 +249,7 @@ it("failed job loading never claims an empty queue and offers retry", async () =
 
 it("never creates a zero-priced manual job after malformed pricing input", async () => {
   mount();
-  await screen.findByTestId("job-j1-configure");
+  await screen.findByTestId("job-j1-filaments");
   fireEvent.change(screen.getByTestId("job-product"), { target: { value: "bad" } });
   fireEvent.change(screen.getByTestId("job-spool-0-item"), { target: { value: "f" } });
   fireEvent.change(screen.getByTestId("job-spool-0-grams"), { target: { value: "bad-number" } });

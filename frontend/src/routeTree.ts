@@ -16,6 +16,7 @@ import { SettingsPage } from "@/routes/settings";
 import { SystemPage } from "@/routes/system";
 import { WarehousePage } from "@/routes/warehouse";
 import { OrdersPage } from "@/routes/orders";
+import { OrdersHistoryPage } from "@/routes/orders-history";
 import { ProductionPage } from "@/routes/production";
 
 export const routes = [
@@ -36,6 +37,11 @@ export const routes = [
   }),
   createRoute({ getParentRoute: () => rootRoute, path: "/warehouse", component: WarehousePage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/orders", component: OrdersPage }),
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/orders/history",
+    component: OrdersHistoryPage,
+  }),
   createRoute({ getParentRoute: () => rootRoute, path: "/production", component: ProductionPage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/receipts", component: ReceiptsPage }),
   createRoute({ getParentRoute: () => rootRoute, path: "/settings", component: SettingsPage }),

@@ -66,11 +66,12 @@ export async function auditOperations(page: Page): Promise<void> {
   const order = await (await orderResponse).json();
   await expect(page.getByTestId(`order-${order.id}`)).toContainText("۷۰۳.۰۳۶۸");
 
-  async function createJob(index: number, product: Item) {
+  async function createJob(index: number) {
     await page.getByRole("link", { name: "تولید", exact: true }).click();
     await page.getByTestId("job-order").selectOption(order.id);
     await page.getByTestId("job-order-line").selectOption(order.items[index].id);
-    await page.getByTestId("job-product-item").selectOption(product.id);
+    // Item 4: there is no «اتصال انبار» mapping any more — the finished models
+    // are matched to (or created as) the warehouse product with the same name.
     // Item 6: each spool of the job is chosen with its own grams per piece.
     await page.getByTestId("job-spool-0-item").selectOption(filament.id);
     await page.getByTestId("job-spool-0-grams").fill(index === 0 ? "۱۲.۵" : "۲۰");
@@ -84,7 +85,7 @@ export async function auditOperations(page: Page): Promise<void> {
     await expect(page.getByTestId(`job-${job.id}`)).toBeVisible();
     return job;
   }
-  const a = await createJob(0, first);
+  const a = await createJob(0);
   let response = waitWrite(`production/jobs/${a.id}/start`, 200);
   await page.getByTestId(`job-${a.id}-start`).click();
   await response;
@@ -107,7 +108,7 @@ export async function auditOperations(page: Page): Promise<void> {
   await response;
   await expect(page.getByTestId(`job-${a.id}`)).toContainText("تمام‌شده");
   expect((await get(`orders/${order.id}`)).status).toBe("IN_PRODUCTION");
-  const b = await createJob(1, second);
+  const b = await createJob(1);
   response = waitWrite(`production/jobs/${b.id}/finish`, 200);
   await page.getByTestId(`job-${b.id}-finish`).click();
   await response;
@@ -147,4 +148,67 @@ export async function auditOperations(page: Page): Promise<void> {
     expect(await document.text()).toContain(base);
     expect(await document.text()).toContain("۷۰۳٫۰۳۶۸");
   }
+
+  // Items 1 and 6: the production row names its order and shows the job's
+  // quantity against the ordered quantity (2 of 2 for the first line).
+  await page.getByRole("link", { name: "تولید", exact: true }).click();
+  const jobRow = page.getByTestId(`job-${a.id}`);
+  await expect(jobRow).toContainText(`سفارش #${order.order_number}`);
+  await expect(jobRow).toContainText("کل تعداد سفارش");
+  // a finished order is no longer offered for a new production job
+  await page.getByTestId("job-order").selectOption("");
+  await expect(page.getByTestId("job-order")).not.toContainText("آمادهٔ ارسال");
+
+  // Items 8 and 9: an unconfirmed order keeps its lines editable and deletable.
+  await page.getByRole("link", { name: "سفارش‌ها", exact: true }).click();
+  await page.getByTestId("order-customer").fill(`${base} — موقت`);
+  await page.getByTestId("line-name-0").fill(`${base} — قلم موقت`);
+  await page.getByTestId("line-price-0").fill("۱۰۰۰");
+  await page.getByTestId("line-quantity-0").fill("۱");
+  const draftResponse = waitWrite("orders");
+  await page.getByTestId("order-submit").click();
+  const draft = await (await draftResponse).json();
+  await page.getByTestId(`order-${draft.id}-edit`).click();
+  await page.getByTestId("line-quantity-0").fill("۴");
+  const editResponse = page.waitForResponse(
+    (r) =>
+      new URL(r.url()).pathname === `/api/v1/orders/${draft.id}` &&
+      r.request().method() === "PATCH",
+  );
+  await page.getByTestId("order-submit").click();
+  expect((await editResponse).status()).toBe(200);
+  await page.getByTestId(`order-${draft.id}-items-toggle`).click();
+  await expect(page.getByTestId(`order-${draft.id}-items`)).toContainText("×۴");
+
+  await page.getByTestId(`order-${draft.id}-delete`).click();
+  const deleteResponse = page.waitForResponse(
+    (r) =>
+      new URL(r.url()).pathname === `/api/v1/orders/${draft.id}` &&
+      r.request().method() === "DELETE",
+  );
+  await page.getByTestId(`order-${draft.id}-delete-confirm`).click();
+  expect((await deleteResponse).status()).toBe(204);
+  await expect(page.getByTestId(`order-${draft.id}`)).toHaveCount(0);
+
+  // Item 11: delivering the order takes its produced models out of stock and
+  // moves it to «تاریخچهٔ سفارشات» (item 7).
+  const csrfToken = decodeURIComponent(
+    (await page.context().cookies()).find((c) => c.name === "noa_csrf")!.value,
+  );
+  for (const status of ["SHIPPED", "DELIVERED"] as const) {
+    const current = await get(`orders/${order.id}`);
+    const transition = await page.request.patch(`/api/v1/orders/${order.id}`, {
+      headers: { "X-CSRF-Token": csrfToken },
+      data: { version_id: current.version_id, status },
+    });
+    expect(transition.status(), await transition.text()).toBe(200);
+  }
+  items = (await get("warehouse/summary")).items;
+  expect(new Decimal(items.find((i) => i.id === first.id)!.quantity).eq(0)).toBe(true);
+  expect(new Decimal(items.find((i) => i.id === second.id)!.quantity).eq(0)).toBe(true);
+
+  await page.getByTestId("orders-history-link").click();
+  await expect(page.getByTestId(`history-order-${order.id}`)).toContainText("تحویل‌شده");
+  await page.getByTestId("orders-history-back").click();
+  await expect(page.getByTestId(`order-${order.id}`)).toHaveCount(0);
 }

@@ -408,10 +408,15 @@ class OperationsService:
         current = self.session.scalar(select(func.max(ProductionJob.job_number))) or 0
         return int(current) + 1
 
+    # «سفارش‌های فعال» vs «تاریخچهٔ سفارشات» — one vocabulary, two pages.
+    ACTIVE_ORDER_STATUSES = ("NEW", "CONFIRMED", "IN_PRODUCTION", "READY")
+    HISTORY_ORDER_STATUSES = ("SHIPPED", "DELIVERED", "CANCELLED")
+
     def list_orders(
         self,
         *,
         status: str | None = None,
+        status_group: str | None = None,
         channel: str | None = None,
         search: str | None = None,
         date_from: str | None = None,
@@ -419,9 +424,15 @@ class OperationsService:
         limit: int | None = 200,
         offset: int = 0,
     ) -> list[Order]:
+        if status_group not in (None, "active", "history"):
+            raise DomainError(f"unknown order status group {status_group}")
         stmt = select(Order).options(selectinload(Order.items))
         if status:
             stmt = stmt.where(Order.status == status)
+        if status_group == "active":
+            stmt = stmt.where(Order.status.in_(self.ACTIVE_ORDER_STATUSES))
+        elif status_group == "history":
+            stmt = stmt.where(Order.status.in_(self.HISTORY_ORDER_STATUSES))
         if channel:
             stmt = stmt.where(Order.channel == channel)
         if search:
@@ -464,6 +475,71 @@ class OperationsService:
         return order
 
     # ------------------------------------------------------- product recipe ---
+    def _stock_item_for_line(self, line: OrderItem) -> InventoryItem | None:
+        """The warehouse product an order line refers to, if any."""
+        if line.inventory_item_id:
+            item = self.session.get(InventoryItem, line.inventory_item_id)
+            if item is not None:
+                return item
+        name = (line.product_name or "").strip()
+        if not name:
+            return None
+        return self.session.scalar(
+            select(InventoryItem)
+            .where(
+                InventoryItem.is_active == 1,
+                InventoryItem.kind == "PRODUCT",
+                InventoryItem.unit == "PCS",
+                func.lower(InventoryItem.name) == name.lower(),
+            )
+            .order_by(InventoryItem.created_at)
+        )
+
+    def _product_item_for_job(self, job: ProductionJob) -> InventoryItem:
+        """Where a finished job's models go, creating the product when needed.
+
+        The owner no longer maps a job to a warehouse product by hand; the
+        product is matched by name and created on first finish, so «پایان چاپ»
+        always moves the produced pieces into stock.
+        """
+        if job.product_item_id:
+            item = self.session.get(InventoryItem, job.product_item_id)
+            if item is not None:
+                return item
+        name = (job.product_name or "").strip() or f"محصول کار #{job.job_number}"
+        existing = self.session.scalar(
+            select(InventoryItem)
+            .where(
+                InventoryItem.is_active == 1,
+                InventoryItem.kind == "PRODUCT",
+                InventoryItem.unit == "PCS",
+                func.lower(InventoryItem.name) == name.lower(),
+            )
+            .order_by(InventoryItem.created_at)
+        )
+        if existing is not None:
+            job.product_item_id = existing.id
+            return existing
+        disabled = self.session.scalar(
+            select(InventoryItem)
+            .where(
+                InventoryItem.kind == "PRODUCT",
+                InventoryItem.unit == "PCS",
+                func.lower(InventoryItem.name) == name.lower(),
+            )
+            .order_by(InventoryItem.created_at)
+        )
+        if disabled is not None:
+            raise DomainError(
+                f"محصول «{disabled.name}» در انبار غیرفعال است؛ برای انتقال کار تولید "
+                "ابتدا آن را در انبار فعال کنید"
+            )
+        created = self.create_item(
+            InventoryItemCreate(name=name, kind="PRODUCT", unit="PCS", quantity=Decimal(0))
+        )
+        job.product_item_id = created.id
+        return created
+
     def _recipe_for(self, product_item_id: str | None) -> list[tuple[str, Decimal, Decimal]] | None:
         """Spools per produced model, taken from the newest finished job.
 
@@ -677,6 +753,7 @@ class OperationsService:
                 for line in order.items}
             if any(completed[line.id] < Decimal(line.quantity) for line in order.items):
                 raise InvalidOrderStateError("تمام ردیف‌های سفارش هنوز تولید نشده‌اند")
+        previous_status = order.status
         payload = data.model_dump(exclude={"version_id", "items"}, exclude_unset=True)
         for field, value in payload.items():
             setattr(order, field, value)
@@ -685,7 +762,67 @@ class OperationsService:
         order.version_id += 1
         order.updated_at = utc_now_iso()
         self.session.flush()
+        if order.status == "DELIVERED" and previous_status != "DELIVERED":
+            self._deliver_stock(order)
         return order
+
+    def delete_order(self, order_id: str) -> None:
+        """Remove an unconfirmed order completely (item 9 of the owner's list).
+
+        Only a NEW order may be deleted: once it is confirmed, or production has
+        started, the order is part of the workshop's history. Open production
+        jobs are removed with it so no orphan job keeps counting filament.
+        """
+        order = self.get_order(order_id)
+        if order.status != "NEW":
+            raise InvalidOrderStateError(
+                "فقط سفارش تأییدنشده (جدید) قابل حذف است؛ ابتدا وضعیت آن را بررسی کنید"
+            )
+        jobs = self.order_linked_jobs(order.id)
+        if any(job.status in {"IN_PROGRESS", "DONE"} for job in jobs):
+            raise InvalidOrderStateError(
+                "این سفارش کار تولید در جریان یا تمام‌شده دارد و قابل حذف نیست"
+            )
+        for job in jobs:
+            self.session.delete(job)
+        self.session.flush()
+        self.session.delete(order)
+        self.session.flush()
+
+    def _deliver_stock(self, order: Order) -> None:
+        """Delivered order → its items leave the warehouse (item 11).
+
+        Quantities are matched to the order line's warehouse item, or to a
+        product of the same name when the line was written by hand. When the
+        shelf holds less than the order, only what exists is deducted: the
+        delivery itself must never be blocked by a stock-count gap.
+        """
+        for line in order.items:
+            item = self._stock_item_for_line(line)
+            if item is None or not item.is_active:
+                continue
+            needed = Decimal(line.quantity)
+            available = Decimal(item.quantity)
+            deduct = min(needed, available)
+            if deduct <= 0:
+                continue
+            self.move_stock(
+                item.id,
+                StockMovementCreate(
+                    kind="OUT",
+                    quantity=deduct,
+                    reason="sale",
+                    reference_id=order.id,
+                    note=(
+                        f"تحویل سفارش #{order.order_number}"
+                        + (
+                            f" — کمبود {plain_number(needed - deduct)} عدد در انبار"
+                            if deduct < needed
+                            else ""
+                        )
+                    ),
+                ),
+            )
 
     def plan_order_production(self, order_id: str) -> dict[str, Any]:
         """«افزودن به خط تولید» — plan jobs for every un-built order line.
@@ -805,10 +942,13 @@ class OperationsService:
         if status not in allowed:
             raise DomainError(f"unknown order status {status}")
         order = self.get_order(order_id)
+        previous_status = order.status
         order.status = status
         order.version_id += 1
         order.updated_at = utc_now_iso()
         self.session.flush()
+        if status == "DELIVERED" and previous_status != "DELIVERED":
+            self._deliver_stock(order)
         return order
 
     # -------------------------------------------------------- sales reports ---
@@ -961,8 +1101,6 @@ class OperationsService:
             component_total = Decimal(row.grams_per_unit) * Decimal(job.quantity)
             if not component_total.is_finite() or component_total >= MAX_ABS_AMOUNT:
                 raise DomainError("وزن کل تولید از حد مجاز بیشتر است")
-        if finishing and not job.product_item_id:
-            raise DomainError("برای پایان تولید، محصول مقصد را مشخص کنید")
         has_filament = bool(components) or bool(job.filament_item_id and grams > 0)
         if finishing and not has_filament:
             raise DomainError(
@@ -1090,9 +1228,10 @@ class OperationsService:
                     note=f"کار تولید #{job.job_number}",
                 ),
             )
-        if job.product_item_id:
+        product_item = self._product_item_for_job(job)
+        if product_item is not None:
             self.move_stock(
-                job.product_item_id,
+                product_item.id,
                 StockMovementCreate(
                     kind="IN",
                     quantity=quantity,

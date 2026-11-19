@@ -197,11 +197,16 @@ def _order_read(order: Any) -> OrderRead:
 
 def _job_read(session: Session, job: Any) -> ProductionJobRead:
     order_number = None
+    order_item_quantity = None
     if job.order_id:
         from ..models import Order
 
         order = session.get(Order, job.order_id)
         order_number = order.order_number if order is not None else None
+        if order is not None and job.order_item_id:
+            line = next((row for row in order.items if row.id == job.order_item_id), None)
+            if line is not None:
+                order_item_quantity = Decimal(line.quantity)
     filament_name = None
     if job.filament_item_id:
         from ..models import InventoryItem
@@ -237,6 +242,7 @@ def _job_read(session: Session, job: Any) -> ProductionJobRead:
         order_id=job.order_id,
         order_number=order_number,
         order_item_id=job.order_item_id,
+        order_item_quantity=order_item_quantity,
         product_name=job.product_name,
         variant=job.variant,
         channel=job.channel,
@@ -485,6 +491,7 @@ def list_orders(
     session: Annotated[Session, Depends(get_db)],
     _user: Annotated[object, Depends(require_roles(*READ_ROLES))],
     status: Annotated[str | None, Query()] = None,
+    status_group: Annotated[str | None, Query(pattern="^(active|history)$")] = None,
     channel: Annotated[str | None, Query()] = None,
     search: Annotated[str | None, Query()] = None,
     date_from: Annotated[str | None, Query()] = None,
@@ -497,6 +504,7 @@ def list_orders(
         _order_read(o)
         for o in service.list_orders(
             status=status,
+            status_group=status_group,
             channel=channel,
             search=search,
             date_from=date_from,
@@ -578,6 +586,17 @@ def update_order(
     service = OperationsService(session)
     service.update_order(order_id, payload)
     return _order_read(service.get_order(order_id))
+
+
+@orders.delete("/{order_id}", status_code=204)
+def delete_order(
+    order_id: str,
+    session: Annotated[Session, Depends(get_db)],
+    _user: Annotated[SessionUser, Depends(require_roles(*WRITE_ROLES))],
+) -> Response:
+    """Remove an unconfirmed order (item 9 of the owner's change list)."""
+    OperationsService(session).delete_order(order_id)
+    return Response(status_code=204)
 
 
 @orders.get("/{order_id}/proforma.pdf")

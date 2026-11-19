@@ -1,9 +1,10 @@
 /**
  * تولید — production jobs (MASTER_PROMPT §3.3).
  *
- * A job is planned from an order line (or manually), linked to a filament spool
- * in the warehouse; finishing it consumes the filament and adds the produced
- * models to stock. Unit cost/price come from the sheet-exact pricing engine.
+ * A job is planned from an order line (or manually). Its filament composition
+ * is picked here, also for jobs that came from an order, and finishing it
+ * consumes the filament and puts the produced models into the warehouse.
+ * Delivering the order afterwards takes those models out again.
  */
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -22,12 +23,23 @@ import { OperationPagination, OPERATION_PAGE_SIZE } from "@/components/operation
 import { toDecimal } from "@/lib/money";
 import { faNumber } from "@/lib/fa";
 
+type FilamentRow = {
+  id: string;
+  filament_item_id: string | null;
+  filament_item_name: string | null;
+  grams_per_unit: string;
+  unit_cost: string;
+  grams_total: string;
+};
+
 type Job = {
   id: string;
   job_number: number;
   order_id: string | null;
   order_item_id: string | null;
   order_number: number | null;
+  /** The ordered quantity of the linked order line (item 1 of the owner's list). */
+  order_item_quantity?: string | null;
   product_name: string;
   variant: "plain" | "chain";
   channel: "direct" | "marketplace";
@@ -38,14 +50,7 @@ type Job = {
   product_item_id: string | null;
   product_item_name: string | null;
   filament_grams: string;
-  filaments: Array<{
-    id: string;
-    filament_item_id: string | null;
-    filament_item_name: string | null;
-    grams_per_unit: string;
-    unit_cost: string;
-    grams_total: string;
-  }>;
+  filaments: FilamentRow[];
   filament_ready: boolean;
   print_hours: string;
   unit_cost: string;
@@ -95,6 +100,18 @@ const STATUS_VARIANT: Record<string, "secondary" | "warning" | "success" | "dest
   CANCELLED: "destructive",
 };
 
+/** Item 6: only orders that are still being worked on can start a new job. */
+const OPEN_ORDER_STATUSES = ["NEW", "CONFIRMED", "IN_PRODUCTION"];
+
+/** Same quantity, told in the owner's words. */
+function quantitiesDiffer(a: string, b: string): boolean {
+  try {
+    return !toDecimal(a).equals(toDecimal(b));
+  } catch {
+    return true;
+  }
+}
+
 function errText(error: unknown): string {
   return error instanceof Error ? error.message : "خطای نامشخص";
 }
@@ -105,7 +122,8 @@ export function ProductionPage(): React.JSX.Element {
   const pricingQuery = usePricingSettings();
   const queryClient = useQueryClient();
   const [page, setPage] = React.useState(0);
-  const [editingJob, setEditingJob] = React.useState<Job | null>(null);
+  /** Inline filament editor — the only place a job's spools are chosen. */
+  const [spoolJob, setSpoolJob] = React.useState<{ job: Job; rows: SpoolRow[] } | null>(null);
   const [statusFilter, setStatusFilter] = React.useState("");
   const [message, setMessage] = React.useState<string | null>(null);
   const [form, setForm] = React.useState({
@@ -115,9 +133,8 @@ export function ProductionPage(): React.JSX.Element {
     variant: "plain" as "plain" | "chain",
     channel: "marketplace" as "direct" | "marketplace",
     quantity: "1",
-    product_item_id: "",
     print_hours: "",
-    // item 6: a printed model may need several spools, each with its own grams
+    // a printed model may need several spools, each with its own grams
     filaments: [{ item_id: "", grams: "" }] as SpoolRow[],
   });
 
@@ -162,16 +179,14 @@ export function ProductionPage(): React.JSX.Element {
   });
 
   const ordersQuery = useQuery({
-    queryKey: ["orders", "open"],
+    queryKey: ["orders", "production-ready"],
     queryFn: async () => {
       const rows = await collectOperationPages(async (offset, limit) => {
         const res = await api.GET("/api/v1/orders", { params: { query: { offset, limit } } });
         if (res.error) throw await parseError(res.response);
         return res.data!;
       });
-      return (rows as OrderOption[]).filter(
-        (o) => !["CANCELLED", "SHIPPED", "DELIVERED"].includes(o.status),
-      );
+      return (rows as OrderOption[]).filter((o) => OPEN_ORDER_STATUSES.includes(o.status));
     },
   });
 
@@ -227,7 +242,6 @@ export function ProductionPage(): React.JSX.Element {
           channel: form.channel,
           order_id: form.order_id || null,
           order_item_id: form.order_item_id || null,
-          product_item_id: form.product_item_id || null,
           filaments: spools,
           filament_grams: totalGrams.toString(),
           print_hours: parseNum(form.print_hours || "0").toString(),
@@ -264,50 +278,44 @@ export function ProductionPage(): React.JSX.Element {
       if (res.error) throw await parseError(res.response);
       return res.data;
     },
-    onSuccess: () => {
-      setMessage("وضعیت کار تولید به‌روز شد ✓");
+    onSuccess: (_data, payload) => {
+      setMessage(
+        payload.action === "finish"
+          ? "پایان چاپ ثبت شد ✓ محصول به انبار اضافه شد و فیلامنت کسر شد."
+          : "وضعیت کار تولید به‌روز شد ✓",
+      );
       invalidate();
     },
     onError: (e) => setMessage(errText(e)),
   });
 
-  const saveMapping = useMutation({
+  const saveFilaments = useMutation({
     mutationFn: async () => {
-      if (!editingJob) throw new Error("کاری انتخاب نشده است");
+      if (!spoolJob) throw new Error("کاری انتخاب نشده است");
+      const rows = spoolJob.rows
+        .filter((row) => row.item_id && row.grams.trim() !== "")
+        .map((row) => ({
+          filament_item_id: row.item_id,
+          grams_per_unit: parseNum(row.grams).toString(),
+        }));
+      if (new Set(rows.map((row) => row.filament_item_id)).size !== rows.length)
+        throw new Error("هر فیلامنت فقط یک بار در یک کار تولید قابل انتخاب است.");
       const res = await api.PATCH("/api/v1/production/jobs/{job_id}", {
-        params: { path: { job_id: editingJob.id } },
-        body: {
-          version_id: editingJob.version_id,
-          order_item_id: editingJob.order_item_id,
-          product_item_id: editingJob.product_item_id,
-          filaments: editingJob.filaments
-            .filter((row) => {
-              if (!row.filament_item_id) return false;
-              try {
-                return parseNum(row.grams_per_unit).gt(0);
-              } catch {
-                throw new Error(`گرم فیلامنت نامعتبر است: ${row.grams_per_unit}`);
-              }
-            })
-            .map((row) => ({
-              filament_item_id: row.filament_item_id!,
-              grams_per_unit: parseNum(row.grams_per_unit).toString(),
-              unit_cost: parseNum(row.unit_cost).toString(),
-            })),
-        },
+        params: { path: { job_id: spoolJob.job.id } },
+        body: { version_id: spoolJob.job.version_id, filaments: rows },
       });
       if (res.error) throw await parseError(res.response);
+      return res.data;
     },
     onSuccess: () => {
-      setEditingJob(null);
-      setMessage("اتصال انبار ذخیره شد ✓");
+      setSpoolJob(null);
+      setMessage("فیلامنت‌های کار تولید ذخیره شد ✓");
       invalidate();
     },
     onError: (e) => setMessage(errText(e)),
   });
 
   const filaments = (itemsQuery.data ?? []).filter((i) => i.kind === "FILAMENT" && i.unit === "G");
-  const products = (itemsQuery.data ?? []).filter((i) => i.kind === "PRODUCT" && i.unit === "PCS");
 
   const pickLine = (orderId: string, lineId?: string): void => {
     const order = ordersQuery.data?.find((o) => o.id === orderId);
@@ -320,9 +328,31 @@ export function ProductionPage(): React.JSX.Element {
       variant: line?.variant ?? f.variant,
       channel: order?.channel ?? f.channel,
       quantity: line?.quantity ?? f.quantity,
-      product_item_id: line?.inventory_item_id ?? "",
     }));
   };
+
+  /** The finish button is never dead: it asks for the missing spools instead. */
+  const finish = (job: Job): void => {
+    if (!job.filament_ready) {
+      setMessage("برای پایان چاپ، ابتدا فیلامنت‌های مصرفی این کار را انتخاب کنید.");
+      setSpoolJob({ job, rows: [{ item_id: "", grams: "" }] });
+      return;
+    }
+    act.mutate({ job, action: "finish" });
+  };
+
+  const openSpools = (job: Job): void => {
+    setSpoolJob({
+      job,
+      rows: job.filaments.length
+        ? job.filaments.map((row) => ({
+            item_id: row.filament_item_id ?? "",
+            grams: row.grams_per_unit,
+          }))
+        : [{ item_id: "", grams: "" }],
+    });
+  };
+
   const totalGramsPerUnit = form.filaments.reduce((sum, row) => {
     try {
       return row.grams.trim() ? sum.plus(toDecimal(row.grams)) : sum;
@@ -391,107 +421,125 @@ export function ProductionPage(): React.JSX.Element {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b text-muted-foreground">
-                    <th className="py-2 text-start font-medium">#</th>
-                    <th className="py-2 text-start font-medium">محصول</th>
-                    <th className="py-2 text-start font-medium">سفارش</th>
-                    <th className="py-2 text-start font-medium">تعداد</th>
-                    <th className="py-2 text-start font-medium">فیلامنت</th>
-                    <th className="py-2 text-start font-medium">قیمت واحد</th>
-                    <th className="py-2 text-start font-medium">وضعیت</th>
-                    <th className="py-2 text-start font-medium">اقدام</th>
+                    <th className="py-2 text-start font-medium">کار / سفارش</th>
+                    <th className="py-2 ps-2 text-start font-medium">محصول</th>
+                    <th className="py-2 ps-2 text-start font-medium">تعداد</th>
+                    <th className="py-2 ps-2 text-start font-medium">فیلامنت</th>
+                    <th className="py-2 ps-2 text-start font-medium">وضعیت</th>
+                    <th className="py-2 ps-2 text-start font-medium">اقدام</th>
                   </tr>
                 </thead>
                 <tbody>
                   {(jobsQuery.isSuccess ? jobsQuery.data.slice(0, OPERATION_PAGE_SIZE) : []).map(
-                    (job) => (
-                      <tr key={job.id} className="border-b" data-testid={`job-${job.id}`}>
-                        <td className="num py-2">{faNumber(String(job.job_number))}</td>
-                        <td className="py-2">
-                          {job.product_name}
-                          {job.variant === "chain" && (
-                            <Badge variant="secondary" className="ms-1">
-                              زنجیر
-                            </Badge>
-                          )}
-                        </td>
-                        <td className="num py-2">
-                          {job.order_number ? faNumber(String(job.order_number)) : "—"}
-                        </td>
-                        <td className="num py-2">{faNumber(job.quantity)}</td>
-                        <td className="py-2 text-xs" data-testid={`job-${job.id}-spools`}>
-                          {job.filaments.length === 0 && (job.filament_item_name ?? "—")}
-                          {job.filaments.map((row) => (
-                            <div key={row.id} className="num text-muted-foreground">
-                              {row.filament_item_name ?? "فیلامنت حذف‌شده"}:{" "}
-                              {faNumber(row.grams_per_unit)} گرم × {faNumber(job.quantity)} ={" "}
-                              {faNumber(row.grams_total)} گرم
+                    (job) => {
+                      const ordered = job.order_item_quantity ?? null;
+                      const partial = ordered ? quantitiesDiffer(ordered, job.quantity) : false;
+                      return (
+                        <tr
+                          key={job.id}
+                          className="border-b align-top"
+                          data-testid={`job-${job.id}`}
+                        >
+                          <td className="py-3 pe-2">
+                            <div className="num text-base font-bold">
+                              #{faNumber(String(job.job_number))}
                             </div>
-                          ))}
-                          {!job.filament_ready && (
-                            <div className="text-[11px] text-amber-700 dark:text-amber-400">
-                              فیلامنت‌ها انتخاب نشده‌اند؛ پایان تولید ممکن نیست.
+                            <div className="text-[11px] text-muted-foreground">
+                              {job.order_number
+                                ? `سفارش #${faNumber(String(job.order_number))}`
+                                : "بدون سفارش"}
                             </div>
-                          )}
-                        </td>
-                        <td className="py-2">
-                          <Money value={job.unit_price} currency="TOMAN" />
-                        </td>
-                        <td className="py-2">
-                          <Badge variant={STATUS_VARIANT[job.status]}>
-                            {STATUS_LABEL[job.status]}
-                          </Badge>
-                        </td>
-                        <td className="py-2">
-                          <div className="flex flex-wrap gap-1">
-                            {job.status === "PLANNED" && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                data-testid={`job-${job.id}-start`}
-                                disabled={act.isPending}
-                                onClick={() => act.mutate({ job, action: "start" })}
-                              >
-                                شروع چاپ
-                              </Button>
+                          </td>
+                          <td className="py-3 ps-2">
+                            <div className="font-medium">{job.product_name}</div>
+                            <div className="mt-1 flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
+                              <span>{job.variant === "chain" ? "حلقه و زنجیر" : "ساده"}</span>
+                              <span>·</span>
+                              <span>{job.channel === "marketplace" ? "بازارگاه" : "مستقیم"}</span>
+                            </div>
+                          </td>
+                          <td className="num py-3 ps-2">
+                            <div className="text-base font-bold">
+                              {faNumber(job.quantity)} <span className="text-xs">عدد</span>
+                            </div>
+                            {ordered && (
+                              <div className="text-[11px] text-muted-foreground">
+                                {partial ? `از ${faNumber(ordered)} عدد سفارش` : "کل تعداد سفارش"}
+                              </div>
                             )}
-                            {(job.status === "PLANNED" || job.status === "IN_PROGRESS") && (
-                              <>
-                                <Button
-                                  size="sm"
-                                  data-testid={`job-${job.id}-finish`}
-                                  disabled={
-                                    act.isPending || !job.filament_ready || !job.product_item_id
-                                  }
-                                  onClick={() => act.mutate({ job, action: "finish" })}
-                                >
-                                  پایان (کسر فیلامنت)
-                                </Button>
+                          </td>
+                          <td className="py-3 ps-2 text-xs" data-testid={`job-${job.id}-spools`}>
+                            {job.filaments.length === 0 && (job.filament_item_name ?? "—")}
+                            {job.filaments.map((row) => (
+                              <div key={row.id} className="num text-muted-foreground">
+                                {row.filament_item_name ?? "فیلامنت حذف‌شده"}:{" "}
+                                {faNumber(row.grams_per_unit)} گرم × {faNumber(job.quantity)} ={" "}
+                                {faNumber(row.grams_total)} گرم
+                              </div>
+                            ))}
+                            {!job.filament_ready && (
+                              <div className="text-[11px] text-amber-700 dark:text-amber-400">
+                                فیلامنت‌ها انتخاب نشده‌اند؛ پایان تولید ممکن نیست.
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-3 ps-2">
+                            <Badge variant={STATUS_VARIANT[job.status]}>
+                              {STATUS_LABEL[job.status]}
+                            </Badge>
+                          </td>
+                          <td className="py-3 ps-2">
+                            <div className="flex flex-wrap gap-1">
+                              {job.status === "PLANNED" && (
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  data-testid={`job-${job.id}-configure`}
-                                  onClick={() => setEditingJob({ ...job })}
-                                >
-                                  اتصال انبار
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
+                                  data-testid={`job-${job.id}-start`}
                                   disabled={act.isPending}
-                                  onClick={() => act.mutate({ job, action: "cancel" })}
+                                  onClick={() => act.mutate({ job, action: "start" })}
                                 >
-                                  لغو
+                                  شروع چاپ
                                 </Button>
-                              </>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ),
+                              )}
+                              {(job.status === "PLANNED" || job.status === "IN_PROGRESS") && (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    data-testid={`job-${job.id}-finish`}
+                                    disabled={act.isPending}
+                                    onClick={() => finish(job)}
+                                  >
+                                    پایان (کسر فیلامنت)
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    data-testid={`job-${job.id}-filaments`}
+                                    disabled={!itemsQuery.isSuccess}
+                                    onClick={() => openSpools(job)}
+                                  >
+                                    فیلامنت‌ها
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    data-testid={`job-${job.id}-cancel`}
+                                    disabled={act.isPending}
+                                    onClick={() => act.mutate({ job, action: "cancel" })}
+                                  >
+                                    لغو
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    },
                   )}
                   {jobsQuery.isSuccess && jobsQuery.data.length === 0 && (
                     <tr>
-                      <td colSpan={8} className="py-6 text-center text-muted-foreground">
+                      <td colSpan={6} className="py-6 text-center text-muted-foreground">
                         کار تولیدی ثبت نشده است.
                       </td>
                     </tr>
@@ -505,128 +553,112 @@ export function ProductionPage(): React.JSX.Element {
               busy={jobsQuery.isFetching}
               onChange={setPage}
             />
-            {editingJob && (
-              <div className="mt-3 space-y-2 rounded border p-3" data-testid="job-stock-editor">
-                <p className="text-sm font-medium">اتصال انبار — {editingJob.product_name}</p>
+            {spoolJob && (
+              <div className="mt-3 space-y-2 rounded border p-3" data-testid="job-filament-editor">
+                <p className="text-sm font-medium">
+                  فیلامنت‌های مصرفی کار #{faNumber(String(spoolJob.job.job_number))} —{" "}
+                  {spoolJob.job.product_name}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  گرم هر عدد را وارد کنید؛ هنگام «پایان چاپ» همین مقدار × تعداد از انبار کسر می‌شود
+                  و محصول به انبار اضافه می‌شود.
+                </p>
                 <QueryNotice query={itemsQuery} />
-                {editingJob.order_id && (
-                  <select
-                    aria-label="ردیف سفارش برای اصلاح اتصال"
-                    value={editingJob.order_item_id ?? ""}
-                    onChange={(e) =>
-                      setEditingJob({ ...editingJob, order_item_id: e.target.value || null })
-                    }
-                  >
-                    <option value="">ردیف سفارش را انتخاب کنید</option>
-                    {ordersQuery.data
-                      ?.find((o) => o.id === editingJob.order_id)
-                      ?.items.map((l, i) => (
-                        <option key={l.id} value={l.id}>
-                          {faNumber(String(i + 1))} — {l.product_name}
-                        </option>
-                      ))}
-                  </select>
-                )}
-                {editingJob.filaments.map((row, index) => (
-                  <div key={row.id} className="grid grid-cols-[1fr_6rem_auto] gap-1">
+                {spoolJob.rows.map((row, index) => (
+                  <div key={index} className="grid grid-cols-[1fr_6rem_auto] gap-1">
                     <select
-                      aria-label={`فیلامنت ${faNumber(String(index + 1))} کار تولید`}
-                      data-testid={`job-mapping-filament-${index}`}
-                      value={row.filament_item_id ?? ""}
+                      aria-label={`فیلامنت ردیف ${faNumber(String(index + 1))} کار تولید`}
+                      data-testid={`job-filament-editor-item-${index}`}
+                      className="flex h-8 w-full rounded-md border border-input bg-background px-2 text-xs text-foreground"
+                      value={row.item_id}
                       onChange={(e) =>
-                        setEditingJob({
-                          ...editingJob,
-                          filaments: editingJob.filaments.map((r, i) =>
-                            i === index ? { ...r, filament_item_id: e.target.value || null } : r,
-                          ),
-                        })
+                        setSpoolJob((current) =>
+                          current
+                            ? {
+                                ...current,
+                                rows: current.rows.map((r, i) =>
+                                  i === index ? { ...r, item_id: e.target.value } : r,
+                                ),
+                              }
+                            : current,
+                        )
                       }
                     >
-                      <option value="">فیلامنت را انتخاب کنید</option>
-                      {filaments.map((i) => (
-                        <option key={i.id} value={i.id}>
-                          {i.name}
+                      <option value="">— فیلامنت —</option>
+                      {filaments.map((f) => (
+                        <option key={f.id} value={f.id}>
+                          {f.name} ({faNumber(f.quantity)} گرم)
                         </option>
                       ))}
                     </select>
                     <Input
-                      className="num"
+                      className="num h-8 text-xs"
                       aria-label={`گرم فیلامنت هر عدد ردیف ${faNumber(String(index + 1))}`}
-                      data-testid={`job-mapping-grams-${index}`}
-                      value={row.grams_per_unit}
+                      data-testid={`job-filament-editor-grams-${index}`}
+                      placeholder="گرم/عدد"
+                      value={row.grams}
                       onChange={(e) =>
-                        setEditingJob({
-                          ...editingJob,
-                          filaments: editingJob.filaments.map((r, i) =>
-                            i === index ? { ...r, grams_per_unit: e.target.value } : r,
-                          ),
-                        })
+                        setSpoolJob((current) =>
+                          current
+                            ? {
+                                ...current,
+                                rows: current.rows.map((r, i) =>
+                                  i === index ? { ...r, grams: e.target.value } : r,
+                                ),
+                              }
+                            : current,
+                        )
                       }
                     />
                     <Button
                       size="sm"
                       variant="ghost"
                       aria-label={`حذف فیلامنت ردیف ${faNumber(String(index + 1))}`}
-                      data-testid={`job-mapping-remove-${index}`}
+                      data-testid={`job-filament-editor-remove-${index}`}
+                      disabled={spoolJob.rows.length === 1}
                       onClick={() =>
-                        setEditingJob({
-                          ...editingJob,
-                          filaments: editingJob.filaments.filter((_r, i) => i !== index),
-                        })
+                        setSpoolJob((current) =>
+                          current
+                            ? {
+                                ...current,
+                                rows: current.rows.filter((_r, i) => i !== index),
+                              }
+                            : current,
+                        )
                       }
                     >
                       ×
                     </Button>
                   </div>
                 ))}
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  data-testid="job-mapping-add"
-                  onClick={() =>
-                    setEditingJob({
-                      ...editingJob,
-                      filaments: [
-                        ...editingJob.filaments,
-                        {
-                          id: `new-${editingJob.filaments.length}`,
-                          filament_item_id: null,
-                          filament_item_name: null,
-                          grams_per_unit: "",
-                          unit_cost: "0",
-                          grams_total: "0",
-                        },
-                      ],
-                    })
-                  }
-                >
-                  + افزودن فیلامنت
-                </Button>
-                <select
-                  aria-label="محصول مقصد کار تولید"
-                  data-testid="job-mapping-product"
-                  value={editingJob.product_item_id ?? ""}
-                  onChange={(e) =>
-                    setEditingJob({ ...editingJob, product_item_id: e.target.value || null })
-                  }
-                >
-                  <option value="">محصول مقصد را انتخاب کنید</option>
-                  {products.map((i) => (
-                    <option key={i.id} value={i.id}>
-                      {i.name}
-                    </option>
-                  ))}
-                </select>
-                <Button
-                  data-testid="job-mapping-save"
-                  disabled={saveMapping.isPending || !itemsQuery.isSuccess}
-                  onClick={() => saveMapping.mutate()}
-                >
-                  ذخیرهٔ اتصال
-                </Button>
-                <Button variant="ghost" onClick={() => setEditingJob(null)}>
-                  انصراف
-                </Button>
+                <div className="flex flex-wrap gap-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    data-testid="job-filament-editor-add"
+                    disabled={spoolJob.rows.length >= 20}
+                    onClick={() =>
+                      setSpoolJob((current) =>
+                        current
+                          ? { ...current, rows: [...current.rows, { item_id: "", grams: "" }] }
+                          : current,
+                      )
+                    }
+                  >
+                    + افزودن فیلامنت
+                  </Button>
+                  <Button
+                    size="sm"
+                    data-testid="job-filament-editor-save"
+                    disabled={saveFilaments.isPending || !itemsQuery.isSuccess}
+                    onClick={() => saveFilaments.mutate()}
+                  >
+                    ذخیرهٔ فیلامنت‌ها
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setSpoolJob(null)}>
+                    انصراف
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>
@@ -648,7 +680,7 @@ export function ProductionPage(): React.JSX.Element {
                 <option value="">— بدون سفارش —</option>
                 {(ordersQuery.data ?? []).map((o) => (
                   <option key={o.id} value={o.id}>
-                    #{o.order_number} — {o.customer_name}
+                    #{o.order_number} — {o.customer_name} ({o.items.length} قلم)
                   </option>
                 ))}
               </select>
@@ -721,7 +753,10 @@ export function ProductionPage(): React.JSX.Element {
                   value={form.channel}
                   disabled={!!form.order_id}
                   onChange={(e) =>
-                    setForm((f) => ({ ...f, channel: e.target.value as "direct" | "marketplace" }))
+                    setForm((f) => ({
+                      ...f,
+                      channel: e.target.value as "direct" | "marketplace",
+                    }))
                   }
                 >
                   <option value="marketplace">بازارگاه</option>
@@ -824,22 +859,6 @@ export function ProductionPage(): React.JSX.Element {
                 + افزودن فیلامنت
               </Button>
             </div>
-            <div>
-              <Label className="text-xs">افزودن به محصولات انبار</Label>
-              <select
-                className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
-                value={form.product_item_id}
-                data-testid="job-product-item"
-                onChange={(e) => setForm((f) => ({ ...f, product_item_id: e.target.value }))}
-              >
-                <option value="">—</option>
-                {products.map((i) => (
-                  <option key={i.id} value={i.id}>
-                    {i.name} ({faNumber(i.quantity)} عدد)
-                  </option>
-                ))}
-              </select>
-            </div>
             {selectedLine ? (
               <p className="text-xs text-muted-foreground" data-testid="job-price-snapshot">
                 قیمت و بهای واحد از ردیف ذخیره‌شدهٔ سفارش؛ بدون محاسبهٔ مجدد با ثابت‌های تازه:{" "}
@@ -848,8 +867,8 @@ export function ProductionPage(): React.JSX.Element {
               </p>
             ) : (
               <p className="text-xs text-muted-foreground">
-                کار مستقل با ثابت‌های فعلی قیمت‌گذاری می‌شود. برای پایان تولید، فیلامنت، وزن مثبت و
-                محصول مقصد لازم است.
+                کار مستقل با ثابت‌های فعلی قیمت‌گذاری می‌شود. برای پایان تولید، فیلامنت و وزن مثبت
+                لازم است؛ محصول با همین نام در انبار ساخته یا پیدا می‌شود.
               </p>
             )}
             <Button

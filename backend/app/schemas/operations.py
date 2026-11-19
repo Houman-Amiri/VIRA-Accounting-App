@@ -367,6 +367,9 @@ class ProductionJobRead(BaseModel):
     order_id: str | None
     order_number: int | None
     order_item_id: str | None
+    # The ordered quantity of the linked order line, so the production page can
+    # show a job's share of its order ("۳ از ۵"). Null for manual jobs.
+    order_item_quantity: Amount | None = None
     product_name: str
     variant: Variant
     channel: Channel

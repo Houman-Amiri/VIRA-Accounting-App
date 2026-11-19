@@ -1557,7 +1557,11 @@ export interface paths {
         get: operations["get_order_api_v1_orders__order_id__get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete Order
+         * @description Remove an unconfirmed order (item 9 of the owner's change list).
+         */
+        delete: operations["delete_order_api_v1_orders__order_id__delete"];
         options?: never;
         head?: never;
         /** Update Order */
@@ -2919,6 +2923,8 @@ export interface components {
             order_number: number | null;
             /** Order Item Id */
             order_item_id: string | null;
+            /** Order Item Quantity */
+            order_item_quantity?: string | null;
             /** Product Name */
             product_name: string;
             /**
@@ -7198,6 +7204,7 @@ export interface operations {
         parameters: {
             query?: {
                 status?: string | null;
+                status_group?: string | null;
                 channel?: string | null;
                 search?: string | null;
                 date_from?: string | null;
@@ -7412,6 +7419,41 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["OrderRead"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_order_api_v1_orders__order_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                order_id: string;
+            };
+            cookie?: {
+                noa_session?: string | null;
+                noa_csrf?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

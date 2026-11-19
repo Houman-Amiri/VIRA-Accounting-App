@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import { OrdersPage } from "@/routes/orders";
@@ -15,8 +15,14 @@ vi.mock("@/api/client", async (original) => ({
   api: { GET: vi.fn(), POST: vi.fn(), PATCH: vi.fn(), DELETE: vi.fn() },
 }));
 vi.mock("@tanstack/react-router", () => ({
-  Link: ({ to, children }: { to: string; children: React.ReactNode }) => (
-    <a href={to}>{children}</a>
+  Link: ({
+    to,
+    children,
+    ...rest
+  }: { to: string; children: React.ReactNode } & Record<string, unknown>) => (
+    <a href={to} {...rest}>
+      {children}
+    </a>
   ),
 }));
 
@@ -103,6 +109,8 @@ beforeEach(() => {
     data: data[path],
     response: new Response(),
   })) as typeof api.GET);
+  vi.mocked(api.PATCH).mockResolvedValue({ data: {}, response: new Response() } as never);
+  vi.mocked(api.DELETE).mockResolvedValue({ data: {}, response: new Response() } as never);
 });
 
 afterEach(() => {
@@ -165,4 +173,74 @@ it("never leaves the form without a row to fill", async () => {
   expect(screen.getByTestId("line-0")).toBeInTheDocument();
   expect(screen.getByTestId("line-name-0")).toHaveValue("");
   expect(screen.getByTestId("line-remove-0")).toBeDisabled();
+});
+
+it("asks only for the active orders and links to the history page", async () => {
+  mount();
+  const link = await screen.findByTestId("orders-history-link");
+  expect(link).toHaveAttribute("href", "/orders/history");
+  const select = screen.getByTestId("orders-status");
+  const options = within(select)
+    .getAllByRole("option")
+    .map((o) => o.textContent);
+  expect(options).toEqual(["همه", "جدید", "تأییدشده", "در حال تولید", "آمادهٔ ارسال"]);
+});
+
+it("edits an unconfirmed order's lines and specs in place", async () => {
+  mount();
+  fireEvent.click(await screen.findByTestId("order-o1-edit"));
+  expect(screen.getByText("ویرایش سفارش #۱۲")).toBeInTheDocument();
+  // the saved lines are loaded into the same form
+  expect(screen.getByTestId("line-name-0")).toHaveValue("پایه موبایل");
+  expect(screen.getByTestId("line-quantity-0")).toHaveValue("2");
+  expect(screen.getByTestId("line-name-1")).toHaveValue("مجسمه");
+
+  fireEvent.change(screen.getByTestId("line-quantity-0"), { target: { value: "4" } });
+  fireEvent.change(screen.getByTestId("order-customer"), {
+    target: { value: "مشتری ویرایش‌شده" },
+  });
+  fireEvent.click(screen.getByTestId("line-add"));
+  fireEvent.change(screen.getByTestId("line-name-2"), { target: { value: "قلم سوم" } });
+  fireEvent.change(screen.getByTestId("line-price-2"), { target: { value: "150000" } });
+  fireEvent.click(screen.getByTestId("order-submit"));
+
+  await waitFor(() => expect(api.PATCH).toHaveBeenCalled());
+  const calls = vi.mocked(api.PATCH).mock.calls as unknown as Array<
+    [string, { params: { path: { order_id: string } }; body: Record<string, unknown> }]
+  >;
+  expect(calls[0][0]).toBe("/api/v1/orders/{order_id}");
+  expect(calls[0][1].params.path.order_id).toBe("o1");
+  expect(calls[0][1].body).toMatchObject({
+    version_id: 1,
+    customer_name: "مشتری ویرایش‌شده",
+    channel: "direct",
+  });
+  const body = calls[0][1].body as { items: Array<Record<string, string>> };
+  expect(body.items).toHaveLength(3);
+  expect(body.items[0]).toMatchObject({ product_name: "پایه موبایل", quantity: "4" });
+  expect(body.items[2]).toMatchObject({ product_name: "قلم سوم", unit_price: "150000" });
+});
+
+it("deletes an unconfirmed order only after an explicit confirmation", async () => {
+  mount();
+  fireEvent.click(await screen.findByTestId("order-o1-delete"));
+  expect(api.DELETE).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByTestId("order-o1-delete-confirm"));
+  await waitFor(() => expect(api.DELETE).toHaveBeenCalled());
+  const calls = vi.mocked(api.DELETE).mock.calls as unknown as Array<
+    [string, { params: { path: { order_id: string } } }]
+  >;
+  expect(calls[0][0]).toBe("/api/v1/orders/{order_id}");
+  expect(calls[0][1].params.path.order_id).toBe("o1");
+});
+
+it("offers neither editing nor deleting once the order is confirmed", async () => {
+  vi.mocked(api.GET).mockImplementation((async (path: string) => ({
+    data: path === "/api/v1/orders" ? [{ ...ORDER, status: "CONFIRMED" }] : data[path],
+    response: new Response(),
+  })) as typeof api.GET);
+  mount();
+  await screen.findByTestId("order-o1");
+  expect(screen.queryByTestId("order-o1-edit")).not.toBeInTheDocument();
+  expect(screen.queryByTestId("order-o1-delete")).not.toBeInTheDocument();
 });
