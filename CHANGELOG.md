@@ -5,7 +5,7 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
-## [1.0.25] — 2026-11-19
+## [1.0.25] — 2026-11-22
 
 One request from the owner: the filament chooser on the production page showed
 only the spool's name, so two spools of the same material were impossible to
