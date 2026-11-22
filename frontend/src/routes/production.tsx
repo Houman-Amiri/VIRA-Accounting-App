@@ -93,6 +93,17 @@ const STATUS_LABEL: Record<string, string> = {
   CANCELLED: "لغو‌شده",
 };
 
+/**
+ * «PLA — رنگ سفید» in the spool choosers: two spools of the same material are
+ * told apart by their colour, and the owner asked for it next to the name.
+ * When the name already ends with that colour («PLA سفید») it is not repeated.
+ */
+function spoolLabel(item: { name: string; color?: string | null }): string {
+  const color = (item.color ?? "").trim();
+  if (!color || item.name.includes(color)) return item.name;
+  return `${item.name} — رنگ ${color}`;
+}
+
 const STATUS_VARIANT: Record<string, "secondary" | "warning" | "success" | "destructive"> = {
   PLANNED: "secondary",
   IN_PROGRESS: "warning",
@@ -674,7 +685,7 @@ export function ProductionPage(): React.JSX.Element {
                       <option value="">— فیلامنت —</option>
                       {filaments.map((f) => (
                         <option key={f.id} value={f.id}>
-                          {f.name} ({faNumber(f.quantity)} گرم)
+                          {spoolLabel(f)} ({faNumber(f.quantity)} گرم)
                         </option>
                       ))}
                     </select>
@@ -898,7 +909,7 @@ export function ProductionPage(): React.JSX.Element {
                         <option value="">— فیلامنت —</option>
                         {filaments.map((f) => (
                           <option key={f.id} value={f.id}>
-                            {f.name} ({faNumber(f.quantity)} گرم)
+                            {spoolLabel(f)} ({faNumber(f.quantity)} گرم)
                           </option>
                         ))}
                       </select>

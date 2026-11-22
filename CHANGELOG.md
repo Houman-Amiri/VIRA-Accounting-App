@@ -5,6 +5,21 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
+## [1.0.25] — 2026-11-19
+
+One request from the owner: the filament chooser on the production page showed
+only the spool's name, so two spools of the same material were impossible to
+tell apart without opening the warehouse.
+
+### Production — the colour is part of the choice
+- Every option in both spool choosers (the «ثبت کار تولید» form and the inline
+  «فیلامنت‌ها» editor) now reads «PETG — رنگ آبی (۵۰۰ گرم)», with the spool's
+  colour, its remaining grams and nothing else.
+- A spool whose name already ends with its colour («PLA سفید») is not repeated;
+  it stays «PLA سفید».
+- A spool with no colour keeps its plain name, so nothing becomes noisier than
+  before for the spools that never had one.
+
 ## [1.0.24] — 2026-11-19
 
 The owner reported the console from a second start: NOA died with

@@ -82,6 +82,8 @@ const queries: Record<string, unknown> = {
   "/api/v1/warehouse/summary": {
     items: [
       { id: "f", name: "فیلامنت", kind: "FILAMENT", unit: "G", quantity: "1000" },
+      { id: "f2", name: "PETG", color: "آبی", kind: "FILAMENT", unit: "G", quantity: "500" },
+      { id: "f3", name: "PLA سفید", color: "سفید", kind: "FILAMENT", unit: "G", quantity: "250" },
       { id: "p", name: "محصول", kind: "PRODUCT", unit: "PCS", quantity: "0" },
     ],
   },
@@ -281,6 +283,21 @@ it("shows a rejected filament save inside the editor", async () => {
     "فیلامنت فعال با واحد گرم نیست",
   );
   expect(screen.getByTestId("job-filament-editor")).toBeInTheDocument();
+});
+
+it("writes each spool's colour beside its name in both filament choosers", async () => {
+  mount();
+  await screen.findByTestId("job-j1-filaments");
+  // the «ثبت کار تولید» form and the inline editor both list the same spools
+  expect(screen.getAllByRole("option", { name: "PETG — رنگ آبی (۵۰۰ گرم)" })).toHaveLength(1);
+  fireEvent.click(screen.getByTestId("job-j1-filaments"));
+  const coloured = screen.getAllByRole("option", { name: "PETG — رنگ آبی (۵۰۰ گرم)" });
+  expect(coloured).toHaveLength(2);
+  // a name that already ends with the colour is not repeated
+  expect(screen.queryByRole("option", { name: /PLA سفید — رنگ سفید/ })).not.toBeInTheDocument();
+  expect(screen.getAllByRole("option", { name: "PLA سفید (۲۵۰ گرم)" }).length).toBeGreaterThan(0);
+  // and a spool without a colour keeps its plain name
+  expect(screen.getAllByRole("option", { name: "فیلامنت (۱٬۰۰۰ گرم)" }).length).toBeGreaterThan(0);
 });
 
 it("asks for the missing spools instead of disabling the finish button", async () => {
