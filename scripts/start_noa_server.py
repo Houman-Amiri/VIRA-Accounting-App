@@ -138,14 +138,21 @@ def _listening_socket() -> socket.socket:
 
 
 def port_is_free(port: int) -> bool:
-    sock = _listening_socket()
-    try:
-        sock.bind((BIND_HOST, port))
-        return True
-    except OSError:
-        return False
-    finally:
-        sock.close()
+    """True only when both the wildcard and the loopback address can bind.
+
+    Windows lets a wildcard bind succeed while another process holds the same
+    port on 127.0.0.1, so checking 0.0.0.0 alone would start NOA on a port that
+    is already serving something else.
+    """
+    for host in (BIND_HOST, HOST):
+        sock = _listening_socket()
+        try:
+            sock.bind((host, port))
+        except OSError:
+            return False
+        finally:
+            sock.close()
+    return True
 
 
 def pid_alive(pid: int) -> bool:
