@@ -682,7 +682,13 @@ class OperationsService:
         rate = row.value if row.basis.startswith("PERCENT") else row.value / Decimal(10)
         return Decimal(rate), row.id
 
-    def _build_charges(self, line: OrderItemIn, item_id: str) -> list[OrderItemCharge]:
+    def _build_charges(
+        self,
+        line: OrderItemIn,
+        item_id: str,
+        previous: dict[str, OrderItemCharge],
+        used: set[str],
+    ) -> list[OrderItemCharge]:
         """Turn what the owner typed on the line into stored money rows.
 
         Nothing typed → no row → the order prices exactly as before. Design
@@ -694,53 +700,79 @@ class OperationsService:
         design_rate: Decimal | None = None
         design_variable_id: str | None = None
         for index, charge in enumerate(line.charges):
+            old = previous.get(charge.id) if charge.id else None
+            if charge.id:
+                if old is None or charge.id in used or old.kind != charge.kind:
+                    raise DomainError("هزینهٔ انتخاب‌شده متعلق به این سفارش نیست")
+                used.add(charge.id)
             if charge.kind == "DESIGN":
                 hours = Decimal(charge.hours)
                 if hours <= 0:
                     continue
-                if design_rate is None:
-                    design_rate, design_variable_id = self._design_rate()
-                if design_rate <= 0:
+                if old is not None:
+                    rate, design_id = Decimal(old.rate), old.variable_id
+                else:
+                    if design_rate is None:
+                        design_rate, design_variable_id = self._design_rate()
+                    rate, design_id = design_rate, design_variable_id
+                if rate <= 0:
                     raise DomainError(
                         "برای ثبت هزینهٔ طراحی، اول در تنظیمات قیمت‌گذاری یکی از "
                         "متغیرها را «نرخ هر ساعت طراحی» کنید"
                     )
+                if hours * rate >= MAX_ABS_AMOUNT:
+                    raise DomainError("هزینهٔ طراحی از حد مجاز بیشتر است")
                 rows.append(
                     OrderItemCharge(
                         id=uuid7(),
                         order_item_id=item_id,
                         position=index,
                         kind="DESIGN",
-                        variable_id=design_variable_id,
+                        variable_id=design_id,
                         name="هزینه طراحی",
                         hours=hours,
-                        rate=design_rate,
-                        amount=(hours * design_rate).quantize(Decimal("0.0001")),
+                        rate=rate,
+                        amount=(hours * rate).quantize(Decimal("0.0001")),
                         created_at=now,
                     )
                 )
                 continue
-            amount = Decimal(charge.amount)
-            if amount <= 0:
-                continue
-            name = charge.name.strip()
-            if not name and charge.variable_id:
-                variable = self.session.get(PricingVariable, charge.variable_id)
-                name = variable.name if variable is not None else ""
-            if not name:
-                raise DomainError("برای متغیر اضافه‌شده روی ردیف، نام یا متغیر را انتخاب کنید")
+            if charge.quantity is not None:
+                quantity = Decimal(charge.quantity)
+                if quantity <= 0:
+                    continue
+                if old is not None and old.quantity is not None:
+                    rate, name, variable_id = Decimal(old.rate), old.name, old.variable_id
+                else:
+                    variable = (
+                        self.session.get(PricingVariable, charge.variable_id)
+                        if charge.variable_id else None
+                    )
+                    if variable is None or not variable.is_active or variable.basis != "AMOUNT":
+                        raise DomainError("متغیر فعال با نوع مبلغ را از تنظیمات قیمت‌گذاری انتخاب کنید")
+                    rate = Decimal(variable.value) / Decimal(10)
+                    name, variable_id = variable.name, variable.id
+                if quantity * rate >= MAX_ABS_AMOUNT:
+                    raise DomainError("هزینهٔ متغیر از حد مجاز بیشتر است")
+                amount = (quantity * rate).quantize(Decimal("0.0001"))
+            else:
+                # Compatibility with orders and clients from before quantity was introduced.
+                quantity = None
+                amount = Decimal(charge.amount)
+                if amount <= 0:
+                    continue
+                name = charge.name.strip()
+                if not name and charge.variable_id:
+                    variable = self.session.get(PricingVariable, charge.variable_id)
+                    name = variable.name if variable is not None else ""
+                if not name:
+                    raise DomainError("برای متغیر اضافه‌شده روی ردیف، نام یا متغیر را انتخاب کنید")
+                rate, variable_id = Decimal(0), charge.variable_id
             rows.append(
                 OrderItemCharge(
-                    id=uuid7(),
-                    order_item_id=item_id,
-                    position=index,
-                    kind="VARIABLE",
-                    variable_id=charge.variable_id,
-                    name=name,
-                    hours=Decimal(0),
-                    rate=Decimal(0),
-                    amount=amount,
-                    created_at=now,
+                    id=uuid7(), order_item_id=item_id, position=index, kind="VARIABLE",
+                    variable_id=variable_id, name=name, hours=Decimal(0), rate=rate,
+                    quantity=quantity, amount=amount, created_at=now,
                 )
             )
         return rows
@@ -769,6 +801,8 @@ class OperationsService:
         for total in (sum(amounts, Decimal(0)), sum(costs, Decimal(0))):
             if total >= MAX_ABS_AMOUNT:
                 raise DomainError("جمع مبلغ سفارش از حد مجاز عدد دقیق بیشتر است")
+        previous = {charge.id: charge for item in order.items for charge in item.charges}
+        used: set[str] = set()
         order.items.clear()
         for index, (line, item, unit_price, unit_cost) in enumerate(priced):
             item_id = uuid7()
@@ -788,9 +822,16 @@ class OperationsService:
                     print_hours=Decimal(0),
                     inventory_item_id=item.id if item is not None else None,
                     notes=line.notes,
-                    charges=self._build_charges(line, item_id),
+                    charges=self._build_charges(line, item_id, previous, used),
                 )
             )
+        total = sum(
+            (item.quantity * item.unit_price + sum((c.amount for c in item.charges), Decimal(0))
+             for item in order.items),
+            Decimal(0),
+        )
+        if total >= MAX_ABS_AMOUNT:
+            raise DomainError("جمع مبلغ سفارش از حد مجاز عدد دقیق بیشتر است")
         self.session.flush()
 
     def create_order(self, data: OrderCreate) -> Order:

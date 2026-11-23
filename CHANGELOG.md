@@ -5,6 +5,15 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
+## [1.0.29] — 2026-10-14
+
+### اصلاح مقدار متغیر در سفارش
+- مقدار واردشده برای متغیر مبلغی در هر قلم در نرخ ثبت‌شده در تنظیمات ضرب می‌شود؛
+  مثلاً ۲ × ۷۰۰٬۰۰۰ = ۱٬۴۰۰٬۰۰۰ تومان، یک بار به همان قلم اضافه می‌شود.
+- مقدار، نرخ و مبلغ زیر قلم در پیش‌فاکتور ثبت می‌شوند؛ تغییر یا حذف تنظیمات نرخ
+  سفارش ثبت‌شده را تغییر نمی‌دهد و مبالغ مستقیم قدیمی بدون تغییر می‌مانند.
+- متغیرهای درصدی به دلیل نداشتن نرخ مبلغی ثابت در این فهرست ارائه نمی‌شوند.
+
 ## [1.0.28] — 2026-11-23
 
 Three owner requests in one release: his own pricing variables belong on the

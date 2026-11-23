@@ -191,12 +191,14 @@ class OrderItemChargeIn(BaseModel):
 
     ``DESIGN`` carries only the hours: the server multiplies them by the owner's
     design-rate variable and stores the rate it used. ``VARIABLE`` carries the
-    amount the owner typed for that variable on this line.
+    quantity multiplied by the monetary variable rate from settings.
     """
 
     model_config = ConfigDict(extra="forbid")
 
     kind: Literal["DESIGN", "VARIABLE"] = "VARIABLE"
+    id: str | None = Field(default=None, max_length=64)
+    quantity: Amount | None = Field(default=None, ge=0)
     variable_id: str | None = Field(default=None, max_length=64)
     name: str = Field(default="", max_length=120)
     hours: Amount = Field(default=Decimal(0), ge=0)
@@ -231,6 +233,7 @@ class OrderItemChargeRead(BaseModel):
     hours: Amount
     rate: Amount
     amount: Amount
+    quantity: Amount | None = None
 
 
 class OrderItemRead(BaseModel):

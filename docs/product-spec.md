@@ -205,9 +205,14 @@ where the additions are the owner's custom constants and pricing variables. The 
   `hours × rate` and is snapshotted on the line (`order_item_charges.kind =
   DESIGN`, with the rate used). An empty field means no design charge and the
   totals stay exactly as before.
-- Each line also has «افزودن متغیر»: pick one of the owner's variables, type the
-  amount for this line, and it becomes a `VARIABLE` charge (the variable's name
-  is copied, so deleting or renaming it later never changes a saved invoice).
+- Each line also has «افزودن متغیر»: choose an active monetary (`AMOUNT`)
+  variable, then enter its quantity. The line charge is quantity × the variable's
+  configured Toman value, added once per line (not multiplied by product quantity).
+  The name, rate and quantity are snapshotted and printed under the line. Editing
+  an existing charge preserves its rate even after a settings change or deletion.
+  Legacy direct-amount charges remain unchanged; blank or zero quantities add no
+  charge. Percentage variables are not offered because they have no fixed monetary
+  rate per unit.
 - Order total = `Σ(quantity × unit price + Σ charges)`; the proforma prints the
   charges under their line and adds «جمع اقلام» + «هزینهٔ طراحی و متغیرها».
 

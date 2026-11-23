@@ -197,6 +197,18 @@ async def test_a_variable_picked_for_the_line_is_stored_by_name(client) -> None:
     assert again["items"][0]["charges"][0]["variable_id"] is None
     assert again["items"][0]["charges"][0]["name"] == "اجرت پرسنل"
 
+    # Editing an older, amount-only order must not reinterpret it as a count.
+    payload["items"][0]["charges"] = [{
+        "id": again["items"][0]["charges"][0]["id"], "kind": "VARIABLE",
+        "name": "اجرت پرسنل", "amount": "25000",
+    }]
+    updated = await client.patch(f"/api/v1/orders/{order['id']}", json={
+        "version_id": again["version_id"], "items": payload["items"]
+    })
+    assert updated.status_code == 200, updated.text
+    assert updated.json()["items"][0]["charges"][0]["quantity"] is None
+    assert Decimal(updated.json()["total"]) == Decimal("26000")
+
 
 @pytest.mark.asyncio
 async def test_the_proforma_prints_design_cost_on_its_own_row(client, app) -> None:
@@ -248,3 +260,63 @@ async def test_the_design_rate_flag_survives_a_rename(client, database) -> None:
     with database.session() as session:
         row = session.get(PricingVariable, created["id"])
         assert row is not None and row.is_design_rate == 1
+
+
+@pytest.mark.asyncio
+async def test_variable_quantity_rate_snapshot_edit_and_proforma(client, app) -> None:
+    def no_pdf(*_args, **_kwargs):
+        raise RuntimeError("no PDF in test")
+
+    app.state.pdf_renderer = no_pdf
+    variable = (await client.post(VARIABLES, json={
+        "name": "بسته‌بندی", "basis": "AMOUNT", "scope": "PER_UNIT", "value": "700000"
+    })).json()
+    payload = await order_payload(client, quantities=("2",), unit_price="100000")
+    payload["items"][0]["charges"] = [{
+        "kind": "VARIABLE", "variable_id": variable["id"], "quantity": "2", "amount": "1"
+    }]
+    response = await client.post("/api/v1/orders", json=payload)
+    assert response.status_code == 201, response.text
+    order = response.json()
+    charge = order["items"][0]["charges"][0]
+    assert Decimal(charge["quantity"]) == 2
+    assert Decimal(charge["rate"]) == 700000
+    assert Decimal(charge["amount"]) == 1400000
+    assert Decimal(order["total"]) == 1600000
+    pdf = await client.get(f"/api/v1/orders/{order['id']}/proforma.pdf")
+    assert "۲ × ۷۰۰٬۰۰۰" in pdf.text
+    assert "۱٬۴۰۰٬۰۰۰" in pdf.text
+    await client.patch(f"{VARIABLES}/{variable['id']}", json={"value": "900000"})
+    payload["items"][0]["charges"][0]["id"] = charge["id"]
+    response = await client.patch(f"/api/v1/orders/{order['id']}", json={
+        "version_id": order["version_id"], "items": payload["items"]
+    })
+    assert response.status_code == 200, response.text
+    edited = response.json()
+    assert Decimal(edited["total"]) == 1600000
+    assert Decimal(edited["items"][0]["charges"][0]["rate"]) == 700000
+    await client.delete(f"{VARIABLES}/{variable['id']}")
+    charge = (await client.get(f"/api/v1/orders/{order['id']}")).json()["items"][0]["charges"][0]
+    assert charge["variable_id"] is None
+    assert Decimal(charge["quantity"]) == 2
+    payload["items"][0]["charges"][0]["id"] = charge["id"]
+    response = await client.patch(f"/api/v1/orders/{order['id']}", json={
+        "version_id": edited["version_id"], "items": payload["items"]
+    })
+    assert response.status_code == 200, response.text
+    assert Decimal(response.json()["total"]) == 1600000
+
+
+@pytest.mark.asyncio
+async def test_variable_quantity_rejects_percent_and_ignores_blank(client) -> None:
+    variable = (await client.post(VARIABLES, json={
+        "name": "درصد", "basis": "PERCENT_OF_COST", "scope": "PER_UNIT", "value": "10"
+    })).json()
+    payload = await order_payload(client, quantities=("1",))
+    payload["items"][0]["charges"] = [{"kind": "VARIABLE", "variable_id": variable["id"], "quantity": "0"}]
+    response = await client.post("/api/v1/orders", json=payload)
+    assert response.status_code == 201
+    assert response.json()["items"][0]["charges"] == []
+    payload["items"][0]["charges"][0]["quantity"] = "2"
+    response = await client.post("/api/v1/orders", json=payload)
+    assert response.status_code == 400

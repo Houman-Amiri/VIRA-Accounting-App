@@ -143,6 +143,7 @@ def _charge_read(charge: Any) -> OrderItemChargeRead:
         hours=Decimal(charge.hours),
         rate=Decimal(charge.rate),
         amount=Decimal(charge.amount),
+        quantity=Decimal(charge.quantity) if charge.quantity is not None else None,
     )
 
 
@@ -664,7 +665,8 @@ def proforma_pdf(
                             "detail": (
                                 f"{fa_count(charge.hours)} ساعت × {fa_money(charge.rate)}"
                                 if charge.kind == "DESIGN"
-                                else ""
+                                else (f"{fa_count(charge.quantity)} × {fa_money(charge.rate)}"
+                                      if charge.quantity is not None else "")
                             ),
                             "amount": fa_money(charge.amount),
                         }

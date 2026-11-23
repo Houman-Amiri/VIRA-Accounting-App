@@ -93,7 +93,7 @@ const data: Record<string, unknown> = {
       scope: "PER_UNIT",
       basis: "AMOUNT",
       allocation: "SPLIT",
-      value: "12000.0000",
+      value: "700000.0000",
       is_active: true,
       is_design_rate: false,
       position: 1,
@@ -288,11 +288,12 @@ it("adds design hours and a per-line variable to the saved line", async () => {
   fireEvent.change(screen.getByTestId("line-design-hours-0"), { target: { value: "3" } });
   await waitFor(() => expect(screen.getByTestId("line-charges-0")).toHaveTextContent("۱۵۰٬۰۰۰"));
 
-  // «افزودن متغیر»: متغیر تعریف‌شده در تنظیمات، با مبلغ همین ردیف
+  // «افزودن متغیر»: تعداد ضرب‌در مبلغ تنظیمات
   fireEvent.change(screen.getByTestId("line-variable-add-0"), { target: { value: "pack" } });
   fireEvent.change(screen.getByTestId("line-variable-amount-0-1"), {
-    target: { value: "20000" },
+    target: { value: "2" },
   });
+  expect(screen.getByTestId("line-charges-0")).toHaveTextContent("۱٬۴۰۰٬۰۰۰");
 
   fireEvent.click(screen.getByTestId("order-submit"));
   await waitFor(() => expect(post).toHaveBeenCalled());
@@ -301,6 +302,6 @@ it("adds design hours and a per-line variable to the saved line", async () => {
   )[0][1].body as { items: Array<{ charges: Array<Record<string, string>> }> };
   expect(body.items[0].charges).toEqual([
     expect.objectContaining({ kind: "DESIGN", hours: "3" }),
-    expect.objectContaining({ kind: "VARIABLE", variable_id: "pack", amount: "20000" }),
+    expect.objectContaining({ kind: "VARIABLE", variable_id: "pack", quantity: "2", amount: "0" }),
   ]);
 });

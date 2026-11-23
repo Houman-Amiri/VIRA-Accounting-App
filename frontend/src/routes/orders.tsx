@@ -28,11 +28,15 @@ import { useVariables } from "@/lib/pricing-settings";
 
 /**
  * «هزینهٔ طراحی» (hours × the design-rate variable) or one of the owner's
- * variables with the amount he typed for this line. Both land on the order
+ * monetary variables with the quantity typed for this line. Both land on the order
  * total and print on their own row in the proforma.
  */
 type OrderLineCharge = {
   kind: "DESIGN" | "VARIABLE";
+  id?: string;
+  quantity?: string;
+  rate?: string;
+  legacy?: boolean;
   variable_id: string;
   name: string;
   hours: string;
@@ -47,6 +51,7 @@ type ReadCharge = {
   hours: string;
   rate: string;
   amount: string;
+  quantity?: string | null;
 };
 
 type OrderLine = {
@@ -294,6 +299,10 @@ export function OrdersPage(): React.JSX.Element {
         unit_cost: line.unit_cost,
         charges: (line.charges ?? []).map((charge) => ({
           kind: charge.kind,
+          id: charge.id,
+          quantity: charge.quantity ?? "",
+          rate: charge.rate,
+          legacy: charge.kind === "VARIABLE" && charge.quantity == null,
           variable_id: charge.variable_id ?? "",
           name: charge.name,
           hours: charge.kind === "DESIGN" ? charge.hours : "",
@@ -341,6 +350,9 @@ export function OrdersPage(): React.JSX.Element {
             unit_cost: line.unit_cost.trim() ? parseNum(line.unit_cost).toString() : "0",
             charges: line.charges.map((charge) => ({
               kind: charge.kind,
+              id: charge.id ?? null,
+              quantity: charge.kind === "VARIABLE" && !charge.legacy
+                ? parseNum(charge.quantity || "0").toString() : null,
               variable_id: charge.variable_id || null,
               name: charge.kind === "DESIGN" ? "هزینه طراحی" : charge.name,
               hours:
@@ -348,7 +360,7 @@ export function OrdersPage(): React.JSX.Element {
                   ? parseNum(charge.hours).toString()
                   : "0",
               amount:
-                charge.kind === "VARIABLE" && charge.amount.trim()
+                charge.kind === "VARIABLE" && charge.legacy && charge.amount.trim()
                   ? parseNum(charge.amount).toString()
                   : "0",
             })),
@@ -402,6 +414,9 @@ export function OrdersPage(): React.JSX.Element {
             unit_cost: line.unit_cost.trim() ? parseNum(line.unit_cost).toString() : "0",
             charges: line.charges.map((charge) => ({
               kind: charge.kind,
+              id: charge.id ?? null,
+              quantity: charge.kind === "VARIABLE" && !charge.legacy
+                ? parseNum(charge.quantity || "0").toString() : null,
               variable_id: charge.variable_id || null,
               name: charge.kind === "DESIGN" ? "هزینه طراحی" : charge.name,
               hours:
@@ -409,7 +424,7 @@ export function OrdersPage(): React.JSX.Element {
                   ? parseNum(charge.hours).toString()
                   : "0",
               amount:
-                charge.kind === "VARIABLE" && charge.amount.trim()
+                charge.kind === "VARIABLE" && charge.legacy && charge.amount.trim()
                   ? parseNum(charge.amount).toString()
                   : "0",
             })),
@@ -483,15 +498,16 @@ export function OrdersPage(): React.JSX.Element {
     (charge: OrderLineCharge) => {
       try {
         if (charge.kind === "DESIGN") {
-          if (!designRate) return parseNum("0");
-          return parseNum(charge.hours || "0").times(parseNum(designRate.value));
+          return parseNum(charge.hours || "0").times(parseNum(charge.rate ?? designRate?.value ?? "0"));
         }
-        return parseNum(charge.amount || "0");
+        if (charge.legacy) return parseNum(charge.amount || "0");
+        const variable = variables.find((row) => row.id === charge.variable_id);
+        return parseNum(charge.quantity || "0").times(parseNum(charge.rate ?? variable?.value ?? "0"));
       } catch {
         return parseNum("0");
       }
     },
-    [designRate],
+    [designRate, variables],
   );
 
   const orderable = React.useMemo(() => warehouseQuery.data ?? [], [warehouseQuery.data]);
@@ -902,10 +918,10 @@ export function OrdersPage(): React.JSX.Element {
                                           <li key={charge.id} className="flex justify-between">
                                             <span>
                                               {charge.name}
-                                              {charge.kind === "DESIGN" && (
+                                              {(charge.kind === "DESIGN" || charge.quantity != null) && (
                                                 <>
                                                   {" — "}
-                                                  {faNumber(charge.hours)} ساعت ×{" "}
+                                                  {charge.kind === "DESIGN" ? `${faNumber(charge.hours)} ساعت` : faNumber(charge.quantity ?? "0")} ×{" "}
                                                   <Money
                                                     value={charge.rate}
                                                     currency="TOMAN"
@@ -1141,10 +1157,15 @@ export function OrdersPage(): React.JSX.Element {
                       >
                         <span className="min-w-0 flex-1 truncate">
                           {charge.kind === "DESIGN" ? "هزینه طراحی" : charge.name}
-                          {charge.kind === "DESIGN" && designRate && (
+                          {charge.kind === "VARIABLE" && !charge.legacy && (
+                            <span className="ms-1 text-[10px] text-muted-foreground">
+                              (هر واحد <Money value={charge.rate ?? variables.find((v) => v.id === charge.variable_id)?.value ?? "0"} currency="TOMAN" hideCurrency />)
+                            </span>
+                          )}
+                          {charge.kind === "DESIGN" && (charge.rate != null || designRate) && (
                             <span className="ms-1 text-[10px] text-muted-foreground">
                               (هر ساعت{" "}
-                              <Money value={designRate.value} currency="TOMAN" hideCurrency />)
+                              <Money value={charge.rate ?? designRate?.value ?? "0"} currency="TOMAN" hideCurrency />)
                             </span>
                           )}
                         </span>
@@ -1153,7 +1174,7 @@ export function OrdersPage(): React.JSX.Element {
                           aria-label={
                             charge.kind === "DESIGN"
                               ? `ساعت طراحی ردیف ${faNumber(String(index + 1))}`
-                              : `مقدار ${charge.name} ردیف ${faNumber(String(index + 1))}`
+                              : `${charge.legacy ? "مبلغ قبلی" : "مقدار"} ${charge.name} ردیف ${faNumber(String(index + 1))}`
                           }
                           data-testid={
                             charge.kind === "DESIGN"
@@ -1161,15 +1182,15 @@ export function OrdersPage(): React.JSX.Element {
                               : `line-variable-amount-${index}-${chargeIndex}`
                           }
                           inputMode="decimal"
-                          placeholder={charge.kind === "DESIGN" ? "ساعت" : "مبلغ"}
-                          value={charge.kind === "DESIGN" ? charge.hours : charge.amount}
+                          placeholder={charge.kind === "DESIGN" ? "ساعت" : charge.legacy ? "مبلغ قبلی" : "مقدار"}
+                          value={charge.kind === "DESIGN" ? charge.hours : charge.legacy ? charge.amount : charge.quantity ?? ""}
                           onChange={(e) =>
                             updateCharge(
                               index,
                               chargeIndex,
                               charge.kind === "DESIGN"
                                 ? { hours: e.target.value }
-                                : { amount: e.target.value },
+                                : charge.legacy ? { amount: e.target.value } : { quantity: e.target.value },
                             )
                           }
                         />
@@ -1224,17 +1245,21 @@ export function OrdersPage(): React.JSX.Element {
                             variable_id: variable.id,
                             name: variable.name,
                             hours: "",
-                            amount: variable.basis === "AMOUNT" ? variable.value : "",
+                            quantity: "",
+                            amount: "",
                           });
                         }}
                       >
                         <option value="">+ افزودن متغیر</option>
-                        {variables.map((variable) => (
+                        {variables.filter((variable) => variable.basis === "AMOUNT").map((variable) => (
                           <option key={variable.id} value={variable.id}>
                             {variable.name}
                           </option>
                         ))}
                       </select>
+                      {variables.some((v) => v.basis !== "AMOUNT") && (
+                        <span className="text-[10px] text-muted-foreground">فقط متغیرهای مبلغی قابل افزودن هستند.</span>
+                      )}
                       {!designRate && variables.length > 0 && (
                         <span className="text-[10px] text-muted-foreground">
                           برای «هزینهٔ طراحی»، در تنظیمات قیمت‌گذاری یکی از متغیرها را نرخ هر ساعت

@@ -14164,6 +14164,33 @@
             "title": "Kind",
             "default": "VARIABLE"
           },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quantity"
+          },
           "variable_id": {
             "anyOf": [
               {
@@ -14212,7 +14239,7 @@
         "additionalProperties": false,
         "type": "object",
         "title": "OrderItemChargeIn",
-        "description": "One extra money row on an order line.\n\n``DESIGN`` carries only the hours: the server multiplies them by the owner's\ndesign-rate variable and stores the rate it used. ``VARIABLE`` carries the\namount the owner typed for that variable on this line."
+        "description": "One extra money row on an order line.\n\n``DESIGN`` carries only the hours: the server multiplies them by the owner's\ndesign-rate variable and stores the rate it used. ``VARIABLE`` carries the\nquantity multiplied by the monetary variable rate from settings."
       },
       "OrderItemChargeRead": {
         "properties": {
@@ -14258,6 +14285,17 @@
           "amount": {
             "type": "string",
             "title": "Amount"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quantity"
           }
         },
         "type": "object",

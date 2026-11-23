@@ -2447,7 +2447,7 @@ export interface components {
          *
          *     ``DESIGN`` carries only the hours: the server multiplies them by the owner's
          *     design-rate variable and stores the rate it used. ``VARIABLE`` carries the
-         *     amount the owner typed for that variable on this line.
+         *     quantity multiplied by the monetary variable rate from settings.
          */
         OrderItemChargeIn: {
             /**
@@ -2456,6 +2456,10 @@ export interface components {
              * @enum {string}
              */
             kind: "DESIGN" | "VARIABLE";
+            /** Id */
+            id?: string | null;
+            /** Quantity */
+            quantity?: number | string | null;
             /** Variable Id */
             variable_id?: string | null;
             /**
@@ -2495,6 +2499,8 @@ export interface components {
             rate: string;
             /** Amount */
             amount: string;
+            /** Quantity */
+            quantity?: string | null;
         };
         /**
          * OrderItemIn

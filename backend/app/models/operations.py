@@ -244,7 +244,8 @@ class OrderItemCharge(Base):
       rate is snapshotted, so a later change in Settings never rewrites an
       order that was already given to a customer.
     * ``VARIABLE`` — one of the pricing variables the owner picked for this
-      line, with the amount he typed for it.
+      line, with a quantity and a snapshotted monetary rate. Legacy charges
+      have a null quantity and retain their directly-entered amount.
     """
 
     __tablename__ = "order_item_charges"
@@ -275,6 +276,8 @@ class OrderItemCharge(Base):
     amount: Mapped[Decimal] = mapped_column(
         ScaledMoneyType, nullable=False, default=Decimal(0)
     )
+    # NULL denotes a legacy charge entered as a direct amount.
+    quantity: Mapped[Decimal | None] = mapped_column(ScaledMoneyType, nullable=True)
     created_at: Mapped[str] = mapped_column(Text, nullable=False)
 
     item: Mapped[OrderItem] = relationship(back_populates="charges")
