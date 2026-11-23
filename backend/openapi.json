@@ -14153,6 +14153,126 @@
         ],
         "title": "OrderCreate"
       },
+      "OrderItemChargeIn": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "DESIGN",
+              "VARIABLE"
+            ],
+            "title": "Kind",
+            "default": "VARIABLE"
+          },
+          "variable_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Variable Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Name",
+            "default": ""
+          },
+          "hours": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Hours",
+            "default": "0"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Amount",
+            "default": "0"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "OrderItemChargeIn",
+        "description": "One extra money row on an order line.\n\n``DESIGN`` carries only the hours: the server multiplies them by the owner's\ndesign-rate variable and stores the rate it used. ``VARIABLE`` carries the\namount the owner typed for that variable on this line."
+      },
+      "OrderItemChargeRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "DESIGN",
+              "VARIABLE"
+            ],
+            "title": "Kind"
+          },
+          "variable_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Variable Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "hours": {
+            "type": "string",
+            "title": "Hours"
+          },
+          "rate": {
+            "type": "string",
+            "title": "Rate"
+          },
+          "amount": {
+            "type": "string",
+            "title": "Amount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "position",
+          "kind",
+          "variable_id",
+          "name",
+          "hours",
+          "rate",
+          "amount"
+        ],
+        "title": "OrderItemChargeRead"
+      },
       "OrderItemIn": {
         "properties": {
           "product_name": {
@@ -14229,6 +14349,14 @@
               }
             ],
             "title": "Notes"
+          },
+          "charges": {
+            "items": {
+              "$ref": "#/components/schemas/OrderItemChargeIn"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Charges"
           }
         },
         "type": "object",
@@ -14314,6 +14442,18 @@
               }
             ],
             "title": "Notes"
+          },
+          "charges": {
+            "items": {
+              "$ref": "#/components/schemas/OrderItemChargeRead"
+            },
+            "type": "array",
+            "title": "Charges"
+          },
+          "charges_total": {
+            "type": "string",
+            "title": "Charges Total",
+            "readOnly": true
           }
         },
         "type": "object",
@@ -14324,7 +14464,8 @@
           "variant",
           "quantity",
           "unit_price",
-          "unit_cost"
+          "unit_cost",
+          "charges_total"
         ],
         "title": "OrderItemRead"
       },
@@ -15170,6 +15311,11 @@
             "type": "boolean",
             "title": "Is Active",
             "default": true
+          },
+          "is_design_rate": {
+            "type": "boolean",
+            "title": "Is Design Rate",
+            "default": false
           }
         },
         "additionalProperties": false,
@@ -15225,6 +15371,10 @@
             "type": "boolean",
             "title": "Is Active"
           },
+          "is_design_rate": {
+            "type": "boolean",
+            "title": "Is Design Rate"
+          },
           "position": {
             "type": "integer",
             "title": "Position"
@@ -15247,6 +15397,7 @@
           "allocation",
           "value",
           "is_active",
+          "is_design_rate",
           "position",
           "created_at",
           "updated_at"
@@ -15340,6 +15491,17 @@
               }
             ],
             "title": "Is Active"
+          },
+          "is_design_rate": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Design Rate"
           }
         },
         "additionalProperties": false,

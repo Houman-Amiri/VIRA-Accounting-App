@@ -226,6 +226,58 @@ class OrderItem(Base):
     inventory_item: Mapped[InventoryItem | None] = relationship(
         lazy="selectin", viewonly=True
     )
+    charges: Mapped[list[OrderItemCharge]] = relationship(
+        back_populates="item",
+        cascade="all, delete-orphan",
+        order_by="OrderItemCharge.position",
+        lazy="selectin",
+    )
+
+
+class OrderItemCharge(Base):
+    """An extra money row on one order line («هزینهٔ طراحی»، متغیرهای شما).
+
+    Two kinds share the row so the invoice and the totals only ever have one
+    list to walk:
+
+    * ``DESIGN``   — hours of design × the owner's design-rate variable; the
+      rate is snapshotted, so a later change in Settings never rewrites an
+      order that was already given to a customer.
+    * ``VARIABLE`` — one of the pricing variables the owner picked for this
+      line, with the amount he typed for it.
+    """
+
+    __tablename__ = "order_item_charges"
+    __table_args__ = (
+        CheckConstraint("kind IN ('DESIGN','VARIABLE')", name="kind"),
+        CheckConstraint("hours >= 0", name="hours_non_negative"),
+        CheckConstraint("rate >= 0", name="rate_non_negative"),
+        CheckConstraint("amount >= 0", name="amount_non_negative"),
+        Index("ix_order_item_charges_item", "order_item_id"),
+    )
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    order_item_id: Mapped[str] = mapped_column(
+        Text, ForeignKey("order_items.id", ondelete="CASCADE"), nullable=False
+    )
+    position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    kind: Mapped[str] = mapped_column(Text, nullable=False, default="VARIABLE")
+    variable_id: Mapped[str | None] = mapped_column(
+        Text, ForeignKey("pricing_variables.id", ondelete="SET NULL"), nullable=True
+    )
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    hours: Mapped[Decimal] = mapped_column(
+        ScaledMoneyType, nullable=False, default=Decimal(0)
+    )
+    rate: Mapped[Decimal] = mapped_column(
+        ScaledMoneyType, nullable=False, default=Decimal(0)
+    )
+    amount: Mapped[Decimal] = mapped_column(
+        ScaledMoneyType, nullable=False, default=Decimal(0)
+    )
+    created_at: Mapped[str] = mapped_column(Text, nullable=False)
+
+    item: Mapped[OrderItem] = relationship(back_populates="charges")
 
 
 class ProductionJob(Base, TimestampMixin):

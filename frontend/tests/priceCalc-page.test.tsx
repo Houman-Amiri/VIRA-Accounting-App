@@ -107,6 +107,7 @@ describe("pricing page — literal Excel model", () => {
       allocation: "ONE_TIME" as const,
       value: "100000.0000",
       is_active: true,
+      is_design_rate: false,
       position: 0,
       created_at: "2026-10-16T00:00:00Z",
       updated_at: "2026-10-16T00:00:00Z",
@@ -123,6 +124,14 @@ describe("pricing page — literal Excel model", () => {
     expect(
       screen.getByText((_, node) => node?.textContent === "جمع کل سفارش (۱۰ عدد)۲٬۱۸۵٬۰۰۰"),
     ).toBeInTheDocument();
+
+    // متغیرها بخشی از «مشخصات محصول»اند، نه یک کادر جدا با ورودی تکراری.
+    const field = screen.getByTestId("variable-field-var-shipping");
+    expect(field).toContainElement(screen.getByTestId("variable-input-var-shipping"));
+    expect(field).toContainElement(screen.getByTestId("variable-count-var-shipping"));
+    const effects = screen.getByTestId("variable-lines");
+    expect(within(effects).queryByRole("textbox")).not.toBeInTheDocument();
+    expect(within(field).getByText("کرایه ارسال")).toBeInTheDocument();
 
     // «۲ محموله»: مبلغ ۱۰۰٬۰۰۰ دو بار روی جمع کل می‌نشیند.
     fireEvent.change(screen.getByTestId("variable-count-var-shipping"), {

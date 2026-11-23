@@ -28,6 +28,8 @@ from ..models import (
     InventoryItem,
     Order,
     OrderItem,
+    OrderItemCharge,
+    PricingVariable,
     ProductionFilament,
     ProductionJob,
     StockMovement,
@@ -664,6 +666,85 @@ class OperationsService:
                         reason="ثبت سفارش ممکن نیست —",
                     )
 
+    def _design_rate(self) -> tuple[Decimal, str | None]:
+        """The owner's design-rate variable (its value = Toman per design hour).
+
+        A variable marked «نرخ هر ساعت طراحی» in Settings is the single source;
+        money variables store ×10, so the display value is used here.
+        """
+        row = self.session.scalar(
+            select(PricingVariable)
+            .where(PricingVariable.is_design_rate == 1)
+            .order_by(PricingVariable.position, PricingVariable.created_at)
+        )
+        if row is None or not row.is_active:
+            return Decimal(0), None
+        rate = row.value if row.basis.startswith("PERCENT") else row.value / Decimal(10)
+        return Decimal(rate), row.id
+
+    def _build_charges(self, line: OrderItemIn, item_id: str) -> list[OrderItemCharge]:
+        """Turn what the owner typed on the line into stored money rows.
+
+        Nothing typed → no row → the order prices exactly as before. Design
+        hours are multiplied by the Settings rate and the rate itself is
+        snapshotted, so changing it later never rewrites an old proforma.
+        """
+        rows: list[OrderItemCharge] = []
+        now = utc_now_iso()
+        design_rate: Decimal | None = None
+        design_variable_id: str | None = None
+        for index, charge in enumerate(line.charges):
+            if charge.kind == "DESIGN":
+                hours = Decimal(charge.hours)
+                if hours <= 0:
+                    continue
+                if design_rate is None:
+                    design_rate, design_variable_id = self._design_rate()
+                if design_rate <= 0:
+                    raise DomainError(
+                        "برای ثبت هزینهٔ طراحی، اول در تنظیمات قیمت‌گذاری یکی از "
+                        "متغیرها را «نرخ هر ساعت طراحی» کنید"
+                    )
+                rows.append(
+                    OrderItemCharge(
+                        id=uuid7(),
+                        order_item_id=item_id,
+                        position=index,
+                        kind="DESIGN",
+                        variable_id=design_variable_id,
+                        name="هزینه طراحی",
+                        hours=hours,
+                        rate=design_rate,
+                        amount=(hours * design_rate).quantize(Decimal("0.0001")),
+                        created_at=now,
+                    )
+                )
+                continue
+            amount = Decimal(charge.amount)
+            if amount <= 0:
+                continue
+            name = charge.name.strip()
+            if not name and charge.variable_id:
+                variable = self.session.get(PricingVariable, charge.variable_id)
+                name = variable.name if variable is not None else ""
+            if not name:
+                raise DomainError("برای متغیر اضافه‌شده روی ردیف، نام یا متغیر را انتخاب کنید")
+            rows.append(
+                OrderItemCharge(
+                    id=uuid7(),
+                    order_item_id=item_id,
+                    position=index,
+                    kind="VARIABLE",
+                    variable_id=charge.variable_id,
+                    name=name,
+                    hours=Decimal(0),
+                    rate=Decimal(0),
+                    amount=amount,
+                    created_at=now,
+                )
+            )
+        return rows
+
     def _apply_items(self, order: Order, items: list[OrderItemIn]) -> None:
         self._validate_order_lines(items)
         priced: list[tuple[OrderItemIn, InventoryItem | None, Decimal, Decimal]] = []
@@ -690,9 +771,10 @@ class OperationsService:
                 raise DomainError("جمع مبلغ سفارش از حد مجاز عدد دقیق بیشتر است")
         order.items.clear()
         for index, (line, item, unit_price, unit_cost) in enumerate(priced):
+            item_id = uuid7()
             order.items.append(
                 OrderItem(
-                    id=uuid7(),
+                    id=item_id,
                     order_id=order.id,
                     position=index,
                     product_name=(line.product_name or "").strip()
@@ -706,6 +788,7 @@ class OperationsService:
                     print_hours=Decimal(0),
                     inventory_item_id=item.id if item is not None else None,
                     notes=line.notes,
+                    charges=self._build_charges(line, item_id),
                 )
             )
         self.session.flush()

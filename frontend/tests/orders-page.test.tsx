@@ -73,6 +73,34 @@ const data: Record<string, unknown> = {
     },
   ],
   "/api/v1/orders/reports/sales": { rows: [], orders: 0, revenue: "0", cost: "0", profit: "0" },
+  "/api/v1/settings/pricing/variables": [
+    {
+      id: "design",
+      name: "نرخ طراحی",
+      scope: "PER_UNIT",
+      basis: "AMOUNT",
+      allocation: "SPLIT",
+      value: "50000.0000",
+      is_active: true,
+      is_design_rate: true,
+      position: 0,
+      created_at: "2026-10-16T00:00:00Z",
+      updated_at: "2026-10-16T00:00:00Z",
+    },
+    {
+      id: "pack",
+      name: "بسته‌بندی",
+      scope: "PER_UNIT",
+      basis: "AMOUNT",
+      allocation: "SPLIT",
+      value: "12000.0000",
+      is_active: true,
+      is_design_rate: false,
+      position: 1,
+      created_at: "2026-10-16T00:00:00Z",
+      updated_at: "2026-10-16T00:00:00Z",
+    },
+  ],
   "/api/v1/settings/calendar": {
     calendar: "jalali",
     version_id: 0,
@@ -243,4 +271,36 @@ it("offers neither editing nor deleting once the order is confirmed", async () =
   await screen.findByTestId("order-o1");
   expect(screen.queryByTestId("order-o1-edit")).not.toBeInTheDocument();
   expect(screen.queryByTestId("order-o1-delete")).not.toBeInTheDocument();
+});
+
+it("adds design hours and a per-line variable to the saved line", async () => {
+  const post = vi
+    .spyOn(api, "POST")
+    .mockResolvedValue({ data: ORDER, response: new Response() } as never);
+  mount();
+  await screen.findByTestId("line-0");
+  fireEvent.change(screen.getByTestId("line-name-0"), { target: { value: "پایه موبایل" } });
+  fireEvent.change(screen.getByTestId("line-price-0"), { target: { value: "200000" } });
+  fireEvent.change(screen.getByTestId("order-customer"), { target: { value: "مشتری" } });
+
+  // «هزینهٔ طراحی»: ۳ ساعت × نرخ ۵۰٬۰۰۰ = ۱۵۰٬۰۰۰
+  fireEvent.click(await screen.findByTestId("line-design-add-0"));
+  fireEvent.change(screen.getByTestId("line-design-hours-0"), { target: { value: "3" } });
+  await waitFor(() => expect(screen.getByTestId("line-charges-0")).toHaveTextContent("۱۵۰٬۰۰۰"));
+
+  // «افزودن متغیر»: متغیر تعریف‌شده در تنظیمات، با مبلغ همین ردیف
+  fireEvent.change(screen.getByTestId("line-variable-add-0"), { target: { value: "pack" } });
+  fireEvent.change(screen.getByTestId("line-variable-amount-0-1"), {
+    target: { value: "20000" },
+  });
+
+  fireEvent.click(screen.getByTestId("order-submit"));
+  await waitFor(() => expect(post).toHaveBeenCalled());
+  const body = (
+    post.mock.calls as unknown as Array<[string, { body: Record<string, unknown> }]>
+  )[0][1].body as { items: Array<{ charges: Array<Record<string, string>> }> };
+  expect(body.items[0].charges).toEqual([
+    expect.objectContaining({ kind: "DESIGN", hours: "3" }),
+    expect.objectContaining({ kind: "VARIABLE", variable_id: "pack", amount: "20000" }),
+  ]);
 });

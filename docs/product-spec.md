@@ -70,6 +70,7 @@ Stock changes only through **inventory movements** (`PURCHASE_IN`, `PRODUCTION_O
 | `customer_id` | FK |
 | `status` | lifecycle below |
 | lines | product, quantity, unit price, discount, variant (`PLAIN` / `CHAIN` «زنجیر دار»), line total |
+| line charges (v1.0.28) | «هزینهٔ طراحی» (`hours × design rate`) and any of the owner's pricing variables picked per line (`kind=VARIABLE`, amount, readable name snapshot) |
 | totals | subtotal, discount, grand total (exact Toman) |
 | notes / source | e.g. Digikala order id, phone order |
 
@@ -83,6 +84,10 @@ Cancellation (`CANCELLED` لغو‌شده) allowed before `SHIPPED`; completed/c
 - Generated from an order (or standalone draft) with: company identity, customer info (Jalali date), line items (Persian numerals, Toman), totals, validity/terms notes, signature block.
 - **Export: PDF** (WeasyPrint, RTL Persian typography, print-perfect) **and Word (.docx)** (`python-docx`, editable) — both named `Pish-Faktor-<order_number>-<jalali-date>`.
 - Proforma generation is idempotent per (order, revision); documents are content-addressed (SHA-256) per the Phase 5 storage rules.
+- **Line charges (v1.0.28)** print under their own line: a muted sub-row per charge
+  (`هزینه طراحی (۳ ساعت × ۱۵۰٬۰۰۰)`, variable name + amount), plus two totals rows —
+  «جمع اقلام» (quantity × unit price) and «هزینهٔ طراحی و متغیرها». The grand total
+  includes them.
 
 ### 3.4 Sales reports (گزارش فروش)
 
@@ -188,7 +193,24 @@ where the additions are the owner's custom constants and pricing variables. The 
 
 #### 4.3.4 Behavior
 
+- Owner-defined variables appear **inside «مشخصات محصول»**, next to weight / print hours / quantity, each with its value and a «×» count; the block below them only shows their effect on this calculation (no second set of inputs).
 - Two parallel result columns (plain vs. chain), like the sheet's «زنجیر دار» column; quantity-aware per-unit and batch totals; live recalculation as the user types (decimal.js).
+#### 4.3.5 Design-hour rate and per-line charges (v1.0.28)
+
+- Exactly one pricing variable may be flagged `is_design_rate`; its value is the
+  rate of **one design hour**. The server keeps a single holder (flagging a new
+  variable clears the old one) and requires the `AMOUNT` basis (a percentage
+  cannot be an hourly rate).
+- The order form shows «ساعت طراحی» next to the unit price; the amount is
+  `hours × rate` and is snapshotted on the line (`order_item_charges.kind =
+  DESIGN`, with the rate used). An empty field means no design charge and the
+  totals stay exactly as before.
+- Each line also has «افزودن متغیر»: pick one of the owner's variables, type the
+  amount for this line, and it becomes a `VARIABLE` charge (the variable's name
+  is copied, so deleting or renaming it later never changes a saved invoice).
+- Order total = `Σ(quantity × unit price + Σ charges)`; the proforma prints the
+  charges under their line and adds «جمع اقلام» + «هزینهٔ طراحی و متغیرها».
+
 - Save a calculation as a **quote snapshot** (`price_calculations`: inputs, constants, results, Jalali timestamp) — attachable to a product (sets suggested price) or an order line.
 - Print/export the calculation (PDF) for cost documentation.
 
@@ -247,3 +269,19 @@ Role-aware: auditors see read-only widgets; bookkeepers see operational actions;
 - [x] Core entities, fields, relationships defined — [`data-model.md`](data-model.md).
 - [x] Sales Price Calculations relations compiled and normalized from `قیمت نهایی.xlsx` (§4.3).
 - [x] `project brief.md` written with the actual selected stack and non-negotiable constraints.
+
+---
+
+## 9. Network access (LAN) — v1.0.28
+
+- NOA binds **all interfaces** (`0.0.0.0`) from the first start; there is no
+  opt-in switch. The launcher prints the loopback URL and, when the machine has
+  a LAN address, `در شبکهٔ محلی: http://192.168.x.x:8787/`.
+- Another computer on the same network opens that address and gets the same
+  owner login and roles; data lives only on the machine running NOA.
+- Session cookies are marked `Secure` only when the request itself arrived over
+  HTTPS, so login over plain-HTTP LAN works (browsers accept Secure cookies on
+  `localhost`, but not on a LAN IP). CSRF double-submit, roles and auditing are
+  unchanged.
+- The Windows firewall may ask once for permission the first time NOA listens;
+  allowing it on private networks is enough.

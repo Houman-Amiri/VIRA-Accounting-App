@@ -171,6 +171,8 @@ interface VariableDraft {
   basis: VariableBasis;
   allocation: VariableAllocation;
   value: string;
+  /** «نرخ هر ساعت طراحی»: دقیقاً یکی از متغیرها می‌تواند این نقش را داشته باشد. */
+  is_design_rate: boolean;
 }
 
 const EMPTY_VARIABLE: VariableDraft = {
@@ -179,6 +181,7 @@ const EMPTY_VARIABLE: VariableDraft = {
   basis: "AMOUNT",
   allocation: "SPLIT",
   value: "",
+  is_design_rate: false,
 };
 
 export function PricingSettingsPage(): React.JSX.Element {
@@ -326,6 +329,7 @@ export function PricingSettingsPage(): React.JSX.Element {
         allocation:
           variableDraft.scope === "PER_UNIT" ? ("SPLIT" as const) : variableDraft.allocation,
         value: value.toFixed(4),
+        is_design_rate: variableDraft.is_design_rate && variableDraft.basis === "AMOUNT",
       };
       if (variableDraft.id) {
         await updateVariable.mutateAsync({ id: variableDraft.id, patch: body });
@@ -760,7 +764,14 @@ export function PricingSettingsPage(): React.JSX.Element {
                       data-testid={`variable-row-${variable.id}`}
                       className="border-b"
                     >
-                      <td className="py-2">{variable.name}</td>
+                      <td className="py-2">
+                        {variable.name}
+                        {variable.is_design_rate && (
+                          <Badge variant="warning" className="ms-1" data-testid="design-rate-badge">
+                            نرخ طراحی
+                          </Badge>
+                        )}
+                      </td>
                       <td className="py-2 text-xs">
                         {VARIABLE_SCOPE_LABEL[variable.scope as VariableScope]}
                         {variable.scope === "PER_ORDER" && (
@@ -800,6 +811,7 @@ export function PricingSettingsPage(): React.JSX.Element {
                                 basis: variable.basis as VariableBasis,
                                 allocation: variable.allocation as VariableAllocation,
                                 value: variable.value,
+                                is_design_rate: variable.is_design_rate,
                               });
                             }}
                           >
@@ -953,6 +965,29 @@ export function PricingSettingsPage(): React.JSX.Element {
                 </div>
               )}
             </div>
+            <label
+              className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed px-2 py-1.5 text-xs"
+              data-testid="variable-design-rate"
+            >
+              <input
+                type="checkbox"
+                className="size-3.5 accent-primary"
+                checked={variableDraft.is_design_rate}
+                disabled={variableDraft.basis !== "AMOUNT"}
+                onChange={(event) =>
+                  setVariableDraft((current) => ({
+                    ...current,
+                    is_design_rate: event.target.checked,
+                  }))
+                }
+              />
+              <span>
+                نرخ هر ساعت طراحی
+                <span className="ms-1 text-[10px] text-muted-foreground">
+                  (فقط یکی از متغیرها؛ در صفحهٔ سفارش، ساعت طراحی در این نرخ ضرب می‌شود)
+                </span>
+              </span>
+            </label>
             <p className="text-xs text-muted-foreground" data-testid="variable-hint">
               {VARIABLE_SCOPES.find((scope) => scope.value === variableDraft.scope)?.hint}{" "}
               {variableDraft.scope === "PER_ORDER"

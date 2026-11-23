@@ -186,6 +186,23 @@ class InventorySummary(BaseModel):
 
 
 # ------------------------------------------------------------------- orders ---
+class OrderItemChargeIn(BaseModel):
+    """One extra money row on an order line.
+
+    ``DESIGN`` carries only the hours: the server multiplies them by the owner's
+    design-rate variable and stores the rate it used. ``VARIABLE`` carries the
+    amount the owner typed for that variable on this line.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    kind: Literal["DESIGN", "VARIABLE"] = "VARIABLE"
+    variable_id: str | None = Field(default=None, max_length=64)
+    name: str = Field(default="", max_length=120)
+    hours: Amount = Field(default=Decimal(0), ge=0)
+    amount: Amount = Field(default=Decimal(0), ge=0)
+
+
 class OrderItemIn(BaseModel):
     """A line the user writes on the order page.
 
@@ -201,6 +218,19 @@ class OrderItemIn(BaseModel):
     unit_cost: Amount = Field(default=Decimal(0), ge=0)
     inventory_item_id: str | None = None
     notes: str | None = None
+    # «هزینهٔ طراحی» hours and any variables the owner added to this line.
+    charges: list[OrderItemChargeIn] = Field(default_factory=list, max_length=20)
+
+
+class OrderItemChargeRead(BaseModel):
+    id: str
+    position: int
+    kind: Literal["DESIGN", "VARIABLE"]
+    variable_id: str | None
+    name: str
+    hours: Amount
+    rate: Amount
+    amount: Amount
 
 
 class OrderItemRead(BaseModel):
@@ -217,6 +247,13 @@ class OrderItemRead(BaseModel):
     inventory_item_id: str | None = None
     inventory_item_name: str | None = None
     notes: str | None = None
+    #: Extra rows printed under the line in the proforma (design cost, variables).
+    charges: list[OrderItemChargeRead] = Field(default_factory=list)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def charges_total(self) -> Decimal:
+        return sum((charge.amount for charge in self.charges), Decimal(0))
 
 
 class OrderCreate(BaseModel):

@@ -56,7 +56,18 @@ class UserRead(BaseModel):
     role: str
 
 
+def _cookies_secure(request: Request, session_manager: SessionManager) -> bool:
+    """Only mark cookies Secure when the request itself came over HTTPS.
+
+    The desktop app listens on plain HTTP so the owner can also open it from
+    another machine on the LAN (http://192.168.x.x:8787); browsers drop Secure
+    cookies there and the login would silently fail.  Over TLS the flag stays.
+    """
+    return session_manager.secure and request.url.scheme == "https"
+
+
 def _set_cookies(
+    request: Request,
     response: Response,
     settings: Settings,
     session_manager: SessionManager,
@@ -67,11 +78,12 @@ def _set_cookies(
     """Re-issue both cookies; ``csrf`` keeps a token the caller already holds."""
     token = session_manager.issue(user)
     csrf = csrf or new_csrf_token()
+    secure = _cookies_secure(request, session_manager)
     response.set_cookie(
         settings.session_cookie_name,
         token,
         httponly=True,
-        secure=session_manager.secure,
+        secure=secure,
         samesite="lax",
         max_age=settings.session_ttl_seconds,
     )
@@ -79,7 +91,7 @@ def _set_cookies(
         settings.csrf_cookie_name,
         csrf,
         httponly=False,  # readable by frontend for double-submit
-        secure=session_manager.secure,
+        secure=secure,
         samesite="lax",
         max_age=settings.session_ttl_seconds,
     )
@@ -138,7 +150,7 @@ def login(
 
     limiter.register_success("login", identity)
     session_user = SessionUser(user_id=user.id, username=user.username, role=user.role)
-    csrf = _set_cookies(response, settings, session_manager, session_user)
+    csrf = _set_cookies(request, response, settings, session_manager, session_user)
     record_security_event(
         session, "LOGIN_SUCCESS", actor_id=user.id, ip=ip, user_agent=ua
     )
@@ -149,6 +161,7 @@ def login(
 
 @router.post("/refresh", response_model=UserRead, dependencies=[Depends(enforce_csrf)])
 def refresh_session(
+    request: Request,
     response: Response,
     user: Annotated[SessionUser, Depends(require_user)],
     settings: Annotated[Settings, Depends(get_settings)],
@@ -156,7 +169,7 @@ def refresh_session(
 ) -> UserRead:
     """Silent session refresh (Phase 5 §2) — re-issues the HttpOnly cookie
     while the caller is still authenticated; 401s once the session is gone."""
-    _set_cookies(response, settings, session_manager, user)
+    _set_cookies(request, response, settings, session_manager, user)
     return UserRead(user_id=user.user_id, username=user.username, role=user.role)
 
 
@@ -456,6 +469,7 @@ def change_password(
         user_agent=request.headers.get("user-agent"),
     )
     _set_cookies(
+        request,
         response,
         settings,
         session_manager,
@@ -512,6 +526,7 @@ def change_username(
     # The session token carries the login name, so the renamed owner would keep
     # seeing the old name in the header until the cookie expired.
     _set_cookies(
+        request,
         response,
         settings,
         session_manager,

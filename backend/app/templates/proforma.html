@@ -27,6 +27,8 @@
     th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: right; }
     th { background: #f4f4f4; }
     .num { font-family: Vazirmatn, Tahoma, sans-serif; font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+    /* «هزینهٔ طراحی» and per-line variables: children of the line above them. */
+    tr.charge td { background: #fafafa; font-size: 11px; color: #333; padding-right: 18px; }
     .totals { margin-top: 12px; width: 45%; margin-right: 0; margin-left: auto; }
     .totals td { border: none; padding: 3px 6px; }
     .totals .grand td { font-weight: bold; border-top: 2px solid #111; }
@@ -58,12 +60,25 @@
         <td class="num">{{ line.unit_price }}</td>
         <td class="num">{{ line.line_total }}</td>
       </tr>
+      {% for charge in line.charges %}
+      <tr class="charge">
+        <td>
+          {{ charge.name }}{% if charge.detail %} <span class="muted">({{ charge.detail }})</span>{% endif %}
+        </td>
+        <td class="num">—</td>
+        <td class="num">—</td>
+        <td class="num">{{ charge.amount }}</td>
+      </tr>
+      {% endfor %}
       {% endfor %}
     </tbody>
   </table>
 
   <table class="totals">
-    <tr><td>جمع کل</td><td class="num">{{ order.subtotal }}</td></tr>
+    <tr><td>جمع اقلام</td><td class="num">{{ order.subtotal }}</td></tr>
+    {% if order.has_charges %}
+    <tr><td>هزینهٔ طراحی و متغیرها</td><td class="num">{{ order.charges_total }}</td></tr>
+    {% endif %}
     <tr><td>تخفیف</td><td class="num">{{ order.discount }}</td></tr>
     <tr class="grand"><td>مبلغ قابل پرداخت (تومان)</td><td class="num">{{ order.total }}</td></tr>
   </table>

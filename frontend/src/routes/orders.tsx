@@ -24,6 +24,30 @@ import { useCalendar } from "@/lib/calendar-settings";
 import { tehranToday, validIso } from "@/lib/calendar";
 import { faDate, faNumber } from "@/lib/fa";
 import { cn } from "@/lib/cn";
+import { useVariables } from "@/lib/pricing-settings";
+
+/**
+ * «هزینهٔ طراحی» (hours × the design-rate variable) or one of the owner's
+ * variables with the amount he typed for this line. Both land on the order
+ * total and print on their own row in the proforma.
+ */
+type OrderLineCharge = {
+  kind: "DESIGN" | "VARIABLE";
+  variable_id: string;
+  name: string;
+  hours: string;
+  amount: string;
+};
+
+type ReadCharge = {
+  id: string;
+  kind: "DESIGN" | "VARIABLE";
+  variable_id: string | null;
+  name: string;
+  hours: string;
+  rate: string;
+  amount: string;
+};
 
 type OrderLine = {
   /** Warehouse item, when the owner picks one; empty means a free line. */
@@ -34,6 +58,7 @@ type OrderLine = {
   quantity: string;
   unit_price: string;
   unit_cost: string;
+  charges: OrderLineCharge[];
 };
 
 type WarehouseItem = {
@@ -70,7 +95,13 @@ type Order = {
   notes: string | null;
   version_id: number;
   items: Array<
-    { id: string; product_name: string; inventory_item_name?: string | null } & OrderLine
+    {
+      id: string;
+      product_name: string;
+      inventory_item_name?: string | null;
+      charges_total?: string;
+      charges?: ReadCharge[];
+    } & Omit<OrderLine, "charges">
   >;
   warnings?: string[];
   total: string;
@@ -137,6 +168,7 @@ const emptyLine = (): OrderLine => ({
   quantity: "1",
   unit_price: "",
   unit_cost: "",
+  charges: [],
 });
 
 /** A pristine order form — used on cancel and after a successful edit. */
@@ -260,6 +292,13 @@ export function OrdersPage(): React.JSX.Element {
         quantity: line.quantity,
         unit_price: line.unit_price,
         unit_cost: line.unit_cost,
+        charges: (line.charges ?? []).map((charge) => ({
+          kind: charge.kind,
+          variable_id: charge.variable_id ?? "",
+          name: charge.name,
+          hours: charge.kind === "DESIGN" ? charge.hours : "",
+          amount: charge.kind === "DESIGN" ? "" : charge.amount,
+        })),
       })),
     });
     setPage(0);
@@ -300,6 +339,19 @@ export function OrdersPage(): React.JSX.Element {
             // 0 means "use the warehouse price", decided by the server
             unit_price: line.unit_price.trim() ? parseNum(line.unit_price).toString() : "0",
             unit_cost: line.unit_cost.trim() ? parseNum(line.unit_cost).toString() : "0",
+            charges: line.charges.map((charge) => ({
+              kind: charge.kind,
+              variable_id: charge.variable_id || null,
+              name: charge.kind === "DESIGN" ? "هزینه طراحی" : charge.name,
+              hours:
+                charge.kind === "DESIGN" && charge.hours.trim()
+                  ? parseNum(charge.hours).toString()
+                  : "0",
+              amount:
+                charge.kind === "VARIABLE" && charge.amount.trim()
+                  ? parseNum(charge.amount).toString()
+                  : "0",
+            })),
           })),
         },
       });
@@ -348,6 +400,19 @@ export function OrdersPage(): React.JSX.Element {
             quantity: parseNum(line.quantity || "1").toString(),
             unit_price: line.unit_price.trim() ? parseNum(line.unit_price).toString() : "0",
             unit_cost: line.unit_cost.trim() ? parseNum(line.unit_cost).toString() : "0",
+            charges: line.charges.map((charge) => ({
+              kind: charge.kind,
+              variable_id: charge.variable_id || null,
+              name: charge.kind === "DESIGN" ? "هزینه طراحی" : charge.name,
+              hours:
+                charge.kind === "DESIGN" && charge.hours.trim()
+                  ? parseNum(charge.hours).toString()
+                  : "0",
+              amount:
+                charge.kind === "VARIABLE" && charge.amount.trim()
+                  ? parseNum(charge.amount).toString()
+                  : "0",
+            })),
           })),
         },
       });
@@ -404,6 +469,31 @@ export function OrdersPage(): React.JSX.Element {
     onError: (e) => setMessage(errText(e)),
   });
 
+  const variablesQuery = useVariables();
+  const variables = React.useMemo(
+    () => (variablesQuery.data ?? []).filter((variable) => variable.is_active),
+    [variablesQuery.data],
+  );
+  /** The variable the owner marked as «نرخ هر ساعت طراحی» (settings page). */
+  const designRate = React.useMemo(
+    () => variables.find((variable) => variable.is_design_rate),
+    [variables],
+  );
+  const chargeAmount = React.useCallback(
+    (charge: OrderLineCharge) => {
+      try {
+        if (charge.kind === "DESIGN") {
+          if (!designRate) return parseNum("0");
+          return parseNum(charge.hours || "0").times(parseNum(designRate.value));
+        }
+        return parseNum(charge.amount || "0");
+      } catch {
+        return parseNum("0");
+      }
+    },
+    [designRate],
+  );
+
   const orderable = React.useMemo(() => warehouseQuery.data ?? [], [warehouseQuery.data]);
   const productById = React.useMemo(
     () => new Map(orderable.map((item) => [item.id, item])),
@@ -444,6 +534,43 @@ export function OrdersPage(): React.JSX.Element {
       items: f.items.map((line, i) => (i === index ? { ...line, ...patch } : line)),
     }));
 
+  const updateCharge = (
+    lineIndex: number,
+    chargeIndex: number,
+    patch: Partial<OrderLineCharge>,
+  ): void =>
+    setForm((f) => ({
+      ...f,
+      items: f.items.map((line, i) =>
+        i === lineIndex
+          ? {
+              ...line,
+              charges: line.charges.map((charge, j) =>
+                j === chargeIndex ? { ...charge, ...patch } : charge,
+              ),
+            }
+          : line,
+      ),
+    }));
+
+  const addCharge = (lineIndex: number, charge: OrderLineCharge): void =>
+    setForm((f) => ({
+      ...f,
+      items: f.items.map((line, i) =>
+        i === lineIndex ? { ...line, charges: [...line.charges, charge] } : line,
+      ),
+    }));
+
+  const removeCharge = (lineIndex: number, chargeIndex: number): void =>
+    setForm((f) => ({
+      ...f,
+      items: f.items.map((line, i) =>
+        i === lineIndex
+          ? { ...line, charges: line.charges.filter((_charge, j) => j !== chargeIndex) }
+          : line,
+      ),
+    }));
+
   const planProduction = useMutation({
     mutationFn: async (order: Order) => {
       const res = await api.POST("/api/v1/orders/{order_id}/production", {
@@ -466,14 +593,18 @@ export function OrdersPage(): React.JSX.Element {
 
   const formTotal = React.useMemo(() => {
     try {
-      return form.items.reduce(
-        (sum, line) => sum.plus(parseNum(line.quantity).times(parseNum(line.unit_price))),
-        parseNum("0"),
-      );
+      return form.items.reduce((sum, line) => {
+        // «هزینهٔ طراحی» و متغیرهای هر ردیف، بخشی از مبلغ سفارش‌اند.
+        const charges = line.charges.reduce(
+          (total, charge) => total.plus(chargeAmount(charge)),
+          parseNum("0"),
+        );
+        return sum.plus(parseNum(line.quantity).times(parseNum(line.unit_price))).plus(charges);
+      }, parseNum("0"));
     } catch {
       return parseNum("0");
     }
-  }, [form.items]);
+  }, [form.items, chargeAmount]);
 
   return (
     <div className="space-y-6" dir="rtl">
@@ -761,6 +892,37 @@ export function OrdersPage(): React.JSX.Element {
                                         </>
                                       )}
                                     </span>
+                                    {(line.charges ?? []).length > 0 && (
+                                      <ul
+                                        className="w-full space-y-0.5 ps-3 text-[10px] text-muted-foreground"
+                                        data-testid={`order-${order.id}-line-${index}-charges`}
+                                        aria-label="هزینهٔ طراحی و متغیرها"
+                                      >
+                                        {(line.charges ?? []).map((charge) => (
+                                          <li key={charge.id} className="flex justify-between">
+                                            <span>
+                                              {charge.name}
+                                              {charge.kind === "DESIGN" && (
+                                                <>
+                                                  {" — "}
+                                                  {faNumber(charge.hours)} ساعت ×{" "}
+                                                  <Money
+                                                    value={charge.rate}
+                                                    currency="TOMAN"
+                                                    hideCurrency
+                                                  />
+                                                </>
+                                              )}
+                                            </span>
+                                            <Money
+                                              value={charge.amount}
+                                              currency="TOMAN"
+                                              hideCurrency
+                                            />
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
                                   </li>
                                 ))}
                               </ul>
@@ -967,6 +1129,119 @@ export function OrdersPage(): React.JSX.Element {
                       value={line.unit_cost}
                       onChange={(e) => updateLine(index, { unit_cost: e.target.value })}
                     />
+                  </div>
+                  <div
+                    className="space-y-1 rounded-md border border-dashed p-1.5"
+                    data-testid={`line-charges-${index}`}
+                  >
+                    {line.charges.map((charge, chargeIndex) => (
+                      <div
+                        key={`${charge.kind}-${chargeIndex}`}
+                        className="flex items-center gap-1 text-[11px]"
+                      >
+                        <span className="min-w-0 flex-1 truncate">
+                          {charge.kind === "DESIGN" ? "هزینه طراحی" : charge.name}
+                          {charge.kind === "DESIGN" && designRate && (
+                            <span className="ms-1 text-[10px] text-muted-foreground">
+                              (هر ساعت{" "}
+                              <Money value={designRate.value} currency="TOMAN" hideCurrency />)
+                            </span>
+                          )}
+                        </span>
+                        <Input
+                          className="num h-7 w-16 text-xs"
+                          aria-label={
+                            charge.kind === "DESIGN"
+                              ? `ساعت طراحی ردیف ${faNumber(String(index + 1))}`
+                              : `مقدار ${charge.name} ردیف ${faNumber(String(index + 1))}`
+                          }
+                          data-testid={
+                            charge.kind === "DESIGN"
+                              ? `line-design-hours-${index}`
+                              : `line-variable-amount-${index}-${chargeIndex}`
+                          }
+                          inputMode="decimal"
+                          placeholder={charge.kind === "DESIGN" ? "ساعت" : "مبلغ"}
+                          value={charge.kind === "DESIGN" ? charge.hours : charge.amount}
+                          onChange={(e) =>
+                            updateCharge(
+                              index,
+                              chargeIndex,
+                              charge.kind === "DESIGN"
+                                ? { hours: e.target.value }
+                                : { amount: e.target.value },
+                            )
+                          }
+                        />
+                        <span className="num w-20 shrink-0 text-xs">
+                          <Money
+                            value={chargeAmount(charge).toFixed(4)}
+                            currency="TOMAN"
+                            hideCurrency
+                          />
+                        </span>
+                        <button
+                          type="button"
+                          className="text-destructive"
+                          aria-label={`حذف ${charge.name}`}
+                          data-testid={`line-charge-remove-${index}-${chargeIndex}`}
+                          onClick={() => removeCharge(index, chargeIndex)}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                    <div className="flex flex-wrap items-center gap-1">
+                      {designRate && !line.charges.some((charge) => charge.kind === "DESIGN") && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-2 text-[11px]"
+                          data-testid={`line-design-add-${index}`}
+                          onClick={() =>
+                            addCharge(index, {
+                              kind: "DESIGN",
+                              variable_id: designRate.id,
+                              name: "هزینه طراحی",
+                              hours: "",
+                              amount: "",
+                            })
+                          }
+                        >
+                          + ساعت طراحی
+                        </Button>
+                      )}
+                      <select
+                        aria-label={`افزودن متغیر به ردیف ${faNumber(String(index + 1))}`}
+                        data-testid={`line-variable-add-${index}`}
+                        className="h-6 rounded-md border border-input bg-background px-1 text-[11px] text-foreground"
+                        value=""
+                        onChange={(e) => {
+                          const variable = variables.find((row) => row.id === e.target.value);
+                          if (!variable) return;
+                          addCharge(index, {
+                            kind: "VARIABLE",
+                            variable_id: variable.id,
+                            name: variable.name,
+                            hours: "",
+                            amount: variable.basis === "AMOUNT" ? variable.value : "",
+                          });
+                        }}
+                      >
+                        <option value="">+ افزودن متغیر</option>
+                        {variables.map((variable) => (
+                          <option key={variable.id} value={variable.id}>
+                            {variable.name}
+                          </option>
+                        ))}
+                      </select>
+                      {!designRate && variables.length > 0 && (
+                        <span className="text-[10px] text-muted-foreground">
+                          برای «هزینهٔ طراحی»، در تنظیمات قیمت‌گذاری یکی از متغیرها را نرخ هر ساعت
+                          طراحی کنید.
+                        </span>
+                      )}
+                    </div>
                   </div>
                   {lineShortage(line) && (
                     <p

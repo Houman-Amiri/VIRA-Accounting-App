@@ -175,8 +175,9 @@ export async function auditMenuThemes(page: Page): Promise<void> {
         // and the orders filter / production form each lost one.
         ["/price-calc", 0],
         ["/journal/new", 1],
-        // Orders lost two: the channel filter and the channel picker in the form.
-        ["/orders", 4],
+        // Orders lost two (channel filter, channel picker) and gained one:
+        // «افزودن متغیر» on each order line (v1.0.28).
+        ["/orders", 5],
         ["/production", 4],
         ["/warehouse", 5],
         ["/bank-import", 5],

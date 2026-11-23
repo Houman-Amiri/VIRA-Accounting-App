@@ -30,6 +30,7 @@ const RATE: PricingVariable = {
   allocation: "SPLIT",
   value: "7.5000",
   is_active: true,
+  is_design_rate: false,
   position: 1,
   created_at: "2026-10-16T00:00:00Z",
   updated_at: "2026-10-16T00:00:00Z",
@@ -264,6 +265,7 @@ describe("pricing variables", () => {
         allocation: "SPLIT",
         value: "7.5000",
         is_active: true,
+        is_design_rate: false,
       },
     });
   });
@@ -294,6 +296,7 @@ describe("pricing variables", () => {
         allocation: "ONE_TIME",
         value: "9.0000",
         is_active: true,
+        is_design_rate: false,
       },
     });
   });
@@ -329,7 +332,30 @@ describe("pricing variables", () => {
         basis: "PERCENT_OF_COST",
         allocation: "SPLIT",
         value: "10.0000",
+        is_design_rate: false,
       },
+    });
+  });
+
+  it("marks a money variable as the design-hour rate", async () => {
+    const post = vi
+      .spyOn(api, "POST")
+      .mockResolvedValue({ data: RATE, response: new Response() } as never);
+    renderPricingPage();
+    fireEvent.change(screen.getByTestId("variable-name"), { target: { value: "طراحی" } });
+    fireEvent.change(screen.getByTestId("variable-value"), { target: { value: "50000" } });
+    // نرخ طراحی فقط با مبنای «مبلغ» معنا دارد؛ با درصد، جعبه خاموش می‌شود.
+    fireEvent.change(screen.getByTestId("variable-basis"), {
+      target: { value: "PERCENT_OF_COST" },
+    });
+    expect(within(screen.getByTestId("variable-design-rate")).getByRole("checkbox")).toBeDisabled();
+    fireEvent.change(screen.getByTestId("variable-basis"), { target: { value: "AMOUNT" } });
+    fireEvent.click(within(screen.getByTestId("variable-design-rate")).getByRole("checkbox"));
+
+    fireEvent.click(screen.getByTestId("variable-submit"));
+    await waitFor(() => expect(post).toHaveBeenCalled());
+    expect(post).toHaveBeenCalledWith("/api/v1/settings/pricing/variables", {
+      body: expect.objectContaining({ is_design_rate: true, value: "50000.0000" }),
     });
   });
 

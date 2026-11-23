@@ -91,6 +91,7 @@ class PricingVariable(Base):
         CheckConstraint("allocation IN ('ONE_TIME','SPLIT')", name="allocation"),
         CheckConstraint("value >= 0", name="value_non_negative"),
         CheckConstraint("is_active IN (0, 1)", name="is_active_flag"),
+        CheckConstraint("is_design_rate IN (0, 1)", name="is_design_rate_flag"),
         Index("ix_pricing_variables_order", "position", "created_at"),
     )
 
@@ -101,6 +102,8 @@ class PricingVariable(Base):
     allocation: Mapped[str] = mapped_column(Text, nullable=False, default="ONE_TIME")
     value: Mapped[Decimal] = mapped_column(ScaledMoneyType, nullable=False)
     is_active: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    #: Marks the one variable that is the hourly design rate («هزینهٔ طراحی»).
+    is_design_rate: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     created_at: Mapped[str] = mapped_column(Text, nullable=False)
     updated_at: Mapped[str] = mapped_column(Text, nullable=False)

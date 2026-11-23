@@ -137,6 +137,8 @@ class PricingVariableCreate(BaseModel):
     allocation: VariableAllocation = "ONE_TIME"
     value: Amount
     is_active: bool = True
+    #: Marks the variable whose value is the hourly design rate (Toman/hour).
+    is_design_rate: bool = False
 
     @field_validator("name")
     @classmethod
@@ -161,6 +163,7 @@ class PricingVariableUpdate(BaseModel):
     allocation: VariableAllocation | None = None
     value: Amount | None = None
     is_active: bool | None = None
+    is_design_rate: bool | None = None
 
     @field_validator("name")
     @classmethod
@@ -181,6 +184,7 @@ class PricingVariableRead(BaseModel):
     allocation: VariableAllocation
     value: str
     is_active: bool
+    is_design_rate: bool
     position: int
     created_at: str
     updated_at: str

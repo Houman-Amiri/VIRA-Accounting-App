@@ -2442,6 +2442,61 @@ export interface components {
             items: components["schemas"]["OrderItemIn"][];
         };
         /**
+         * OrderItemChargeIn
+         * @description One extra money row on an order line.
+         *
+         *     ``DESIGN`` carries only the hours: the server multiplies them by the owner's
+         *     design-rate variable and stores the rate it used. ``VARIABLE`` carries the
+         *     amount the owner typed for that variable on this line.
+         */
+        OrderItemChargeIn: {
+            /**
+             * Kind
+             * @default VARIABLE
+             * @enum {string}
+             */
+            kind: "DESIGN" | "VARIABLE";
+            /** Variable Id */
+            variable_id?: string | null;
+            /**
+             * Name
+             * @default
+             */
+            name: string;
+            /**
+             * Hours
+             * @default 0
+             */
+            hours: number | string;
+            /**
+             * Amount
+             * @default 0
+             */
+            amount: number | string;
+        };
+        /** OrderItemChargeRead */
+        OrderItemChargeRead: {
+            /** Id */
+            id: string;
+            /** Position */
+            position: number;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "DESIGN" | "VARIABLE";
+            /** Variable Id */
+            variable_id: string | null;
+            /** Name */
+            name: string;
+            /** Hours */
+            hours: string;
+            /** Rate */
+            rate: string;
+            /** Amount */
+            amount: string;
+        };
+        /**
          * OrderItemIn
          * @description A line the user writes on the order page.
          *
@@ -2477,6 +2532,8 @@ export interface components {
             inventory_item_id?: string | null;
             /** Notes */
             notes?: string | null;
+            /** Charges */
+            charges?: components["schemas"]["OrderItemChargeIn"][];
         };
         /** OrderItemRead */
         OrderItemRead: {
@@ -2513,6 +2570,10 @@ export interface components {
             inventory_item_name?: string | null;
             /** Notes */
             notes?: string | null;
+            /** Charges */
+            charges?: components["schemas"]["OrderItemChargeRead"][];
+            /** Charges Total */
+            readonly charges_total: string;
         };
         /**
          * OrderProductionResult
@@ -2785,6 +2846,11 @@ export interface components {
              * @default true
              */
             is_active: boolean;
+            /**
+             * Is Design Rate
+             * @default false
+             */
+            is_design_rate: boolean;
         };
         /** PricingVariableRead */
         PricingVariableRead: {
@@ -2811,6 +2877,8 @@ export interface components {
             value: string;
             /** Is Active */
             is_active: boolean;
+            /** Is Design Rate */
+            is_design_rate: boolean;
             /** Position */
             position: number;
             /** Created At */
@@ -2832,6 +2900,8 @@ export interface components {
             value?: number | string | null;
             /** Is Active */
             is_active?: boolean | null;
+            /** Is Design Rate */
+            is_design_rate?: boolean | null;
         };
         /**
          * ProductionFilamentIn

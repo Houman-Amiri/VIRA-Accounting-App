@@ -228,6 +228,7 @@ def _read_variable(row: PricingVariable) -> PricingVariableRead:
         allocation=row.allocation,  # type: ignore[arg-type]
         value=f"{_variable_value(row):.4f}",
         is_active=bool(row.is_active),
+        is_design_rate=bool(row.is_design_rate),
         position=row.position,
         created_at=row.created_at,
         updated_at=row.updated_at,
@@ -243,6 +244,21 @@ def _variable_name_taken(
     if exclude_id is not None:
         stmt = stmt.where(PricingVariable.id != exclude_id)
     return session.scalar(stmt) is not None
+
+
+def _apply_design_rate(session: Session, row: PricingVariable, wanted: bool) -> None:
+    """Only one variable can be the design rate, and it must be a money rate."""
+    if not wanted:
+        row.is_design_rate = 0
+        return
+    if row.basis != "AMOUNT":
+        raise DomainError("نرخ هر ساعت طراحی باید از نوع «مبلغ (تومان)» باشد")
+    session.execute(
+        update(PricingVariable)
+        .where(PricingVariable.id != row.id)
+        .values(is_design_rate=0)
+    )
+    row.is_design_rate = 1
 
 
 def _normalized_allocation(scope: str, allocation: str) -> str:
@@ -285,6 +301,8 @@ def create_variable(
         updated_at=now,
     )
     session.add(row)
+    session.flush()
+    _apply_design_rate(session, row, body.is_design_rate)
     session.flush()
     record_security_event(
         session,
@@ -330,6 +348,8 @@ def update_variable(
     row.allocation = _normalized_allocation(row.scope, row.allocation)
     if row.basis.startswith("PERCENT") and row.value > MAX_PERCENT:
         raise DomainError(f"درصد نمی‌تواند از {MAX_PERCENT} بیشتر باشد")
+    if payload.get("is_design_rate") is not None:
+        _apply_design_rate(session, row, bool(payload["is_design_rate"]))
     row.updated_at = utc_now_iso()
     session.flush()
     record_security_event(

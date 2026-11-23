@@ -32,7 +32,12 @@ import urllib.request
 import webbrowser
 from pathlib import Path
 
+# Requests NOA makes to itself and the address the local browser opens.
 HOST = "127.0.0.1"
+# The server itself listens on every interface, so the same app can be opened
+# from another machine on the LAN (http://192.168.x.x:8787) with the same
+# owner login.
+BIND_HOST = "0.0.0.0"
 DEFAULT_PORT = 8787
 # How far up from the requested port NOA is willing to move.
 PORT_ATTEMPTS = 10
@@ -94,10 +99,48 @@ def is_noa(port: int, timeout: float = 1.0) -> bool:
     return isinstance(title, str) and "NOA" in title
 
 
-def port_is_free(port: int) -> bool:
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+def lan_address() -> str | None:
+    """This machine's address on the local network, or None when offline.
+
+    Connecting a UDP socket sends no traffic; it only asks the OS which local
+    address it would use to reach the outside world.
+    """
+    for target in ("8.8.8.8", "1.1.1.1"):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            sock.connect((target, 80))
+            address = sock.getsockname()[0]
+            if address and not address.startswith("127."):
+                return str(address)
+        except OSError:
+            continue
+        finally:
+            sock.close()
     try:
-        sock.bind((HOST, port))
+        address = socket.gethostbyname(socket.gethostname())
+    except OSError:
+        return None
+    return None if address.startswith("127.") else address
+
+
+def _listening_socket() -> socket.socket:
+    """A TCP socket for probing/binding NOA's port.
+
+    On POSIX a port whose last connection is in TIME_WAIT cannot be bound
+    again without SO_REUSEADDR — and NOA closing and reopening its own port is
+    exactly that case.  Windows maps the flag to a weaker promise, so it is
+    left untouched there.
+    """
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    if os.name != "nt":
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    return sock
+
+
+def port_is_free(port: int) -> bool:
+    sock = _listening_socket()
+    try:
+        sock.bind((BIND_HOST, port))
         return True
     except OSError:
         return False
@@ -210,9 +253,11 @@ def start(port: int) -> int:
     """Serve on a socket this process owns, so a lost race is an OSError here."""
     import uvicorn
 
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind((HOST, port))  # raises OSError when the port went to someone else
-    server = uvicorn.Server(uvicorn.Config("app.main:app", host=HOST, port=0, log_level="info"))
+    sock = _listening_socket()
+    sock.bind((BIND_HOST, port))  # raises OSError when the port went to someone else
+    server = uvicorn.Server(
+        uvicorn.Config("app.main:app", host=BIND_HOST, port=0, log_level="info")
+    )
     write_instance(port)
     open_browser_when_ready(port)
     try:
@@ -239,6 +284,11 @@ def serve(port: int, requested: int) -> int:
             f"[NOA] Starting server on http://{HOST}:{candidate}/ "
             "(logs below — Ctrl+C or close to stop)"
         )
+        address = lan_address()
+        if address:
+            print(f"[NOA] در شبکهٔ محلی: http://{address}:{candidate}/")
+        else:
+            print("[NOA] آدرس شبکهٔ محلی پیدا نشد (اینترنت/شبکه قطع است).")
         try:
             return start(candidate)
         except OSError as exc:

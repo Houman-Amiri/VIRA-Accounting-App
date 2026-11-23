@@ -29,6 +29,7 @@ import {
   useCustomConstants,
   usePricingSettings,
   useVariables,
+  VARIABLE_BASIS_LABEL,
 } from "@/lib/pricing-settings";
 import { faNumber } from "@/lib/fa";
 
@@ -224,6 +225,48 @@ export function PriceCalcPage(): React.JSX.Element {
                 onChange={(e) => setInputs((i) => ({ ...i, quantity: e.target.value }))}
               />
             </div>
+            {/* متغیرهای تنظیمات قیمت‌گذاری، کنار بقیهٔ مشخصات محصول. */}
+            {activeVariables.map((variable) => (
+              <div key={variable.id} data-testid={`variable-field-${variable.id}`}>
+                <Label htmlFor={`price-variable-${variable.id}`}>
+                  {variable.name}
+                  <span className="ms-1 text-[10px] font-normal text-muted-foreground">
+                    ({VARIABLE_BASIS_LABEL[variable.basis]})
+                  </span>
+                </Label>
+                <div className="flex items-center gap-1">
+                  <Input
+                    aria-label={`مقدار ${variable.name}`}
+                    data-testid={`variable-input-${variable.id}`}
+                    className="num"
+                    id={`price-variable-${variable.id}`}
+                    inputMode="decimal"
+                    value={variable.value}
+                    onChange={(event) =>
+                      setVariableValues((current) => ({
+                        ...current,
+                        [variable.id]: event.target.value,
+                      }))
+                    }
+                  />
+                  <span className="text-[11px] text-muted-foreground">×</span>
+                  <Input
+                    aria-label={`تعداد ${variable.name}`}
+                    title="چند بار در این سفارش حساب شود (پیش‌فرض ۱)"
+                    data-testid={`variable-count-${variable.id}`}
+                    className="num w-16"
+                    inputMode="numeric"
+                    value={variableCounts[variable.id] ?? "1"}
+                    onChange={(event) =>
+                      setVariableCounts((current) => ({
+                        ...current,
+                        [variable.id]: event.target.value,
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+            ))}
           </CardContent>
         </Card>
       </div>
@@ -318,69 +361,36 @@ export function PriceCalcPage(): React.JSX.Element {
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <p className="text-xs text-muted-foreground">
-              مقدار هر متغیر برای همین محاسبه؛ مقدار ذخیره‌شده در صفحهٔ قیمت‌گذاری دست‌نخورده
-              می‌ماند. اگر همان متغیر چند بار در این سفارش حساب می‌شود (مثلاً ۲ محموله)، تعدادش را
-              کنار مقدار بنویسید.
+              مقدارها در «مشخصات محصول» کنار بقیهٔ ورودی‌ها وارد می‌شوند؛ این کادر فقط اثرشان را
+              نشان می‌دهد و تنظیمات ذخیره‌شده را تغییر نمی‌دهد.
             </p>
             {activeVariables.map((variable) => {
               const line = variablesApplied?.lines.find((row) => row.name === variable.name);
               return (
                 <div
                   key={variable.id}
-                  className="flex flex-wrap items-center justify-between gap-2 border-b pb-1"
+                  className="flex items-center justify-between gap-2 border-b pb-1"
                   data-testid={`variable-line-${variable.id}`}
                 >
                   <span className="text-xs text-muted-foreground">{variable.name}</span>
-                  <span className="flex flex-wrap items-center justify-end gap-2">
-                    <Input
-                      aria-label={`مقدار ${variable.name}`}
-                      data-testid={`variable-input-${variable.id}`}
-                      className="num h-7 w-28 text-xs"
-                      inputMode="decimal"
-                      value={variable.value}
-                      onChange={(event) =>
-                        setVariableValues((current) => ({
-                          ...current,
-                          [variable.id]: event.target.value,
-                        }))
-                      }
-                    />
-                    <span className="flex items-center gap-1">
-                      <span className="text-[11px] text-muted-foreground">×</span>
-                      <Input
-                        aria-label={`تعداد ${variable.name}`}
-                        data-testid={`variable-count-${variable.id}`}
-                        title="چند بار در این سفارش حساب شود (پیش‌فرض ۱)"
-                        className="num h-7 w-14 text-xs"
-                        inputMode="numeric"
-                        value={variableCounts[variable.id] ?? "1"}
-                        onChange={(event) =>
-                          setVariableCounts((current) => ({
-                            ...current,
-                            [variable.id]: event.target.value,
-                          }))
-                        }
-                      />
-                    </span>
-                    <span className="text-xs">
-                      {line ? (
-                        <>
-                          {line.count.equals(1) ? null : (
-                            <span className="text-muted-foreground">
-                              {faNumber(line.count.toFixed(0))} ×{" "}
-                            </span>
-                          )}
-                          {line.oneTime ? "به جمع کل: " : "هر عدد: "}
-                          <Money
-                            value={(line.oneTime ? line.orderTotal : line.perUnit).toFixed(4)}
-                            currency="TOMAN"
-                            hideCurrency
-                          />
-                        </>
-                      ) : (
-                        "—"
-                      )}
-                    </span>
+                  <span className="text-xs">
+                    {line ? (
+                      <>
+                        {line.count.equals(1) ? null : (
+                          <span className="text-muted-foreground">
+                            {faNumber(line.count.toFixed(0))} ×{" "}
+                          </span>
+                        )}
+                        {line.oneTime ? "به جمع کل: " : "هر عدد: "}
+                        <Money
+                          value={(line.oneTime ? line.orderTotal : line.perUnit).toFixed(4)}
+                          currency="TOMAN"
+                          hideCurrency
+                        />
+                      </>
+                    ) : (
+                      "—"
+                    )}
                   </span>
                 </div>
               );

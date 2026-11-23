@@ -5,6 +5,44 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
+## [1.0.28] — 2026-10-14
+
+Three owner requests in one release: his own pricing variables belong on the
+pricing page's «مشخصات محصول», an order line can carry a design cost and any of
+those variables, and the app must be reachable from another computer on the
+home network.
+
+### Pricing page — variables sit with the product specs
+- Every active variable now has its value and «×» count field inside
+  «مشخصات محصول», next to weight / print hours / quantity. The block below keeps
+  only the effect of each variable on this calculation.
+
+### Orders — design hours and per-line variables
+- A «هزینهٔ طراحی» row on each line: type the hours, and the amount is
+  `hours × rate`, where the rate comes from the one pricing variable the owner
+  flagged as **«نرخ هر ساعت طراحی»**.
+- «افزودن متغیر» on each line: pick any defined variable and type its amount for
+  this line. The variable's name is copied onto the charge, so renaming or
+  deleting it later never changes a saved order.
+- Both kinds of charge are snapshotted (`order_item_charges`) and counted in the
+  order total: `Σ(quantity × unit price + Σ charges)`.
+- The proforma prints them as muted sub-rows under their line
+  (`هزینه طراحی (۳ ساعت × ۱۵۰٬۰۰۰)`) and adds «جمع اقلام» +
+  «هزینهٔ طراحی و متغیرها» to the totals.
+- An empty design field means no charge: totals stay exactly as before.
+
+### Pricing settings — the design rate
+- One variable can be marked «نرخ هر ساعت طراحی» (money basis only); flagging a
+  new one releases the old one, so the rate is never ambiguous. The list shows a
+  «نرخ طراحی» badge.
+
+### LAN access
+- The server binds `0.0.0.0` from the start (no toggle) and the launcher prints
+  «در شبکهٔ محلی: http://192.168.x.x:8787/», so another machine on the same
+  network can sign in with the same owner account.
+- Cookies are only `Secure` when the request arrived over HTTPS, so plain-HTTP
+  LAN logins work; CSRF, roles and auditing are unchanged.
+
 ## [1.0.27] — 2026-11-23
 
 The owner stopped selling through marketplaces: the app should price direct

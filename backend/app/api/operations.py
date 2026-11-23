@@ -30,6 +30,7 @@ from ..schemas.operations import (
     InventoryItemUpdate,
     InventorySummary,
     OrderCreate,
+    OrderItemChargeRead,
     OrderItemRead,
     OrderProductionResult,
     OrderRead,
@@ -132,6 +133,19 @@ def _movement_read(movement: Any) -> StockMovementRead:
     )
 
 
+def _charge_read(charge: Any) -> OrderItemChargeRead:
+    return OrderItemChargeRead(
+        id=charge.id,
+        position=charge.position,
+        kind=charge.kind,  # type: ignore[arg-type]
+        variable_id=charge.variable_id,
+        name=charge.name,
+        hours=Decimal(charge.hours),
+        rate=Decimal(charge.rate),
+        amount=Decimal(charge.amount),
+    )
+
+
 def _order_item_read(line: Any) -> OrderItemRead:
     return OrderItemRead(
         id=line.id,
@@ -150,6 +164,7 @@ def _order_item_read(line: Any) -> OrderItemRead:
             else None
         ),
         notes=line.notes,
+        charges=[_charge_read(charge) for charge in getattr(line, "charges", []) or []],
     )
 
 
@@ -172,7 +187,11 @@ def _order_warnings(order: Any) -> list[str]:
 
 def _order_read(order: Any) -> OrderRead:
     items = [_order_item_read(line) for line in order.items]
-    total = sum((i.quantity * i.unit_price for i in items), Decimal(0))
+    # «هزینهٔ طراحی» and the owner's per-line variables are part of what the
+    # customer pays, so they join the order total (and therefore the profit).
+    total = sum(
+        (i.quantity * i.unit_price + i.charges_total for i in items), Decimal(0)
+    )
     cost = sum((i.quantity * i.unit_cost for i in items), Decimal(0))
     return OrderRead(
         warnings=_order_warnings(order),
@@ -616,6 +635,10 @@ def proforma_pdf(
     service = OperationsService(session)
     order = service.get_order(order_id)
     read = _order_read(order)
+    lines_total = sum(
+        (Decimal(line.quantity) * Decimal(line.unit_price) for line in read.items), Decimal(0)
+    )
+    charges_total = sum((line.charges_total for line in read.items), Decimal(0))
     context = {
         "company": {"name": "NOA", "tagline": "چاپ سه‌بعدی و فروش محصولات"},
         "order": {
@@ -633,10 +656,27 @@ def proforma_pdf(
                     "quantity": fa_count(line.quantity),
                     "unit_price": fa_money(line.unit_price),
                     "line_total": fa_money(line.quantity * line.unit_price),
+                    # «هزینهٔ طراحی» hours × rate, and any variables on the line,
+                    # printed on their own rows underneath it.
+                    "charges": [
+                        {
+                            "name": charge.name,
+                            "detail": (
+                                f"{fa_count(charge.hours)} ساعت × {fa_money(charge.rate)}"
+                                if charge.kind == "DESIGN"
+                                else ""
+                            ),
+                            "amount": fa_money(charge.amount),
+                        }
+                        for charge in line.charges
+                    ],
                 }
                 for line in read.items
             ],
-            "subtotal": fa_money(read.total),
+            "has_charges": charges_total > 0,
+            "lines_total": fa_money(lines_total),
+            "charges_total": fa_money(charges_total),
+            "subtotal": fa_money(lines_total),
             "discount": fa_money(Decimal(0)),
             "total": fa_money(read.total),
         },
