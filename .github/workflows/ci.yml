@@ -68,7 +68,19 @@ jobs:
           SQLITE_DATABASE_PATH: ${{ runner.temp }}/noa-ci.sqlite3
         run: |
           mkdir -p reports
-          uv run pytest -q --junitxml=reports/pytest.xml
+          set -o pipefail
+          uv run pytest -q --junitxml=reports/pytest.xml 2>&1 | tee reports/pytest.log
+
+      # The job log is not always retrievable; annotations are. Name every
+      # failing test on the check run so the cause is visible without it.
+      - name: Name failing tests on the check run
+        if: failure()
+        run: |
+          if [ -f reports/pytest.log ]; then
+            grep -aE "^(FAILED|ERROR)" reports/pytest.log | head -20 | while IFS= read -r line; do
+              echo "::error title=pytest failure::$line"
+            done || true
+          fi
 
       - name: Upload test report
         if: always()
