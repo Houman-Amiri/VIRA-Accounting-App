@@ -63,6 +63,8 @@ export function PriceCalcPage(): React.JSX.Element {
   const [inputs, setInputs] = React.useState<PriceInputs>(EMPTY_INPUTS);
   // Values typed for *this* calculation; the saved value is only the default.
   const [variableValues, setVariableValues] = React.useState<Record<string, string>>({});
+  // «۲ محموله × ۱۵۰٬۰۰۰»: how many times each variable applies to this order.
+  const [variableCounts, setVariableCounts] = React.useState<Record<string, string>>({});
 
   // «محاسبه فقط پس از ورود»: nothing is computed until weight, time and run
   // size are filled in by the user.
@@ -106,8 +108,9 @@ export function PriceCalcPage(): React.JSX.Element {
         .map((variable) => ({
           ...variable,
           value: variableValues[variable.id] ?? variable.value,
+          count: variableCounts[variable.id] ?? "1",
         })),
-    [variableQuery.data, variableValues],
+    [variableQuery.data, variableValues, variableCounts],
   );
 
   const variablesApplied = React.useMemo(() => {
@@ -310,7 +313,8 @@ export function PriceCalcPage(): React.JSX.Element {
           <CardContent className="space-y-3 text-sm">
             <p className="text-xs text-muted-foreground">
               مقدار هر متغیر برای همین محاسبه؛ مقدار ذخیره‌شده در صفحهٔ قیمت‌گذاری دست‌نخورده
-              می‌ماند.
+              می‌ماند. اگر همان متغیر چند بار در این سفارش حساب می‌شود (مثلاً ۲ محموله)، تعدادش را
+              کنار مقدار بنویسید.
             </p>
             {activeVariables.map((variable) => {
               const line = variablesApplied?.lines.find((row) => row.name === variable.name);
@@ -321,7 +325,7 @@ export function PriceCalcPage(): React.JSX.Element {
                   data-testid={`variable-line-${variable.id}`}
                 >
                   <span className="text-xs text-muted-foreground">{variable.name}</span>
-                  <span className="flex items-center gap-2">
+                  <span className="flex flex-wrap items-center justify-end gap-2">
                     <Input
                       aria-label={`مقدار ${variable.name}`}
                       data-testid={`variable-input-${variable.id}`}
@@ -335,9 +339,31 @@ export function PriceCalcPage(): React.JSX.Element {
                         }))
                       }
                     />
+                    <span className="flex items-center gap-1">
+                      <span className="text-[11px] text-muted-foreground">×</span>
+                      <Input
+                        aria-label={`تعداد ${variable.name}`}
+                        data-testid={`variable-count-${variable.id}`}
+                        title="چند بار در این سفارش حساب شود (پیش‌فرض ۱)"
+                        className="num h-7 w-14 text-xs"
+                        inputMode="numeric"
+                        value={variableCounts[variable.id] ?? "1"}
+                        onChange={(event) =>
+                          setVariableCounts((current) => ({
+                            ...current,
+                            [variable.id]: event.target.value,
+                          }))
+                        }
+                      />
+                    </span>
                     <span className="text-xs">
                       {line ? (
                         <>
+                          {line.count.equals(1) ? null : (
+                            <span className="text-muted-foreground">
+                              {faNumber(line.count.toFixed(0))} ×{" "}
+                            </span>
+                          )}
                           {line.oneTime ? "به جمع کل: " : "هر عدد: "}
                           <Money
                             value={(line.oneTime ? line.orderTotal : line.perUnit).toFixed(4)}

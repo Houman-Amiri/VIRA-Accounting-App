@@ -77,6 +77,53 @@ describe("pricing variables", () => {
     expect(line.oneTime).toBe(false);
   });
 
+  it("applies the amount once per count («۲ محموله × ۱۵۰٬۰۰۰»)", () => {
+    const line = variableEffect(
+      variable({ scope: "PER_ORDER", allocation: "ONE_TIME", value: "150000", count: "2" }),
+      base(),
+      "10",
+    );
+    expect(line.count.toFixed(0)).toBe("2");
+    expect(line.amount.toFixed(4)).toBe("300000.0000");
+    expect(line.perUnit.toFixed(4)).toBe("0.0000");
+    expect(line.orderTotal.toFixed(4)).toBe("300000.0000");
+    expect(line.oneTime).toBe(true);
+  });
+
+  it("multiplies the count on a per-piece variable too", () => {
+    const line = variableEffect(variable({ value: "1200", count: "3" }), base(), "10");
+    expect(line.amount.toFixed(4)).toBe("3600.0000");
+    expect(line.perUnit.toFixed(4)).toBe("3600.0000");
+    expect(line.orderTotal.toFixed(4)).toBe("36000.0000");
+  });
+
+  it("multiplies the count on percentage variables", () => {
+    const line = variableEffect(
+      variable({
+        scope: "PER_ORDER",
+        basis: "PERCENT_OF_COST",
+        allocation: "SPLIT",
+        value: "5",
+        count: "2",
+      }),
+      base(),
+      "10",
+    );
+    // ۵٪ × ۲ = ۱۰٪ از بهای تمام‌شدهٔ هر عدد
+    expect(line.amount.toFixed(4)).toBe("10.0000");
+    expect(line.perUnit.toFixed(4)).toBe(base().unitProductionCost.times("0.1").toFixed(4));
+  });
+
+  it("treats a missing count as one and rejects a zero count", () => {
+    expect(variableEffect(variable({ value: "1500" }), base(), "10").count.toFixed(0)).toBe("1");
+    expect(() => variableEffect(variable({ value: "1500", count: "0" }), base(), "10")).toThrow(
+      "تعداد متغیر باید بزرگ‌تر از صفر باشد",
+    );
+    expect(() => variableEffect(variable({ value: "1500", count: "-2" }), base(), "10")).toThrow(
+      "تعداد متغیر باید بزرگ‌تر از صفر باشد",
+    );
+  });
+
   it("takes a percentage of the production cost per piece", () => {
     const sheet = base();
     const line = variableEffect(variable({ basis: "PERCENT_OF_COST", value: "7.5" }), base(), "10");

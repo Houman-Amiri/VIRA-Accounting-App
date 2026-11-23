@@ -5,6 +5,30 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
+## [1.0.26] — 2026-11-23
+
+The owner set up a variable with «دامنهٔ اثر: کلی»، «نحوهٔ محاسبه: مبلغ» and
+«نحوهٔ نشستن: یک‌جا روی جمع کل سفارش» — and then could not find anywhere to say
+«این کرایه برای ۲ محموله است». The amount landed on the order total exactly
+once, and the only available adjustment (تیراژ) would have changed the unit
+price instead.
+
+### Pricing — the count lives next to the variable
+- Each variable on the pricing page now has a small **«تعداد»** box beside its
+  amount: `۲ × ۱۰۰٬۰۰۰` puts ۲۰۰٬۰۰۰ on the order total, `۱` (the default) keeps
+  exactly the numbers the sheet produced before this release.
+- The amount you type is always **per occurrence**; the count multiplies it —
+  for whole-order (کلی) amounts, per-piece (جزیی) amounts, and percentages
+  alike. Whole-order + «یک‌جا روی جمع کل» still never touches the unit price.
+- Count is a per-calculation entry like the value itself: it is not saved to the
+  pricing settings, so no migration, no schema change, and yesterday's saved
+  configuration behaves identically.
+- An empty or zero count is refused with «تعداد متغیر باید بزرگ‌تر از صفر باشد»
+  instead of silently pricing the variable at zero; the card shows «۲ ×» before
+  the effect so a doubled line is never a surprise.
+- The «یک‌جا روی جمع کل سفارش» hint in the settings page now says how to enter
+  repeated shipments.
+
 ## [1.0.25] — 2026-11-22
 
 One request from the owner: the filament chooser on the production page showed

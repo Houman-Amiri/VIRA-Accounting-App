@@ -98,6 +98,47 @@ describe("pricing page — literal Excel model", () => {
     ).toBeInTheDocument();
   });
 
+  it("multiplies a whole-order variable by the count typed next to it", () => {
+    const shipping = {
+      id: "var-shipping",
+      name: "کرایه ارسال",
+      scope: "PER_ORDER" as const,
+      basis: "AMOUNT" as const,
+      allocation: "ONE_TIME" as const,
+      value: "100000.0000",
+      is_active: true,
+      position: 0,
+      created_at: "2026-10-16T00:00:00Z",
+      updated_at: "2026-10-16T00:00:00Z",
+    };
+    renderWithPricing(<PriceCalcPage />, {}, true, [], [shipping]);
+    fillInputs({ qty: "10" });
+
+    // پیش‌فرض ۱: همان اعداد پیش از افزودن تعداد، دست‌نخورده می‌مانند.
+    expect(screen.getByTestId("variable-count-var-shipping")).toHaveValue("1");
+    expect(screen.getByTestId("variable-line-var-shipping")).toHaveTextContent(
+      "به جمع کل: ۱۰۰٬۰۰۰",
+    );
+    expect(
+      screen.getByText((_, node) => node?.textContent === "جمع کل سفارش (۱۰ عدد)۳٬۰۱۱٬۹۴۸.۵"),
+    ).toBeInTheDocument();
+
+    // «۲ محموله»: مبلغ ۱۰۰٬۰۰۰ دو بار روی جمع کل می‌نشیند.
+    fireEvent.change(screen.getByTestId("variable-count-var-shipping"), {
+      target: { value: "۲" },
+    });
+    const line = screen.getByTestId("variable-line-var-shipping");
+    expect(line).toHaveTextContent("۲ ×");
+    expect(line).toHaveTextContent("به جمع کل: ۲۰۰٬۰۰۰");
+    expect(
+      screen.getByText((_, node) => node?.textContent === "جمع کل سفارش (۱۰ عدد)۳٬۱۱۱٬۹۴۸.۵"),
+    ).toBeInTheDocument();
+    // قیمت هر عدد با «یک‌جا روی جمع کل» تغییر نمی‌کند.
+    expect(
+      within(screen.getByTestId("row-unitFinalPrice")).getByText("۲۹۱٬۱۹۴.۸۵"),
+    ).toBeInTheDocument();
+  });
+
   it("clears only product inputs, keeping the saved pricing constants", () => {
     const { client } = renderWithPricing(<PriceCalcPage />, { filamentPerGram: "4000.0000" });
     fillInputs({ qty: "10" });

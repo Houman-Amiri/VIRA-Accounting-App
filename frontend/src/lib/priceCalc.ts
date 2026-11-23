@@ -340,6 +340,11 @@ export interface VariableInput {
   basis: VariableBasis;
   allocation: VariableAllocation;
   value: MoneyLike;
+  /**
+   * How many times this variable applies to *this* calculation (۲ محموله،
+   * ۳ قالب). Optional and never saved: the default is one.
+   */
+  count?: MoneyLike;
   is_active: boolean;
 }
 
@@ -348,6 +353,10 @@ export interface VariableLine {
   scope: VariableScope;
   basis: VariableBasis;
   allocation: VariableAllocation;
+  /** The count the owner typed for this calculation (default one). */
+  count: Decimal;
+  /** value × count — what one occurrence would cost × how many there are. */
+  amount: Decimal;
   /** Effect on the price of one piece (zero for a one-time order amount). */
   perUnit: Decimal;
   /** Effect on the order total, whichever scope applies. */
@@ -372,15 +381,19 @@ export function variableEffect(
 ): VariableLine {
   const value = parseNum(variable.value);
   if (value.isNegative()) throw new Error("متغیرهای قیمت‌گذاری نباید منفی باشند");
+  const count = variable.count === undefined ? new Decimal(1) : parseNum(variable.count);
+  if (count.lte(0)) throw new Error("تعداد متغیر باید بزرگ‌تر از صفر باشد");
+  // «۲ محموله × ۱۵۰٬۰۰۰»: the number the owner types is per occurrence.
+  const amount = value.times(count);
   const q = parseNum(quantity);
   if (q.lte(0)) throw new Error("تیراژ باید بزرگ‌تر از صفر باشد");
 
   const perPiece =
     variable.basis === "AMOUNT"
-      ? value
+      ? amount
       : variable.basis === "PERCENT_OF_COST"
-        ? base.unitProductionCost.times(value).div(100)
-        : base.unitFinalPrice.times(value).div(100);
+        ? base.unitProductionCost.times(amount).div(100)
+        : base.unitFinalPrice.times(amount).div(100);
 
   if (variable.scope === "PER_UNIT") {
     return {
@@ -388,18 +401,22 @@ export function variableEffect(
       scope: variable.scope,
       basis: variable.basis,
       allocation: variable.allocation,
+      count,
+      amount,
       perUnit: perPiece,
       orderTotal: perPiece.times(q),
       oneTime: false,
     };
   }
-  const orderTotal = variable.basis === "AMOUNT" ? value : perPiece.times(q);
+  const orderTotal = variable.basis === "AMOUNT" ? amount : perPiece.times(q);
   const split = variable.allocation === "SPLIT";
   return {
     name: variable.name,
     scope: variable.scope,
     basis: variable.basis,
     allocation: variable.allocation,
+    count,
+    amount,
     perUnit: split ? orderTotal.div(q) : new Decimal(0),
     orderTotal,
     oneTime: !split,
