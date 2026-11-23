@@ -130,7 +130,7 @@ describe("pricing variables", () => {
     expect(line.perUnit.toFixed(4)).toBe(sheet.unitProductionCost.times(7.5).div(100).toFixed(4));
   });
 
-  it("takes a whole-order percentage of the sheet price, not of the running total", () => {
+  it("takes a whole-order percentage of «قیمت فروش هر عدد محصول»", () => {
     const sheet = base();
     const line = variableEffect(
       variable({
@@ -142,7 +142,7 @@ describe("pricing variables", () => {
       base(),
       "10",
     );
-    const expectedTotal = sheet.unitFinalPrice.times(9).div(100).times(10);
+    const expectedTotal = sheet.unitSalePrice.times(9).div(100).times(10);
     expect(line.orderTotal.toFixed(4)).toBe(expectedTotal.toFixed(4));
     expect(line.perUnit.isZero()).toBe(true);
   });

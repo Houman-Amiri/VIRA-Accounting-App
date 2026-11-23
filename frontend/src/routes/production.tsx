@@ -144,7 +144,6 @@ export function ProductionPage(): React.JSX.Element {
     order_item_id: "",
     product_name: "",
     variant: "plain" as "plain" | "chain",
-    channel: "marketplace" as "direct" | "marketplace",
     quantity: "1",
     print_hours: "",
     // a printed model may need several spools, each with its own grams
@@ -233,7 +232,6 @@ export function ProductionPage(): React.JSX.Element {
         printHours: form.print_hours || "0",
         quantity: form.quantity || "1",
         variant: form.variant,
-        channel: form.channel,
       };
       let unitCost: string;
       let unitPrice: string;
@@ -245,14 +243,16 @@ export function ProductionPage(): React.JSX.Element {
           throw new Error("ثابت‌های قیمت‌گذاری در دسترس نیستند؛ دوباره تلاش کنید.");
         const priced = computePrice(inputs, pricingConstants(pricingQuery.data));
         unitCost = priced.unitProductionCost.toFixed(4);
-        unitPrice = priced.unitFinalPrice.toFixed(4);
+        // همان مبنای صفحهٔ قیمت‌گذاری: «قیمت فروش هر عدد محصول».
+        unitPrice = priced.unitSalePrice.toFixed(4);
       }
       const res = await api.POST("/api/v1/production/jobs", {
         body: {
           product_name: form.product_name,
           quantity: parseNum(form.quantity || "1").toString(),
           variant: form.variant,
-          channel: form.channel,
+          // Only direct sales remain; the server keeps the historical column.
+          channel: "direct" as const,
           order_id: form.order_id || null,
           order_item_id: form.order_item_id || null,
           filaments: spools,
@@ -395,7 +395,6 @@ export function ProductionPage(): React.JSX.Element {
       order_item_id: line?.id ?? "",
       product_name: line?.product_name ?? f.product_name,
       variant: line?.variant ?? f.variant,
-      channel: order?.channel ?? f.channel,
       quantity: line?.quantity ?? f.quantity,
     }));
   };
@@ -529,8 +528,6 @@ export function ProductionPage(): React.JSX.Element {
                             <div className="font-medium">{job.product_name}</div>
                             <div className="mt-1 flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
                               <span>{job.variant === "chain" ? "حلقه و زنجیر" : "ساده"}</span>
-                              <span>·</span>
-                              <span>{job.channel === "marketplace" ? "بازارگاه" : "مستقیم"}</span>
                             </div>
                           </td>
                           <td className="num py-3 ps-2">
@@ -839,38 +836,19 @@ export function ProductionPage(): React.JSX.Element {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label className="text-xs">نوع</Label>
-                <select
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
-                  value={form.variant}
-                  disabled={!!form.order_id}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, variant: e.target.value as "plain" | "chain" }))
-                  }
-                >
-                  <option value="plain">ساده</option>
-                  <option value="chain">حلقه‌دار</option>
-                </select>
-              </div>
-              <div>
-                <Label className="text-xs">کانال</Label>
-                <select
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
-                  value={form.channel}
-                  disabled={!!form.order_id}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      channel: e.target.value as "direct" | "marketplace",
-                    }))
-                  }
-                >
-                  <option value="marketplace">بازارگاه</option>
-                  <option value="direct">مستقیم</option>
-                </select>
-              </div>
+            <div>
+              <Label className="text-xs">نوع</Label>
+              <select
+                className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
+                value={form.variant}
+                disabled={!!form.order_id}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, variant: e.target.value as "plain" | "chain" }))
+                }
+              >
+                <option value="plain">ساده</option>
+                <option value="chain">حلقه‌دار</option>
+              </select>
             </div>
             <div className="space-y-2 rounded-md border p-2" data-testid="job-filaments">
               <div className="flex items-center justify-between">

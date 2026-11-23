@@ -5,6 +5,31 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
+## [1.0.27] — 2026-11-23
+
+The owner stopped selling through marketplaces: the app should price direct
+sales only, and on the «قیمت‌گذاری» page the final number should hang on one row
+— «قیمت فروش هر عدد محصول».
+
+### Pricing — one base row
+- The final price is now **`unitSalePrice` (B29/E29) + your own constants +
+  your variables**. Label, shipment share and the 10% buffer no longer add to
+  it; those rows stay on the page for reference.
+- The marketplace block (commission → the sheet's own final price) stays on the
+  page under a «محاسبهٔ بازارگاه (فقط مرجع)» divider and never moves the price
+  the app stores or shows as final.
+- «درصدی از قیمت فروش» percentages (constants and variables) now start from
+  `unitSalePrice` as well, so every percentage follows the same base row.
+- A production job with no linked order line prefills `unit_price` from the same
+  row instead of the marketplace final price.
+
+### Sales channel — direct only
+- The sales-channel chooser is gone from the pricing page, the order form, the
+  orders filter and the production job form; the «بازارگاه / مستقیم» labels in
+  the lists are gone too.
+- New orders and jobs are recorded as `direct`. The server column and the
+  historical rows are untouched, so old data still exports exactly as before.
+
 ## [1.0.26] — 2026-11-23
 
 The owner set up a variable with «دامنهٔ اثر: کلی»، «نحوهٔ محاسبه: مبلغ» and

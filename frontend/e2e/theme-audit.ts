@@ -171,10 +171,13 @@ export async function auditMenuThemes(page: Page): Promise<void> {
         .click();
       await expect(page.locator("html")).toHaveClass(dark ? /dark/ : /^(?!.*\bdark\b)/);
       for (const [path, count] of [
-        ["/price-calc", 1],
+        // No sales-channel chooser anywhere any more: /price-calc has no select,
+        // and the orders filter / production form each lost one.
+        ["/price-calc", 0],
         ["/journal/new", 1],
-        ["/orders", 6],
-        ["/production", 5],
+        // Orders lost two: the channel filter and the channel picker in the form.
+        ["/orders", 4],
+        ["/production", 4],
         ["/warehouse", 5],
         ["/bank-import", 5],
         // constants method + variable scope + variable basis (allocation
@@ -262,18 +265,6 @@ export async function auditMenuThemes(page: Page): Promise<void> {
         await auditNative(page, count, dark);
         await auditSurfaces(page, dark);
       }
-      // Keyboard selection must still drive a real React-controlled field.
-      await page.goto("/price-calc");
-      const channel = page.locator("select");
-      await channel.focus();
-      await channel.press("Home");
-      await channel.press("ArrowDown");
-      await channel.press("Enter");
-      await expect(channel).toHaveValue("direct");
-      await channel.press("Home");
-      await channel.press("Enter");
-      await expect(channel).toHaveValue("marketplace");
-
       await page.keyboard.press("Control+k");
       const palette = page.getByRole("dialog", { name: "پالت فرمان‌ها" });
       await expect(palette).toBeVisible();
@@ -288,6 +279,15 @@ export async function auditMenuThemes(page: Page): Promise<void> {
       await expect(page.getByTestId("palette-search-hit").first()).toBeVisible();
       await contrast(page.getByTestId("palette-search-hit"));
       await page.keyboard.press("Escape");
+      // Keyboard selection must still drive a real React-controlled field.
+      await page.goto("/orders");
+      const statusSelect = page.locator("select:visible").first();
+      await statusSelect.focus();
+      await statusSelect.press("Home");
+      await statusSelect.press("ArrowDown");
+      await statusSelect.press("Enter");
+      await expect(statusSelect).not.toHaveValue("");
+
       await expect(palette).not.toBeVisible();
 
       // Synthetic fixture is only for states not currently present in forms.

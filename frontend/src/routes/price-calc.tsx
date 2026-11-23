@@ -42,7 +42,6 @@ const EMPTY_INPUTS: PriceInputs = {
   printHours: "",
   quantity: "",
   variant: "plain",
-  channel: "marketplace",
 };
 
 // Presentation only: keep the workbook formulas and numeric values unchanged.
@@ -75,7 +74,9 @@ export function PriceCalcPage(): React.JSX.Element {
   const plain = React.useMemo<PriceBreakdown | null>(() => {
     if (!constants || !filled) return null;
     try {
-      return computePrice({ ...inputs, variant: "plain" }, constants);
+      // مرجع بازارگاه: همین اعداد ردیف‌های کمیسیون را پر می‌کنند؛ قیمت نهایی
+      // این صفحه از «قیمت فروش هر عدد محصول» ساخته می‌شود، نه از این‌ها.
+      return computePrice({ ...inputs, variant: "plain", channel: "marketplace" }, constants);
     } catch {
       return null;
     }
@@ -84,7 +85,7 @@ export function PriceCalcPage(): React.JSX.Element {
   const chain = React.useMemo<PriceBreakdown | null>(() => {
     if (!constants || !filled) return null;
     try {
-      return computePrice({ ...inputs, variant: "chain" }, constants);
+      return computePrice({ ...inputs, variant: "chain", channel: "marketplace" }, constants);
     } catch {
       return null;
     }
@@ -122,11 +123,13 @@ export function PriceCalcPage(): React.JSX.Element {
     }
   }, [plain, activeVariables, inputs.quantity]);
 
-  // Everything the owner added, in one place: his constants and his variables.
+  // The app's final price hangs on one row only: «قیمت فروش هر عدد محصول»
+  // (B29/E29). The marketplace rows below it stay on the page as a reference and
+  // never move the number the owner actually sells at.
   const unitFinal = React.useMemo(
     () =>
       plain
-        ? plain.unitFinalPrice
+        ? plain.unitSalePrice
             .plus(added ? added.perUnit : 0)
             .plus(variablesApplied ? variablesApplied.perUnit : 0)
         : null,
@@ -143,6 +146,8 @@ export function PriceCalcPage(): React.JSX.Element {
   }, [unitFinal, inputs.quantity, variablesApplied]);
 
   const rows = [...BREAKDOWN_ROWS, ...SALE_ROWS];
+  // از «کمیسیون بازارگاه» به بعد، اعداد وابسته به بازارگاه‌اند و فقط مرجع‌اند.
+  const referenceStart = rows.findIndex((row) => row.key === "unitCommission");
 
   if (settings.isPending) return <p role="status">در حال دریافت ثابت‌های قیمت‌گذاری…</p>;
   if (settings.error)
@@ -162,7 +167,7 @@ export function PriceCalcPage(): React.JSX.Element {
         {plain && (
           <Badge variant="success" data-testid="final-badge">
             قیمت نهایی هر عدد:{" "}
-            <Money value={(unitFinal ?? plain.unitFinalPrice).toFixed(4)} currency="TOMAN" />
+            <Money value={(unitFinal ?? plain.unitSalePrice).toFixed(4)} currency="TOMAN" />
           </Badge>
         )}
       </div>
@@ -219,21 +224,6 @@ export function PriceCalcPage(): React.JSX.Element {
                 onChange={(e) => setInputs((i) => ({ ...i, quantity: e.target.value }))}
               />
             </div>
-            <div>
-              <Label htmlFor="price-channel">کانال فروش</Label>
-              <select
-                className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
-                value={inputs.channel}
-                id="price-channel"
-                data-testid="select-channel"
-                onChange={(e) =>
-                  setInputs((i) => ({ ...i, channel: e.target.value as PriceInputs["channel"] }))
-                }
-              >
-                <option value="marketplace">بازارگاه (با کمیسیون)</option>
-                <option value="direct">فروش مستقیم (بدون کمیسیون)</option>
-              </select>
-            </div>
           </CardContent>
         </Card>
       </div>
@@ -244,55 +234,71 @@ export function PriceCalcPage(): React.JSX.Element {
         </CardHeader>
         <CardContent>
           {plain && chain ? (
-            <div
-              className="overflow-x-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-              role="region"
-              aria-label="جدول قیمت‌گذاری؛ قابل پیمایش افقی"
-              tabIndex={0}
-            >
-              <table className="w-full text-xs sm:text-sm" aria-label="گزارش قیمت‌گذاری">
-                <thead>
-                  <tr className="border-b text-muted-foreground">
-                    <th scope="col" className="py-2 text-start font-medium">
-                      شرح ردیف
-                    </th>
-                    <th scope="col" className="py-2 text-start font-medium">
-                      ساده (تومان)
-                    </th>
-                    <th scope="col" className="py-2 text-start font-medium">
-                      زنجیردار (تومان)
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row) => (
-                    <tr
-                      key={row.key}
-                      className={cn(
-                        "border-t",
-                        REPORT_ROW_HIGHLIGHTS[row.key] ??
-                          (row.strong ? "bg-muted/40 font-semibold" : undefined),
-                      )}
-                      data-testid={`row-${row.key}`}
-                    >
-                      <td className="py-2 ps-1">
-                        {row.key === "batchFinalPrice" ? "قیمت نهایی کل" : row.label}
-                      </td>
-                      <td className="py-2 ps-1">
-                        <Money value={plain[row.key].toFixed(4)} currency="TOMAN" hideCurrency />
-                      </td>
-                      <td className="py-2 ps-1">
-                        {row.plainOnly ? (
-                          "—"
-                        ) : (
-                          <Money value={chain[row.key].toFixed(4)} currency="TOMAN" hideCurrency />
-                        )}
-                      </td>
+            <>
+              <p
+                className="pb-2 text-[11px] text-muted-foreground"
+                data-testid="marketplace-reference"
+              >
+                ردیف‌های خاکستری پایین جدول «محاسبهٔ بازارگاه» با کمیسیون ۱۳٫۱٪ است و فقط مرجع است؛
+                در قیمت نهایی اثری ندارد چون فروش مستقیم است.
+              </p>
+              <div
+                className="overflow-x-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                role="region"
+                aria-label="جدول قیمت‌گذاری؛ قابل پیمایش افقی"
+                tabIndex={0}
+              >
+                <table className="w-full text-xs sm:text-sm" aria-label="گزارش قیمت‌گذاری">
+                  <thead>
+                    <tr className="border-b text-muted-foreground">
+                      <th scope="col" className="py-2 text-start font-medium">
+                        شرح ردیف
+                      </th>
+                      <th scope="col" className="py-2 text-start font-medium">
+                        ساده (تومان)
+                      </th>
+                      <th scope="col" className="py-2 text-start font-medium">
+                        زنجیردار (تومان)
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {rows.map((row, index) => (
+                      <tr
+                        key={row.key}
+                        className={cn(
+                          "border-t",
+                          REPORT_ROW_HIGHLIGHTS[row.key] ??
+                            (row.strong ? "bg-muted/40 font-semibold" : undefined),
+                          index >= referenceStart && !REPORT_ROW_HIGHLIGHTS[row.key]
+                            ? "text-muted-foreground"
+                            : undefined,
+                        )}
+                        data-testid={`row-${row.key}`}
+                      >
+                        <td className="py-2 ps-1">
+                          {row.key === "batchFinalPrice" ? "قیمت نهایی کل" : row.label}
+                        </td>
+                        <td className="py-2 ps-1">
+                          <Money value={plain[row.key].toFixed(4)} currency="TOMAN" hideCurrency />
+                        </td>
+                        <td className="py-2 ps-1">
+                          {row.plainOnly ? (
+                            "—"
+                          ) : (
+                            <Money
+                              value={chain[row.key].toFixed(4)}
+                              currency="TOMAN"
+                              hideCurrency
+                            />
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           ) : !filled ? (
             <p className="p-6 text-center text-muted-foreground" data-testid="price-empty">
               برای دیدن محاسبه، وزن محصول، مدت پرینت و تیراژ را وارد کنید.

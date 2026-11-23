@@ -129,7 +129,7 @@ The calculator implements the Excel workbook `قیمت نهایی.xlsx`, **norma
 | `L` | هزینه لیبل | 8,000 | Toman/unit |
 | `B` | بافر ریسک/مرجوعی | 10 | % |
 
-**Product inputs:** weight `w` (g), print time `t` (h), quantity `q` (pcs), variant `v ∈ {plain, chain}` (زنجیر دار), channel `k ∈ {direct, marketplace}`.
+**Product inputs:** weight `w` (g), print time `t` (h), quantity `q` (pcs), variant `v ∈ {plain, chain}` (زنجیر دار). Sales are **direct only** — the channel chooser was removed from every page in 1.0.27; the stored `channel` column stays for historical rows at its default `direct`.
 
 #### 4.3.2 Normalized formulas
 
@@ -157,7 +157,11 @@ merchandise        = unit_sale_price + unit_commission
 buffer             = merchandise × B / 100
 unit_final_price   = merchandise + unit_delivery_cost + buffer
 ```
-**Direct channel:** `unit_final_price = unit_sale_price + (optionally local delivery) + buffer` — no commission, no marketplace label.
+**App final price (1.0.27 onward):** only the sale-price row counts:
+```
+unit_final_price = unit_sale_price + Σ owner additions
+```
+where the additions are the owner's custom constants and pricing variables. The marketplace block above (commission → sheet `unit_final_price`) stays on the «قیمت‌گذاری» page **as a reference only**, marked «محاسبهٔ بازارگاه (فقط مرجع)»; it never moves the number the app prices or stores. Percentages («درصدی از قیمت فروش») likewise start from `unit_sale_price`.
 
 **Batch totals** are always `q × unit_*` (the sheet mixed totals and per-unit values in `B32`).
 

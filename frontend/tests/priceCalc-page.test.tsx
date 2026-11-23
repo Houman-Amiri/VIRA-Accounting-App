@@ -119,8 +119,9 @@ describe("pricing page — literal Excel model", () => {
     expect(screen.getByTestId("variable-line-var-shipping")).toHaveTextContent(
       "به جمع کل: ۱۰۰٬۰۰۰",
     );
+    // «قیمت فروش هر عدد محصول» با تیراژ ۱۰: ۲۰۸٬۵۰۰ → جمع کل ۲٬۱۸۵٬۰۰۰
     expect(
-      screen.getByText((_, node) => node?.textContent === "جمع کل سفارش (۱۰ عدد)۳٬۰۱۱٬۹۴۸.۵"),
+      screen.getByText((_, node) => node?.textContent === "جمع کل سفارش (۱۰ عدد)۲٬۱۸۵٬۰۰۰"),
     ).toBeInTheDocument();
 
     // «۲ محموله»: مبلغ ۱۰۰٬۰۰۰ دو بار روی جمع کل می‌نشیند.
@@ -131,22 +132,21 @@ describe("pricing page — literal Excel model", () => {
     expect(line).toHaveTextContent("۲ ×");
     expect(line).toHaveTextContent("به جمع کل: ۲۰۰٬۰۰۰");
     expect(
-      screen.getByText((_, node) => node?.textContent === "جمع کل سفارش (۱۰ عدد)۳٬۱۱۱٬۹۴۸.۵"),
+      screen.getByText((_, node) => node?.textContent === "جمع کل سفارش (۱۰ عدد)۲٬۲۸۵٬۰۰۰"),
     ).toBeInTheDocument();
     // قیمت هر عدد با «یک‌جا روی جمع کل» تغییر نمی‌کند.
-    expect(
-      within(screen.getByTestId("row-unitFinalPrice")).getByText("۲۹۱٬۱۹۴.۸۵"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("final-badge")).toHaveTextContent("۲۰۸٬۵۰۰");
   });
 
   it("clears only product inputs, keeping the saved pricing constants", () => {
     const { client } = renderWithPricing(<PriceCalcPage />, { filamentPerGram: "4000.0000" });
     fillInputs({ qty: "10" });
-    fireEvent.change(screen.getByTestId("select-channel"), { target: { value: "direct" } });
     fireEvent.click(screen.getByRole("button", { name: "پاک کردن ورودی‌ها" }));
     expect(screen.getByTestId("input-qty")).toHaveValue("");
     expect(screen.getByTestId("input-weight")).toHaveValue("");
-    expect(screen.getByTestId("select-channel")).toHaveValue("marketplace");
+    // No sales-channel chooser anywhere: only a direct sale is priced.
+    expect(screen.queryByTestId("select-channel")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("کانال فروش")).not.toBeInTheDocument();
     expect(screen.getByTestId("price-empty")).toBeInTheDocument();
     expect(client.getQueryData(["pricing-settings"])).toMatchObject({
       filamentPerGram: "4000.0000",

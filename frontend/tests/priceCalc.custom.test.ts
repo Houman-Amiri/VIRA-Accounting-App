@@ -49,18 +49,19 @@ const custom = (patch: Partial<CustomConstantInput>): CustomConstantInput => ({
 });
 
 describe("custom pricing constants", () => {
-  it("leaves the workbook price untouched when the owner has no constants", () => {
+  it("bases the final price on the sale-price row when there are no constants", () => {
     const result = applyCustomConstants(base(), [], "10");
     expect(result.lines).toEqual([]);
     expect(result.perUnit.toFixed(4)).toBe("0.0000");
-    expect(result.unitFinalPrice.toFixed(4)).toBe(base().unitFinalPrice.toFixed(4));
-    expect(result.batchFinalPrice.toFixed(4)).toBe(base().batchFinalPrice.toFixed(4));
+    // «قیمت فروش هر عدد محصول» — not the sheet's marketplace final price.
+    expect(result.unitFinalPrice.toFixed(4)).toBe(base().unitSalePrice.toFixed(4));
+    expect(result.batchFinalPrice.toFixed(4)).toBe(base().unitSalePrice.times(10).toFixed(4));
   });
 
   it("adds a fixed amount per piece", () => {
     const result = applyCustomConstants(base(), [custom({ value: "12000" })], "10");
     expect(result.lines[0].amount.toFixed(4)).toBe("12000.0000");
-    expect(result.unitFinalPrice.toFixed(4)).toBe(base().unitFinalPrice.plus(12000).toFixed(4));
+    expect(result.unitFinalPrice.toFixed(4)).toBe(base().unitSalePrice.plus(12000).toFixed(4));
     expect(result.batchFinalPrice.toFixed(4)).toBe(result.unitFinalPrice.times(10).toFixed(4));
   });
 
@@ -85,7 +86,7 @@ describe("custom pricing constants", () => {
     );
   });
 
-  it("takes a percentage of the sheet's unit price, not of the running total", () => {
+  it("takes a percentage of «قیمت فروش هر عدد محصول», not of the running total", () => {
     const sheet = base();
     const result = applyCustomConstants(
       base(),
@@ -95,7 +96,7 @@ describe("custom pricing constants", () => {
       ],
       "10",
     );
-    const each = sheet.unitFinalPrice.times(10).div(100);
+    const each = sheet.unitSalePrice.times(10).div(100);
     expect(result.lines[0].amount.toFixed(4)).toBe(each.toFixed(4));
     expect(result.lines[1].amount.toFixed(4)).toBe(each.toFixed(4));
     expect(result.perUnit.toFixed(4)).toBe(each.times(2).toFixed(4));
@@ -118,7 +119,7 @@ describe("custom pricing constants", () => {
       "10",
     );
     expect(result.lines).toEqual([]);
-    expect(result.unitFinalPrice.toFixed(4)).toBe(base().unitFinalPrice.toFixed(4));
+    expect(result.unitFinalPrice.toFixed(4)).toBe(base().unitSalePrice.toFixed(4));
   });
 
   it("refuses a negative value or a run size of zero", () => {

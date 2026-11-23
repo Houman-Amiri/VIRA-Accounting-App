@@ -59,7 +59,12 @@ export interface PriceInputs {
   printHours: MoneyLike;
   quantity: MoneyLike; // B15
   variant: "plain" | "chain";
-  channel: "direct" | "marketplace";
+  /**
+   * The workbook still carries the marketplace commission (B31–B35); the app
+   * prices every sale as a direct sale, so this is only used to fill the
+   * «مرجع بازارگاه» rows on the pricing page. Defaults to `direct`.
+   */
+  channel?: "direct" | "marketplace";
 }
 
 export interface PriceBreakdown {
@@ -136,7 +141,7 @@ export function computePrice(
   const unitSalePrice = batchSalePrice.div(q); // B29/E29
   const plainSalePrice = baseProduction.times(profitFactor); // B28, even for chain
   const unitCommission =
-    inputs.channel === "marketplace"
+    (inputs.channel ?? "direct") === "marketplace"
       ? plainSalePrice.div(q).times("13.1").div(100) // B31 (NOT B7 or E29)
       : new Decimal(0);
   const saleWithDelivery = plainSalePrice.plus(unitDeliveryCost); // B32
@@ -255,8 +260,9 @@ export interface CustomConstantLine {
 
 export interface CustomPriceResult {
   lines: CustomConstantLine[];
-  /** Sum of every line — what one unit gains on top of the sheet price. */
+  /** Sum of every line — what one unit gains on top of the base price. */
   perUnit: Decimal;
+  /** «قیمت فروش هر عدد محصول» + every line (the app's final price). */
   unitFinalPrice: Decimal;
   batchFinalPrice: Decimal;
 }
@@ -267,7 +273,8 @@ export interface CustomPriceResult {
  * - `PER_UNIT`         the value itself;
  * - `PER_BATCH`        the value split over the run size;
  * - `PERCENT_OF_COST`  a percentage of the unit production cost;
- * - `PERCENT_OF_PRICE` a percentage of the sheet's unit final price.
+ * - `PERCENT_OF_PRICE` a percentage of «قیمت فروش هر عدد محصول» (the row the
+ *   final price is based on).
  *
  * Percentages are always taken from the *sheet* amounts, never from a total
  * that already contains other custom constants, so the order of the rows can
@@ -291,7 +298,7 @@ export function customConstantAmount(
     case "PERCENT_OF_COST":
       return base.unitProductionCost.times(value).div(100);
     case "PERCENT_OF_PRICE":
-      return base.unitFinalPrice.times(value).div(100);
+      return base.unitSalePrice.times(value).div(100);
     default:
       return new Decimal(0);
   }
@@ -309,7 +316,7 @@ export function applyCustomConstants(
     amount: customConstantAmount(constant, base, quantity),
   }));
   const perUnit = lines.reduce((sum, line) => sum.plus(line.amount), new Decimal(0));
-  const unitFinalPrice = base.unitFinalPrice.plus(perUnit);
+  const unitFinalPrice = base.unitSalePrice.plus(perUnit);
   return {
     lines,
     perUnit,
@@ -393,7 +400,7 @@ export function variableEffect(
       ? amount
       : variable.basis === "PERCENT_OF_COST"
         ? base.unitProductionCost.times(amount).div(100)
-        : base.unitFinalPrice.times(amount).div(100);
+        : base.unitSalePrice.times(amount).div(100);
 
   if (variable.scope === "PER_UNIT") {
     return {

@@ -209,12 +209,7 @@ export function OrdersHistoryPage(): React.JSX.Element {
                   <React.Fragment key={order.id}>
                     <tr className="border-b" data-testid={`history-order-${order.id}`}>
                       <td className="num py-2">{faNumber(String(order.order_number))}</td>
-                      <td className="py-2">
-                        {faDate(order.order_date, calendar)}
-                        <div className="text-xs text-muted-foreground">
-                          {order.channel === "marketplace" ? "بازارگاه" : "مستقیم"}
-                        </div>
-                      </td>
+                      <td className="py-2">{faDate(order.order_date, calendar)}</td>
                       <td className="py-2">
                         {order.customer_name}
                         {order.customer_phone && (

@@ -1,7 +1,7 @@
 /**
  * سفارش‌ها — customer orders (MASTER_PROMPT §3.2).
  *
- * Order list with status/channel/search/date filters, a line-item form whose
+ * Order list with status/search/date filters, a line-item form whose
  * unit price can be filled straight from the pricing engine (قیمت نهایی.xlsx),
  * status transitions, proforma PDF download and the daily/weekly/monthly/annual
  * sales report.
@@ -145,7 +145,6 @@ const blankForm = () => ({
   customer_name: "",
   customer_phone: "",
   customer_address: "",
-  channel: "marketplace" as "direct" | "marketplace",
   notes: "",
   items: [emptyLine()],
 });
@@ -178,7 +177,6 @@ export function OrdersPage(): React.JSX.Element {
   // table stays compact even when an order carries many lines.
   const [openItems, setOpenItems] = React.useState<string | null>(null);
   const [statusFilter, setStatusFilter] = React.useState("");
-  const [channelFilter, setChannelFilter] = React.useState("");
   const [search, setSearch] = React.useState("");
   const [dateFrom, setDateFrom] = React.useState("");
   const [dateTo, setDateTo] = React.useState("");
@@ -195,7 +193,7 @@ export function OrdersPage(): React.JSX.Element {
     calendarReady && !fromInvalid && !toInvalid && !(dateFrom && dateTo && dateFrom > dateTo);
   const ordersQuery = useQuery({
     enabled: filtersReady,
-    queryKey: ["orders", statusFilter, channelFilter, search, dateFrom, dateTo, page],
+    queryKey: ["orders", statusFilter, search, dateFrom, dateTo, page],
     queryFn: async () => {
       const res = await api.GET("/api/v1/orders", {
         params: {
@@ -204,7 +202,6 @@ export function OrdersPage(): React.JSX.Element {
             offset: page * OPERATION_PAGE_SIZE,
             status_group: "active" as const,
             ...(statusFilter ? { status: statusFilter } : {}),
-            ...(channelFilter ? { channel: channelFilter } : {}),
             ...(search ? { search } : {}),
             ...(dateFrom ? { date_from: dateFrom } : {}),
             ...(dateTo ? { date_to: dateTo } : {}),
@@ -255,7 +252,6 @@ export function OrdersPage(): React.JSX.Element {
       customer_name: order.customer_name,
       customer_phone: order.customer_phone ?? "",
       customer_address: order.customer_address ?? "",
-      channel: order.channel,
       notes: order.notes ?? "",
       items: order.items.map((line) => ({
         inventory_item_id: line.inventory_item_id ?? "",
@@ -272,7 +268,7 @@ export function OrdersPage(): React.JSX.Element {
 
   const cancelEditing = (): void => {
     setEditing(null);
-    setForm((f) => ({ ...blankForm(), order_date: f.order_date, channel: f.channel }));
+    setForm((f) => ({ ...blankForm(), order_date: f.order_date }));
   };
 
   const invalidate = (): void => {
@@ -291,7 +287,8 @@ export function OrdersPage(): React.JSX.Element {
           customer_name: form.customer_name,
           customer_phone: form.customer_phone || null,
           customer_address: form.customer_address || null,
-          channel: form.channel,
+          // Only direct sales remain; the server keeps the historical column.
+          channel: "direct" as const,
           notes: form.notes || null,
           items: form.items.map((line) => ({
             // A free line carries its name; a warehouse line falls back to the
@@ -341,7 +338,8 @@ export function OrdersPage(): React.JSX.Element {
           customer_name: form.customer_name,
           customer_phone: form.customer_phone || null,
           customer_address: form.customer_address || null,
-          channel: form.channel,
+          // Only direct sales remain; the server keeps the historical column.
+          channel: "direct" as const,
           notes: form.notes || null,
           items: form.items.map((line) => ({
             product_name: line.product_name.trim(),
@@ -360,7 +358,7 @@ export function OrdersPage(): React.JSX.Element {
       setMessage(`سفارش #${faNumber(String(saved.order_number))} ویرایش شد ✓`);
       setEditing(null);
       setCreateWarnings([]);
-      setForm((f) => ({ ...blankForm(), order_date: f.order_date, channel: f.channel }));
+      setForm((f) => ({ ...blankForm(), order_date: f.order_date }));
       invalidate();
     },
     onError: (e) => setMessage(errText(e)),
@@ -549,21 +547,6 @@ export function OrdersPage(): React.JSX.Element {
                   ))}
                 </select>
               </div>
-              <div className="w-28">
-                <Label className="text-xs">کانال</Label>
-                <select
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
-                  value={channelFilter}
-                  onChange={(e) => {
-                    setChannelFilter(e.target.value);
-                    setPage(0);
-                  }}
-                >
-                  <option value="">همه</option>
-                  <option value="direct">مستقیم</option>
-                  <option value="marketplace">بازارگاه</option>
-                </select>
-              </div>
               <div className="w-36">
                 <CalendarInput
                   id="orders-from"
@@ -618,12 +601,7 @@ export function OrdersPage(): React.JSX.Element {
                     <React.Fragment key={order.id}>
                       <tr className="border-b" data-testid={`order-${order.id}`}>
                         <td className="num py-2">{faNumber(String(order.order_number))}</td>
-                        <td className="py-2">
-                          {faDate(order.order_date, calendar)}
-                          <div className="text-xs text-muted-foreground">
-                            {order.channel === "marketplace" ? "بازارگاه" : "مستقیم"}
-                          </div>
-                        </td>
+                        <td className="py-2">{faDate(order.order_date, calendar)}</td>
                         <td className="py-2">
                           {order.customer_name}
                           {order.customer_phone && (
@@ -834,30 +812,14 @@ export function OrdersPage(): React.JSX.Element {
             {editing && <Badge variant="secondary">تأییدنشده — قابل ویرایش</Badge>}
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <div>
-                <CalendarInput
-                  id="order-date"
-                  label="تاریخ سفارش"
-                  required
-                  value={form.order_date}
-                  onChange={(iso) => setForm((f) => ({ ...f, order_date: iso }))}
-                />
-              </div>
-              <div>
-                <Label className="text-xs">کانال فروش</Label>
-                <select
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
-                  value={form.channel}
-                  data-testid="order-channel"
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, channel: e.target.value as "direct" | "marketplace" }))
-                  }
-                >
-                  <option value="marketplace">بازارگاه</option>
-                  <option value="direct">مستقیم</option>
-                </select>
-              </div>
+            <div>
+              <CalendarInput
+                id="order-date"
+                label="تاریخ سفارش"
+                required
+                value={form.order_date}
+                onChange={(iso) => setForm((f) => ({ ...f, order_date: iso }))}
+              />
             </div>
             <div>
               <Label className="text-xs">نام مشتری</Label>

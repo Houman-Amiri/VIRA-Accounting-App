@@ -48,7 +48,8 @@ export async function auditOperations(page: Page): Promise<void> {
 
   await page.getByRole("link", { name: "سفارش‌ها", exact: true }).click();
   await page.getByTestId("order-customer").fill(base);
-  await page.getByTestId("order-channel").selectOption("direct");
+  // Channel selection is gone: every sale is direct.
+  await expect(page.getByTestId("order-channel")).toHaveCount(0);
   await page.getByRole("button", { name: "+ افزودن قلم" }).click();
   // Item 3: no grams/time on an order line; item 7: the product comes from the
   // warehouse, so the line is a select of stocked products, not a free name.

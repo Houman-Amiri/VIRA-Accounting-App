@@ -89,7 +89,8 @@ function Preview({
     .map((constant) => ({ constant, amount: customConstantAmount(constant, base, quantity) }));
   const constantTotal = constantRows.reduce((sum, row) => sum.plus(row.amount), parseNum("0"));
   const applied = applyVariables(base, variables, quantity);
-  const unitFinal = base.unitFinalPrice.plus(constantTotal).plus(applied.perUnit);
+  // مبنای قیمت نهایی، «قیمت فروش هر عدد محصول» است؛ ردیف‌های بازارگاه فقط مرجع‌اند.
+  const unitFinal = base.unitSalePrice.plus(constantTotal).plus(applied.perUnit);
   const orderTotal = unitFinal.times(quantity).plus(applied.oneTime);
   return (
     <Card data-testid="pricing-preview">
@@ -103,8 +104,8 @@ function Preview({
           نمی‌کند.
         </p>
         <div className="flex items-center justify-between border-b pb-1">
-          <span>قیمت نهایی هر عدد بدون افزوده‌های شما</span>
-          <Money value={base.unitFinalPrice} currency="TOMAN" hideCurrency />
+          <span>قیمت فروش هر عدد محصول (مبنای قیمت نهایی)</span>
+          <Money value={base.unitSalePrice} currency="TOMAN" hideCurrency />
         </div>
         {constantRows.map(({ constant, amount }) => (
           <div
@@ -218,7 +219,7 @@ export function PricingSettingsPage(): React.JSX.Element {
   const previewBase = React.useMemo<PriceBreakdown | null>(() => {
     if (!constants) return null;
     try {
-      return computePrice({ ...PREVIEW, variant: "plain", channel: "marketplace" }, constants);
+      return computePrice({ ...PREVIEW, variant: "plain" }, constants);
     } catch {
       return null;
     }
