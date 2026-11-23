@@ -7,6 +7,8 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [1.0.29] — 2026-10-14
 
+منتشر شد: [نسخهٔ ۱.۰.۲۹](https://github.com/Houman-Amiri/VIRA-Accounting-App/releases/tag/v1.0.29)؛ [اجرای موفق انتشار](https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/45218206946). فایل به‌روزرسانی با تأیید مالک بدون امضا است.
+
 ### اصلاح متغیرها در صفحهٔ قیمت‌گذاری
 - قیمت نهایی و جمع کل فروش مستقیم برای محصول ساده و زنجیردار، ثابت‌ها و همهٔ
   متغیرهای فعال را با روش تخصیصشان لحاظ می‌کنند؛ ردیف‌های بازارگاه فقط مرجع‌اند.
