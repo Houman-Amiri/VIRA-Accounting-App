@@ -108,8 +108,11 @@ export function PriceCalcPage(): React.JSX.Element {
         .filter((variable) => variable.is_active)
         .map((variable) => ({
           ...variable,
-          value: variableValues[variable.id] ??
-            (variable.basis === "AMOUNT" ? variable.value.replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "") : variable.value),
+          value:
+            variableValues[variable.id] ??
+            (variable.basis === "AMOUNT"
+              ? variable.value.replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "")
+              : variable.value),
           count: variableCounts[variable.id] ?? "1",
         })),
     [variableQuery.data, variableValues, variableCounts],
@@ -128,7 +131,10 @@ export function PriceCalcPage(): React.JSX.Element {
       const plainUnit = plain.unitSalePrice.plus(plainCustoms.perUnit).plus(plainVariables.perUnit);
       const chainUnit = chain.unitSalePrice.plus(chainCustoms.perUnit).plus(chainVariables.perUnit);
       return {
-        plainVariables, chainVariables, plainUnit, chainUnit,
+        plainVariables,
+        chainVariables,
+        plainUnit,
+        chainUnit,
         plainTotal: plainUnit.times(quantity).plus(plainVariables.oneTime),
         chainTotal: chainUnit.times(quantity).plus(chainVariables.oneTime),
         error: null,
@@ -136,7 +142,15 @@ export function PriceCalcPage(): React.JSX.Element {
     } catch (error) {
       return { error: error instanceof Error ? error.message : "محاسبهٔ متغیرها ناموفق بود" };
     }
-  }, [plain, chain, customs.isSuccess, customs.data, variableQuery.isSuccess, activeVariables, inputs.quantity]);
+  }, [
+    plain,
+    chain,
+    customs.isSuccess,
+    customs.data,
+    variableQuery.isSuccess,
+    activeVariables,
+    inputs.quantity,
+  ]);
   const variablesApplied = results?.error === null ? results.plainVariables : null;
   const unitFinal = results?.error === null ? results.plainUnit : null;
   const orderTotal = results?.error === null ? results.plainTotal : null;
@@ -162,8 +176,7 @@ export function PriceCalcPage(): React.JSX.Element {
         <h1 className="text-xl font-bold">ماشین‌حساب قیمت‌گذاری</h1>
         {unitFinal && (
           <Badge variant="success" data-testid="final-badge">
-            قیمت نهایی هر عدد:{" "}
-            <Money value={unitFinal.toFixed(4)} currency="TOMAN" />
+            قیمت نهایی هر عدد: <Money value={unitFinal.toFixed(4)} currency="TOMAN" />
           </Badge>
         )}
       </div>
@@ -272,7 +285,13 @@ export function PriceCalcPage(): React.JSX.Element {
       {(customs.isError || variableQuery.isError) && (
         <p role="alert" className="text-destructive" data-testid="pricing-data-error">
           دریافت ثابت‌ها یا متغیرهای قیمت‌گذاری ناموفق بود؛ قیمت نهایی نمایش داده نمی‌شود.
-          <button className="ms-2 underline" onClick={() => { void customs.refetch(); void variableQuery.refetch(); }}>
+          <button
+            className="ms-2 underline"
+            onClick={() => {
+              void customs.refetch();
+              void variableQuery.refetch();
+            }}
+          >
             تلاش مجدد
           </button>
         </p>
@@ -294,8 +313,8 @@ export function PriceCalcPage(): React.JSX.Element {
                 data-testid="marketplace-reference"
               >
                 ردیف‌های خاکستری پایین جدول «محاسبهٔ بازارگاه» با کمیسیون ۱۳٫۱٪ است و فقط مرجع است؛
-                در قیمت نهایی اثری ندارد چون فروش مستقیم است. قیمت‌های نهایی فروش مستقیم در
-                دو ردیف آخر، با احتساب ثابت‌ها و متغیرها نمایش داده می‌شوند.
+                در قیمت نهایی اثری ندارد چون فروش مستقیم است. قیمت‌های نهایی فروش مستقیم در دو ردیف
+                آخر، با احتساب ثابت‌ها و متغیرها نمایش داده می‌شوند.
               </p>
               <div
                 className="overflow-x-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
@@ -332,8 +351,11 @@ export function PriceCalcPage(): React.JSX.Element {
                         data-testid={`row-${row.key}`}
                       >
                         <td className="py-2 ps-1">
-                          {row.key === "unitFinalPrice" ? "قیمت هر عدد بازارگاه (فقط مرجع)" :
-                            row.key === "batchFinalPrice" ? "جمع کل بازارگاه (فقط مرجع)" : row.label}
+                          {row.key === "unitFinalPrice"
+                            ? "قیمت هر عدد بازارگاه (فقط مرجع)"
+                            : row.key === "batchFinalPrice"
+                              ? "جمع کل بازارگاه (فقط مرجع)"
+                              : row.label}
                         </td>
                         <td className="py-2 ps-1">
                           <Money value={plain[row.key].toFixed(4)} currency="TOMAN" hideCurrency />
@@ -351,15 +373,53 @@ export function PriceCalcPage(): React.JSX.Element {
                         </td>
                       </tr>
                     ))}
-                    <tr className="border-t bg-red-100 font-semibold dark:bg-red-900/40" data-testid="row-direct-unit-final">
+                    <tr
+                      className="border-t bg-red-100 font-semibold dark:bg-red-900/40"
+                      data-testid="row-direct-unit-final"
+                    >
                       <td className="py-2 ps-1">قیمت نهایی هر عدد فروش مستقیم</td>
-                      <td className="py-2 ps-1">{unitFinal ? <Money value={unitFinal.toFixed(4)} currency="TOMAN" hideCurrency /> : "—"}</td>
-                      <td className="py-2 ps-1">{results?.error === null ? <Money value={results.chainUnit.toFixed(4)} currency="TOMAN" hideCurrency /> : "—"}</td>
+                      <td className="py-2 ps-1">
+                        {unitFinal ? (
+                          <Money value={unitFinal.toFixed(4)} currency="TOMAN" hideCurrency />
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      <td className="py-2 ps-1">
+                        {results?.error === null ? (
+                          <Money
+                            value={results.chainUnit.toFixed(4)}
+                            currency="TOMAN"
+                            hideCurrency
+                          />
+                        ) : (
+                          "—"
+                        )}
+                      </td>
                     </tr>
-                    <tr className="border-t bg-muted/40 font-semibold" data-testid="row-direct-batch-final">
+                    <tr
+                      className="border-t bg-muted/40 font-semibold"
+                      data-testid="row-direct-batch-final"
+                    >
                       <td className="py-2 ps-1">جمع کل سفارش فروش مستقیم</td>
-                      <td className="py-2 ps-1">{orderTotal ? <Money value={orderTotal.toFixed(4)} currency="TOMAN" hideCurrency /> : "—"}</td>
-                      <td className="py-2 ps-1">{results?.error === null ? <Money value={results.chainTotal.toFixed(4)} currency="TOMAN" hideCurrency /> : "—"}</td>
+                      <td className="py-2 ps-1">
+                        {orderTotal ? (
+                          <Money value={orderTotal.toFixed(4)} currency="TOMAN" hideCurrency />
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      <td className="py-2 ps-1">
+                        {results?.error === null ? (
+                          <Money
+                            value={results.chainTotal.toFixed(4)}
+                            currency="TOMAN"
+                            hideCurrency
+                          />
+                        ) : (
+                          "—"
+                        )}
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -385,9 +445,9 @@ export function PriceCalcPage(): React.JSX.Element {
           <CardContent className="space-y-3 text-sm">
             <p className="text-xs text-muted-foreground">
               مقدارها در «مشخصات محصول» کنار بقیهٔ ورودی‌ها وارد می‌شوند؛ این کادر فقط اثرشان را
-              نشان می‌دهد و تنظیمات ذخیره‌شده را تغییر نمی‌دهد. مبالغ متغیرها در این بخش
-              برای نمایش به تومانِ کامل گرد می‌شوند؛ محاسبات دقیق باقی می‌مانند. متغیرهای
-              یک‌جا فقط به جمع کل سفارش اضافه می‌شوند.
+              نشان می‌دهد و تنظیمات ذخیره‌شده را تغییر نمی‌دهد. مبالغ متغیرها در این بخش برای نمایش
+              به تومانِ کامل گرد می‌شوند؛ محاسبات دقیق باقی می‌مانند. متغیرهای یک‌جا فقط به جمع کل
+              سفارش اضافه می‌شوند.
             </p>
             {activeVariables.map((variable) => {
               const line = variablesApplied?.lines.find((row) => row.name === variable.name);
@@ -420,10 +480,12 @@ export function PriceCalcPage(): React.JSX.Element {
                 </div>
               );
             })}
-            {unitFinal && <div className="flex flex-wrap items-center justify-between gap-2 pt-1 font-semibold">
-              <span>قیمت نهایی هر عدد</span>
-              <Money value={unitFinal.toString()} currency="TOMAN" hideCurrency />
-            </div>}
+            {unitFinal && (
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1 font-semibold">
+                <span>قیمت نهایی هر عدد</span>
+                <Money value={unitFinal.toString()} currency="TOMAN" hideCurrency />
+              </div>
+            )}
             {orderTotal && (
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                 <span>جمع کل سفارش ({faNumber(String(inputs.quantity))} عدد)</span>

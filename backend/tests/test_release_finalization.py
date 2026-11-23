@@ -203,11 +203,12 @@ def test_unsigned_publication_is_announced_loudly_and_never_leaks_a_key(assets, 
 
 def test_the_workflow_carries_exactly_this_dated_authorization_and_keeps_failing_closed():
     text = (ROOT / ".github/workflows/release.yml").read_text()
-    assert 'NOA_UNSIGNED_PUBLICATION_APPROVAL: "owner-authorized-2026-10-31"' in text
+    assert 'NOA_UNSIGNED_PUBLICATION_APPROVAL: "owner-authorized-2026-10-14"' in text
     guard = text[text.index("Refuse unsigned tagged publication"):]
     guard = guard[:guard.index("- uses:")]
     assert 'throw "Tagged publication requires the configured Ed25519 signing key; no unsigned fallback"' in guard
     assert "::warning title=unsigned-publication::" in guard
-    token = '"owner-authorized-2026-10-31"'
+    token = '"owner-authorized-2026-10-14"'
     assert text.count(token) == 2, "the dated token appears once as env and once as the guard comparison"
     assert "-ne " + token in guard
+    assert "\"1.0.29\"" in guard and "$env:NOA_VERSION.TrimStart('v') -ne" in guard
