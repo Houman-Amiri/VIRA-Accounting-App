@@ -5,7 +5,7 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
-## [1.0.28] — 2026-10-14
+## [1.0.28] — 2026-11-23
 
 Three owner requests in one release: his own pricing variables belong on the
 pricing page's «مشخصات محصول», an order line can carry a design cost and any of
