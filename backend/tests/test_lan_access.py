@@ -113,3 +113,13 @@ def test_the_bind_scope_reaches_a_non_loopback_socket() -> None:
         host, port = sock.getsockname()
     assert host == "0.0.0.0"
     assert port > 0
+
+
+def test_the_console_output_stays_ascii(monkeypatch, capsys) -> None:
+    """The Windows console is cp1252; a Persian print aborted startup in CI."""
+    monkeypatch.setattr(launcher, "lan_address", lambda: "192.168.1.20")
+    monkeypatch.setattr(launcher, "start", lambda port: 0)
+    assert launcher.serve(8787, 8787) == 0
+    out = capsys.readouterr().out
+    assert "[NOA] LAN access: http://192.168.1.20:8787/" in out
+    out.encode("ascii")  # raises UnicodeEncodeError if a stray character slips in

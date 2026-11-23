@@ -38,7 +38,7 @@ home network.
 
 ### LAN access
 - The server binds `0.0.0.0` from the start (no toggle) and the launcher prints
-  «در شبکهٔ محلی: http://192.168.x.x:8787/», so another machine on the same
+  `[NOA] LAN access: http://192.168.x.x:8787/`, so another machine on the same
   network can sign in with the same owner account.
 - Cookies are only `Secure` when the request arrived over HTTPS, so plain-HTTP
   LAN logins work; CSRF, roles and auditing are unchanged.

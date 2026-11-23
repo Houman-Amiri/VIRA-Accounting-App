@@ -276,7 +276,8 @@ Role-aware: auditors see read-only widgets; bookkeepers see operational actions;
 
 - NOA binds **all interfaces** (`0.0.0.0`) from the first start; there is no
   opt-in switch. The launcher prints the loopback URL and, when the machine has
-  a LAN address, `در شبکهٔ محلی: http://192.168.x.x:8787/`.
+  a LAN address, `[NOA] LAN access: http://192.168.x.x:8787/` (plain ASCII —
+  the Windows console is cp1252 and would otherwise abort on the print).
 - Another computer on the same network opens that address and gets the same
   owner login and roles; data lives only on the machine running NOA.
 - Session cookies are marked `Secure` only when the request itself arrived over

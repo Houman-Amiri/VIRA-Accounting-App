@@ -289,13 +289,13 @@ def serve(port: int, requested: int) -> int:
         announced = False
         print(
             f"[NOA] Starting server on http://{HOST}:{candidate}/ "
-            "(logs below — Ctrl+C or close to stop)"
+            "(logs below - Ctrl+C or close to stop)"
         )
         address = lan_address()
         if address:
-            print(f"[NOA] در شبکهٔ محلی: http://{address}:{candidate}/")
+            print(f"[NOA] LAN access: http://{address}:{candidate}/ (same owner login)")
         else:
-            print("[NOA] آدرس شبکهٔ محلی پیدا نشد (اینترنت/شبکه قطع است).")
+            print("[NOA] No local network address found; LAN access is unavailable.")
         try:
             return start(candidate)
         except OSError as exc:
@@ -308,8 +308,22 @@ def serve(port: int, requested: int) -> int:
     return 1
 
 
+def _tolerate_console_encoding() -> None:
+    """Never crash on a message the Windows console cannot encode.
+
+    cmd.exe defaults to cp1252; a single non-ASCII character in a ``print``
+    used to abort startup before the server bound its port (v1.0.28 smoke).
+    """
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(errors="replace")  # type: ignore[union-attr]
+        except (AttributeError, ValueError):  # pragma: no cover - exotic streams
+            continue
+
+
 def main(argv: list[str] | None = None) -> int:
     del argv
+    _tolerate_console_encoding()
     try:
         requested = int(os.environ.get("NOA_PORT") or DEFAULT_PORT)
     except ValueError:
