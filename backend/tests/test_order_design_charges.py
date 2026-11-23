@@ -199,7 +199,13 @@ async def test_a_variable_picked_for_the_line_is_stored_by_name(client) -> None:
 
 
 @pytest.mark.asyncio
-async def test_the_proforma_prints_design_cost_on_its_own_row(client) -> None:
+async def test_the_proforma_prints_design_cost_on_its_own_row(client, app) -> None:
+    # Force the printable-HTML path: with a working PDF renderer the response is
+    # binary, and the point here is the rows/totals the template emits.
+    def no_pdf(*_args, **_kwargs):
+        raise RuntimeError("PDF rendering disabled for this test")
+
+    app.state.pdf_renderer = no_pdf
     await _design_variable(client, "50000")
     product = await make_product(client, unit_price="1000")
     created = await client.post(
