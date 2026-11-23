@@ -193,7 +193,8 @@ where the additions are the owner's custom constants and pricing variables. The 
 
 #### 4.3.4 Behavior
 
-- Owner-defined variables appear **inside «مشخصات محصول»**, next to weight / print hours / quantity, each with its value and a «×» count; the block below them only shows their effect on this calculation (no second set of inputs).
+- Owner-defined variables appear **inside «مشخصات محصول»**, next to weight / print hours / quantity, each with its value and a «×» count; the block below them only shows their effect on this calculation (no second set of inputs). Zero or empty counts add nothing; negative or invalid values prevent a final price instead of silently discarding variables. Failed settings retrieval also blocks the final price.
+- The report shows direct-sale unit and order totals for both plain and chain variants, including active constants and variables; one-time variables affect the order total only. Marketplace rows are labeled as reference. Variable monetary effects are rounded to whole Tomans for display only, with exact saved values and calculation precision preserved; unnecessary trailing decimal zeros are removed from editable monetary defaults.
 - Two parallel result columns (plain vs. chain), like the sheet's «زنجیر دار» column; quantity-aware per-unit and batch totals; live recalculation as the user types (decimal.js).
 #### 4.3.5 Design-hour rate and per-line charges (v1.0.28)
 

@@ -142,7 +142,7 @@ function Preview({
             <span className="flex items-center gap-1">
               <span className="text-muted-foreground">+</span>
               <Money
-                value={line.oneTime ? line.orderTotal : line.perUnit}
+                value={(line.oneTime ? line.orderTotal : line.perUnit).toFixed(0)}
                 currency="TOMAN"
                 hideCurrency
               />
@@ -721,7 +721,8 @@ export function PricingSettingsPage(): React.JSX.Element {
             متغیر برای عددی است که هر سفارش عوض می‌شود — نرخ دلار، اجرت پرسنل، کرایهٔ ارسال. مقدار
             پیش‌فرض را اینجا ذخیره می‌کنید و در «ماشین‌حساب قیمت» می‌توانید برای همان محاسبه عدد
             دیگری بنویسید. برای هر متغیر مشخص می‌کنید <b>جزیی</b> باشد (روی هر عدد) یا <b>کلی</b>
-            (روی کل سفارش؛ یک‌جا یا تقسیم‌شده بین تعداد).
+            (روی کل سفارش؛ یک‌جا یا تقسیم‌شده بین تعداد). مبالغ متغیرها برای نمایش به
+            تومان کامل گرد می‌شوند و مقدار ذخیره‌شده و محاسبات دقیق باقی می‌مانند.
           </p>
           <QueryNotice query={variables} />
 
@@ -787,7 +788,7 @@ export function PricingSettingsPage(): React.JSX.Element {
                         {variable.basis.startsWith("PERCENT") ? (
                           <>{faNumber(variable.value)}٪</>
                         ) : (
-                          <Money value={variable.value} currency="TOMAN" hideCurrency />
+                          <Money value={parseNum(variable.value).toFixed(0)} currency="TOMAN" hideCurrency />
                         )}
                       </td>
                       <td className="py-2">
@@ -810,7 +811,9 @@ export function PricingSettingsPage(): React.JSX.Element {
                                 scope: variable.scope as VariableScope,
                                 basis: variable.basis as VariableBasis,
                                 allocation: variable.allocation as VariableAllocation,
-                                value: variable.value,
+                                value: variable.basis === "AMOUNT"
+                                  ? variable.value.replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "")
+                                  : variable.value,
                                 is_design_rate: variable.is_design_rate,
                               });
                             }}

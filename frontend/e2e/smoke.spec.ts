@@ -100,7 +100,7 @@ test("pricing reproduces the original Excel cells for single and multiple quanti
   const rows = [
     ["productionTotal", "rgb(220, 252, 231)", "rgba(20, 83, 45, 0.4)"],
     ["unitSalePrice", "rgb(219, 234, 254)", "rgba(30, 58, 138, 0.4)"],
-    ["unitFinalPrice", "rgb(254, 226, 226)", "rgba(127, 29, 29, 0.4)"],
+    ["direct-unit-final", "rgb(254, 226, 226)", "rgba(127, 29, 29, 0.4)"],
   ];
   for (const dark of [false, true]) {
     await page.evaluate((value) => document.documentElement.classList.toggle("dark", value), dark);

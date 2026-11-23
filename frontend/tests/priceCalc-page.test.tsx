@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, fireEvent, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { renderWithPricing } from "./helpers/pricing";
 import { PriceCalcPage } from "@/routes/price-calc";
 
@@ -67,7 +67,7 @@ describe("pricing page — literal Excel model", () => {
   it.each([
     ["productionTotal", "green"],
     ["unitSalePrice", "blue"],
-    ["unitFinalPrice", "red"],
+    ["direct-unit-final", "red"],
   ])("highlights the whole %s row in %s without helper columns", (key, color) => {
     renderWithPricing(<PriceCalcPage />);
     fillInputs();
@@ -145,6 +145,7 @@ describe("pricing page — literal Excel model", () => {
     ).toBeInTheDocument();
     // قیمت هر عدد با «یک‌جا روی جمع کل» تغییر نمی‌کند.
     expect(screen.getByTestId("final-badge")).toHaveTextContent("۲۰۸٬۵۰۰");
+    expect(screen.getByTestId("row-direct-batch-final")).toHaveTextContent("۲٬۲۸۵٬۰۰۰");
   });
 
   it("clears only product inputs, keeping the saved pricing constants", () => {
@@ -201,3 +202,78 @@ describe("pricing page — literal Excel model", () => {
     expect(screen.getByTestId("price-empty")).toBeInTheDocument();
   });
 });
+
+it("includes every variable and custom constant in both direct-sale final columns", () => {
+  const common = { scope: "PER_UNIT" as const, basis: "AMOUNT" as const,
+    allocation: "SPLIT" as const, is_active: true, is_design_rate: false, position: 0,
+    created_at: "2026-10-16T00:00:00Z", updated_at: "2026-10-16T00:00:00Z" };
+  const variable = { ...common, id: "pack", name: "بسته‌بندی", value: "700000.0000" };
+  const percent = { ...common, id: "tax", name: "درصد", basis: "PERCENT_OF_PRICE" as const, value: "10.0000" };
+  const oneTime = { ...common, id: "ship", name: "ارسال", scope: "PER_ORDER" as const, allocation: "ONE_TIME" as const, value: "100000.0000" };
+  const constant = { id: "c", name: "ثابت", method: "PER_UNIT" as const, value: "5000.0000", is_active: true, position: 0, created_at: common.created_at, updated_at: common.updated_at };
+  renderWithPricing(<PriceCalcPage />, {}, true, [constant], [variable, percent, oneTime]);
+  fillInputs({ qty: "10" });
+  expect(screen.getByTestId("variable-input-pack")).toHaveValue("700000");
+  fireEvent.change(screen.getByTestId("variable-count-pack"), { target: { value: "2" } });
+  // Plain: 208500 + 5000 + 2*700000 + 10%*208500 = 1634350.
+  const unit = within(screen.getByTestId("row-direct-unit-final"));
+  const totals = within(screen.getByTestId("row-direct-batch-final"));
+  expect(unit.getByText("۱٬۶۳۴٬۳۵۰")).toBeInTheDocument();
+  // Chain percentages are evaluated on the chain's own sale price.
+  expect(unit.getByText("۱٬۶۵۶٬۳۵۰")).toBeInTheDocument();
+  expect(totals.getByText("۱۶٬۴۴۳٬۵۰۰")).toBeInTheDocument();
+  expect(totals.getByText("۱۶٬۶۶۳٬۵۰۰")).toBeInTheDocument();
+  expect(screen.getByTestId("final-badge")).toHaveTextContent("۱٬۶۳۴٬۳۵۰");
+  expect(screen.getByTestId("variable-line-pack")).toHaveTextContent("۱٬۴۰۰٬۰۰۰");
+  // One-time charge is applied to the total, not each individual piece.
+  expect(screen.getByTestId("variable-line-ship")).toHaveTextContent("به جمع کل: ۱۰۰٬۰۰۰");
+  // Zero/blank count removes just this variable, not the others.
+  fireEvent.change(screen.getByTestId("variable-count-pack"), { target: { value: "" } });
+  expect(screen.getByTestId("row-direct-unit-final")).toHaveTextContent("۲۳۴٬۳۵۰");
+  expect(screen.getByTestId("row-direct-batch-final")).toHaveTextContent("۲٬۴۴۳٬۵۰۰");
+});
+
+it("hides final prices on invalid variables instead of silently dropping all variables", () => {
+  const v = { id: "a", name: "کار", scope: "PER_UNIT" as const, basis: "AMOUNT" as const,
+    allocation: "SPLIT" as const, value: "1200.0000", is_active: true, is_design_rate: false,
+    position: 0, created_at: "2026-10-16T00:00:00Z", updated_at: "2026-10-16T00:00:00Z" };
+  renderWithPricing(<PriceCalcPage />, {}, true, [], [v]);
+  fillInputs();
+  fireEvent.change(screen.getByTestId("variable-count-a"), { target: { value: "-1" } });
+  expect(screen.getByTestId("variable-error")).toHaveTextContent("نمی‌تواند منفی باشد");
+  expect(screen.queryByTestId("final-badge")).not.toBeInTheDocument();
+  expect(screen.getByTestId("row-direct-unit-final")).toHaveTextContent("—");
+  fireEvent.change(screen.getByTestId("variable-count-a"), { target: { value: "2" } });
+  expect(screen.queryByTestId("variable-error")).not.toBeInTheDocument();
+  expect(screen.getByTestId("final-badge")).toHaveTextContent("۲٬۰۸۷٬۴۰۰");
+});
+
+it("rounds variable effects for display without rounding the calculation or input", () => {
+  const v = { id: "a", name: "اجرت", scope: "PER_ORDER" as const, basis: "AMOUNT" as const,
+    allocation: "SPLIT" as const, value: "12.5000", is_active: true, is_design_rate: false,
+    position: 0, created_at: "2026-10-16T00:00:00Z", updated_at: "2026-10-16T00:00:00Z" };
+  renderWithPricing(<PriceCalcPage />, {}, true, [], [v]);
+  fillInputs({ qty: "10" });
+  expect(screen.getByTestId("variable-input-a")).toHaveValue("12.5");
+  expect(screen.getByTestId("variable-line-a")).toHaveTextContent("هر عدد: ۱");
+  expect(screen.getByTestId("variable-line-a")).not.toHaveTextContent("۱.۲۵");
+  expect(screen.getByTestId("row-direct-unit-final")).toHaveTextContent("۲۰۸٬۵۰۱.۲۵");
+  expect(screen.getByTestId("row-direct-batch-final")).toHaveTextContent("۲٬۰۸۵٬۰۱۲.۵");
+});
+
+it.each(["pricing-variables", "pricing-custom-constants"])(
+  "does not show a final price if %s could not be fetched",
+  async (key) => {
+    const { client } = renderWithPricing(<PriceCalcPage />);
+    fillInputs();
+    expect(screen.getByTestId("final-badge")).toBeInTheDocument();
+    act(() => {
+      client.getQueryCache().find({ queryKey: [key] })!.setState({
+        status: "error", error: new Error("network error"), fetchStatus: "idle",
+      });
+    });
+    await waitFor(() => expect(screen.getByTestId("pricing-data-error")).toHaveTextContent("قیمت نهایی نمایش داده نمی‌شود"));
+    expect(screen.queryByTestId("final-badge")).not.toBeInTheDocument();
+    expect(screen.getByTestId("row-direct-batch-final")).toHaveTextContent("—");
+  },
+);

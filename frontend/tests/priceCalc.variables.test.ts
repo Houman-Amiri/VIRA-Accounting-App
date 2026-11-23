@@ -114,13 +114,11 @@ describe("pricing variables", () => {
     expect(line.perUnit.toFixed(4)).toBe(base().unitProductionCost.times("0.1").toFixed(4));
   });
 
-  it("treats a missing count as one and rejects a zero count", () => {
+  it("treats a missing count as one, permits zero and rejects negative counts", () => {
     expect(variableEffect(variable({ value: "1500" }), base(), "10").count.toFixed(0)).toBe("1");
-    expect(() => variableEffect(variable({ value: "1500", count: "0" }), base(), "10")).toThrow(
-      "تعداد متغیر باید بزرگ‌تر از صفر باشد",
-    );
+    expect(variableEffect(variable({ value: "1500", count: "0" }), base(), "10").perUnit.isZero()).toBe(true);
     expect(() => variableEffect(variable({ value: "1500", count: "-2" }), base(), "10")).toThrow(
-      "تعداد متغیر باید بزرگ‌تر از صفر باشد",
+      "تعداد متغیر نمی‌تواند منفی باشد",
     );
   });
 

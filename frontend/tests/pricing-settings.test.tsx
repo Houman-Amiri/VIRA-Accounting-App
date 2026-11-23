@@ -391,3 +391,12 @@ describe("pricing variables", () => {
     expect(preview.getByText("جمع نمونه (۱۰ عدد)")).toBeInTheDocument();
   });
 });
+
+it("displays monetary variable amounts without decimals, keeping exact values when editing", () => {
+  const variable = { ...RATE, id: "m", name: "اجرت", basis: "AMOUNT" as const, value: "700000.4500" };
+  renderPricingPage([], [variable]);
+  expect(screen.getByTestId("variable-row-m")).toHaveTextContent("۷۰۰٬۰۰۰");
+  expect(screen.getByTestId("variable-row-m")).not.toHaveTextContent("۷۰۰٬۰۰۰.۴۵");
+  fireEvent.click(screen.getByTestId("variable-edit-m"));
+  expect(screen.getByTestId("variable-value")).toHaveValue("700000.45");
+});

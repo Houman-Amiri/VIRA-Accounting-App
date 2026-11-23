@@ -389,7 +389,7 @@ export function variableEffect(
   const value = parseNum(variable.value);
   if (value.isNegative()) throw new Error("متغیرهای قیمت‌گذاری نباید منفی باشند");
   const count = variable.count === undefined ? new Decimal(1) : parseNum(variable.count);
-  if (count.lte(0)) throw new Error("تعداد متغیر باید بزرگ‌تر از صفر باشد");
+  if (count.isNegative()) throw new Error("تعداد متغیر نمی‌تواند منفی باشد");
   // «۲ محموله × ۱۵۰٬۰۰۰»: the number the owner types is per occurrence.
   const amount = value.times(count);
   const q = parseNum(quantity);
