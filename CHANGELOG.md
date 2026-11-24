@@ -5,7 +5,9 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
-## [Unreleased]
+## [1.0.31] — 2026-10-14
+
+این نسخه با تأیید مالک فقط برای همین نسخه بدون امضای دیجیتال منتشر می‌شود.
 
 ### ارتباط قیمت‌گذاری، انبار و سفارش
 - انتخاب فیلامنت فعال انبار در ماشین‌حساب، نرخ هر گرم همان کالا را فقط برای

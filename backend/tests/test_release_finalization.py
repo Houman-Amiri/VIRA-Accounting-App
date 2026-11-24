@@ -211,4 +211,4 @@ def test_the_workflow_carries_exactly_this_dated_authorization_and_keeps_failing
     token = '"owner-authorized-2026-10-14"'
     assert text.count(token) == 2, "the dated token appears once as env and once as the guard comparison"
     assert "-ne " + token in guard
-    assert "\"1.0.30\"" in guard and "$env:NOA_VERSION.TrimStart('v') -ne" in guard
+    assert "\"1.0.31\"" in guard and "$env:NOA_VERSION.TrimStart('v') -ne" in guard
