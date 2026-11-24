@@ -7,7 +7,7 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [1.0.32] — 2026-10-14
 
-این نسخه با تأیید مالک فقط برای همین نسخه بدون امضای دیجیتال منتشر می‌شود.
+منتشر شد: [نسخهٔ ۱.۰.۳۲](https://github.com/Houman-Amiri/VIRA-Accounting-App/releases/tag/v1.0.32)؛ [اجرای موفق انتشار](https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/45413784608). فایل به‌روزرسانی با تأیید مالک فقط برای همین نسخه بدون امضای دیجیتال است.
 
 ### پیش‌فاکتور و محاسبهٔ سفارش
 - ردیف «جمع کل پیش از تخفیف» شامل مجموع اقلام و هزینه‌های طراحی و متغیرها،
