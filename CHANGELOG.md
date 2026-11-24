@@ -5,6 +5,14 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
+## [Unreleased]
+
+### رفع علت احتمالی خطای ورود از موبایل در شبکهٔ محلی
+- در اتصال HTTP به آدرس LAN که `crypto.randomUUID` در مرورگر غیرفعال است،
+  شناسهٔ امن درخواست با `crypto.getRandomValues` تولید می‌شود. تکمیل تطبیق نیز
+  از همین روش استفاده می‌کند. اگر تصادفی‌ساز امن در دسترس نباشد، درخواست با
+  خطا متوقف می‌شود و از تولید شناسهٔ ناامن استفاده نمی‌شود.
+
 ## [1.0.29] — 2026-10-14
 
 منتشر شد: [نسخهٔ ۱.۰.۲۹](https://github.com/Houman-Amiri/VIRA-Accounting-App/releases/tag/v1.0.29)؛ [اجرای موفق انتشار](https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/45218206946). فایل به‌روزرسانی با تأیید مالک بدون امضا است.

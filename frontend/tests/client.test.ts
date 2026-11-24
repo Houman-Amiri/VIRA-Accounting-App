@@ -48,6 +48,32 @@ describe("api client middleware", () => {
     );
   });
 
+  it("supports login and other mutations on HTTP LAN without randomUUID", async () => {
+    const secureRandom = globalThis.crypto.getRandomValues.bind(globalThis.crypto);
+    vi.stubGlobal("crypto", { getRandomValues: secureRandom });
+    try {
+      await api.POST("/api/v1/auth/login", { body: { username: "owner", password: "test" } });
+      await api.POST("/api/v1/journal-entries", { body: {} as never });
+      const loginKey = captured[0].headers.get("Idempotency-Key");
+      const mutationKey = captured[1].headers.get("Idempotency-Key");
+      const uuid4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+      expect(loginKey).toMatch(uuid4);
+      expect(mutationKey).toMatch(uuid4);
+      expect(loginKey).not.toEqual(mutationKey);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("refuses to invent insecure keys when no cryptographic RNG exists", () => {
+    vi.stubGlobal("crypto", {});
+    try {
+      expect(() => newIdempotencyKey()).toThrow("شناسهٔ امن");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("respects a caller-provided Idempotency-Key (stable across retries)", async () => {
     const key = newIdempotencyKey();
     await api.POST("/api/v1/journal-entries", {

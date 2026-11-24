@@ -290,5 +290,9 @@ Role-aware: auditors see read-only widgets; bookkeepers see operational actions;
   HTTPS, so login over plain-HTTP LAN works (browsers accept Secure cookies on
   `localhost`, but not on a LAN IP). CSRF double-submit, roles and auditing are
   unchanged.
+- Client idempotency UUIDs use `crypto.getRandomValues` when `randomUUID` is
+  unavailable in non-secure HTTP LAN contexts; no insecure RNG fallback is used.
+  Plain HTTP does not encrypt passwords or session cookies: use only on a
+  trusted private network, never expose the port to the public internet.
 - The Windows firewall may ask once for permission the first time NOA listens;
   allowing it on private networks is enough.

@@ -25,7 +25,7 @@ import * as React from "react";
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Link2, RotateCcw, Undo2, X } from "lucide-react";
-import { api, parseError } from "@/api/client";
+import { api, newIdempotencyKey, parseError } from "@/api/client";
 import { trackEvent } from "@/lib/analytics";
 import { useCalendar } from "@/lib/calendar-settings";
 import { tehranToday } from "@/lib/calendar";
@@ -383,7 +383,7 @@ export function ReconcilePage(): React.JSX.Element {
       if (!session) throw new Error("جلسه‌ای برای تکمیل وجود ندارد.");
       const res = await api.POST("/api/v1/reconciliation/sessions/{session_id}/complete", {
         params: { path: { session_id: session.id } },
-        headers: { "Idempotency-Key": crypto.randomUUID() },
+        headers: { "Idempotency-Key": newIdempotencyKey() },
       });
       if (res.error) throw await parseError(res.response);
       return res.data as unknown as Session;

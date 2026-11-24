@@ -41,7 +41,13 @@ async function login(page: Page): Promise<void> {
 
 test("app shell and all menu themes render in Persian RTL", async ({ page }) => {
   test.setTimeout(120_000);
+  // LAN HTTP browsers do not expose crypto.randomUUID. Exercise real login and
+  // the app shell under the same restriction rather than only testing localhost.
+  await page.addInitScript(() => {
+    Object.defineProperty(crypto, "randomUUID", { value: undefined, configurable: true });
+  });
   await login(page);
+  expect(await page.evaluate(() => typeof crypto.randomUUID)).toBe("undefined");
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   await expect(page.locator("html")).toHaveAttribute("lang", "fa");
   await expect(page.getByRole("navigation", { name: "ناوبری اصلی" })).toBeVisible();
