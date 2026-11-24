@@ -7,7 +7,7 @@ installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
 ## [1.0.31] — 2026-10-14
 
-این نسخه با تأیید مالک فقط برای همین نسخه بدون امضای دیجیتال منتشر می‌شود.
+منتشر شد: [نسخهٔ ۱.۰.۳۱](https://github.com/Houman-Amiri/VIRA-Accounting-App/releases/tag/v1.0.31)؛ [اجرای موفق انتشار](https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/45370888514). فایل به‌روزرسانی با تأیید مالک فقط برای همین نسخه بدون امضای دیجیتال است.
 
 ### ارتباط قیمت‌گذاری، انبار و سفارش
 - انتخاب فیلامنت فعال انبار در ماشین‌حساب، نرخ هر گرم همان کالا را فقط برای
