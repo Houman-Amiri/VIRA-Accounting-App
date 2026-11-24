@@ -79,6 +79,7 @@ export function PriceCalcPage(): React.JSX.Element {
   const [filamentId, setFilamentId] = React.useState("");
   const filaments = useQuery({
     queryKey: ["warehouse", "filaments", "pricing"],
+    refetchOnMount: "always",
     queryFn: async () => {
       const res = await api.GET("/api/v1/warehouse/items", {
         params: { query: { kind: "FILAMENT" } },
@@ -90,7 +91,7 @@ export function PriceCalcPage(): React.JSX.Element {
     },
   });
   const selectedFilament = filaments.data?.find((item) => item.id === filamentId);
-  const settings = usePricingSettings();
+  const settings = usePricingSettings(Boolean(target));
   const constants = React.useMemo(
     () =>
       settings.data
@@ -101,8 +102,8 @@ export function PriceCalcPage(): React.JSX.Element {
         : null,
     [settings.data, selectedFilament],
   );
-  const customs = useCustomConstants();
-  const variableQuery = useVariables();
+  const customs = useCustomConstants(Boolean(target));
+  const variableQuery = useVariables(Boolean(target));
   const [inputs, setInputs] = React.useState<PriceInputs>(() =>
     target ? { ...EMPTY_INPUTS, quantity: target.quantity, variant: target.variant } : EMPTY_INPUTS,
   );
@@ -167,7 +168,14 @@ export function PriceCalcPage(): React.JSX.Element {
   // Never silently drop all variables (or constants) on invalid input or a
   // failed settings request: in that case no final price is safe to show.
   const results = React.useMemo(() => {
-    if (!plain || !chain || !customs.isSuccess || !variableQuery.isSuccess) return null;
+    if (
+      !plain ||
+      !chain ||
+      !customs.isSuccess ||
+      !variableQuery.isSuccess ||
+      (target && (settings.isFetching || customs.isFetching || variableQuery.isFetching))
+    )
+      return null;
     try {
       const plainVariables = applyVariables(plain, activeVariables, inputs.quantity);
       const chainVariables = applyVariables(chain, activeVariables, inputs.quantity);
@@ -191,6 +199,10 @@ export function PriceCalcPage(): React.JSX.Element {
   }, [
     plain,
     chain,
+    target,
+    settings.isFetching,
+    customs.isFetching,
+    variableQuery.isFetching,
     customs.isSuccess,
     customs.data,
     variableQuery.isSuccess,
@@ -614,7 +626,9 @@ export function PriceCalcPage(): React.JSX.Element {
               results.error !== null ||
               !plain ||
               !chain ||
-              Boolean(filamentId && !selectedFilament)
+              Boolean(
+                filamentId && (!selectedFilament || filaments.isError || filaments.isFetching),
+              )
             }
             onClick={() => {
               if (!results || results.error !== null || !plain || !chain) return;
@@ -631,8 +645,8 @@ export function PriceCalcPage(): React.JSX.Element {
                   qty.decimalPlaces() > 4 ||
                   qty.gte("100000000000000") ||
                   unit.toDecimalPlaces(4).lte(0) ||
-                  unit.gte("100000000000000") ||
-                  breakdown.unitProductionCost.gte("100000000000000") ||
+                  unit.toDecimalPlaces(4).gte("100000000000000") ||
+                  breakdown.unitProductionCost.toDecimalPlaces(4).gte("100000000000000") ||
                   oneTime.some((row) => parseNum(row.amount).gte("100000000000000"))
                 )
                   throw new Error("تعداد یا مبالغ خارج از محدودهٔ مجاز سفارش هستند.");

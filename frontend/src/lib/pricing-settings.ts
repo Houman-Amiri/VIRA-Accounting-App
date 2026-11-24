@@ -18,9 +18,10 @@ export const PRICING_FIELDS: ReadonlyArray<[EditableConstant, string]> = [
   ["labelPerUnit", "لیبل هر عدد (تومان)"],
 ];
 
-export function usePricingSettings() {
+export function usePricingSettings(fresh = false) {
   return useQuery({
     queryKey: ["pricing-settings"],
+    refetchOnMount: fresh ? "always" : true,
     queryFn: async () => {
       const res = await api.GET("/api/v1/settings/pricing");
       if (res.error) throw await parseError(res.response);
@@ -85,9 +86,10 @@ export const CUSTOM_METHOD_LABEL: Record<CustomMethod, string> = Object.fromEntr
 
 const CUSTOM_KEY = ["pricing-custom-constants"];
 
-export function useCustomConstants() {
+export function useCustomConstants(fresh = false) {
   return useQuery({
     queryKey: CUSTOM_KEY,
+    refetchOnMount: fresh ? "always" : true,
     queryFn: async () => {
       const res = await api.GET("/api/v1/settings/pricing/constants");
       if (res.error) throw await parseError(res.response);
@@ -223,9 +225,10 @@ export const VARIABLE_ALLOCATION_LABEL: Record<VariableAllocation, string> = Obj
 
 const VARIABLE_KEY = ["pricing-variables"];
 
-export function useVariables() {
+export function useVariables(fresh = false) {
   return useQuery({
     queryKey: VARIABLE_KEY,
+    refetchOnMount: fresh ? "always" : true,
     queryFn: async () => {
       const res = await api.GET("/api/v1/settings/pricing/variables");
       if (res.error) throw await parseError(res.response);
