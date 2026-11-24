@@ -5,7 +5,7 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
-## [Unreleased]
+## [1.0.30] — 2026-10-14
 
 ### رفع علت احتمالی خطای ورود از موبایل در شبکهٔ محلی
 - در اتصال HTTP به آدرس LAN که `crypto.randomUUID` در مرورگر غیرفعال است،
