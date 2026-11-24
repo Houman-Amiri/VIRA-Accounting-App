@@ -134,3 +134,54 @@ async def test_fractional_subtotal_and_percentage_round_once(client):
     order = response.json()
     assert Decimal(order["discount_amount"]) == Decimal("33.3670")
     assert Decimal(order["total"]) == 0
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("discount_type", "discount_value", "expected_discount", "expected_total"),
+    [("AMOUNT", "50000", "۵۰٬۰۰۰", "۲۰۰٬۰۰۰"),
+     ("PERCENT", "10", "۲۵٬۰۰۰", "۲۲۵٬۰۰۰"),
+     ("AMOUNT", "0", "۰", "۲۵۰٬۰۰۰")],
+)
+async def test_invoice_displays_full_pre_discount_total_above_discount(
+    client, app, monkeypatch, discount_type, discount_value, expected_discount, expected_total
+):
+    def no_pdf(*_args, **_kwargs):
+        raise RuntimeError("use printable HTML")
+
+    monkeypatch.setattr(app.state, "pdf_renderer", no_pdf)
+    response, _ = await sample_order(client, kind=discount_type, value=discount_value)
+    assert response.status_code == 201, response.text
+    html = (await client.get(f"/api/v1/orders/{response.json()['id']}/proforma.pdf")).text
+    totals = html[html.index('<table class="totals">'):]
+    assert '<td>جمع اقلام</td><td class="num">۲۰۰٬۰۰۰</td>' in totals
+    assert '<td>هزینهٔ طراحی و متغیرها</td><td class="num">۵۰٬۰۰۰</td>' in totals
+    expected_row = '<tr><td>جمع کل پیش از تخفیف (تومان)</td><td class="num">۲۵۰٬۰۰۰</td></tr>'
+    assert expected_row in totals
+    assert totals.index(expected_row) < totals.index('<tr><td>تخفیف')
+    assert f'<td class="num">{expected_discount}</td></tr>' in totals
+    assert f'<td>مبلغ قابل پرداخت (تومان)</td><td class="num">{expected_total}</td>' in totals
+
+
+@pytest.mark.asyncio
+async def test_invoice_pre_discount_total_without_charges_uses_rounded_subtotal(client, app, monkeypatch):
+    def no_pdf(*_args, **_kwargs):
+        raise RuntimeError("use printable HTML")
+
+    monkeypatch.setattr(app.state, "pdf_renderer", no_pdf)
+    payload = await order_payload(client, quantities=("0.3333",), unit_price="100.1111")
+    payload.update(discount_type="PERCENT", discount_value="100")
+    created = await client.post("/api/v1/orders", json=payload)
+    assert created.status_code == 201, created.text
+    order = created.json()
+    assert Decimal(order["total_cost"]) == Decimal("7.8181")
+    assert Decimal(order["profit"]) == Decimal("-7.8181")
+    report = await client.get("/api/v1/orders/reports/sales?period=daily&date_from=2026-10-16&date_to=2026-10-16")
+    assert Decimal(report.json()["cost"]) == Decimal("7.8181")
+    assert Decimal(report.json()["profit"]) == Decimal("-7.8181")
+    response = await client.get(f"/api/v1/orders/{order['id']}/proforma.pdf")
+    totals = response.text[response.text.index('<table class="totals">'):]
+    assert "هزینهٔ طراحی و متغیرها" not in totals
+    assert '<td>جمع کل پیش از تخفیف (تومان)</td><td class="num">۳۳٫۳۶۷</td>' in totals
+    assert '<td>تخفیف (۱۰۰٪)</td><td class="num">۳۳٫۳۶۷</td>' in totals
+    assert '<td>مبلغ قابل پرداخت (تومان)</td><td class="num">۰</td>' in totals

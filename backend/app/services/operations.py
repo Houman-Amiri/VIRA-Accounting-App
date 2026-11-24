@@ -87,6 +87,13 @@ def order_amounts(order: Order) -> tuple[Decimal, Decimal, Decimal]:
     return subtotal, discount, subtotal - discount
 
 
+def order_cost(order: Order) -> Decimal:
+    """Round the summed production cost once, consistently across API and reports."""
+    return sum(
+        (Decimal(line.quantity) * Decimal(line.unit_cost) for line in order.items), Decimal(0)
+    ).quantize(Decimal("0.0001"))
+
+
 def _mean_score(supplier: Supplier) -> float:
     return (supplier.score_price + supplier.score_quality + supplier.score_delivery) / 3
 
@@ -1137,7 +1144,7 @@ class OperationsService:
             for line in order.items:
                 quantity = Decimal(line.quantity)
                 bucket["quantity"] += quantity
-                bucket["cost"] += quantity * Decimal(line.unit_cost)
+            bucket["cost"] += order_cost(order)
             # The report agrees with the invoice, including charges and discounts.
             bucket["revenue"] += order_amounts(order)[2]
 

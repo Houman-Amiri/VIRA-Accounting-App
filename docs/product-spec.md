@@ -109,7 +109,11 @@ order total, profit and sales revenue use the same discounted amount.
 - **Line charges (v1.0.28)** print under their own line: a muted sub-row per charge
   (`هزینه طراحی (۳ ساعت × ۱۵۰٬۰۰۰)`, variable name + amount), plus two totals rows —
   «جمع اقلام» (quantity × unit price) and «هزینهٔ طراحی و متغیرها». The grand total
-  includes them.
+  includes them. Before the discount, a separate «جمع کل پیش از تخفیف» row
+  shows the same rounded subtotal used to calculate the discount, including all
+  line charges, whether or not charges are present.
+- Order cost is rounded once per order to four decimal places in both order
+  responses and sales reports, including for fractional quantities.
 
 ### 3.4 Sales reports (گزارش فروش)
 

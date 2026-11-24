@@ -79,6 +79,7 @@
     {% if order.has_charges %}
     <tr><td>هزینهٔ طراحی و متغیرها</td><td class="num">{{ order.charges_total }}</td></tr>
     {% endif %}
+    <tr><td>جمع کل پیش از تخفیف (تومان)</td><td class="num">{{ order.subtotal_before_discount }}</td></tr>
     <tr><td>تخفیف{% if order.discount_detail %} ({{ order.discount_detail }}){% endif %}</td><td class="num">{{ order.discount }}</td></tr>
     <tr class="grand"><td>مبلغ قابل پرداخت (تومان)</td><td class="num">{{ order.total }}</td></tr>
   </table>

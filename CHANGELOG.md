@@ -5,6 +5,14 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
+## [Unreleased]
+
+### پیش‌فاکتور و محاسبهٔ سفارش
+- ردیف «جمع کل پیش از تخفیف» شامل مجموع اقلام و هزینه‌های طراحی و متغیرها،
+  مستقیماً پیش از ردیف تخفیف در پیش‌فاکتور نمایش داده می‌شود.
+- بهای تمام‌شدهٔ سفارش با تعداد اعشاری در پاسخ سفارش و گزارش فروش به چهار
+  رقم اعشار گرد می‌شود تا خطای ثبت و ناسازگاری سود رخ ندهد.
+
 ## [1.0.31] — 2026-10-14
 
 منتشر شد: [نسخهٔ ۱.۰.۳۱](https://github.com/Houman-Amiri/VIRA-Accounting-App/releases/tag/v1.0.31)؛ [اجرای موفق انتشار](https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/45370888514). فایل به‌روزرسانی با تأیید مالک فقط برای همین نسخه بدون امضای دیجیتال است.
