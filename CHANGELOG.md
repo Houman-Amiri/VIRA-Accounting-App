@@ -5,7 +5,9 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
-## [Unreleased]
+## [1.0.32] — 2026-10-14
+
+این نسخه با تأیید مالک فقط برای همین نسخه بدون امضای دیجیتال منتشر می‌شود.
 
 ### پیش‌فاکتور و محاسبهٔ سفارش
 - ردیف «جمع کل پیش از تخفیف» شامل مجموع اقلام و هزینه‌های طراحی و متغیرها،
