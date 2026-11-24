@@ -99,6 +99,9 @@ type Order = {
   channel: "direct" | "marketplace";
   notes: string | null;
   version_id: number;
+  discount_type?: "AMOUNT" | "PERCENT";
+  discount_value?: string;
+  discount_amount?: string;
   items: Array<
     {
       id: string;
@@ -183,6 +186,8 @@ const blankForm = () => ({
   customer_phone: "",
   customer_address: "",
   notes: "",
+  discount_type: "AMOUNT" as "AMOUNT" | "PERCENT",
+  discount_value: "",
   items: [emptyLine()],
 });
 
@@ -290,6 +295,9 @@ export function OrdersPage(): React.JSX.Element {
       customer_phone: order.customer_phone ?? "",
       customer_address: order.customer_address ?? "",
       notes: order.notes ?? "",
+      discount_type: order.discount_type ?? "AMOUNT",
+      discount_value:
+        order.discount_value && parseNum(order.discount_value).gt(0) ? order.discount_value : "",
       items: order.items.map((line) => ({
         inventory_item_id: line.inventory_item_id ?? "",
         product_name: line.product_name,
@@ -338,6 +346,8 @@ export function OrdersPage(): React.JSX.Element {
           // Only direct sales remain; the server keeps the historical column.
           channel: "direct" as const,
           notes: form.notes || null,
+          discount_type: form.discount_type,
+          discount_value: parseNum(form.discount_value || "0").toString(),
           items: form.items.map((line) => ({
             // A free line carries its name; a warehouse line falls back to the
             // item's own name on the server when this is empty.
@@ -379,6 +389,8 @@ export function OrdersPage(): React.JSX.Element {
         customer_name: "",
         customer_phone: "",
         customer_address: "",
+        discount_type: "AMOUNT",
+        discount_value: "",
         items: [emptyLine()],
       }));
       const warnings = created.warnings ?? [];
@@ -407,6 +419,8 @@ export function OrdersPage(): React.JSX.Element {
           // Only direct sales remain; the server keeps the historical column.
           channel: "direct" as const,
           notes: form.notes || null,
+          discount_type: form.discount_type,
+          discount_value: parseNum(form.discount_value || "0").toString(),
           items: form.items.map((line) => ({
             product_name: line.product_name.trim(),
             inventory_item_id: line.inventory_item_id || null,
@@ -502,15 +516,15 @@ export function OrdersPage(): React.JSX.Element {
     (charge: OrderLineCharge) => {
       try {
         if (charge.kind === "DESIGN") {
-          return parseNum(charge.hours || "0").times(
-            parseNum(charge.rate ?? designRate?.value ?? "0"),
-          );
+          return parseNum(charge.hours || "0")
+            .times(parseNum(charge.rate ?? designRate?.value ?? "0"))
+            .toDecimalPlaces(4);
         }
         if (charge.legacy) return parseNum(charge.amount || "0");
         const variable = variables.find((row) => row.id === charge.variable_id);
-        return parseNum(charge.quantity || "0").times(
-          parseNum(charge.rate ?? variable?.value ?? "0"),
-        );
+        return parseNum(charge.quantity || "0")
+          .times(parseNum(charge.rate ?? variable?.value ?? "0"))
+          .toDecimalPlaces(4);
       } catch {
         return parseNum("0");
       }
@@ -615,20 +629,47 @@ export function OrdersPage(): React.JSX.Element {
     onError: (e) => setMessage(errText(e)),
   });
 
-  const formTotal = React.useMemo(() => {
+  const formSubtotal = React.useMemo(() => {
     try {
-      return form.items.reduce((sum, line) => {
-        // «هزینهٔ طراحی» و متغیرهای هر ردیف، بخشی از مبلغ سفارش‌اند.
-        const charges = line.charges.reduce(
-          (total, charge) => total.plus(chargeAmount(charge)),
-          parseNum("0"),
-        );
-        return sum.plus(parseNum(line.quantity).times(parseNum(line.unit_price))).plus(charges);
-      }, parseNum("0"));
+      return form.items
+        .reduce((sum, line) => {
+          // «هزینهٔ طراحی» و متغیرهای هر ردیف، بخشی از مبلغ سفارش‌اند.
+          const charges = line.charges.reduce(
+            (total, charge) => total.plus(chargeAmount(charge)),
+            parseNum("0"),
+          );
+          let price = parseNum(line.unit_price);
+          if (price.lte(0) && line.inventory_item_id) {
+            price = parseNum(productById.get(line.inventory_item_id)?.unit_price ?? "0");
+          }
+          return sum.plus(parseNum(line.quantity).times(price)).plus(charges);
+        }, parseNum("0"))
+        .toDecimalPlaces(4);
     } catch {
       return parseNum("0");
     }
-  }, [form.items, chargeAmount]);
+  }, [form.items, chargeAmount, productById]);
+
+  const discount = React.useMemo(() => {
+    const zero = parseNum("0");
+    try {
+      const value = parseNum(form.discount_value || "0");
+      if (value.isNegative() || value.decimalPlaces() > 4 || value.gte("100000000000000"))
+        return { amount: zero, error: "تخفیف باید نامنفی و حداکثر چهار رقم اعشار باشد." };
+      if (form.discount_type === "PERCENT" && value.gt(100))
+        return { amount: zero, error: "درصد تخفیف نمی‌تواند بیشتر از ۱۰۰ باشد." };
+      const amount =
+        form.discount_type === "PERCENT"
+          ? formSubtotal.times(value).div(100).toDecimalPlaces(4)
+          : value;
+      if (amount.gt(formSubtotal))
+        return { amount: zero, error: "مبلغ تخفیف نمی‌تواند بیشتر از جمع سفارش باشد." };
+      return { amount, error: null };
+    } catch {
+      return { amount: zero, error: "مقدار تخفیف معتبر نیست." };
+    }
+  }, [form.discount_type, form.discount_value, formSubtotal]);
+  const formTotal = formSubtotal.minus(discount.amount);
 
   return (
     <div className="space-y-6" dir="rtl">
@@ -1333,8 +1374,77 @@ export function OrdersPage(): React.JSX.Element {
                   + افزودن قلم
                 </Button>
                 <span className="text-sm">
-                  جمع: <Money value={formTotal.toFixed(4)} currency="TOMAN" />
+                  جمع اقلام و هزینه‌ها: <Money value={formSubtotal.toFixed(4)} currency="TOMAN" />
                 </span>
+              </div>
+            </div>
+
+            <div className="space-y-2 rounded-md border p-3" data-testid="order-discount">
+              <p className="text-sm font-medium">تخفیف کل سفارش</p>
+              <p className="text-xs text-muted-foreground">
+                تخفیف از جمع اقلام، هزینهٔ طراحی و متغیرها کسر می‌شود.
+              </p>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div>
+                  <Label htmlFor="order-discount-type" className="text-xs">
+                    نوع تخفیف
+                  </Label>
+                  <select
+                    id="order-discount-type"
+                    data-testid="order-discount-type"
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
+                    value={form.discount_type}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        discount_type: e.target.value as "AMOUNT" | "PERCENT",
+                        discount_value: "",
+                      }))
+                    }
+                  >
+                    <option value="AMOUNT">مبلغ (تومان)</option>
+                    <option value="PERCENT">درصد</option>
+                  </select>
+                </div>
+                <div>
+                  <Label htmlFor="order-discount-value" className="text-xs">
+                    {form.discount_type === "PERCENT" ? "درصد تخفیف" : "مبلغ تخفیف (تومان)"}
+                  </Label>
+                  <Input
+                    id="order-discount-value"
+                    data-testid="order-discount-value"
+                    className="num"
+                    inputMode="decimal"
+                    placeholder="۰"
+                    value={form.discount_value}
+                    aria-invalid={Boolean(discount.error)}
+                    onChange={(e) => setForm((f) => ({ ...f, discount_value: e.target.value }))}
+                  />
+                </div>
+              </div>
+              {discount.error && (
+                <p
+                  role="alert"
+                  className="text-xs text-destructive"
+                  data-testid="order-discount-error"
+                >
+                  {discount.error}
+                </p>
+              )}
+              <div className="flex flex-wrap justify-between gap-2 text-xs">
+                <span>جمع قبل از تخفیف</span>
+                <Money value={formSubtotal.toFixed(4)} currency="TOMAN" />
+              </div>
+              <div className="flex flex-wrap justify-between gap-2 text-xs">
+                <span>مبلغ تخفیف</span>
+                <Money value={discount.amount.toFixed(4)} currency="TOMAN" />
+              </div>
+              <div
+                className="flex flex-wrap justify-between gap-2 text-sm font-semibold"
+                data-testid="order-final-total"
+              >
+                <span>مبلغ قابل پرداخت</span>
+                <Money value={formTotal.toFixed(4)} currency="TOMAN" />
               </div>
             </div>
 
@@ -1355,6 +1465,7 @@ export function OrdersPage(): React.JSX.Element {
                 data-testid="order-submit"
                 disabled={
                   (editing ? saveOrder.isPending : createOrder.isPending) ||
+                  Boolean(discount.error) ||
                   !form.customer_name.trim() ||
                   !calendarReady ||
                   !validIso(form.order_date) ||

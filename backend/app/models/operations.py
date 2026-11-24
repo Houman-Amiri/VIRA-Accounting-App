@@ -162,6 +162,8 @@ class Order(Base, TimestampMixin):
             name="status",
         ),
         CheckConstraint("channel IN ('direct','marketplace')", name="channel"),
+        CheckConstraint("discount_type IN ('AMOUNT','PERCENT')", name="discount_type"),
+        CheckConstraint("discount_value >= 0", name="discount_value_non_negative"),
         Index("ix_orders_status", "status", "order_date"),
         Index("ix_orders_customer", "customer_name"),
     )
@@ -174,6 +176,8 @@ class Order(Base, TimestampMixin):
     customer_address: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(Text, nullable=False, default="NEW")
     channel: Mapped[str] = mapped_column(Text, nullable=False, default="direct")
+    discount_type: Mapped[str] = mapped_column(Text, nullable=False, default="AMOUNT")
+    discount_value: Mapped[Decimal] = mapped_column(ScaledMoneyType, nullable=False, default=Decimal(0))
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     version_id: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 

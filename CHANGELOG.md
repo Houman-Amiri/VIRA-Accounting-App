@@ -5,6 +5,16 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
+## [Unreleased]
+
+### تخفیف سفارش
+- ثبت و ویرایش تخفیف کل سفارش به صورت مبلغ (تومان) یا درصد؛ درصد بر جمع اقلام
+  و هزینه‌های طراحی و متغیرها محاسبه می‌شود. مبلغ تخفیف و مبلغ قابل پرداخت در
+  فرم و پیش‌فاکتور نمایش داده می‌شوند.
+- تخفیف منفی، درصد بیش از ۱۰۰ یا مبلغ بیش از جمع سفارش پذیرفته نمی‌شود؛
+  سفارش‌های قبلی بدون تخفیف حفظ می‌شوند.
+- درآمد و سود گزارش فروش با مبلغ قابل پرداخت، شامل هزینه‌ها و تخفیف، همخوان است.
+
 ## [1.0.30] — 2026-10-14
 
 منتشر شد: [نسخهٔ ۱.۰.۳۰](https://github.com/Houman-Amiri/VIRA-Accounting-App/releases/tag/v1.0.30)؛ [اجرای موفق انتشار](https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/45344980782). فایل به‌روزرسانی با تأیید مالک بدون امضا است.

@@ -305,3 +305,65 @@ it("adds design hours and a per-line variable to the saved line", async () => {
     expect.objectContaining({ kind: "VARIABLE", variable_id: "pack", quantity: "2", amount: "0" }),
   ]);
 });
+
+it("applies fixed and percentage discounts to products plus charges and saves the chosen mode", async () => {
+  const post = vi
+    .spyOn(api, "POST")
+    .mockResolvedValue({ data: ORDER, response: new Response() } as never);
+  mount();
+  await screen.findByTestId("line-0");
+  fireEvent.change(screen.getByTestId("line-name-0"), { target: { value: "پایه" } });
+  fireEvent.change(screen.getByTestId("line-price-0"), { target: { value: "200000" } });
+  fireEvent.change(screen.getByTestId("order-customer"), { target: { value: "مشتری" } });
+  fireEvent.click(await screen.findByTestId("line-design-add-0"));
+  fireEvent.change(screen.getByTestId("line-design-hours-0"), { target: { value: "3" } });
+  // ۲۰۰٬۰۰۰ کالا + ۱۵۰٬۰۰۰ طراحی = ۳۵۰٬۰۰۰
+  fireEvent.change(screen.getByTestId("order-discount-value"), { target: { value: "۱۰۰۰۰۰" } });
+  expect(screen.getByTestId("order-final-total")).toHaveTextContent("۲۵۰٬۰۰۰");
+  fireEvent.change(screen.getByTestId("order-discount-type"), { target: { value: "PERCENT" } });
+  expect(screen.getByTestId("order-discount-value")).toHaveValue("");
+  fireEvent.change(screen.getByTestId("order-discount-value"), { target: { value: "۱۰" } });
+  expect(screen.getByTestId("order-discount")).toHaveTextContent("۳۵٬۰۰۰");
+  expect(screen.getByTestId("order-final-total")).toHaveTextContent("۳۱۵٬۰۰۰");
+  fireEvent.click(screen.getByTestId("order-submit"));
+  await waitFor(() => expect(post).toHaveBeenCalled());
+  const body = (post.mock.calls[0][1] as unknown as { body: Record<string, unknown> }).body;
+  expect(body).toMatchObject({ discount_type: "PERCENT", discount_value: "10" });
+  await waitFor(() => expect(screen.getByTestId("order-discount-value")).toHaveValue(""));
+  expect(screen.getByTestId("order-discount-type")).toHaveValue("AMOUNT");
+});
+
+it("rejects invalid discounts and preserves a saved discount while editing", async () => {
+  const saved = {
+    ...ORDER,
+    discount_type: "PERCENT",
+    discount_value: "10.0000",
+    discount_amount: "90000",
+  };
+  vi.mocked(api.GET).mockImplementation((async (path: string) => ({
+    data: path === "/api/v1/orders" ? [saved] : data[path],
+    response: new Response(),
+  })) as typeof api.GET);
+  mount();
+  fireEvent.click(await screen.findByTestId("order-o1-edit"));
+  expect(screen.getByTestId("order-discount-type")).toHaveValue("PERCENT");
+  expect(screen.getByTestId("order-discount-value")).toHaveValue("10.0000");
+  expect(screen.getByTestId("order-final-total")).toHaveTextContent("۸۱۰٬۰۰۰");
+  fireEvent.change(screen.getByTestId("order-discount-value"), { target: { value: "101" } });
+  expect(screen.getByTestId("order-discount-error")).toHaveTextContent("۱۰۰");
+  expect(screen.getByTestId("order-submit")).toBeDisabled();
+  fireEvent.change(screen.getByTestId("order-discount-value"), { target: { value: "-1" } });
+  expect(screen.getByTestId("order-submit")).toBeDisabled();
+  fireEvent.change(screen.getByTestId("order-discount-type"), { target: { value: "AMOUNT" } });
+  fireEvent.change(screen.getByTestId("order-discount-value"), { target: { value: "900001" } });
+  expect(screen.getByTestId("order-discount-error")).toHaveTextContent("بیشتر از جمع سفارش");
+  expect(screen.getByTestId("order-submit")).toBeDisabled();
+  fireEvent.change(screen.getByTestId("order-discount-value"), { target: { value: "90000" } });
+  expect(screen.getByTestId("order-final-total")).toHaveTextContent("۸۱۰٬۰۰۰");
+  fireEvent.click(screen.getByTestId("order-submit"));
+  await waitFor(() => expect(api.PATCH).toHaveBeenCalled());
+  const body = (
+    vi.mocked(api.PATCH).mock.calls[0][1] as unknown as { body: Record<string, unknown> }
+  ).body;
+  expect(body).toMatchObject({ discount_type: "AMOUNT", discount_value: "90000" });
+});

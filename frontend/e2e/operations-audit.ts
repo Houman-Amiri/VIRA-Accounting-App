@@ -168,18 +168,29 @@ export async function auditOperations(page: Page): Promise<void> {
   await page.getByTestId("line-name-0").fill(`${base} — قلم موقت`);
   await page.getByTestId("line-price-0").fill("۱۰۰۰");
   await page.getByTestId("line-quantity-0").fill("۱");
+  await page.getByTestId("order-discount-type").selectOption("PERCENT");
+  await page.getByTestId("order-discount-value").fill("۱۰");
+  await expect(page.getByTestId("order-final-total")).toContainText("۹۰۰");
   const draftResponse = waitWrite("orders");
   await page.getByTestId("order-submit").click();
   const draft = await (await draftResponse).json();
+  expect(new Decimal(draft.discount_amount).eq(100)).toBe(true);
+  expect(new Decimal(draft.total).eq(900)).toBe(true);
   await page.getByTestId(`order-${draft.id}-edit`).click();
+  await expect(page.getByTestId("order-discount-type")).toHaveValue("PERCENT");
   await page.getByTestId("line-quantity-0").fill("۴");
+  await page.getByTestId("order-discount-type").selectOption("AMOUNT");
+  await page.getByTestId("order-discount-value").fill("۲۵۰");
+  await expect(page.getByTestId("order-final-total")).toContainText("۳٬۷۵۰");
   const editResponse = page.waitForResponse(
     (r) =>
       new URL(r.url()).pathname === `/api/v1/orders/${draft.id}` &&
       r.request().method() === "PATCH",
   );
   await page.getByTestId("order-submit").click();
-  expect((await editResponse).status()).toBe(200);
+  const edited = await editResponse;
+  expect(edited.status()).toBe(200);
+  expect(new Decimal((await edited.json()).total).eq(3750)).toBe(true);
   await page.getByTestId(`order-${draft.id}-items-toggle`).click();
   await expect(page.getByTestId(`order-${draft.id}-items`)).toContainText("×۴");
 

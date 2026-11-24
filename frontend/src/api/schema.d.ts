@@ -2436,6 +2436,17 @@ export interface components {
              * @enum {string}
              */
             channel: "direct" | "marketplace";
+            /**
+             * Discount Type
+             * @default AMOUNT
+             * @enum {string}
+             */
+            discount_type: "AMOUNT" | "PERCENT";
+            /**
+             * Discount Value
+             * @default 0
+             */
+            discount_value: number | string;
             /** Notes */
             notes?: string | null;
             /** Items */
@@ -2627,6 +2638,22 @@ export interface components {
             updated_at: string;
             /** Items */
             items: components["schemas"]["OrderItemRead"][];
+            /**
+             * Discount Type
+             * @default AMOUNT
+             * @enum {string}
+             */
+            discount_type: "AMOUNT" | "PERCENT";
+            /**
+             * Discount Value
+             * @default 0
+             */
+            discount_value: string;
+            /**
+             * Discount Amount
+             * @default 0
+             */
+            discount_amount: string;
             /** Total */
             total: string;
             /** Total Cost */
@@ -2674,6 +2701,10 @@ export interface components {
             status?: ("NEW" | "CONFIRMED" | "IN_PRODUCTION" | "READY" | "SHIPPED" | "DELIVERED" | "CANCELLED") | null;
             /** Channel */
             channel?: ("direct" | "marketplace") | null;
+            /** Discount Type */
+            discount_type?: ("AMOUNT" | "PERCENT") | null;
+            /** Discount Value */
+            discount_value?: number | string | null;
             /** Notes */
             notes?: string | null;
             /** Items */

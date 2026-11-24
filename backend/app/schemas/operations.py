@@ -25,6 +25,7 @@ OrderStatus = Literal[
 ]
 Channel = Literal["direct", "marketplace"]
 Variant = Literal["plain", "chain"]
+DiscountType = Literal["AMOUNT", "PERCENT"]
 ProductionStatus = Literal["PLANNED", "IN_PROGRESS", "DONE", "CANCELLED"]
 
 
@@ -266,6 +267,8 @@ class OrderCreate(BaseModel):
     customer_address: str | None = Field(default=None, max_length=500)
     status: OrderStatus = "NEW"
     channel: Channel = "direct"
+    discount_type: DiscountType = "AMOUNT"
+    discount_value: Amount = Field(default=Decimal(0), ge=0)
     notes: str | None = None
     items: list[OrderItemIn] = Field(min_length=1)
 
@@ -278,11 +281,13 @@ class OrderUpdate(BaseModel):
     customer_address: str | None = None
     status: OrderStatus | None = None
     channel: Channel | None = None
+    discount_type: DiscountType | None = None
+    discount_value: Amount | None = Field(default=None, ge=0)
     notes: str | None = None
     items: list[OrderItemIn] | None = Field(default=None, min_length=1)
 
 
-    @field_validator('order_date', 'customer_name', 'status', 'channel', 'items', mode="before")
+    @field_validator('order_date', 'customer_name', 'status', 'channel', 'discount_type', 'discount_value', 'items', mode="before")
     @classmethod
     def reject_null(cls, value: object) -> object:
         if value is None:
@@ -304,6 +309,9 @@ class OrderRead(BaseModel):
     created_at: str
     updated_at: str
     items: list[OrderItemRead]
+    discount_type: DiscountType = "AMOUNT"
+    discount_value: Amount = Decimal(0)
+    discount_amount: Amount = Decimal(0)
     total: Amount
     total_cost: Amount
     profit: Amount

@@ -14125,6 +14125,28 @@
             "title": "Channel",
             "default": "direct"
           },
+          "discount_type": {
+            "type": "string",
+            "enum": [
+              "AMOUNT",
+              "PERCENT"
+            ],
+            "title": "Discount Type",
+            "default": "AMOUNT"
+          },
+          "discount_value": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Discount Value",
+            "default": "0"
+          },
           "notes": {
             "anyOf": [
               {
@@ -14626,6 +14648,25 @@
             "type": "array",
             "title": "Items"
           },
+          "discount_type": {
+            "type": "string",
+            "enum": [
+              "AMOUNT",
+              "PERCENT"
+            ],
+            "title": "Discount Type",
+            "default": "AMOUNT"
+          },
+          "discount_value": {
+            "type": "string",
+            "title": "Discount Value",
+            "default": "0"
+          },
+          "discount_amount": {
+            "type": "string",
+            "title": "Discount Amount",
+            "default": "0"
+          },
           "total": {
             "type": "string",
             "title": "Total"
@@ -14803,6 +14844,36 @@
               }
             ],
             "title": "Channel"
+          },
+          "discount_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "AMOUNT",
+                  "PERCENT"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discount Type"
+          },
+          "discount_value": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discount Value"
           },
           "notes": {
             "anyOf": [

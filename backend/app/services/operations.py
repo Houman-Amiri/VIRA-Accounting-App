@@ -68,6 +68,25 @@ from .security_audit import record_security_event
 InvalidOrderStateError = InvalidOperationsStateError
 
 
+def order_amounts(order: Order) -> tuple[Decimal, Decimal, Decimal]:
+    """Subtotal, discount and payable amount; all line charges participate once."""
+    subtotal = sum(
+        (Decimal(line.quantity) * Decimal(line.unit_price)
+         + sum((Decimal(charge.amount) for charge in line.charges), Decimal(0))
+         for line in order.items), Decimal(0),
+    ).quantize(Decimal("0.0001"))
+    value = Decimal(order.discount_value)
+    if order.discount_type == "PERCENT":
+        if value > 100:
+            raise DomainError("درصد تخفیف نمی‌تواند بیشتر از ۱۰۰ باشد")
+        discount = (subtotal * value / 100).quantize(Decimal("0.0001"))
+    else:
+        discount = value
+    if discount > subtotal:
+        raise DomainError("مبلغ تخفیف نمی‌تواند بیشتر از جمع سفارش باشد")
+    return subtotal, discount, subtotal - discount
+
+
 def _mean_score(supplier: Supplier) -> float:
     return (supplier.score_price + supplier.score_quality + supplier.score_delivery) / 3
 
@@ -845,6 +864,8 @@ class OperationsService:
             customer_address=data.customer_address,
             status=data.status,
             channel=data.channel,
+            discount_type=data.discount_type,
+            discount_value=data.discount_value,
             notes=data.notes,
             version_id=1,
             created_at=now,
@@ -853,6 +874,7 @@ class OperationsService:
         self.session.add(order)
         self.session.flush()
         self._apply_items(order, data.items)
+        order_amounts(order)
         return order
 
     def update_order(self, order_id: str, data: OrderUpdate) -> Order:
@@ -886,6 +908,7 @@ class OperationsService:
             setattr(order, field, value)
         if data.items is not None:
             self._apply_items(order, data.items)
+        order_amounts(order)
         order.version_id += 1
         order.updated_at = utc_now_iso()
         self.session.flush()
@@ -1114,8 +1137,9 @@ class OperationsService:
             for line in order.items:
                 quantity = Decimal(line.quantity)
                 bucket["quantity"] += quantity
-                bucket["revenue"] += quantity * Decimal(line.unit_price)
                 bucket["cost"] += quantity * Decimal(line.unit_cost)
+            # The report agrees with the invoice, including charges and discounts.
+            bucket["revenue"] += order_amounts(order)[2]
 
         rows = []
         for key in sorted(buckets):

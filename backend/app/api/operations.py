@@ -50,7 +50,7 @@ from ..schemas.operations import (
 )
 from ..security.session import SessionUser
 from ..services.catalog import CatalogService
-from ..services.operations import OperationsService
+from ..services.operations import OperationsService, order_amounts
 from ..services.persian import fa_count, fa_money, jalali
 from .deps import enforce_csrf, get_db, require_roles
 
@@ -190,9 +190,7 @@ def _order_read(order: Any) -> OrderRead:
     items = [_order_item_read(line) for line in order.items]
     # «هزینهٔ طراحی» and the owner's per-line variables are part of what the
     # customer pays, so they join the order total (and therefore the profit).
-    total = sum(
-        (i.quantity * i.unit_price + i.charges_total for i in items), Decimal(0)
-    )
+    _subtotal, discount, total = order_amounts(order)
     cost = sum((i.quantity * i.unit_cost for i in items), Decimal(0))
     return OrderRead(
         warnings=_order_warnings(order),
@@ -209,6 +207,9 @@ def _order_read(order: Any) -> OrderRead:
         created_at=order.created_at,
         updated_at=order.updated_at,
         items=items,
+        discount_type=order.discount_type,
+        discount_value=Decimal(order.discount_value),
+        discount_amount=discount,
         total=total,
         total_cost=cost,
         profit=total - cost,
@@ -679,7 +680,10 @@ def proforma_pdf(
             "lines_total": fa_money(lines_total),
             "charges_total": fa_money(charges_total),
             "subtotal": fa_money(lines_total),
-            "discount": fa_money(Decimal(0)),
+            "discount": fa_money(read.discount_amount),
+            "discount_detail": (
+                f"{fa_count(read.discount_value)}٪" if read.discount_type == "PERCENT" and read.discount_value else ""
+            ),
             "total": fa_money(read.total),
         },
     }

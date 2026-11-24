@@ -79,6 +79,16 @@ Stock changes only through **inventory movements** (`PURCHASE_IN`, `PRODUCTION_O
 `DRAFT` پیش‌نویس → `CONFIRMED` ثبت‌شده → `IN_PRODUCTION` در حال تولید → `READY` آماده ارسال → `SHIPPED` ارسال‌شده → `COMPLETED` تکمیل‌شده  
 Cancellation (`CANCELLED` لغو‌شده) allowed before `SHIPPED`; completed/cancelled orders are immutable (corrections via adjustments, consistent with the ledger rules).
 
+**Order discount** (unreleased): an order can carry an `AMOUNT` (Toman) or
+`PERCENT` discount, applied once to the sum of product lines plus design and
+variable charges. The percentage is between 0 and 100; a fixed discount cannot
+exceed the subtotal. Empty means zero. Subtotal and calculated percentage are
+rounded to four decimal places using half-even rounding. The chosen mode and
+value persist across edits; changing the lines recomputes the percentage, while
+invalid edits are rejected atomically. Existing orders default to zero discount.
+The invoice prints the calculated discount (and rate for a percentage), and
+order total, profit and sales revenue use the same discounted amount.
+
 ### 3.3 Sales Proforma Invoice (پیش‌فاکتور فروش)
 
 - Generated from an order (or standalone draft) with: company identity, customer info (Jalali date), line items (Persian numerals, Toman), totals, validity/terms notes, signature block.

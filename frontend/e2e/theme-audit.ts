@@ -176,8 +176,8 @@ export async function auditMenuThemes(page: Page): Promise<void> {
         ["/price-calc", 0],
         ["/journal/new", 1],
         // Orders lost two (channel filter, channel picker) and gained one:
-        // «افزودن متغیر» on each order line (v1.0.28).
-        ["/orders", 5],
+        // «افزودن متغیر» per line and a discount-type selector.
+        ["/orders", 6],
         ["/production", 4],
         ["/warehouse", 5],
         ["/bank-import", 5],
