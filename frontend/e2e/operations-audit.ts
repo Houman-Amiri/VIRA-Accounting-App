@@ -47,6 +47,7 @@ export async function auditOperations(page: Page): Promise<void> {
   await receipt(filament, "۲۰");
 
   await page.getByRole("link", { name: "سفارش‌ها", exact: true }).click();
+  await page.getByTestId("orders-tab-form").click();
   await page.getByTestId("order-customer").fill(base);
   // Channel selection is gone: every sale is direct.
   await expect(page.getByTestId("order-channel")).toHaveCount(0);
@@ -164,6 +165,7 @@ export async function auditOperations(page: Page): Promise<void> {
 
   // Items 8 and 9: an unconfirmed order keeps its lines editable and deletable.
   await page.getByRole("link", { name: "سفارش‌ها", exact: true }).click();
+  await page.getByTestId("orders-tab-form").click();
   await page.getByTestId("order-customer").fill(`${base} — موقت`);
   await page.getByTestId("line-name-0").fill(`${base} — قلم موقت`);
   await page.getByTestId("line-price-0").fill("۱۰۰۰");
@@ -203,6 +205,81 @@ export async function auditOperations(page: Page): Promise<void> {
   await page.getByTestId(`order-${draft.id}-delete-confirm`).click();
   expect((await deleteResponse).status()).toBe(204);
   await expect(page.getByTestId(`order-${draft.id}`)).toHaveCount(0);
+
+  // An unsaved multi-line draft survives pricing, and a one-time variable is
+  // stored exactly once while unit constants and variables are in the unit price.
+  const tokenForPricing = decodeURIComponent(
+    (await page.context().cookies()).find((c) => c.name === "noa_csrf")!.value,
+  );
+  const pricingHeaders = { "X-CSRF-Token": tokenForPricing };
+  const variableResponse = await page.request.post("/api/v1/settings/pricing/variables", {
+    headers: pricingHeaders,
+    data: {
+      name: `ارسال ${suffix}`,
+      scope: "PER_ORDER",
+      basis: "AMOUNT",
+      allocation: "ONE_TIME",
+      value: "500",
+    },
+  });
+  expect(variableResponse.status(), await variableResponse.text()).toBe(201);
+  const variable = await variableResponse.json();
+  const constantResponse = await page.request.post("/api/v1/settings/pricing/constants", {
+    headers: pricingHeaders,
+    data: { name: `ثابت ${suffix}`, method: "PER_UNIT", value: "100" },
+  });
+  expect(constantResponse.status(), await constantResponse.text()).toBe(201);
+  const constant = await constantResponse.json();
+  await page.getByTestId("orders-tab-form").click();
+  await page.getByTestId("order-customer").fill(`${base} — مشتری انتقال`);
+  await page.getByTestId("line-name-0").fill("بتمن سه بعدی");
+  await page.getByTestId("line-quantity-0").fill("۲");
+  await page.getByTestId("line-add").click();
+  await page.getByTestId("line-name-1").fill("قلم دیگر");
+  await page.getByTestId("line-price-1").fill("۱۰۰۰");
+  await page.getByTestId("orders-tab-list").click();
+  await page.getByTestId("orders-tab-form").click();
+  await expect(page.getByTestId("line-name-1")).toHaveValue("قلم دیگر");
+  for (let attempt = 0; attempt < 2; attempt++) {
+    await page.getByTestId("line-pricing-0").click();
+    await expect(page).toHaveURL(/\/price-calc/);
+    await expect(page.getByTestId("pricing-transfer-submit")).toBeDisabled();
+    await page.getByTestId("price-filament").selectOption(filament.id);
+    await page.getByTestId("input-weight").fill("۱۰");
+    await page.getByTestId("input-hours").fill("۱");
+    await expect(page.getByTestId("row-filamentCost")).toContainText("۱٬۰۰۰");
+    await expect(page.getByTestId("pricing-transfer-submit")).toBeEnabled();
+    await page.getByTestId("pricing-transfer-submit").click();
+    await expect(page).toHaveURL(/\/orders$/);
+    await expect(page.getByTestId("order-customer")).toHaveValue(`${base} — مشتری انتقال`);
+    await expect(page.getByTestId("line-name-0")).toHaveValue("بتمن سه بعدی");
+    await expect(page.getByTestId("line-name-1")).toHaveValue("قلم دیگر");
+    await expect(page.getByTestId("line-pricing-details-0")).toContainText(`ثابت ${suffix}`);
+    await expect(page.getByTestId("line-pricing-details-0")).toContainText(`متغیر ارسال ${suffix}`);
+    await expect(
+      page.getByTestId("line-charges-0").getByText(`قیمت‌گذاری: ارسال ${suffix}`, { exact: false }),
+    ).toHaveCount(1);
+  }
+  const unitPrice = await page.getByTestId("line-price-0").inputValue();
+  const transferResponse = waitWrite("orders");
+  await page.getByTestId("order-submit").click();
+  const transferred = await (await transferResponse).json();
+  expect(new Decimal(transferred.items[0].unit_price).eq(unitPrice)).toBe(true);
+  expect(transferred.items[0].charges).toHaveLength(1);
+  expect(new Decimal(transferred.items[0].charges[0].amount).eq(500)).toBe(true);
+  expect(
+    new Decimal(transferred.total).eq(new Decimal(unitPrice).times(2).plus(500).plus(1000)),
+  ).toBe(true);
+  expect(transferred.items[0].notes).toContain(`ثابت ${suffix}`);
+  for (const [path, id] of [
+    ["variables", variable.id],
+    ["constants", constant.id],
+  ]) {
+    const removed = await page.request.delete(`/api/v1/settings/pricing/${path}/${id}`, {
+      headers: pricingHeaders,
+    });
+    expect(removed.status(), await removed.text()).toBe(204);
+  }
 
   // Item 11: delivering the order takes its produced models out of stock and
   // moves it to «تاریخچهٔ سفارشات» (item 7).

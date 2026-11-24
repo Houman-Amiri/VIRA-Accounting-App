@@ -23,7 +23,15 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { api, parseError } from "@/api/client";
+import { Button } from "@/components/ui/button";
+import {
+  CALCULATED_CHARGE_PREFIX,
+  readTransfer,
+  writeTransfer,
+} from "@/lib/order-pricing-transfer";
 import {
   pricingConstants,
   useCustomConstants,
@@ -52,14 +60,52 @@ const REPORT_ROW_HIGHLIGHTS: Partial<Record<keyof PriceBreakdown, string>> = {
 };
 
 export function PriceCalcPage(): React.JSX.Element {
+  const navigate = useNavigate();
+  const [transfer] = React.useState(() =>
+    readTransfer<
+      {
+        items: {
+          product_name: string;
+          quantity: string;
+          variant: "plain" | "chain";
+          charges: { name: string }[];
+        }[];
+      },
+      unknown
+    >(),
+  );
+  const target = transfer?.form?.items?.[transfer.lineIndex];
+  const [transferError, setTransferError] = React.useState("");
+  const [filamentId, setFilamentId] = React.useState("");
+  const filaments = useQuery({
+    queryKey: ["warehouse", "filaments", "pricing"],
+    queryFn: async () => {
+      const res = await api.GET("/api/v1/warehouse/items", {
+        params: { query: { kind: "FILAMENT" } },
+      });
+      if (res.error) throw await parseError(res.response);
+      return res.data.filter(
+        (item) => item.kind === "FILAMENT" && item.unit === "G" && item.is_active,
+      );
+    },
+  });
+  const selectedFilament = filaments.data?.find((item) => item.id === filamentId);
   const settings = usePricingSettings();
   const constants = React.useMemo(
-    () => (settings.data ? pricingConstants(settings.data) : null),
-    [settings.data],
+    () =>
+      settings.data
+        ? {
+            ...pricingConstants(settings.data),
+            ...(selectedFilament ? { filamentPerGram: selectedFilament.unit_price } : {}),
+          }
+        : null,
+    [settings.data, selectedFilament],
   );
   const customs = useCustomConstants();
   const variableQuery = useVariables();
-  const [inputs, setInputs] = React.useState<PriceInputs>(EMPTY_INPUTS);
+  const [inputs, setInputs] = React.useState<PriceInputs>(() =>
+    target ? { ...EMPTY_INPUTS, quantity: target.quantity, variant: target.variant } : EMPTY_INPUTS,
+  );
   // Values typed for *this* calculation; the saved value is only the default.
   const [variableValues, setVariableValues] = React.useState<Record<string, string>>({});
   // «۲ محموله × ۱۵۰٬۰۰۰»: how many times each variable applies to this order.
@@ -232,6 +278,36 @@ export function PriceCalcPage(): React.JSX.Element {
                 placeholder="مثلاً ۱"
                 onChange={(e) => setInputs((i) => ({ ...i, quantity: e.target.value }))}
               />
+            </div>
+            <div>
+              <Label htmlFor="price-filament">فیلامنت انبار</Label>
+              <select
+                id="price-filament"
+                data-testid="price-filament"
+                value={filamentId}
+                onChange={(event) => setFilamentId(event.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
+              >
+                <option value="">قیمت پیش‌فرض تنظیمات</option>
+                {(filaments.data ?? []).map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name} — {faNumber(item.unit_price)} تومان/گرم
+                  </option>
+                ))}
+              </select>
+              {filaments.isError && (
+                <p role="alert" className="text-xs text-destructive">
+                  دریافت فیلامنت‌های انبار ناموفق بود.{" "}
+                  <button className="underline" onClick={() => void filaments.refetch()}>
+                    تلاش مجدد
+                  </button>
+                </p>
+              )}
+              {filaments.isSuccess && filaments.data.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  فیلامنت فعالی در انبار ثبت نشده است؛ قیمت پیش‌فرض استفاده می‌شود.
+                </p>
+              )}
             </div>
             {/* متغیرهای تنظیمات قیمت‌گذاری، کنار بقیهٔ مشخصات محصول. */}
             {activeVariables.map((variable) => (
@@ -516,6 +592,99 @@ export function PriceCalcPage(): React.JSX.Element {
             </div>
           </CardContent>
         </Card>
+      )}
+      {target && transfer && (
+        <div className="space-y-2 rounded-md border p-3" data-testid="pricing-transfer">
+          <p className="text-sm">
+            بازگشت به ردیف «{target.product_name || faNumber(String(transfer.lineIndex + 1))}» سفارش
+          </p>
+          <p className="text-xs text-muted-foreground">
+            قیمت هر عدد شامل ثابت‌ها و متغیرهای هر عدد است؛ متغیرهای یک‌باره جداگانه به همین ردیف
+            اضافه می‌شوند. هزینه‌های موجود ردیف حفظ می‌شوند.
+          </p>
+          {transferError && (
+            <p role="alert" className="text-destructive">
+              {transferError}
+            </p>
+          )}
+          <Button
+            data-testid="pricing-transfer-submit"
+            disabled={
+              !results ||
+              results.error !== null ||
+              !plain ||
+              !chain ||
+              Boolean(filamentId && !selectedFilament)
+            }
+            onClick={() => {
+              if (!results || results.error !== null || !plain || !chain) return;
+              try {
+                const qty = parseNum(inputs.quantity);
+                const breakdown = target.variant === "chain" ? chain : plain;
+                const unit = target.variant === "chain" ? results.chainUnit : results.plainUnit;
+                const variables =
+                  target.variant === "chain" ? results.chainVariables : results.plainVariables;
+                const oneTime = variables.lines
+                  .filter((line) => line.oneTime && line.orderTotal.toDecimalPlaces(4).gt(0))
+                  .map((line) => ({ name: line.name, amount: line.orderTotal.toFixed(4) }));
+                if (
+                  qty.decimalPlaces() > 4 ||
+                  qty.gte("100000000000000") ||
+                  unit.toDecimalPlaces(4).lte(0) ||
+                  unit.gte("100000000000000") ||
+                  breakdown.unitProductionCost.gte("100000000000000") ||
+                  oneTime.some((row) => parseNum(row.amount).gte("100000000000000"))
+                )
+                  throw new Error("تعداد یا مبالغ خارج از محدودهٔ مجاز سفارش هستند.");
+                if (
+                  target.charges.filter(
+                    (charge) => !charge.name.startsWith(CALCULATED_CHARGE_PREFIX),
+                  ).length +
+                    oneTime.length >
+                  20
+                )
+                  throw new Error("تعداد هزینه‌های این ردیف از حد مجاز ۲۰ بیشتر است.");
+                const customLines = applyCustomConstants(breakdown, customs.data ?? [], qty).lines;
+                const details = [
+                  "جزئیات قیمت‌گذاری:",
+                  selectedFilament
+                    ? `فیلامنت ${selectedFilament.name}: ${selectedFilament.unit_price} تومان/گرم`
+                    : "فیلامنت با نرخ پیش‌فرض تنظیمات",
+                  `تیراژ محاسبه: ${qty.toString()} — با تغییر تعداد، دوباره محاسبه کنید.`,
+                  ...customLines.map(
+                    (line) => `ثابت ${line.name}: ${line.amount.toFixed(4)} تومان/عدد`,
+                  ),
+                  ...variables.lines.map(
+                    (line) =>
+                      `متغیر ${line.name}: ${line.oneTime ? line.orderTotal.toFixed(4) + " تومان یک‌باره" : line.perUnit.toFixed(4) + " تومان/عدد"}`,
+                  ),
+                ].join("\n");
+                writeTransfer({
+                  ...transfer,
+                  result: {
+                    quantity: qty.toString(),
+                    unitPrice: unit.toFixed(4),
+                    unitCost: breakdown.unitProductionCost.toFixed(4),
+                    details,
+                    oneTime,
+                  },
+                });
+                void navigate({ to: "/orders" });
+              } catch (error) {
+                setTransferError(
+                  error instanceof Error
+                    ? error.message
+                    : "انتقال ممکن نبود؛ دسترسی مرورگر به حافظه را بررسی کنید.",
+                );
+              }
+            }}
+          >
+            انتقال به صفحه سفارش
+          </Button>
+          <Link to="/orders" className="ms-3 text-sm text-primary underline">
+            بازگشت بدون انتقال
+          </Link>
+        </div>
       )}
     </div>
   );

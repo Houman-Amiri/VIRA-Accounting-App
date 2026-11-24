@@ -79,6 +79,18 @@ Stock changes only through **inventory movements** (`PURCHASE_IN`, `PRODUCTION_O
 `DRAFT` پیش‌نویس → `CONFIRMED` ثبت‌شده → `IN_PRODUCTION` در حال تولید → `READY` آماده ارسال → `SHIPPED` ارسال‌شده → `COMPLETED` تکمیل‌شده  
 Cancellation (`CANCELLED` لغو‌شده) allowed before `SHIPPED`; completed/cancelled orders are immutable (corrections via adjustments, consistent with the ledger rules).
 
+**Pricing round trip** (unreleased): the calculator may use any active gram-based
+filament's current warehouse unit price instead of the default setting, without
+changing that setting. The orders list and editor are separate tabs; switching
+preserves the draft. From a draft line, pricing temporarily stores the complete
+form and edit version in tab-scoped session storage. A successful transfer updates
+only that line's quantity, unit price, unit production cost and readable pricing
+snapshot; cancelling the transfer restores the original form. Per-unit custom
+constants and variables are already included in unit price; one-time variables
+are separately snapshotted charges, replacing previous calculated charges on the
+same line while preserving manually entered charges. Users must recalculate after
+changing quantity. No order is persisted until the owner saves it.
+
 **Order discount** (unreleased): an order can carry an `AMOUNT` (Toman) or
 `PERCENT` discount, applied once to the sum of product lines plus design and
 variable charges. The percentage is between 0 and 100; a fixed discount cannot

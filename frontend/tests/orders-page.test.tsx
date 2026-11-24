@@ -175,6 +175,7 @@ it("keeps the items column collapsed until the owner opens it", async () => {
 
 it("removes a line from the order form and can add another one", async () => {
   mount();
+  fireEvent.mouseDown(screen.getByTestId("orders-tab-form"), { button: 0, ctrlKey: false });
   await screen.findByTestId("line-0");
   expect(screen.getByTestId("line-remove-0")).toBeInTheDocument();
   fireEvent.click(screen.getByTestId("line-add"));
@@ -191,6 +192,7 @@ it("removes a line from the order form and can add another one", async () => {
 
 it("never leaves the form without a row to fill", async () => {
   mount();
+  fireEvent.mouseDown(screen.getByTestId("orders-tab-form"), { button: 0, ctrlKey: false });
   await screen.findByTestId("line-0");
   // a lone, incomplete row cannot be removed — there must always be one to fill
   expect(screen.getByTestId("line-remove-0")).toBeDisabled();
@@ -278,6 +280,7 @@ it("adds design hours and a per-line variable to the saved line", async () => {
     .spyOn(api, "POST")
     .mockResolvedValue({ data: ORDER, response: new Response() } as never);
   mount();
+  fireEvent.mouseDown(screen.getByTestId("orders-tab-form"), { button: 0, ctrlKey: false });
   await screen.findByTestId("line-0");
   fireEvent.change(screen.getByTestId("line-name-0"), { target: { value: "پایه موبایل" } });
   fireEvent.change(screen.getByTestId("line-price-0"), { target: { value: "200000" } });
@@ -311,6 +314,7 @@ it("applies fixed and percentage discounts to products plus charges and saves th
     .spyOn(api, "POST")
     .mockResolvedValue({ data: ORDER, response: new Response() } as never);
   mount();
+  fireEvent.mouseDown(screen.getByTestId("orders-tab-form"), { button: 0, ctrlKey: false });
   await screen.findByTestId("line-0");
   fireEvent.change(screen.getByTestId("line-name-0"), { target: { value: "پایه" } });
   fireEvent.change(screen.getByTestId("line-price-0"), { target: { value: "200000" } });
@@ -329,7 +333,11 @@ it("applies fixed and percentage discounts to products plus charges and saves th
   await waitFor(() => expect(post).toHaveBeenCalled());
   const body = (post.mock.calls[0][1] as unknown as { body: Record<string, unknown> }).body;
   expect(body).toMatchObject({ discount_type: "PERCENT", discount_value: "10" });
-  await waitFor(() => expect(screen.getByTestId("order-discount-value")).toHaveValue(""));
+  await waitFor(() =>
+    expect(screen.getByTestId("orders-tab-list")).toHaveAttribute("aria-selected", "true"),
+  );
+  fireEvent.mouseDown(screen.getByTestId("orders-tab-form"), { button: 0, ctrlKey: false });
+  expect(screen.getByTestId("order-discount-value")).toHaveValue("");
   expect(screen.getByTestId("order-discount-type")).toHaveValue("AMOUNT");
 });
 
@@ -366,4 +374,79 @@ it("rejects invalid discounts and preserves a saved discount while editing", asy
     vi.mocked(api.PATCH).mock.calls[0][1] as unknown as { body: Record<string, unknown> }
   ).body;
   expect(body).toMatchObject({ discount_type: "AMOUNT", discount_value: "90000" });
+});
+
+it("keeps a draft intact while switching tabs", async () => {
+  mount();
+  fireEvent.mouseDown(screen.getByTestId("orders-tab-form"), { button: 0 });
+  fireEvent.change(screen.getByTestId("order-customer"), { target: { value: "مشتری" } });
+  fireEvent.change(screen.getByTestId("line-name-0"), { target: { value: "بتمن" } });
+  fireEvent.mouseDown(screen.getByTestId("orders-tab-list"), { button: 0 });
+  expect(screen.queryByTestId("line-name-0")).not.toBeInTheDocument();
+  fireEvent.mouseDown(screen.getByTestId("orders-tab-form"), { button: 0 });
+  expect(screen.getByTestId("order-customer")).toHaveValue("مشتری");
+  expect(screen.getByTestId("line-name-0")).toHaveValue("بتمن");
+});
+
+it("restores the selected row, keeps other data and replaces old calculated one-time costs", async () => {
+  const charge = (name: string, amount: string) => ({
+    kind: "VARIABLE",
+    variable_id: "",
+    name,
+    quantity: "",
+    hours: "",
+    amount,
+    legacy: true,
+  });
+  const line = (name: string) => ({
+    inventory_item_id: "",
+    product_name: name,
+    variant: "plain",
+    quantity: "2",
+    unit_price: "100",
+    unit_cost: "0",
+    notes: "یادداشت پیشین",
+    charges: [],
+  });
+  sessionStorage.setItem(
+    "noa.order-pricing-transfer.v1",
+    JSON.stringify({
+      form: {
+        order_date: "2026-10-14",
+        customer_name: "مشتری بتمن",
+        customer_phone: "123",
+        customer_address: "",
+        notes: "حفظ شود",
+        discount_type: "AMOUNT",
+        discount_value: "10",
+        items: [
+          line("قلم دیگر"),
+          { ...line("بتمن"), charges: [charge("دستی", "30"), charge("قیمت‌گذاری: ارسال", "50")] },
+        ],
+      },
+      editing: null,
+      lineIndex: 1,
+      result: {
+        quantity: "3",
+        unitPrice: "4000.0000",
+        unitCost: "2000.0000",
+        details: "جزئیات قیمت‌گذاری:\nثابت آزمون: 100 تومان/عدد",
+        oneTime: [{ name: "ارسال", amount: "100.0000" }],
+      },
+    }),
+  );
+  mount();
+  expect(screen.getByTestId("orders-tab-form")).toHaveAttribute("aria-selected", "true");
+  expect(screen.getByTestId("order-customer")).toHaveValue("مشتری بتمن");
+  expect(screen.getByTestId("line-name-0")).toHaveValue("قلم دیگر");
+  expect(screen.getByTestId("line-name-1")).toHaveValue("بتمن");
+  expect(screen.getByTestId("line-price-1")).toHaveValue("4000.0000");
+  expect(screen.getByTestId("line-quantity-1")).toHaveValue("3");
+  expect(screen.getByTestId("line-pricing-details-1")).toHaveTextContent("یادداشت پیشین");
+  expect(screen.getByTestId("line-pricing-details-1")).toHaveTextContent("ثابت آزمون");
+  expect(screen.getByTestId("line-charges-1")).toHaveTextContent("دستی");
+  expect(
+    within(screen.getByTestId("line-charges-1")).getAllByText("قیمت‌گذاری: ارسال"),
+  ).toHaveLength(1);
+  expect(sessionStorage.getItem("noa.order-pricing-transfer.v1")).toBeNull();
 });

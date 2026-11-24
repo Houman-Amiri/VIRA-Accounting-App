@@ -50,6 +50,7 @@ export async function auditCalendar(page: Page): Promise<void> {
   expect(productResponse.status(), await productResponse.text()).toBe(201);
   const product = await productResponse.json();
   await page.goto("/orders");
+  await page.getByTestId("orders-tab-form").click();
   await mobileDate("order-date");
   await expect(page.getByTestId("order-date")).toHaveValue("1405/07/25");
   await page.getByTestId("order-date").fill("۱۴۰۴/۰۱/۰۱");
@@ -81,6 +82,7 @@ export async function auditCalendar(page: Page): Promise<void> {
   await filtered;
   await expect(page.getByTestId(`order-${order.id}`)).toContainText("۱۴۰۴/۰۱/۰۱");
   // An unsaved civil date must survive another tab changing the global preference.
+  await page.getByTestId("orders-tab-form").click();
   await page.getByTestId("order-date").fill("۱۴۰۵/۰۷/۲۵");
   const settings = await page.context().newPage();
   await settings.goto("/settings");
@@ -89,9 +91,11 @@ export async function auditCalendar(page: Page): Promise<void> {
   await expect(settings.getByText("تقویم ذخیره شد.", { exact: true })).toBeVisible();
   await page.bringToFront();
   await expect(page.getByTestId("order-date")).toHaveValue("2026/10/17", { timeout: 35_000 });
+  await page.getByTestId("orders-tab-list").click();
   await expect(page.getByTestId("orders-from")).toHaveValue("2025/03/21");
   await expect(page.getByTestId("orders-to")).toHaveValue("2025/03/21");
   await expect(page.getByTestId(`order-${order.id}`)).toContainText("۲۰۲۵/۰۳/۲۱");
+  await page.getByTestId("orders-tab-form").click();
   await page.getByTestId("order-customer").fill("آزمون روز ثابت پس از تغییر تقویم");
   await page.getByTestId("line-product-0").selectOption(product.id);
   response = write("orders");

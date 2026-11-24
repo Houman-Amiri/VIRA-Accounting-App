@@ -6,6 +6,7 @@ import type { CustomConstant, PricingSettings, PricingVariable } from "@/lib/pri
 
 // Router navigation itself is covered by Playwright; retain real hooks and math here.
 vi.mock("@tanstack/react-router", () => ({
+  useNavigate: () => vi.fn(),
   Link: ({ to, children, className }: { to: string; children: ReactNode; className?: string }) => (
     <a href={to} className={className}>
       {children}
@@ -46,6 +47,7 @@ export function renderWithPricing(
   client.setQueryData(["warehouse", "catalog", "types"], []);
   client.setQueryData(["warehouse", "catalog", "units"], []);
   client.setQueryData(["warehouse", "suppliers"], []);
+  client.setQueryData(["warehouse", "filaments", "pricing"], []);
   if (seed) client.setQueryData(["pricing-settings"], { ...SETTINGS, ...overrides });
   client.setQueryData(["pricing-custom-constants"], customs);
   client.setQueryData(["pricing-variables"], variables);

@@ -68,7 +68,7 @@ test("command palette opens with Ctrl+K and navigates", async ({ page }) => {
 test.describe("calendar in a non-Tehran browser", () => {
   test.use({ timezoneId: "America/Los_Angeles" });
   test("new entry is an invoice form with a computed total", async ({ page }) => {
-    test.setTimeout(120_000);
+    test.setTimeout(180_000);
     await login(page);
     await page.clock.setFixedTime(new Date("2026-10-16T21:00:00Z"));
     await page.goto("/journal/new");

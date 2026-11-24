@@ -335,3 +335,29 @@ it.each(["pricing-variables", "pricing-custom-constants"])(
     expect(screen.getByTestId("row-direct-batch-final")).toHaveTextContent("—");
   },
 );
+
+it("uses the selected warehouse filament rate without changing shared settings", () => {
+  const { client } = renderWithPricing(<PriceCalcPage />);
+  act(() => {
+    client.setQueryData(
+      ["warehouse", "filaments", "pricing"],
+      [
+        {
+          id: "f1",
+          name: "PLA سبز",
+          unit: "G",
+          unit_price: "4000",
+          kind: "FILAMENT",
+          is_active: true,
+        },
+      ],
+    );
+  });
+  fillInputs({ weight: "100", hours: "0", qty: "1" });
+  expect(screen.getByTestId("row-filamentCost")).toHaveTextContent("۳۰۰٬۰۰۰");
+  fireEvent.change(screen.getByTestId("price-filament"), { target: { value: "f1" } });
+  expect(screen.getByTestId("row-filamentCost")).toHaveTextContent("۴۰۰٬۰۰۰");
+  expect(client.getQueryData(["pricing-settings"])).toMatchObject({ filamentPerGram: "3000.0000" });
+  fireEvent.change(screen.getByTestId("price-filament"), { target: { value: "" } });
+  expect(screen.getByTestId("row-filamentCost")).toHaveTextContent("۳۰۰٬۰۰۰");
+});

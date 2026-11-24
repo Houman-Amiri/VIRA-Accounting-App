@@ -171,13 +171,11 @@ export async function auditMenuThemes(page: Page): Promise<void> {
         .click();
       await expect(page.locator("html")).toHaveClass(dark ? /dark/ : /^(?!.*\bdark\b)/);
       for (const [path, count] of [
-        // No sales-channel chooser anywhere any more: /price-calc has no select,
-        // and the orders filter / production form each lost one.
-        ["/price-calc", 0],
+        // Price calculator offers a filament, never a sales channel.
+        ["/price-calc", 1],
         ["/journal/new", 1],
-        // Orders lost two (channel filter, channel picker) and gained one:
-        // «افزودن متغیر» per line and a discount-type selector.
-        ["/orders", 6],
+        // Default orders tab shows the status and report filters.
+        ["/orders", 2],
         ["/production", 4],
         ["/warehouse", 5],
         ["/bank-import", 5],
@@ -264,6 +262,10 @@ export async function auditMenuThemes(page: Page): Promise<void> {
           await expect(page.getByTestId("open-pricing-settings")).toBeVisible();
         }
         await auditNative(page, count, dark);
+        if (path === "/orders") {
+          await page.getByTestId("orders-tab-form").click();
+          await auditNative(page, 5, dark);
+        }
         await auditSurfaces(page, dark);
       }
       await page.keyboard.press("Control+k");
