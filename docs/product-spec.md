@@ -77,7 +77,7 @@ Stock changes only through **inventory movements** (`PURCHASE_IN`, `PRODUCTION_O
 **Status lifecycle** (Persian UI labels):
 
 `DRAFT` پیش‌نویس → `CONFIRMED` ثبت‌شده → `IN_PRODUCTION` در حال تولید → `READY` آماده ارسال → `SHIPPED` ارسال‌شده → `COMPLETED` تکمیل‌شده  
-Cancellation (`CANCELLED` لغو‌شده) allowed before `SHIPPED`; completed/cancelled orders are immutable (corrections via adjustments, consistent with the ledger rules).
+لغو سفارش فقط پیش از ارسال و پس از تأیید صریح در پنجرهٔ تأیید مجاز است؛ لغو هنگام وجود کار تولید فعال پذیرفته نمی‌شود. سفارش لغوشده از تاریخچه، با کنترل نسخه، به وضعیت پیش از لغو بازیابی می‌شود؛ بازیابی موجودی، گردش انبار و کارهای تولید را تغییر نمی‌دهد. برای سفارش‌های قدیمی بدون وضعیت ذخیره‌شده، وضعیت با توجه به کارهای تولید استنباط می‌شود (تولید فعال یا ناقص: در حال تولید؛ تولید کامل: آماده؛ فقط کار لغوشده: تأییدشده؛ بدون کار: جدید). سفارش‌های ارسال‌شده و تحویل‌شده بازیابی نمی‌شوند و ویرایش‌ناپذیرند، به‌جز انتقال ارسال‌شده به تحویل‌شده.
 
 **Pricing round trip** (unreleased): the calculator may use any active gram-based
 filament's current warehouse unit price instead of the default setting, without

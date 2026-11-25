@@ -450,3 +450,27 @@ it("restores the selected row, keeps other data and replaces old calculated one-
   ).toHaveLength(1);
   expect(sessionStorage.getItem("noa.order-pricing-transfer.v1")).toBeNull();
 });
+
+it("asks for confirmation before cancelling an order and respects dismissal", async () => {
+  mount();
+  fireEvent.click(await screen.findByTestId("order-o1-CANCELLED"));
+  expect(screen.getByRole("dialog", { name: "تأیید لغو سفارش" })).toHaveTextContent(
+    "مشتری آزمایشی",
+  );
+  expect(api.PATCH).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByTestId("cancel-order-dismiss"));
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(api.PATCH).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByTestId("order-o1-CANCELLED"));
+  vi.mocked(api.PATCH).mockResolvedValueOnce({
+    data: { ...ORDER, status: "CANCELLED" },
+    response: new Response(),
+  } as never);
+  fireEvent.click(screen.getByTestId("cancel-order-confirm"));
+  await waitFor(() =>
+    expect(api.PATCH).toHaveBeenCalledWith("/api/v1/orders/{order_id}", {
+      params: { path: { order_id: "o1" } },
+      body: { version_id: 1, status: "CANCELLED" },
+    }),
+  );
+});

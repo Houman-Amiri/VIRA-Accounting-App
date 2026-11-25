@@ -5,6 +5,13 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
+## [منتشرنشده]
+
+### لغو و بازیابی سفارش
+- پیش از لغو، تأیید کاربر درخواست می‌شود؛ با انصراف تغییری ایجاد نمی‌شود.
+- سفارش لغوشده از تاریخچه به وضعیت پیش از لغو بازیابی می‌شود، بدون تغییر موجودی یا تولید. سفارش‌های ارسال‌شده و تحویل‌شده قابل بازیابی نیستند.
+- در سفارش‌های قدیمی بدون وضعیت ثبت‌شده، وضعیت از کارهای تولید استنباط می‌شود؛ در نبود کار تولید، سفارش به وضعیت جدید برمی‌گردد.
+
 ## [1.0.32] — 2026-10-14
 
 منتشر شد: [نسخهٔ ۱.۰.۳۲](https://github.com/Houman-Amiri/VIRA-Accounting-App/releases/tag/v1.0.32)؛ [اجرای موفق انتشار](https://github.com/Houman-Amiri/VIRA-Accounting-App/actions/runs/45413784608). فایل به‌روزرسانی با تأیید مالک فقط برای همین نسخه بدون امضای دیجیتال است.

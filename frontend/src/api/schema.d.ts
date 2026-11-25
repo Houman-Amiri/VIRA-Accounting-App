@@ -1568,6 +1568,23 @@ export interface paths {
         patch: operations["update_order_api_v1_orders__order_id__patch"];
         trace?: never;
     };
+    "/api/v1/orders/{order_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore Order */
+        post: operations["restore_order_api_v1_orders__order_id__restore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/orders/{order_id}/proforma.pdf": {
         parameters: {
             query?: never;
@@ -2662,6 +2679,11 @@ export interface components {
             profit: string;
             /** Warnings */
             warnings?: string[];
+        };
+        /** OrderRestore */
+        OrderRestore: {
+            /** Version Id */
+            version_id: number;
         };
         /**
          * OrderSummary
@@ -7591,6 +7613,47 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["OrderUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restore_order_api_v1_orders__order_id__restore_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+                "X-API-Key"?: string | null;
+            };
+            path: {
+                order_id: string;
+            };
+            cookie?: {
+                noa_session?: string | null;
+                noa_csrf?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderRestore"];
             };
         };
         responses: {

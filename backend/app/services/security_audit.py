@@ -29,6 +29,7 @@ EVENTS = frozenset(
         "CALENDAR_PREFERENCE_UPDATED",
         "CATALOG_CHANGED",
         "INVENTORY_ITEM_DELETED",
+        "ORDER_RESTORED",
         "LOGIN_SUCCESS",
         "LOGIN_FAILED",
         "LOGIN_LOCKED_OUT",

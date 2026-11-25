@@ -8,7 +8,7 @@ import { CalendarProvider } from "@/lib/calendar-settings";
 /**
  * Item 7 of the owner's list: finished and cancelled orders move to
  * «تاریخچهٔ سفارشات»; the page reads them with status_group=history and never
- * offers a status change or a delete.
+ * offers restoration only for cancelled orders.
  */
 vi.mock("@/api/client", async (original) => ({
   ...(await original<typeof import("@/api/client")>()),
@@ -100,6 +100,7 @@ function mount() {
       </CalendarProvider>
     </QueryClientProvider>,
   );
+  return client;
 }
 
 beforeEach(() => {
@@ -145,4 +146,36 @@ it("expands the archived items of one order", async () => {
 it("links back to the live orders page", async () => {
   mount();
   expect(await screen.findByTestId("orders-history-back")).toHaveAttribute("href", "/orders");
+});
+
+it("only offers restore for cancelled orders and refreshes orders and dashboard", async () => {
+  const client = mount();
+  const invalidate = vi.spyOn(client, "invalidateQueries");
+  expect(await screen.findByTestId("history-order-h2-restore")).toBeInTheDocument();
+  expect(screen.queryByTestId("history-order-h1-restore")).not.toBeInTheDocument();
+  vi.mocked(api.POST).mockResolvedValueOnce({
+    data: { ...CANCELLED, status: "NEW" },
+    response: new Response(),
+  } as never);
+  fireEvent.click(screen.getByTestId("history-order-h2-restore"));
+  expect(await screen.findByTestId("history-message")).toHaveTextContent("بازیابی شد");
+  expect(api.POST).toHaveBeenCalledWith("/api/v1/orders/{order_id}/restore", {
+    params: { path: { order_id: "h2" } },
+    body: { version_id: 3 },
+  });
+  expect(invalidate).toHaveBeenCalledWith({ queryKey: ["orders"] });
+  expect(invalidate).toHaveBeenCalledWith({ queryKey: ["dashboard"] });
+});
+
+it("shows restore errors", async () => {
+  mount();
+  vi.mocked(api.POST).mockResolvedValueOnce({
+    error: {},
+    response: new Response(JSON.stringify({ detail: "سفارش تغییر کرده است" }), {
+      status: 409,
+      headers: { "Content-Type": "application/json" },
+    }),
+  } as never);
+  fireEvent.click(await screen.findByTestId("history-order-h2-restore"));
+  expect(await screen.findByTestId("history-message")).toHaveTextContent("سفارش تغییر کرده است");
 });

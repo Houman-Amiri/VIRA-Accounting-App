@@ -161,6 +161,11 @@ class Order(Base, TimestampMixin):
             "'DELIVERED','CANCELLED')",
             name="status",
         ),
+        CheckConstraint(
+            "status_before_cancel IS NULL OR status_before_cancel IN "
+            "('NEW','CONFIRMED','IN_PRODUCTION','READY')",
+            name="status_before_cancel",
+        ),
         CheckConstraint("channel IN ('direct','marketplace')", name="channel"),
         CheckConstraint("discount_type IN ('AMOUNT','PERCENT')", name="discount_type"),
         CheckConstraint("discount_value >= 0", name="discount_value_non_negative"),
@@ -175,6 +180,7 @@ class Order(Base, TimestampMixin):
     customer_phone: Mapped[str | None] = mapped_column(Text, nullable=True)
     customer_address: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(Text, nullable=False, default="NEW")
+    status_before_cancel: Mapped[str | None] = mapped_column(Text, nullable=True)
     channel: Mapped[str] = mapped_column(Text, nullable=False, default="direct")
     discount_type: Mapped[str] = mapped_column(Text, nullable=False, default="AMOUNT")
     discount_value: Mapped[Decimal] = mapped_column(ScaledMoneyType, nullable=False, default=Decimal(0))

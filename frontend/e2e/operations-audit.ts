@@ -298,11 +298,33 @@ export async function auditOperations(page: Page): Promise<void> {
   expect(new Decimal(items.find((i) => i.id === first.id)!.quantity).eq(0)).toBe(true);
   expect(new Decimal(items.find((i) => i.id === second.id)!.quantity).eq(0)).toBe(true);
 
+  // Cancelling requires explicit confirmation; dismissal leaves the order active.
+  await page.getByTestId(`order-${transferred.id}-CANCELLED`).click();
+  await expect(page.getByTestId("cancel-order-dialog")).toBeVisible();
+  await page.getByTestId("cancel-order-dismiss").click();
+  expect((await get(`orders/${transferred.id}`)).status).toBe("NEW");
+  await page.getByTestId(`order-${transferred.id}-CANCELLED`).click();
+  const cancellation = page.waitForResponse(
+    (r) =>
+      new URL(r.url()).pathname === `/api/v1/orders/${transferred.id}` &&
+      r.request().method() === "PATCH" &&
+      r.status() === 200,
+  );
+  await page.getByTestId("cancel-order-confirm").click();
+  await cancellation;
+  await expect(page.getByTestId(`order-${transferred.id}`)).toHaveCount(0);
+
   await page.getByTestId("orders-history-link").click();
   await expect(page.getByTestId(`history-order-${order.id}`)).toContainText("تحویل‌شده");
+  await expect(page.getByTestId(`history-order-${order.id}-restore`)).toHaveCount(0);
+  const restoreResponse = waitWrite(`orders/${transferred.id}/restore`, 200);
+  await page.getByTestId(`history-order-${transferred.id}-restore`).click();
+  expect((await (await restoreResponse).json()).status).toBe("NEW");
+  await expect(page.getByTestId(`history-order-${transferred.id}`)).toHaveCount(0);
   await page.getByTestId("orders-history-back").click();
   // The delivery above went through the API, so the cached list is reloaded
   // rather than invalidated by a UI mutation.
   await page.reload();
   await expect(page.getByTestId(`order-${order.id}`)).toHaveCount(0);
+  await expect(page.getByTestId(`order-${transferred.id}`)).toBeVisible();
 }

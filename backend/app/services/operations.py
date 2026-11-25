@@ -20,7 +20,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 from typing import Any, cast
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.orm import Session, selectinload
 
 from ..ids import today_iso, utc_now_iso, uuid7
@@ -910,6 +910,8 @@ class OperationsService:
             if any(completed[line.id] < Decimal(line.quantity) for line in order.items):
                 raise InvalidOrderStateError("تمام ردیف‌های سفارش هنوز تولید نشده‌اند")
         previous_status = order.status
+        if data.status == "CANCELLED" and previous_status != "CANCELLED":
+            order.status_before_cancel = previous_status
         payload = data.model_dump(exclude={"version_id", "items"}, exclude_unset=True)
         for field, value in payload.items():
             setattr(order, field, value)
@@ -921,6 +923,53 @@ class OperationsService:
         self.session.flush()
         if order.status == "DELIVERED" and previous_status != "DELIVERED":
             self._deliver_stock(order)
+        return order
+
+    def restore_cancelled_order(self, order_id: str, version_id: int, actor_id: str) -> Order:
+        """Restore a cancellation without touching stock, lines or production jobs."""
+        order = self.get_order(order_id)
+        if order.version_id != version_id:
+            raise StaleVersionError("سفارش تغییر کرده است؛ فهرست را دوباره بارگذاری کنید")
+        if order.status != "CANCELLED":
+            raise InvalidOrderStateError("فقط سفارش لغوشده قابل بازیابی است")
+        jobs = self.order_linked_jobs(order.id)
+        status = order.status_before_cancel
+        legacy_inferred = status is None
+        if status is None:
+            # Before 0013 the previous status wasn't recorded. Infer a safe
+            # active state from production rather than claiming to know it.
+            active = [job for job in jobs if job.status != "CANCELLED"]
+            completed = {
+                line.id: sum((Decimal(job.quantity) for job in active
+                              if job.order_item_id == line.id and job.status == "DONE"), Decimal(0))
+                for line in order.items
+            }
+            if any(job.status in {"PLANNED", "IN_PROGRESS"} for job in active):
+                status = "IN_PRODUCTION"
+            elif active and order.items and all(completed[line.id] >= Decimal(line.quantity)
+                                                for line in order.items):
+                status = "READY"
+            elif active:
+                status = "IN_PRODUCTION"
+            elif jobs:
+                status = "CONFIRMED"
+            else:
+                status = "NEW"
+        # Conditional write protects against a concurrent restore/status update.
+        changed = self.session.execute(
+            update(Order).where(Order.id == order.id, Order.version_id == version_id,
+                                Order.status == "CANCELLED").values(
+                status=status, status_before_cancel=None,
+                version_id=version_id + 1, updated_at=utc_now_iso(),
+            ).returning(Order.id)
+        ).scalar_one_or_none()
+        if changed is None:
+            raise StaleVersionError("سفارش تغییر کرده است؛ فهرست را دوباره بارگذاری کنید")
+        record_security_event(self.session, "ORDER_RESTORED", actor_id=actor_id,
+                              detail={"id": order.id, "order_number": order.order_number,
+                                      "status": status, "legacy_inferred": legacy_inferred})
+        self.session.flush()
+        self.session.refresh(order)
         return order
 
     def delete_order(self, order_id: str) -> None:

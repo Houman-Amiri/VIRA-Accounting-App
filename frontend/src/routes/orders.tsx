@@ -8,6 +8,7 @@
  */
 import * as React from "react";
 import { Link } from "@tanstack/react-router";
+import * as Dialog from "@radix-ui/react-dialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, parseError } from "@/api/client";
 import { QueryNotice } from "@/components/query-notice";
@@ -241,6 +242,7 @@ export function OrdersPage(): React.JSX.Element {
   const [editing, setEditing] = React.useState<Order | null>(transfer?.editing ?? null);
   /** Item 9: deleting asks once inside the row, no browser prompt. */
   const [confirmDelete, setConfirmDelete] = React.useState<string | null>(null);
+  const [cancelOrder, setCancelOrder] = React.useState<Order | null>(null);
   const [form, setForm] = React.useState<ReturnType<typeof blankForm>>(() => {
     if (!transfer?.form?.items?.[transfer.lineIndex]) return blankForm();
     const form = transfer.form;
@@ -755,6 +757,50 @@ export function OrdersPage(): React.JSX.Element {
         </div>
       </div>
 
+      <Dialog.Root
+        open={cancelOrder !== null}
+        onOpenChange={(open) => {
+          if (!open) setCancelOrder(null);
+        }}
+      >
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50" />
+          <Dialog.Content
+            dir="rtl"
+            data-testid="cancel-order-dialog"
+            className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 space-y-4 rounded-xl border bg-card p-5 text-card-foreground shadow-lg"
+          >
+            <Dialog.Title className="font-bold">تأیید لغو سفارش</Dialog.Title>
+            <Dialog.Description className="text-sm text-muted-foreground">
+              آیا مطمئن هستید که می‌خواهید سفارش شمارهٔ{" "}
+              {cancelOrder ? faNumber(String(cancelOrder.order_number)) : ""} مربوط به «
+              {cancelOrder?.customer_name}» را لغو کنید؟ پس از لغو می‌توانید آن را از تاریخچه
+              بازیابی کنید.
+            </Dialog.Description>
+            <div className="flex gap-2">
+              <Button
+                variant="destructive"
+                data-testid="cancel-order-confirm"
+                disabled={setStatus.isPending}
+                onClick={() => {
+                  if (cancelOrder) {
+                    setStatus.mutate({ order: cancelOrder, status: "CANCELLED" });
+                    setCancelOrder(null);
+                  }
+                }}
+              >
+                بله، لغو سفارش
+              </Button>
+              <Dialog.Close asChild>
+                <Button variant="outline" data-testid="cancel-order-dismiss">
+                  خیر، بازگشت
+                </Button>
+              </Dialog.Close>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
       {message && (
         <p className="rounded-md bg-muted px-3 py-2 text-sm" data-testid="orders-message">
           {message}
@@ -917,7 +963,10 @@ export function OrdersPage(): React.JSX.Element {
                                   variant={next === "CANCELLED" ? "ghost" : "outline"}
                                   data-testid={`order-${order.id}-${next}`}
                                   disabled={setStatus.isPending}
-                                  onClick={() => setStatus.mutate({ order, status: next })}
+                                  onClick={() => {
+                                    if (next === "CANCELLED") setCancelOrder(order);
+                                    else setStatus.mutate({ order, status: next });
+                                  }}
                                 >
                                   {STATUS_LABEL[next]}
                                 </Button>

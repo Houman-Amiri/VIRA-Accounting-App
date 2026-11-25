@@ -2,15 +2,16 @@
  * تاریخچهٔ سفارشات — shipped, delivered and cancelled orders (item 7).
  *
  * The live orders page keeps only active work; this page is the workshop's
- * archive. It is read-only: status changes belong to the live order flow.
+ * archive. Only cancelled orders may be restored to the live order flow.
  */
 import * as React from "react";
 import { Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, parseError } from "@/api/client";
 import { QueryNotice } from "@/components/query-notice";
 import { OperationPagination, OPERATION_PAGE_SIZE } from "@/components/operation-pagination";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -74,6 +75,8 @@ export function OrdersHistoryPage(): React.JSX.Element {
   const [fromInvalid, setFromInvalid] = React.useState(false);
   const [toInvalid, setToInvalid] = React.useState(false);
   const [openItems, setOpenItems] = React.useState<string | null>(null);
+  const [message, setMessage] = React.useState("");
+  const queryClient = useQueryClient();
 
   const filtersReady =
     calendarReady && !fromInvalid && !toInvalid && !(dateFrom && dateTo && dateFrom > dateTo);
@@ -100,13 +103,37 @@ export function OrdersHistoryPage(): React.JSX.Element {
     },
   });
 
+  const restore = useMutation({
+    mutationFn: async (order: HistoryOrder) => {
+      const res = await api.POST("/api/v1/orders/{order_id}/restore", {
+        params: { path: { order_id: order.id } },
+        body: { version_id: order.version_id },
+      });
+      if (res.error) throw await parseError(res.response);
+      return res.data;
+    },
+    onSuccess: (order) => {
+      setMessage(
+        `سفارش #${faNumber(String(order.order_number))} بازیابی شد و با وضعیت «${STATUS_LABEL[order.status]}» به سفارش‌های فعال بازگشت.`,
+      );
+      void queryClient.invalidateQueries({ queryKey: ["orders"] });
+      void queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+    onError: (error) => {
+      setMessage(error instanceof Error ? error.message : "بازیابی سفارش ناموفق بود.");
+      void queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
+  });
+
   return (
     <div className="space-y-6" dir="rtl">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h1 className="text-xl font-bold">تاریخچهٔ سفارشات</h1>
           <p className="text-xs text-muted-foreground">
-            سفارش‌های ارسال‌شده، تحویل‌شده و لغوشده؛ فقط برای مرور و پیش‌فاکتور.
+            سفارش‌های ارسال‌شده، تحویل‌شده و لغوشده؛ سفارش لغوشده قابل بازیابی است. برای سفارش‌های
+            لغوشدهٔ قدیمی که وضعیت پیشین ثبت نشده، وضعیت بر اساس کارهای تولید تعیین می‌شود و در نبود
+            تولید، «جدید» خواهد بود.
           </p>
         </div>
         <Link
@@ -118,6 +145,15 @@ export function OrdersHistoryPage(): React.JSX.Element {
         </Link>
       </div>
 
+      {message && (
+        <p
+          role="status"
+          data-testid="history-message"
+          className="rounded-md bg-muted px-3 py-2 text-sm"
+        >
+          {message}
+        </p>
+      )}
       <Card className="min-w-0">
         <CardHeader>
           <CardTitle className="text-base">سفارش‌های بسته‌شده</CardTitle>
@@ -198,7 +234,7 @@ export function OrdersHistoryPage(): React.JSX.Element {
                   <th className="py-2 text-start font-medium">مبلغ</th>
                   <th className="py-2 text-start font-medium">سود</th>
                   <th className="py-2 text-start font-medium">وضعیت</th>
-                  <th className="py-2 text-start font-medium">پیش‌فاکتور</th>
+                  <th className="py-2 text-start font-medium">اقدام</th>
                 </tr>
               </thead>
               <tbody>
@@ -256,6 +292,18 @@ export function OrdersHistoryPage(): React.JSX.Element {
                         >
                           پیش‌فاکتور
                         </a>
+                        {order.status === "CANCELLED" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="ms-1"
+                            data-testid={`history-order-${order.id}-restore`}
+                            disabled={restore.isPending}
+                            onClick={() => restore.mutate(order)}
+                          >
+                            بازیابی سفارش
+                          </Button>
+                        )}
                       </td>
                     </tr>
                     {openItems === order.id && (

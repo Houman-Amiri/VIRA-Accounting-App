@@ -273,6 +273,10 @@ class OrderCreate(BaseModel):
     items: list[OrderItemIn] = Field(min_length=1)
 
 
+class OrderRestore(BaseModel):
+    version_id: int = Field(ge=1)
+
+
 class OrderUpdate(BaseModel):
     version_id: int
     order_date: str | None = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")

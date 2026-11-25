@@ -115,9 +115,9 @@ def test_catalog_migration_preserves_every_old_row_and_references(db_path):
     }
     for table, rows in before.items():
         if table == "orders":
-            # 0012 appends zero-discount defaults without changing historical data.
-            assert [row[:-2] for row in after[table]] == rows
-            assert all(row[-2:] == ("AMOUNT", 0) for row in after[table])
+            # 0012/0013 preserve old orders with zero discount and no saved status.
+            assert [row[:-3] for row in after[table]] == rows
+            assert all(row[-3:] == ("AMOUNT", 0, None) for row in after[table])
         elif table != "alembic_version":
             assert after[table] == rows, table
     with closing(sqlite3.connect(db_path)) as db:

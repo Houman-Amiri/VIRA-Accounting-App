@@ -34,6 +34,7 @@ from ..schemas.operations import (
     OrderItemRead,
     OrderProductionResult,
     OrderRead,
+    OrderRestore,
     OrderSummary,
     OrderUpdate,
     ProductionFilamentRead,
@@ -606,6 +607,18 @@ def update_order(
 ) -> OrderRead:
     service = OperationsService(session)
     service.update_order(order_id, payload)
+    return _order_read(service.get_order(order_id))
+
+
+@orders.post("/{order_id}/restore", response_model=OrderRead)
+def restore_order(
+    order_id: str,
+    payload: OrderRestore,
+    session: Annotated[Session, Depends(get_db)],
+    user: Annotated[SessionUser, Depends(require_roles(*WRITE_ROLES))],
+) -> OrderRead:
+    service = OperationsService(session)
+    service.restore_cancelled_order(order_id, payload.version_id, user.user_id)
     return _order_read(service.get_order(order_id))
 
 
