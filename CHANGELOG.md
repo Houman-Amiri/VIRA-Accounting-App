@@ -5,7 +5,7 @@ SemVer `MAJOR.MINOR.PATCH`; every released version has an immutable annotated
 git tag `vX.Y.Z`. Releases are published on GitHub Releases with the Inno Setup
 installer, delta packages, `latest.json`, `SHA256SUMS` and Persian notes.
 
-## [منتشرنشده]
+## [1.0.33] — 2026-10-14
 
 ### لغو و بازیابی سفارش
 - پیش از لغو، تأیید کاربر درخواست می‌شود؛ با انصراف تغییری ایجاد نمی‌شود.
